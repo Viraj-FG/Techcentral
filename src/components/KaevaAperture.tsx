@@ -1,16 +1,44 @@
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 interface KaevaApertureProps {
   state: "idle" | "thinking" | "speaking";
   size?: "sm" | "md" | "lg";
+  audioElement?: HTMLAudioElement | null;
 }
 
-const KaevaAperture = ({ state, size = "md" }: KaevaApertureProps) => {
+const KaevaAperture = ({ state, size = "md", audioElement }: KaevaApertureProps) => {
+  const [audioPulse, setAudioPulse] = useState(false);
+
   const sizeClasses = {
     sm: "w-24 h-24",
     md: "w-32 h-32 sm:w-40 sm:h-40",
     lg: "w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56"
   };
+
+  // Sync pulse with audio playback
+  useEffect(() => {
+    if (state !== 'speaking' || !audioElement) {
+      setAudioPulse(false);
+      return;
+    }
+
+    const pulseInterval = setInterval(() => {
+      setAudioPulse(prev => !prev);
+    }, 300);
+
+    const handleEnded = () => {
+      clearInterval(pulseInterval);
+      setAudioPulse(false);
+    };
+
+    audioElement.addEventListener('ended', handleEnded);
+
+    return () => {
+      clearInterval(pulseInterval);
+      audioElement.removeEventListener('ended', handleEnded);
+    };
+  }, [state, audioElement]);
 
   return (
     <div className={`relative ${sizeClasses[size]} mx-auto`}>
@@ -50,17 +78,16 @@ const KaevaAperture = ({ state, size = "md" }: KaevaApertureProps) => {
         />
       )}
       
-      {/* SPEAKING: Gentle vibration */}
+      {/* SPEAKING: Rapid vibration synced to audio */}
       {state === 'speaking' && (
         <motion.div
           className="absolute inset-0 rounded-full border-4 border-kaeva-sage"
           animate={{
-            x: [-2, 2, -1, 1, 0],
-            y: [-1, 1, -2, 2, 0]
+            scale: audioPulse ? 1.2 : 1,
+            opacity: audioPulse ? 1 : 0.7
           }}
           transition={{
-            duration: 0.4,
-            repeat: Infinity
+            duration: 0.15
           }}
         />
       )}

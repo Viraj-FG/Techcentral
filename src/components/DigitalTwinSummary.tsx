@@ -6,6 +6,7 @@ interface UserProfile {
     values: string[];
     allergies: string[];
   };
+  skinProfile: string[];
   household: {
     adults: number;
     kids: number;
@@ -89,6 +90,10 @@ const DigitalTwinSummary = ({ profile, onComplete }: DigitalTwinSummaryProps) =>
         <ProfileItem 
           label="Allergies" 
           value={profile.dietaryRestrictions.allergies.join(", ")} 
+        />
+        <ProfileItem 
+          label="Skin Profile" 
+          value={profile.skinProfile.join(", ")} 
         />
         <ProfileItem 
           label="Household" 

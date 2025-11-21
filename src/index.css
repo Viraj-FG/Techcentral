@@ -60,6 +60,11 @@ All colors MUST be HSL.
     --kaeva-sage: 142 70% 66%;
     --kaeva-teal: 173 68% 51%;
     --kaeva-slate-400: 215 16% 47%;
+    
+    /* KAEVA - Cluster-specific atmospheres */
+    --kaeva-terracotta: 14 66% 61%;
+    --kaeva-oatmeal: 214 32% 91%;
+    --kaeva-electric-teal: 174 72% 56%;
 
     --sidebar-background: 0 0% 98%;
 
@@ -120,6 +125,11 @@ All colors MUST be HSL.
     --kaeva-sage: 142 70% 66%;
     --kaeva-teal: 173 68% 51%;
     --kaeva-slate-400: 215 16% 47%;
+    
+    /* KAEVA - Cluster-specific atmospheres (same in dark mode) */
+    --kaeva-terracotta: 14 66% 61%;
+    --kaeva-oatmeal: 214 32% 91%;
+    --kaeva-electric-teal: 174 72% 56%;
   }
 }
 
