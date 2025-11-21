@@ -22,6 +22,8 @@ export const useVoiceAssistant = ({ userProfile, onProfileUpdate }: UseVoiceAssi
   const recognitionRef = useRef<any>(null);
   const silenceTimeoutRef = useRef<any>(null);
   const [isWakeWordActive, setIsWakeWordActive] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState<any[]>([]);
+  const currentConversationIdRef = useRef<string | null>(null);
 
   // ElevenLabs Conversation
   const conversation = useConversation({
@@ -34,18 +36,24 @@ export const useVoiceAssistant = ({ userProfile, onProfileUpdate }: UseVoiceAssi
       console.log("❌ ElevenLabs disconnected");
       returnToSleeping();
     },
-    onMessage: (message) => {
+    onMessage: async (message) => {
       console.log("📩 Message:", message);
       
       if (message.source === "user") {
         setUserTranscript(message.message || "");
         setVoiceState("thinking");
         setApertureState("thinking");
+        
+        // Store user message
+        await storeMessage("user", message.message || "");
       }
       
       if (message.source === "ai") {
         setAiTranscript(message.message || "");
         setVoiceState("speaking");
+        
+        // Store AI message
+        await storeMessage("assistant", message.message || "");
       }
     },
     onError: (error) => {
@@ -141,6 +149,62 @@ export const useVoiceAssistant = ({ userProfile, onProfileUpdate }: UseVoiceAssi
       }
     }
   });
+
+  // Store message to database
+  const storeMessage = async (role: "user" | "assistant", message: string) => {
+    if (!currentConversationIdRef.current || !message.trim()) return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      const { error } = await supabase
+        .from('conversation_history')
+        .insert({
+          user_id: session.user.id,
+          conversation_id: currentConversationIdRef.current,
+          role,
+          message: message.trim()
+        });
+
+      if (error) {
+        console.error("Failed to store message:", error);
+      } else {
+        console.log(`✅ Stored ${role} message`);
+      }
+    } catch (error) {
+      console.error("Error storing message:", error);
+    }
+  };
+
+  // Fetch recent conversation history
+  const fetchRecentHistory = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return [];
+
+      const { data, error } = await supabase
+        .from('conversation_history')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false })
+        .limit(10); // Last 10 messages
+
+      if (error) {
+        console.error("Failed to fetch history:", error);
+        return [];
+      }
+
+      // Reverse to get chronological order
+      const history = (data || []).reverse();
+      console.log(`📚 Loaded ${history.length} recent messages`);
+      setConversationHistory(history);
+      return history;
+    } catch (error) {
+      console.error("Error fetching history:", error);
+      return [];
+    }
+  };
 
   // Track speaking state
   useEffect(() => {
@@ -250,7 +314,14 @@ export const useVoiceAssistant = ({ userProfile, onProfileUpdate }: UseVoiceAssi
     setApertureState("thinking");
 
     try {
-      const agentId = "agent_0501kakwnx5rffaby5px9y1pskkb";
+      // Generate new conversation ID
+      currentConversationIdRef.current = crypto.randomUUID();
+      console.log("🆔 Conversation ID:", currentConversationIdRef.current);
+
+      // Fetch recent conversation history
+      const recentHistory = await fetchRecentHistory();
+
+      const agentId = "agent_0501kakwnx5rffaby5rx9y1pskkb";
       const signedUrl = await getSignedUrl(agentId);
       
       // Determine mode based on onboarding status
@@ -259,14 +330,30 @@ export const useVoiceAssistant = ({ userProfile, onProfileUpdate }: UseVoiceAssi
       
       console.log(`🤖 Starting in ${mode} mode`);
 
+      // Build context with recent history
+      let contextPrompt = "";
+      if (mode === "assistant") {
+        contextPrompt = `You are Kaeva in ASSISTANT MODE. User profile: ${JSON.stringify(userProfile)}.`;
+        
+        if (recentHistory.length > 0) {
+          contextPrompt += "\n\nRECENT CONVERSATION HISTORY (for context):\n";
+          recentHistory.forEach((msg: any) => {
+            contextPrompt += `${msg.role === "user" ? "User" : "Kaeva"}: ${msg.message}\n`;
+          });
+          contextPrompt += "\nUse this history to provide contextual responses. Reference past conversations naturally.";
+        }
+        
+        contextPrompt += "\n\nHelp the user with questions, profile updates, or navigation. Call completeConversation() when they're done.";
+      } else {
+        contextPrompt = "You are Kaeva in ONBOARDING MODE. New user - follow the structured interview to collect all required information.";
+      }
+
       await conversation.startSession({ 
         signedUrl,
         overrides: {
           agent: {
             prompt: {
-              prompt: mode === "assistant" 
-                ? `You are Kaeva in ASSISTANT MODE. User profile: ${JSON.stringify(userProfile)}. Help the user with questions, profile updates, or navigation. Call completeConversation() when they're done.`
-                : `You are Kaeva in ONBOARDING MODE. New user - follow the structured interview to collect all required information.`
+              prompt: contextPrompt
             }
           }
         }
@@ -280,7 +367,7 @@ export const useVoiceAssistant = ({ userProfile, onProfileUpdate }: UseVoiceAssi
       });
       returnToSleeping();
     }
-  }, [userProfile, conversation, toast]);
+  }, [userProfile, conversation, toast, fetchRecentHistory]);
 
   const endConversation = useCallback(() => {
     console.log("🔚 Ending conversation");
@@ -293,6 +380,9 @@ export const useVoiceAssistant = ({ userProfile, onProfileUpdate }: UseVoiceAssi
     if (conversation.status === "connected") {
       conversation.endSession();
     }
+
+    // Clear current conversation ID
+    currentConversationIdRef.current = null;
 
     setUserTranscript("");
     setAiTranscript("");
@@ -340,6 +430,7 @@ export const useVoiceAssistant = ({ userProfile, onProfileUpdate }: UseVoiceAssi
     aiTranscript,
     showConversation,
     isWakeWordActive,
+    conversationHistory,
     startConversation,
     endConversation
   };

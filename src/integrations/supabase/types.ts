@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      conversation_history: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          id: string
+          message: string
+          metadata: Json | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       inventory: {
         Row: {
           auto_order_enabled: boolean

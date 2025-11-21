@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AuroraBackground from "@/components/AuroraBackground";
+import ConversationHistory from "@/components/ConversationHistory";
 
 const profileSchema = z.object({
   userName: z.string().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
@@ -211,12 +212,13 @@ const Settings = () => {
           {/* Settings Form */}
           <form onSubmit={handleSubmit(onSubmit)}>
             <Tabs defaultValue="personal" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5 bg-white/5 backdrop-blur-xl border border-white/10">
+              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 bg-white/5 backdrop-blur-xl border border-white/10">
                 <TabsTrigger value="personal">Personal</TabsTrigger>
                 <TabsTrigger value="food">Food</TabsTrigger>
                 <TabsTrigger value="beauty">Beauty</TabsTrigger>
                 <TabsTrigger value="household">Household</TabsTrigger>
                 <TabsTrigger value="goals">Goals</TabsTrigger>
+                <TabsTrigger value="history">History</TabsTrigger>
               </TabsList>
 
               {/* Personal Tab */}
@@ -459,6 +461,17 @@ const Settings = () => {
                       )}
                     </div>
                   </div>
+                </motion.div>
+              </TabsContent>
+
+              {/* History Tab */}
+              <TabsContent value="history">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-6"
+                >
+                  <ConversationHistory />
                 </motion.div>
               </TabsContent>
             </Tabs>
