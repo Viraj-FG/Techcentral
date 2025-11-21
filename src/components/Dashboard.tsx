@@ -136,7 +136,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
 
   return (
     <motion.div
-      className="min-h-screen bg-kaeva-seattle-slate p-4 sm:p-8"
+      className="min-h-screen bg-kaeva-seattle-slate p-4 sm:p-8 relative"
       variants={dashboardVariants}
       initial="hidden"
       animate="show"
@@ -146,7 +146,10 @@ const Dashboard = ({ profile }: DashboardProps) => {
       {/* Voice Assistant - always active */}
       <VoiceAssistant userProfile={profile} onProfileUpdate={setInventoryData} />
 
-      <div className="max-w-7xl mx-auto space-y-6">
+      {/* Gradient Mask at Bottom - Seattle Mist Effect */}
+      <div className="fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-kaeva-seattle-slate to-transparent pointer-events-none z-30" />
+
+      <div className="max-w-7xl mx-auto space-y-6 pb-[140px]">
         <ConfigurationBanner />
         
         {isAdmin && (
