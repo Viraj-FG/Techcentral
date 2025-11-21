@@ -83,9 +83,6 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
   const [apertureState, setApertureState] = useState<ApertureState>("idle");
   const [aiMessage, setAiMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [conversationHistory, setConversationHistory] = useState<
-    Array<{ role: "user" | "model"; parts: Array<{ text: string }> }>
-  >([]);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -100,8 +97,7 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
       try {
         const { data, error } = await supabase.functions.invoke('kaeva-tts', {
           body: {
-            text: "Hello. I am Kaeva. Let's calibrate your Life OS. First, how do we speak?",
-            conversationHistory: []
+            text: "Hello. I am Kaeva. Let's calibrate your Life OS. First, how do we speak?"
           }
         });
 
@@ -109,10 +105,6 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
         
         const message = data.text || getFallbackMessage("language");
         setAiMessage(message);
-        
-        setConversationHistory([
-          { role: "model", parts: [{ text: message }] }
-        ]);
 
         // Play audio if available
         if (data.audioData) {
@@ -183,31 +175,16 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
 
     const nextCluster = getNextCluster(currentCluster);
     
-    const userMessage = {
-      role: "user" as const,
-      parts: [{ text: formatUserInput(clusterData) }]
-    };
-    
-    const updatedHistory = [...conversationHistory, userMessage];
-    
     try {
       const { data, error } = await supabase.functions.invoke('kaeva-tts', {
         body: {
-          text: getFallbackMessage(nextCluster),
-          conversationHistory: updatedHistory
+          text: getFallbackMessage(nextCluster)
         }
       });
 
       if (error) throw error;
 
       const message = data.text || getFallbackMessage(nextCluster);
-      
-      const aiResponse = {
-        role: "model" as const,
-        parts: [{ text: message }]
-      };
-      
-      setConversationHistory([...updatedHistory, aiResponse]);
       setAiMessage(message);
 
       // Play audio if available
