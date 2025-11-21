@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RealtimeChat } from "@/lib/realtimeAudio";
+import { useConversation } from "@11labs/react";
+import { getSignedUrl } from "@/lib/elevenLabsAudio";
 import KaevaAperture from "./KaevaAperture";
 import VoiceSubtitles from "./VoiceSubtitles";
 import DigitalTwinCard from "./DigitalTwinCard";
@@ -27,12 +28,8 @@ interface VoiceOnboardingProps {
   onComplete: (profile: any) => void;
 }
 type ApertureState = "idle" | "wakeword" | "listening" | "thinking" | "speaking";
-const VoiceOnboarding = ({
-  onComplete
-}: VoiceOnboardingProps) => {
-  const {
-    toast
-  } = useToast();
+const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
+  const { toast } = useToast();
   const [showTutorial, setShowTutorial] = useState(() => {
     return !localStorage.getItem("kaeva_tutorial_seen");
   });
@@ -51,95 +48,105 @@ const VoiceOnboarding = ({
     lifestyleGoals: [],
     isComplete: false
   });
-  const realtimeChatRef = useRef<RealtimeChat | null>(null);
-  const currentUserTranscriptRef = useRef("");
-  const currentAiTranscriptRef = useRef("");
 
-  // Initialize OpenAI Realtime API
+  // ElevenLabs Conversational AI
+  const conversation = useConversation({
+    onConnect: () => {
+      console.log("ElevenLabs connected");
+      setApertureState("listening");
+      toast({
+        title: "Connected",
+        description: "Kaeva is ready to guide you",
+      });
+    },
+    onDisconnect: () => {
+      console.log("ElevenLabs disconnected");
+      setApertureState("idle");
+    },
+    onMessage: (message) => {
+      console.log("ElevenLabs message:", message);
+      
+      if (message.message?.role === "user") {
+        setUserTranscript(message.message.content || "");
+        setShowSubtitles(true);
+        setApertureState("thinking");
+      }
+      
+      if (message.message?.role === "assistant") {
+        setAiTranscript(message.message.content || "");
+        setShowSubtitles(true);
+      }
+    },
+    onError: (error) => {
+      console.error("ElevenLabs error:", error);
+      toast({
+        title: "Connection Error",
+        description: "Failed to connect to voice service",
+        variant: "destructive"
+      });
+    },
+    clientTools: {
+      updateProfile: (parameters: { field: string; value: any }) => {
+        console.log("Updating profile:", parameters);
+        setConversationState(prev => ({
+          ...prev,
+          [parameters.field]: parameters.value
+        }));
+        return "Profile updated";
+      },
+      completeOnboarding: () => {
+        console.log("Completing onboarding");
+        setShowSummary(true);
+        return "Onboarding complete";
+      }
+    }
+  });
+
+  // Track speaking state
+  useEffect(() => {
+    if (conversation.isSpeaking) {
+      setApertureState("speaking");
+    } else if (conversation.status === "connected") {
+      setApertureState("listening");
+    }
+  }, [conversation.isSpeaking, conversation.status]);
+
+  // Initialize ElevenLabs conversation
   useEffect(() => {
     if (!permissionsGranted) return;
 
-    const initializeRealtime = async () => {
+    const initConversation = async () => {
       try {
         setApertureState("thinking");
         
-        const chat = new RealtimeChat(
-          handleRealtimeMessage,
-          (speaking) => {
-            if (speaking) {
-              setApertureState("speaking");
-            } else {
-              setApertureState("listening");
-            }
-          }
-        );
-
-        await chat.init();
-        realtimeChatRef.current = chat;
+        // IMPORTANT: Replace with your actual ElevenLabs agent ID
+        // Create agent at https://elevenlabs.io/app/conversational-ai
+        const agentId = "YOUR_AGENT_ID";
         
-        setApertureState("listening");
-        toast({
-          title: "Connected",
-          description: "Voice interface ready",
-        });
+        console.log("Getting signed URL...");
+        const signedUrl = await getSignedUrl(agentId);
+        
+        console.log("Starting conversation...");
+        await conversation.startSession({ signedUrl });
       } catch (error) {
-        console.error("Error initializing realtime:", error);
+        console.error("Error starting conversation:", error);
+        setApertureState("idle");
         toast({
           title: "Connection Error",
-          description: "Failed to start voice conversation. Please try again.",
+          description: "Failed to start conversation. Please try again.",
           variant: "destructive"
         });
       }
     };
 
-    initializeRealtime();
+    initConversation();
 
     return () => {
-      realtimeChatRef.current?.disconnect();
+      if (conversation.status === "connected") {
+        conversation.endSession();
+      }
     };
-  }, [permissionsGranted, toast]);
-
-  const handleRealtimeMessage = (event: any) => {
-    console.log('Realtime event:', event.type);
-
-    switch (event.type) {
-      case 'conversation.item.input_audio_transcription.completed':
-        const userText = event.transcript;
-        currentUserTranscriptRef.current = userText;
-        setUserTranscript(userText);
-        setShowSubtitles(true);
-        setApertureState("thinking");
-        break;
-
-      case 'response.audio_transcript.delta':
-        currentAiTranscriptRef.current += event.delta;
-        setAiTranscript(currentAiTranscriptRef.current);
-        setShowSubtitles(true);
-        break;
-
-      case 'response.audio_transcript.done':
-        const fullTranscript = event.transcript;
-        setAiTranscript(fullTranscript);
-        currentAiTranscriptRef.current = "";
-        break;
-
-      case 'response.done':
-        setShowSubtitles(false);
-        currentUserTranscriptRef.current = "";
-        // Check if conversation is complete
-        // For now, user can manually end via summary
-        break;
-
-      case 'error':
-        console.error('Realtime error:', event.error);
-        toast({
-          title: "Error",
-          description: event.error.message || "An error occurred",
-          variant: "destructive"
-        });
-        break;
-    }
-  };
+  }, [permissionsGranted]);
   const handleProfileUpdate = () => {
     setShowSummary(false);
     setConversationState(prev => ({
@@ -149,13 +156,14 @@ const VoiceOnboarding = ({
     setApertureState("listening");
   };
   const handleEnterKaeva = () => {
-    // Disconnect realtime
-    realtimeChatRef.current?.disconnect();
+    // Disconnect ElevenLabs
+    if (conversation.status === "connected") {
+      conversation.endSession();
+    }
 
     // Build final profile
     const profile = {
       language: "English",
-      // Default to English for voice mode
       userName: conversationState.userName,
       dietaryRestrictions: conversationState.dietaryValues,
       allergies: conversationState.allergies,
