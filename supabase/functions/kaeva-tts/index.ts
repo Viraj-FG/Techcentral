@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { text, conversationHistory = [] } = await req.json();
+    const { text } = await req.json();
 
     if (!text) {
       throw new Error('Text is required');
@@ -24,21 +24,7 @@ serve(async (req) => {
 
     console.log('Generating TTS for text:', text.substring(0, 50) + '...');
 
-    // Construct conversation context
-    const contents = [
-      {
-        role: "user",
-        parts: [{ 
-          text: "You are Kaeva - a minimalist, intelligent, high-end concierge AI. Warm but efficient. Like a Dyson engineer. Keep responses concise and precise." 
-        }]
-      },
-      ...conversationHistory,
-      {
-        role: "user",
-        parts: [{ text }]
-      }
-    ];
-
+    // TTS model only supports single-turn, just speak the text
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
       {
@@ -47,7 +33,12 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          contents,
+          contents: [
+            {
+              role: "user",
+              parts: [{ text }]
+            }
+          ],
           generationConfig: {
             responseModalities: ["AUDIO"],
             speechConfig: {
