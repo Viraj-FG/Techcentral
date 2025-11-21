@@ -278,7 +278,7 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-kaeva-void relative flex justify-start px-4 sm:px-8 pt-4 sm:pt-8 pb-8 sm:pb-12 pb-safe overflow-y-auto">
+    <div className="h-screen bg-kaeva-void relative flex justify-start px-4 sm:px-8 pt-4 sm:pt-8 pb-8 sm:pb-12 pb-safe overflow-y-auto">
       <AuroraBackground atmosphereColor={clusterColors[currentCluster]} />
       
       <div className="relative z-10 w-full max-w-4xl space-y-8 mb-8">
