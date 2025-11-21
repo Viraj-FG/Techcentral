@@ -99,7 +99,13 @@ const PermissionRequest = ({
       setIsRequesting(false);
     }
   };
-  return <div className="min-h-screen bg-kaeva-void relative flex justify-start px-4 sm:px-8 pt-4 sm:pt-8 pb-8 sm:pb-12 pb-safe overflow-y-auto">
+  return <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-kaeva-void relative flex justify-start px-4 sm:px-8 pt-4 sm:pt-8 pb-8 sm:pb-12 pb-safe overflow-y-auto"
+    >
       <AuroraBackground />
       
       <div className="relative z-10 w-full max-w-2xl">
@@ -194,6 +200,6 @@ const PermissionRequest = ({
           </p>
         </motion.div>
       </div>
-    </div>;
+    </motion.div>;
 };
 export default PermissionRequest;

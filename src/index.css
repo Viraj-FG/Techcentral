@@ -146,7 +146,7 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  body, #root {
+  html, body, #root {
     @apply bg-background text-foreground overflow-hidden;
   }
 }
