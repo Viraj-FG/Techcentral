@@ -8,10 +8,22 @@ import Dashboard from "@/components/Dashboard";
 const Index = () => {
   const [appState, setAppState] = useState<"splash" | "onboarding" | "dashboard">("splash");
   const [userProfile, setUserProfile] = useState(null);
-  const [useVoiceMode] = useState(() => {
-    // Check if Web Speech API is available
+  const [useVoiceMode, setUseVoiceMode] = useState(() => {
+    // Check localStorage for user preference, otherwise check browser support
+    const savedPreference = localStorage.getItem("kaeva_voice_mode");
+    if (savedPreference !== null) {
+      return savedPreference === "true";
+    }
     return 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
   });
+
+  const toggleVoiceMode = () => {
+    setUseVoiceMode(prev => {
+      const newValue = !prev;
+      localStorage.setItem("kaeva_voice_mode", String(newValue));
+      return newValue;
+    });
+  };
 
   useEffect(() => {
     const completed = localStorage.getItem("kaeva_onboarding_complete");
@@ -36,7 +48,8 @@ const Index = () => {
             onComplete={(profile) => {
               setUserProfile(profile);
               setAppState("dashboard");
-            }} 
+            }}
+            onToggleMode={toggleVoiceMode}
           />
         ) : (
           <DeepOnboarding 
@@ -44,7 +57,8 @@ const Index = () => {
             onComplete={(profile) => {
               setUserProfile(profile);
               setAppState("dashboard");
-            }} 
+            }}
+            onToggleMode={toggleVoiceMode}
           />
         )
       )}
