@@ -99,7 +99,7 @@ const PermissionRequest = ({
       setIsRequesting(false);
     }
   };
-  return <div className="min-h-screen bg-kaeva-void relative flex items-center justify-center p-4 sm:p-8">
+  return <div className="min-h-screen bg-kaeva-void relative flex items-center justify-center px-4 sm:px-8 pt-4 sm:pt-8 pb-8 sm:pb-12 pb-safe overflow-y-auto">
       <AuroraBackground />
       
       <div className="relative z-10 w-full max-w-2xl">
@@ -109,7 +109,7 @@ const PermissionRequest = ({
       }} animate={{
         opacity: 1,
         y: 0
-      }} className="flex flex-col items-center space-y-8">
+      }} className="flex flex-col items-center space-y-8 mb-8">
           {/* Kaeva Aperture */}
           <KaevaAperture state={isRequesting ? "thinking" : "idle"} size="lg" />
 
