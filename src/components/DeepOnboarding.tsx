@@ -109,9 +109,10 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
         // Play audio if available
         if (data.audioData) {
           console.log('🎤 Received PCM audio data, length:', data.audioData.length);
+          console.log('🎤 MimeType:', data.mimeType);
           setApertureState("speaking");
           try {
-            const audioBlob = convertPCMtoWAV(data.audioData);
+            const audioBlob = convertPCMtoWAV(data.audioData, data.mimeType);
             console.log('🎤 Converted to WAV blob, size:', audioBlob.size);
             const audio = await playAudio(audioBlob);
             audioRef.current = audio;
@@ -198,7 +199,7 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
       // Play audio if available
       if (data.audioData) {
         setApertureState("speaking");
-        const audioBlob = convertPCMtoWAV(data.audioData);
+        const audioBlob = convertPCMtoWAV(data.audioData, data.mimeType);
         const audio = await playAudio(audioBlob);
         audioRef.current = audio;
       }

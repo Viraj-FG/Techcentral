@@ -1,7 +1,24 @@
 /**
- * Convert base64-encoded PCM audio (L16, 24kHz) to WAV format for browser playback
+ * Parse sample rate from mimeType string
+ * Example: "audio/L16;codec=pcm;rate=24000" -> 24000
  */
-export function convertPCMtoWAV(base64PCM: string): Blob {
+function parseSampleRate(mimeType: string): number {
+  const rateMatch = mimeType.match(/rate=(\d+)/);
+  const rate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+  console.log('📊 Parsed sample rate:', rate, 'from mimeType:', mimeType);
+  return rate;
+}
+
+/**
+ * Convert base64-encoded PCM audio to WAV format for browser playback
+ * @param base64PCM - Base64-encoded PCM audio data
+ * @param mimeType - MIME type string containing audio format info (e.g., "audio/L16;codec=pcm;rate=24000")
+ */
+export function convertPCMtoWAV(base64PCM: string, mimeType: string = 'audio/L16;codec=pcm;rate=24000'): Blob {
+  console.log('🎵 Converting PCM to WAV');
+  console.log('📦 Input data length:', base64PCM.length);
+  console.log('🎼 MimeType:', mimeType);
+  
   // Decode base64 to binary
   const binaryString = atob(base64PCM);
   const bytes = new Uint8Array(binaryString.length);
@@ -9,13 +26,23 @@ export function convertPCMtoWAV(base64PCM: string): Blob {
     bytes[i] = binaryString.charCodeAt(i);
   }
 
-  // Audio format parameters (16-bit PCM, 24kHz, mono)
-  const sampleRate = 24000;
+  // Audio format parameters (16-bit PCM, mono)
+  const sampleRate = parseSampleRate(mimeType);
   const numChannels = 1;
   const bitsPerSample = 16;
   const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
   const blockAlign = numChannels * (bitsPerSample / 8);
   const dataSize = bytes.length;
+
+  console.log('🎚️ Audio parameters:', {
+    sampleRate,
+    numChannels,
+    bitsPerSample,
+    byteRate,
+    blockAlign,
+    dataSize,
+    durationSeconds: (dataSize / byteRate).toFixed(2)
+  });
 
   // Create WAV header (44 bytes)
   const header = new ArrayBuffer(44);
@@ -45,7 +72,10 @@ export function convertPCMtoWAV(base64PCM: string): Blob {
   wavData.set(new Uint8Array(header), 0);
   wavData.set(bytes, 44);
 
-  return new Blob([wavData], { type: 'audio/wav' });
+  const blob = new Blob([wavData], { type: 'audio/wav' });
+  console.log('✅ WAV blob created, size:', blob.size, 'bytes');
+  
+  return blob;
 }
 
 /**
