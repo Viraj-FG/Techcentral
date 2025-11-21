@@ -8,6 +8,7 @@ import DigitalTwinCard from "./DigitalTwinCard";
 import AuroraBackground from "./AuroraBackground";
 import VolumeControl from "./VolumeControl";
 import PermissionRequest from "./PermissionRequest";
+import TutorialOverlay from "./TutorialOverlay";
 import { useToast } from "@/hooks/use-toast";
 interface ConversationState {
   userName: string | null;
@@ -33,6 +34,9 @@ const VoiceOnboarding = ({
   const {
     toast
   } = useToast();
+  const [showTutorial, setShowTutorial] = useState(() => {
+    return !localStorage.getItem("kaeva_tutorial_seen");
+  });
   const [permissionsGranted, setPermissionsGranted] = useState(false);
   const [apertureState, setApertureState] = useState<ApertureState>("idle");
   const [isDetectingSound, setIsDetectingSound] = useState(false);
@@ -386,6 +390,15 @@ const VoiceOnboarding = ({
     localStorage.setItem("kaeva_onboarding_complete", "true");
     onComplete(profile);
   };
+
+  const handleDismissTutorial = () => {
+    setShowTutorial(false);
+    localStorage.setItem("kaeva_tutorial_seen", "true");
+  };
+
+  if (showTutorial) {
+    return <TutorialOverlay isOpen={showTutorial} onDismiss={handleDismissTutorial} />;
+  }
 
   if (!permissionsGranted) {
     return <PermissionRequest onPermissionsGranted={() => setPermissionsGranted(true)} />;
