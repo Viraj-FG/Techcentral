@@ -35,8 +35,8 @@ const Splash = ({ onComplete }: SplashProps) => {
           <motion.div
             className="absolute -top-10 -left-10 sm:-top-24 sm:-left-24 md:-top-32 md:-left-32 lg:-top-40 lg:-left-40 w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 lg:w-80 lg:h-80 bg-kaeva-sage rounded-full blur-[50px] sm:blur-[60px] md:blur-[80px] lg:blur-[100px]"
             animate={{
-              x: [-20, 20, -20],
-              y: [-20, 20, -20],
+              x: [-10, 10, -10],
+              y: [-10, 10, -10],
               opacity: [0.3, 0.5, 0.3],
             }}
             transition={{
@@ -50,8 +50,8 @@ const Splash = ({ onComplete }: SplashProps) => {
           <motion.div
             className="absolute -bottom-10 -right-10 sm:-bottom-24 sm:-right-24 md:-bottom-32 md:-right-32 lg:-bottom-40 lg:-right-40 w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96 bg-kaeva-teal rounded-full blur-[50px] sm:blur-[60px] md:blur-[80px] lg:blur-[100px]"
             animate={{
-              x: [20, -20, 20],
-              y: [20, -20, 20],
+              x: [10, -10, 10],
+              y: [10, -10, 10],
               opacity: [0.2, 0.4, 0.2],
             }}
             transition={{
