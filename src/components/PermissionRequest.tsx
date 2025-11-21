@@ -99,7 +99,7 @@ const PermissionRequest = ({
       setIsRequesting(false);
     }
   };
-  return <div className="min-h-screen bg-kaeva-void relative flex items-center justify-center px-4 sm:px-8 pt-4 sm:pt-8 pb-8 sm:pb-12 pb-safe overflow-y-auto">
+  return <div className="min-h-screen bg-kaeva-void relative flex justify-start px-4 sm:px-8 pt-4 sm:pt-8 pb-8 sm:pb-12 pb-safe overflow-y-auto">
       <AuroraBackground />
       
       <div className="relative z-10 w-full max-w-2xl">
@@ -109,7 +109,7 @@ const PermissionRequest = ({
       }} animate={{
         opacity: 1,
         y: 0
-      }} className="flex flex-col items-center space-y-8 mb-8">
+      }} className="flex flex-col items-center space-y-4 sm:space-y-6 mb-8">
           {/* Kaeva Aperture */}
           <KaevaAperture state={isRequesting ? "thinking" : "idle"} size="lg" />
 
@@ -184,7 +184,7 @@ const PermissionRequest = ({
             </motion.div>}
 
           {/* Request Button */}
-          <Button onClick={requestPermissions} disabled={isRequesting} size="lg" className="bg-kaeva-mint hover:bg-kaeva-mint/90 text-kaeva-void font-semibold px-8 py-6 text-lg -mt-10">
+          <Button onClick={requestPermissions} disabled={isRequesting} size="lg" className="bg-kaeva-mint hover:bg-kaeva-mint/90 text-kaeva-void font-semibold px-8 py-6 text-lg">
             {isRequesting ? "Initializing Audio..." : audioReady ? "Permissions Granted ✓" : "Grant Permissions"}
           </Button>
 
