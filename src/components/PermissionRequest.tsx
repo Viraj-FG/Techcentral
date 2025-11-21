@@ -33,26 +33,28 @@ const PermissionRequest = ({ onPermissionsGranted }: PermissionRequestProps) => 
       // Stop the test stream immediately after permission is granted
       stream.getTracks().forEach(track => track.stop());
 
-      // Unlock audio playback by playing a brief silent audio
+      // Unlock audio playback - both Web Audio API and HTML5 Audio
+      // Method 1: Unlock Web Audio API (AudioContext)
       const audioContext = new AudioContext();
       await audioContext.resume();
 
-      // Create a 10ms silent buffer
       const sampleRate = audioContext.sampleRate;
       const bufferLength = Math.floor(sampleRate * 0.01); // 10ms
       const buffer = audioContext.createBuffer(1, bufferLength, sampleRate);
 
-      // Create and play the silent audio
       const source = audioContext.createBufferSource();
       source.buffer = buffer;
       source.connect(audioContext.destination);
       source.start(0);
 
-      // Wait for silent audio to "play" and unlock the audio system
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Don't close the AudioContext - keep it alive for the session
-      console.log('Audio system unlocked successfully');
+      // Method 2: Unlock HTML5 Audio element (what Kaeva's voice uses)
+      const silentAudio = new Audio();
+      silentAudio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+      await silentAudio.play();
+
+      console.log('Both audio systems unlocked successfully');
       setAudioReady(true);
 
       // All permissions granted
