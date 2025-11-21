@@ -184,7 +184,7 @@ const PermissionRequest = ({
             </motion.div>}
 
           {/* Request Button */}
-          <Button onClick={requestPermissions} disabled={isRequesting} size="lg" className="bg-kaeva-mint hover:bg-kaeva-mint/90 text-kaeva-void font-semibold px-8 py-6 text-lg">
+          <Button onClick={requestPermissions} disabled={isRequesting} size="lg" className="bg-kaeva-mint hover:bg-kaeva-mint/90 text-kaeva-void font-semibold px-8 py-6 text-lg -mt-10">
             {isRequesting ? "Initializing Audio..." : audioReady ? "Permissions Granted ✓" : "Grant Permissions"}
           </Button>
 
