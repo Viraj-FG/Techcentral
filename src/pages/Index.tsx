@@ -8,10 +8,8 @@ import Dashboard from "@/components/Dashboard";
 const Index = () => {
   const [appState, setAppState] = useState<"splash" | "onboarding" | "dashboard">("splash");
   const [userProfile, setUserProfile] = useState(null);
-  const [useVoiceMode] = useState(() => {
-    // Check if Web Speech API is available
-    return 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
-  });
+  // Always use voice mode with OpenAI Realtime API (works cross-browser)
+  const [useVoiceMode] = useState(true);
 
   useEffect(() => {
     const completed = localStorage.getItem("kaeva_onboarding_complete");
