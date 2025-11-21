@@ -3,7 +3,6 @@ import { AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Splash from "@/components/Splash";
-import DeepOnboarding from "@/components/DeepOnboarding";
 import VoiceOnboarding from "@/components/VoiceOnboarding";
 import SleepingKaeva from "@/components/SleepingKaeva";
 import Dashboard from "@/components/Dashboard";
@@ -13,8 +12,6 @@ const Index = () => {
   const [appState, setAppState] = useState<"splash" | "onboarding" | "sleeping" | "dashboard" | null>(null);
   const [userProfile, setUserProfile] = useState(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  // Always use voice mode with OpenAI Realtime API (works cross-browser)
-  const [useVoiceMode] = useState(true);
 
   useEffect(() => {
     const checkAuthAndProfile = async () => {
@@ -75,23 +72,13 @@ const Index = () => {
       )}
       
       {appState === "onboarding" && (
-        useVoiceMode ? (
-          <VoiceOnboarding 
-            key="voice-onboarding"
-            onComplete={(profile) => {
-              setUserProfile(profile);
-              setAppState("dashboard");
-            }} 
-          />
-        ) : (
-          <DeepOnboarding 
-            key="onboarding"
-            onComplete={(profile) => {
-              setUserProfile(profile);
-              setAppState("dashboard");
-            }} 
-          />
-        )
+        <VoiceOnboarding 
+          key="voice-onboarding"
+          onComplete={(profile) => {
+            setUserProfile(profile);
+            setAppState("dashboard");
+          }} 
+        />
       )}
       
       {appState === "sleeping" && (
