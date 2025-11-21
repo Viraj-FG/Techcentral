@@ -121,9 +121,7 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
       try {
         setApertureState("thinking");
         
-        // IMPORTANT: Replace with your actual ElevenLabs agent ID
-        // Create agent at https://elevenlabs.io/app/conversational-ai
-        const agentId = "YOUR_AGENT_ID";
+        const agentId = "agent_0501kakwnx5rffaby5px9y1pskkb";
         
         console.log("Getting signed URL...");
         const signedUrl = await getSignedUrl(agentId);
