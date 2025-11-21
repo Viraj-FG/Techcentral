@@ -8,6 +8,7 @@ import ClusterHousehold from "./ClusterHousehold";
 import ClusterMission from "./ClusterMission";
 import DigitalTwinSummary from "./DigitalTwinSummary";
 import AuroraBackground from "./AuroraBackground";
+import PermissionRequest from "./PermissionRequest";
 
 interface UserProfile {
   language: string;
@@ -55,6 +56,7 @@ const getFallbackMessage = (cluster: ClusterType): string => {
 };
 
 const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
+  const [permissionsGranted, setPermissionsGranted] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile>({
     language: "",
     dietaryRestrictions: {
@@ -107,8 +109,10 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
     return () => clearInterval(interval);
   }, [aiMessage]);
 
-  // Initial AI greeting
+  // Initial AI greeting - only run after permissions are granted
   useEffect(() => {
+    if (!permissionsGranted) return;
+
     const fetchInitialGreeting = async () => {
       setApertureState("thinking");
       await new Promise(resolve => setTimeout(resolve, 800));
@@ -141,7 +145,7 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
     };
 
     fetchInitialGreeting();
-  }, []);
+  }, [permissionsGranted]);
 
   const getNextCluster = (current: ClusterType): ClusterType => {
     const flow: ClusterType[] = ["language", "safety", "household", "mission", "summary"];
@@ -269,6 +273,11 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
         return null;
     }
   };
+
+  // Show permission request first
+  if (!permissionsGranted) {
+    return <PermissionRequest onPermissionsGranted={() => setPermissionsGranted(true)} />;
+  }
 
   return (
     <div className="min-h-screen bg-kaeva-void relative flex items-center justify-center p-4 sm:p-8">
