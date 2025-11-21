@@ -142,7 +142,9 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
     initConversation();
 
     return () => {
+      // Cleanup: ensure ElevenLabs is disconnected when component unmounts
       if (conversation.status === "connected") {
+        console.log("🧹 Cleanup: Disconnecting ElevenLabs on unmount");
         conversation.endSession();
       }
     };
@@ -155,11 +157,23 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
     }));
     setApertureState("listening");
   };
-  const handleEnterKaeva = () => {
-    // Disconnect ElevenLabs
-    if (conversation.status === "connected") {
-      conversation.endSession();
+  const handleEnterKaeva = async () => {
+    // Forcefully disconnect ElevenLabs before proceeding
+    try {
+      if (conversation.status === "connected") {
+        console.log("🔌 Disconnecting ElevenLabs session...");
+        await conversation.endSession();
+        console.log("✅ ElevenLabs disconnected successfully");
+      }
+    } catch (error) {
+      console.error("❌ Error disconnecting ElevenLabs:", error);
     }
+
+    // Ensure complete cleanup
+    setApertureState("idle");
+    setShowSubtitles(false);
+    setUserTranscript("");
+    setAiTranscript("");
 
     // Build final profile
     const profile = {
