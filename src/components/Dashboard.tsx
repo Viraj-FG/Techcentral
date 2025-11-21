@@ -51,8 +51,10 @@ const Dashboard = ({ profile }: DashboardProps) => {
     <motion.div
       className="min-h-screen bg-kaeva-void p-4 sm:p-8"
       variants={dashboardVariants}
-      initial="hidden"
-      animate="show"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
     >
       <div className="max-w-7xl mx-auto space-y-6">
         <PulseHeader profile={profile} />
