@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import AuroraBackground from "@/components/AuroraBackground";
 import { Mail, Lock, Loader2 } from "lucide-react";
+import { kaevaTransition } from "@/hooks/useKaevaMotion";
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -140,14 +141,14 @@ const Auth = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={kaevaTransition}
           className="w-full max-w-md"
         >
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={kaevaTransition}
             className="text-center mb-8"
           >
           <div className="inline-block mb-4">
@@ -187,10 +188,10 @@ const Auth = () => {
               />
             </svg>
           </div>
-            <h1 className="text-4xl font-light tracking-wider text-white mb-2">
+            <h1 className="text-display text-4xl text-white mb-2">
               Kaeva
             </h1>
-            <p className="text-white/60 text-sm">
+            <p className="text-body text-white/60">
               Your Multi-Vertical Digital Twin
             </p>
           </motion.div>
@@ -199,19 +200,20 @@ const Auth = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 }}
-            className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl"
+            transition={kaevaTransition}
+            className="glass-card p-8"
           >
             {/* Google Sign In */}
             <Button
               onClick={handleGoogleSignIn}
               disabled={isGoogleLoading}
-              className="w-full bg-white hover:bg-white/90 text-kaeva-void font-semibold py-6 mb-6 shadow-lg"
+              variant="primary"
+              className="w-full py-6 mb-6 bg-white hover:bg-white/90 text-kaeva-void"
             >
               {isGoogleLoading ? (
                 <>
-                  <Loader2 className="animate-spin mr-2" size={18} />
-                  Connecting...
+                  <Loader2 className="animate-spin mr-2" size={20} strokeWidth={1.5} />
+                  <span className="text-micro">Connecting...</span>
                 </>
               ) : (
                 <>
@@ -221,7 +223,7 @@ const Auth = () => {
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                   </svg>
-                  Sign in with Google
+                  <span className="text-micro">Sign in with Google</span>
                 </>
               )}
             </Button>
@@ -242,8 +244,8 @@ const Auth = () => {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <Label htmlFor="email" className="text-white/90 flex items-center gap-2 mb-2">
-                  <Mail className="w-4 h-4" />
-                  Email
+                  <Mail size={20} strokeWidth={1.5} />
+                  <span className="text-micro">Email</span>
                 </Label>
                 <Input
                   id="email"
@@ -259,8 +261,8 @@ const Auth = () => {
 
               <div>
                 <Label htmlFor="password" className="text-white/90 flex items-center gap-2 mb-2">
-                  <Lock className="w-4 h-4" />
-                  Password
+                  <Lock size={20} strokeWidth={1.5} />
+                  <span className="text-micro">Password</span>
                 </Label>
                 <Input
                   id="password"
@@ -277,8 +279,8 @@ const Auth = () => {
               {isSignUp && (
                 <div>
                   <Label htmlFor="confirmPassword" className="text-white/90 flex items-center gap-2 mb-2">
-                    <Lock className="w-4 h-4" />
-                    Confirm Password
+                    <Lock size={20} strokeWidth={1.5} />
+                    <span className="text-micro">Confirm Password</span>
                   </Label>
                   <Input
                     id="confirmPassword"
@@ -296,15 +298,18 @@ const Auth = () => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-kaeva-sage hover:bg-kaeva-sage/90 text-kaeva-void font-semibold py-6 shadow-[0_0_20px_rgba(112,224,152,0.3)]"
+                variant="primary"
+                className="w-full py-6 shadow-lg shadow-kaeva-sage/20"
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="animate-spin mr-2" size={18} />
-                    {isSignUp ? 'Creating Account...' : 'Signing In...'}
+                    <Loader2 className="animate-spin mr-2" size={20} strokeWidth={1.5} />
+                    <span className="text-micro">
+                      {isSignUp ? 'Creating Account...' : 'Signing In...'}
+                    </span>
                   </>
                 ) : (
-                  isSignUp ? 'Create Account' : 'Sign In'
+                  <span className="text-micro">{isSignUp ? 'Create Account' : 'Sign In'}</span>
                 )}
               </Button>
             </form>
@@ -313,7 +318,7 @@ const Auth = () => {
             <div className="mt-6 text-center">
               <button
                 onClick={toggleMode}
-                className="text-white/60 hover:text-white text-sm transition-colors"
+                className="text-body text-white/60 hover:text-white transition-kaeva"
               >
                 {isSignUp ? (
                   <>
@@ -332,8 +337,8 @@ const Auth = () => {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="text-center text-white/40 text-xs mt-6"
+            transition={kaevaTransition}
+            className="text-center text-white/40 text-body mt-6"
           >
             By continuing, you agree to Kaeva's Terms of Service and Privacy Policy
           </motion.p>

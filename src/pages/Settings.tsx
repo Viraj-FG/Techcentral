@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AuroraBackground from "@/components/AuroraBackground";
 import ConversationHistory from "@/components/ConversationHistory";
+import { kaevaTransition } from "@/hooks/useKaevaMotion";
 
 const profileSchema = z.object({
   userName: z.string().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
@@ -174,13 +175,14 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-kaeva-void overflow-auto">
+    <div className="min-h-screen bg-kaeva-seattle-slate overflow-auto">
       <AuroraBackground vertical="food" />
       
       <div className="relative z-10 p-4 sm:p-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={kaevaTransition}
           className="max-w-4xl mx-auto"
         >
           {/* Header */}
@@ -188,37 +190,35 @@ const Settings = () => {
             <div className="flex items-center gap-4">
               <Button
                 onClick={() => navigate('/')}
-                variant="ghost"
+                variant="glass"
                 size="icon"
-                className="text-white hover:text-emerald-400"
               >
-                <ArrowLeft className="w-5 h-5" />
+                <ArrowLeft size={20} strokeWidth={1.5} />
               </Button>
               <div>
-                <h1 className="text-3xl font-light tracking-wider text-white">Settings</h1>
-                <p className="text-white/60 text-sm mt-1">Manage your digital twin profile</p>
+                <h1 className="text-display text-3xl text-white">SETTINGS</h1>
+                <p className="text-body text-white/60 mt-1">Manage your digital twin profile</p>
               </div>
             </div>
             <Button
               onClick={() => navigate('/')}
-              variant="ghost"
+              variant="glass"
               size="icon"
-              className="text-white hover:text-emerald-400"
             >
-              <Home className="w-5 h-5" />
+              <Home size={20} strokeWidth={1.5} />
             </Button>
           </div>
 
           {/* Settings Form */}
           <form onSubmit={handleSubmit(onSubmit)}>
             <Tabs defaultValue="personal" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 bg-white/5 backdrop-blur-xl border border-white/10">
-                <TabsTrigger value="personal">Personal</TabsTrigger>
-                <TabsTrigger value="food">Food</TabsTrigger>
-                <TabsTrigger value="beauty">Beauty</TabsTrigger>
-                <TabsTrigger value="household">Household</TabsTrigger>
-                <TabsTrigger value="goals">Goals</TabsTrigger>
-                <TabsTrigger value="history">History</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 glass-card">
+                <TabsTrigger value="personal" className="text-micro">Personal</TabsTrigger>
+                <TabsTrigger value="food" className="text-micro">Food</TabsTrigger>
+                <TabsTrigger value="beauty" className="text-micro">Beauty</TabsTrigger>
+                <TabsTrigger value="household" className="text-micro">Household</TabsTrigger>
+                <TabsTrigger value="goals" className="text-micro">Goals</TabsTrigger>
+                <TabsTrigger value="history" className="text-micro">History</TabsTrigger>
               </TabsList>
 
               {/* Personal Tab */}
@@ -226,24 +226,25 @@ const Settings = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-6 space-y-6"
+                  transition={kaevaTransition}
+                  className="glass-card p-6 space-y-6"
                 >
                   <div className="flex items-center gap-3 pb-4 border-b border-white/10">
-                    <User className="text-emerald-400" size={24} strokeWidth={1.5} />
-                    <h2 className="text-xl font-light tracking-wider text-white">Personal Information</h2>
+                    <User className="text-kaeva-sage" size={24} strokeWidth={1.5} />
+                    <h2 className="text-display text-xl text-white">PERSONAL INFORMATION</h2>
                   </div>
 
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="userName" className="text-white/90">Full Name</Label>
+                      <Label htmlFor="userName" className="text-white/90 text-micro">Full Name</Label>
                       <Input
                         id="userName"
                         {...register("userName")}
-                        className="mt-2 bg-white/5 border-white/10 text-white"
+                        className="mt-2"
                         placeholder="Enter your name"
                       />
                       {errors.userName && (
-                        <p className="text-red-400 text-sm mt-1">{errors.userName.message}</p>
+                        <p className="text-destructive text-micro mt-1">{errors.userName.message}</p>
                       )}
                     </div>
                   </div>
@@ -480,30 +481,34 @@ const Settings = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
+              transition={kaevaTransition}
               className="mt-6 flex flex-col sm:flex-row gap-3"
             >
               <Button
                 type="submit"
                 disabled={isSaving}
-                className="flex-1 bg-emerald-400 hover:bg-emerald-500 text-kaeva-void font-semibold py-6 shadow-[0_0_20px_rgba(112,224,152,0.3)]"
+                variant="primary"
+                className="flex-1 py-6 shadow-lg shadow-kaeva-sage/20"
               >
                 {isSaving ? (
-                  <>Saving...</>
+                  <>
+                    <Save size={20} strokeWidth={1.5} className="mr-2 animate-pulse" />
+                    <span className="text-micro">Saving...</span>
+                  </>
                 ) : (
                   <>
-                    <Save className="mr-2 w-5 h-5" />
-                    Save Changes
+                    <Save size={20} strokeWidth={1.5} className="mr-2" />
+                    <span className="text-micro">Save Changes</span>
                   </>
                 )}
               </Button>
               <Button
                 type="button"
                 onClick={() => navigate('/')}
-                variant="outline"
-                className="flex-1 sm:flex-none border-white/10 text-white hover:bg-white/10"
+                variant="glass"
+                className="flex-1 sm:flex-none"
               >
-                Cancel
+                <span className="text-micro">Cancel</span>
               </Button>
             </motion.div>
           </form>
