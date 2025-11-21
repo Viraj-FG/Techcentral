@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "./ui/button";
+import { Shield } from "lucide-react";
 import PulseHeader from "./dashboard/PulseHeader";
 import SmartCartWidget from "./dashboard/SmartCartWidget";
 import InventoryMatrix from "./dashboard/InventoryMatrix";
@@ -39,8 +42,27 @@ const mockInventoryData = {
 const Dashboard = ({ profile }: DashboardProps) => {
   const [inventoryData, setInventoryData] = useState(mockInventoryData);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const { data } = await supabase.functions.invoke("check-admin", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+
+        if (data?.isAdmin) {
+          setIsAdmin(true);
+        }
+      } catch (error) {
+        console.error("Admin check error:", error);
+      }
+    };
+
     const fetchInventory = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -92,6 +114,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
       }
     };
 
+    checkAdminStatus();
     fetchInventory();
   }, []);
 
@@ -119,6 +142,24 @@ const Dashboard = ({ profile }: DashboardProps) => {
     >
       <div className="max-w-7xl mx-auto space-y-6">
         <ConfigurationBanner />
+        
+        {isAdmin && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex justify-end"
+          >
+            <Button
+              variant="outline"
+              onClick={() => navigate("/admin")}
+              className="gap-2"
+            >
+              <Shield className="h-4 w-4" />
+              Admin Dashboard
+            </Button>
+          </motion.div>
+        )}
+
         <PulseHeader profile={profile} />
         <SmartCartWidget cartItems={lowStockItems} />
         {!isLoading && <InventoryMatrix inventory={inventoryData} />}
