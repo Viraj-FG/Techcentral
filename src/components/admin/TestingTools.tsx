@@ -3,11 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { PlayCircle, Trash2, Wifi, Mic, RefreshCw } from "lucide-react";
+import { PlayCircle, Trash2, Wifi, Mic, RefreshCw, Zap, StopCircle } from "lucide-react";
 
 export const TestingTools = () => {
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+  const [showDebugLogs, setShowDebugLogs] = useState(() => {
+    return localStorage.getItem('kaeva_debug_logs') === 'true';
+  });
   const { toast } = useToast();
 
   const testConnection = async () => {
@@ -74,6 +77,7 @@ export const TestingTools = () => {
       }).eq("id", user.id);
 
       await supabase.from("pets").delete().eq("user_id", user.id);
+      await supabase.from("conversation_history").delete().eq("user_id", user.id);
 
       toast({
         title: "Test Data Cleared",
@@ -91,6 +95,33 @@ export const TestingTools = () => {
     } finally {
       setIsClearing(false);
     }
+  };
+
+  const testWakeWord = () => {
+    toast({
+      title: "Wake Word Test",
+      description: "Say 'Kaeva' or 'Hey Kaeva' to activate",
+    });
+    // In production, this would trigger the wake word detection manually
+  };
+
+  const forceEndConversation = () => {
+    // Dispatch a custom event to force end any active conversation
+    window.dispatchEvent(new CustomEvent('force-end-conversation'));
+    toast({
+      title: "Conversation Ended",
+      description: "All active voice sessions have been terminated",
+    });
+  };
+
+  const toggleDebugLogs = () => {
+    const newValue = !showDebugLogs;
+    setShowDebugLogs(newValue);
+    localStorage.setItem('kaeva_debug_logs', String(newValue));
+    toast({
+      title: newValue ? "Debug Logs Enabled" : "Debug Logs Disabled",
+      description: newValue ? "Check console for detailed logs" : "Console logging reduced",
+    });
   };
 
   return (
@@ -154,6 +185,41 @@ export const TestingTools = () => {
                 Clear My Test Data
               </>
             )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Voice Control</CardTitle>
+          <CardDescription>Manual voice assistant controls</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Button
+            onClick={testWakeWord}
+            variant="outline"
+            className="w-full justify-start"
+          >
+            <Zap className="h-4 w-4" />
+            Test Wake Word
+          </Button>
+
+          <Button
+            onClick={forceEndConversation}
+            variant="outline"
+            className="w-full justify-start"
+          >
+            <StopCircle className="h-4 w-4" />
+            Force End Conversation
+          </Button>
+
+          <Button
+            onClick={toggleDebugLogs}
+            variant={showDebugLogs ? "default" : "outline"}
+            className="w-full justify-start"
+          >
+            <RefreshCw className="h-4 w-4" />
+            {showDebugLogs ? "Debug Logs: ON" : "Debug Logs: OFF"}
           </Button>
         </CardContent>
       </Card>

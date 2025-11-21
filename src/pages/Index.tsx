@@ -73,7 +73,20 @@ const Index = () => {
             setUserProfile(profile);
             setAppState("dashboard");
           }}
-          onExit={() => setAppState("dashboard")} 
+          onExit={async () => {
+            // For admin testing: create a minimal profile
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+              
+              setUserProfile(profile);
+            }
+            setAppState("dashboard");
+          }} 
         />
       )}
       
