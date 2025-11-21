@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
+import { kaevaTransition } from "@/hooks/useKaevaMotion";
 
 interface PulseHeaderProps {
   profile: any;
@@ -23,12 +24,12 @@ const PulseHeader = ({ profile }: PulseHeaderProps) => {
       className="glass-card p-6 sm:p-8"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={kaevaTransition}
     >
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl sm:text-4xl tracking-premium text-kaeva-slate-200">
-            {getGreeting()}, {profile.userName || "User"}
+          <h1 className="text-display text-3xl sm:text-4xl text-white">
+            {getGreeting()}, {profile.user_name || "User"}
           </h1>
         </div>
 
@@ -64,19 +65,19 @@ const PulseHeader = ({ profile }: PulseHeaderProps) => {
               />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-2xl font-bold text-kaeva-sage">{healthScore}%</span>
+              <span className="text-data text-2xl text-kaeva-sage">{healthScore}%</span>
             </div>
           </div>
 
           <div>
-            <p className="text-sm text-kaeva-slate-400">Household Health</p>
+            <p className="text-micro text-kaeva-oatmeal">Household Health</p>
           </div>
         </div>
       </div>
 
-      <div className="mt-6 p-4 rounded-lg bg-kaeva-teal/10 border border-kaeva-teal/30">
-        <p className="text-kaeva-teal flex items-center gap-2">
-          <Sparkles size={18} />
+      <div className="mt-6 p-4 rounded-2xl bg-kaeva-teal/10 border-2 border-kaeva-teal/30">
+        <p className="text-kaeva-teal flex items-center gap-2 text-body">
+          <Sparkles size={20} strokeWidth={1.5} />
           Your sodium intake is low this week. Great job!
         </p>
       </div>

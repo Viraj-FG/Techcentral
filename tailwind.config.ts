@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -82,6 +86,14 @@ export default {
         "ultra-wide": "0.2em",
         "premium": "0.3em",
       },
+      transitionDuration: {
+        '400': '400ms',
+        '500': '500ms',
+        '600': '600ms',
+      },
+      transitionTimingFunction: {
+        'kaeva': 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -104,10 +116,21 @@ export default {
             height: "0",
           },
         },
+        "entrance": {
+          from: {
+            opacity: "0",
+            transform: "translateY(20px)",
+          },
+          to: {
+            opacity: "1",
+            transform: "translateY(0)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "entrance": "entrance 500ms cubic-bezier(0.2, 0.8, 0.2, 1)",
       },
     },
   },

@@ -8,6 +8,8 @@ import { useVoiceCommand } from '@/hooks/useVoiceCommand';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
+import { TetheredTag } from './TetheredTag';
+import { kaevaTransition, kaevaEntranceVariants } from '@/hooks/useKaevaMotion';
 
 interface VisionSpotlightProps {
   isOpen: boolean;
@@ -200,60 +202,65 @@ const VisionSpotlight = ({ isOpen, onClose, onItemsAdded }: VisionSpotlightProps
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-2xl"
+          transition={kaevaTransition}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-kaeva-seattle-slate/95 backdrop-blur-xl"
         >
+          {/* Camera overlay gradient - Seattle Solstice */}
+          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-kaeva-seattle-slate/80 to-transparent pointer-events-none z-10" />
+
           <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-            className="relative w-full max-w-5xl h-[90vh] glass-card p-8 mx-4"
+            variants={kaevaEntranceVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            transition={kaevaTransition}
+            className="relative w-full max-w-5xl h-[90vh] glass-card p-8 mx-4 z-20"
           >
             {/* Close Button */}
             <Button
-              variant="ghost"
+              variant="glass"
               size="icon"
               onClick={onClose}
               className="absolute top-4 right-4 z-10"
             >
-              <X className="h-6 w-6" />
+              <X size={24} strokeWidth={1.5} />
             </Button>
 
             {/* Mode Selector */}
             <div className="absolute top-4 left-4 flex gap-2">
               <Button
-                variant={mode === 'quick_scan' ? 'default' : 'outline'}
+                variant={mode === 'quick_scan' ? 'primary' : 'glass'}
                 size="sm"
                 onClick={() => setMode('quick_scan')}
                 className="gap-2"
               >
-                <Camera className="h-4 w-4" />
-                Quick Scan
+                <Camera size={20} strokeWidth={1.5} />
+                <span className="text-micro">Quick Scan</span>
               </Button>
               <Button
-                variant={mode === 'pantry_sweep' ? 'default' : 'outline'}
+                variant={mode === 'pantry_sweep' ? 'primary' : 'glass'}
                 size="sm"
                 onClick={() => setMode('pantry_sweep')}
                 className="gap-2"
               >
-                <Package className="h-4 w-4" />
-                Pantry Sweep
+                <Package size={20} strokeWidth={1.5} />
+                <span className="text-micro">Pantry Sweep</span>
               </Button>
               <Button
-                variant={mode === 'pet_id' ? 'default' : 'outline'}
+                variant={mode === 'pet_id' ? 'primary' : 'glass'}
                 size="sm"
                 onClick={() => setMode('pet_id')}
                 className="gap-2"
               >
-                <PawPrint className="h-4 w-4" />
-                Pet ID
+                <PawPrint size={20} strokeWidth={1.5} />
+                <span className="text-micro">Pet ID</span>
               </Button>
             </div>
 
             {/* Main Content */}
             <div className="h-full flex flex-col items-center justify-center pt-16">
               {/* Camera/Image Display */}
-              <div className="relative w-full max-w-2xl aspect-video rounded-2xl overflow-hidden border-4 border-white/20 mb-6">
+              <div className="relative w-full max-w-2xl aspect-video rounded-3xl overflow-hidden border-2 border-white/20 mb-6">
                 {!capturedImage ? (
                   <>
                     <Webcam
@@ -284,12 +291,12 @@ const VisionSpotlight = ({ isOpen, onClose, onItemsAdded }: VisionSpotlightProps
                     {/* Success Ring */}
                     {showSuccess && (
                       <motion.div
-                        className="absolute inset-0 border-8 border-kaeva-sage rounded-2xl"
+                        className="absolute inset-0 border-8 border-kaeva-sage rounded-3xl"
                         animate={{
                           scale: [1, 1.05, 1],
                           opacity: [1, 0.5, 1]
                         }}
-                        transition={{ duration: 0.8 }}
+                        transition={kaevaTransition}
                       />
                     )}
                   </>
@@ -297,28 +304,29 @@ const VisionSpotlight = ({ isOpen, onClose, onItemsAdded }: VisionSpotlightProps
                   <div className="relative w-full h-full">
                     <img src={capturedImage} alt="Captured" className="w-full h-full object-cover" />
                     
-                    {/* AR Bounding Boxes */}
-                    {result && mode === 'pantry_sweep' && result.objects.map((obj, idx) => (
-                      obj.boundingBox && (
-                        <motion.div
+                    {/* Tethered Tags for pantry sweep - Seattle Solstice */}
+                    {result && mode === 'pantry_sweep' && result.objects.map((obj, idx) => {
+                      if (!obj.boundingBox) return null;
+                      
+                      const centerX = obj.boundingBox.x + obj.boundingBox.width / 2;
+                      const centerY = obj.boundingBox.y + obj.boundingBox.height / 2;
+                      
+                      return (
+                        <TetheredTag
                           key={idx}
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          className="absolute border-2 border-kaeva-sage rounded-lg"
-                          style={{
-                            left: `${obj.boundingBox.x}%`,
-                            top: `${obj.boundingBox.y}%`,
-                            width: `${obj.boundingBox.width}%`,
-                            height: `${obj.boundingBox.height}%`,
-                            boxShadow: '0 0 20px rgba(112,224,152,0.5)'
+                          label={obj.name}
+                          position={{ 
+                            x: (centerX / 100) * 640 + 100, 
+                            y: (centerY / 100) * 360 - 40 
                           }}
-                        >
-                          <span className="absolute -top-6 left-0 text-kaeva-sage text-xs bg-kaeva-void/80 px-2 py-1 rounded">
-                            {obj.name} ({Math.round(obj.confidence * 100)}%)
-                          </span>
-                        </motion.div>
-                      )
-                    ))}
+                          targetPosition={{ 
+                            x: (centerX / 100) * 640, 
+                            y: (centerY / 100) * 360 
+                          }}
+                          confidence={obj.confidence}
+                        />
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -333,14 +341,15 @@ const VisionSpotlight = ({ isOpen, onClose, onItemsAdded }: VisionSpotlightProps
                   transition={{ duration: 1.5, repeat: Infinity }}
                   className={`p-3 rounded-full ${isListening ? 'bg-kaeva-sage/20' : 'bg-white/10'}`}
                 >
-                  {isListening ? <Mic className="h-6 w-6 text-kaeva-sage" /> : <MicOff className="h-6 w-6 text-muted-foreground" />}
+                  {isListening ? <Mic size={24} strokeWidth={1.5} className="text-kaeva-sage" /> : <MicOff size={24} strokeWidth={1.5} className="text-white/50" />}
                 </motion.div>
                 
                 {transcript && (
                   <motion.div
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="text-foreground/80 text-sm"
+                    transition={kaevaTransition}
+                    className="text-white/80 text-body"
                   >
                     "{transcript}"
                   </motion.div>
@@ -350,46 +359,49 @@ const VisionSpotlight = ({ isOpen, onClose, onItemsAdded }: VisionSpotlightProps
               {/* Capture Button */}
               {!capturedImage && !isAnalyzing && (
                 <Button
+                  variant="primary"
                   size="lg"
                   onClick={capture}
                   className="gap-2"
                 >
-                  <Camera className="h-5 w-5" />
-                  Capture & Analyze
+                  <Camera size={20} strokeWidth={1.5} />
+                  <span className="text-micro">Capture & Analyze</span>
                 </Button>
               )}
 
               {/* Results Display */}
               {result && capturedImage && !showSuccess && (
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  variants={kaevaEntranceVariants}
+                  initial="hidden"
+                  animate="visible"
+                  transition={kaevaTransition}
                   className="w-full max-w-2xl space-y-4"
                 >
                   {/* Suggestion */}
                   <div className="glass-card p-4 text-center">
-                    <p className="text-foreground">{result.suggestion}</p>
+                    <p className="text-white text-body">{result.suggestion}</p>
                   </div>
 
                   {/* Detected Items List */}
                   {result.objects.length > 0 ? (
                     <div className="glass-card p-4 space-y-3 max-h-48 overflow-y-auto">
                       {result.objects.map((obj, idx) => (
-                        <div key={idx} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg">
+                        <div key={idx} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg transition-kaeva active-press">
                           <Checkbox
                             checked={selectedItems.has(idx)}
                             onCheckedChange={() => toggleItemSelection(idx)}
                           />
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <span className="text-foreground font-medium">{obj.name}</span>
+                              <span className="text-white font-medium">{obj.name}</span>
                               {obj.isEmpty && (
-                                <span className="text-xs bg-destructive/20 text-destructive px-2 py-0.5 rounded">
+                                <span className="text-micro bg-destructive/20 text-destructive px-2 py-0.5 rounded-full">
                                   Empty
                                 </span>
                               )}
                             </div>
-                            <div className="text-xs text-muted-foreground">
+                            <div className="text-micro text-kaeva-oatmeal">
                               {obj.category} • {Math.round(obj.confidence * 100)}% confidence
                               {obj.metadata?.species && ` • ${obj.metadata.species}`}
                               {obj.metadata?.breed && ` (${obj.metadata.breed})`}
@@ -399,23 +411,23 @@ const VisionSpotlight = ({ isOpen, onClose, onItemsAdded }: VisionSpotlightProps
                       ))}
                     </div>
                   ) : (
-                    <div className="glass-card p-4 flex items-center justify-center gap-2 text-muted-foreground">
-                      <AlertCircle className="h-5 w-5" />
-                      <span>No items detected. Try adjusting lighting or getting closer.</span>
+                    <div className="glass-card p-4 flex items-center justify-center gap-2 text-white/50">
+                      <AlertCircle size={20} strokeWidth={1.5} />
+                      <span className="text-body">No items detected. Try adjusting lighting or getting closer.</span>
                     </div>
                   )}
 
                   {/* Action Buttons */}
                   <div className="flex gap-3 justify-center">
-                    <Button variant="outline" onClick={retryCapture}>
-                      <Scan className="h-4 w-4 mr-2" />
-                      Retry Scan
+                    <Button variant="glass" onClick={retryCapture}>
+                      <Scan size={20} strokeWidth={1.5} />
+                      <span className="text-micro ml-2">Retry Scan</span>
                     </Button>
                     
                     {result.objects.length > 0 && selectedItems.size > 0 && (
-                      <Button onClick={saveToInventory} disabled={isSaving}>
-                        <CheckCircle2 className="h-4 w-4 mr-2" />
-                        Add Selected ({selectedItems.size})
+                      <Button variant="primary" onClick={saveToInventory} disabled={isSaving}>
+                        <CheckCircle2 size={20} strokeWidth={1.5} />
+                        <span className="text-micro ml-2">Add Selected ({selectedItems.size})</span>
                       </Button>
                     )}
                   </div>
@@ -427,10 +439,11 @@ const VisionSpotlight = ({ isOpen, onClose, onItemsAdded }: VisionSpotlightProps
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
+                  transition={kaevaTransition}
                   className="text-center space-y-2"
                 >
-                  <div className="text-kaeva-sage font-medium">Analyzing...</div>
-                  <div className="text-sm text-muted-foreground">Using Gemini Vision AI</div>
+                  <div className="text-display text-kaeva-sage">Analyzing...</div>
+                  <div className="text-body text-white/50">Using Gemini Vision AI</div>
                 </motion.div>
               )}
             </div>
