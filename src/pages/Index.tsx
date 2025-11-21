@@ -35,7 +35,7 @@ const Index = () => {
           setUserProfile(profile);
           setAppState("dashboard"); // Returning user → Dashboard directly
         } else {
-          setAppState("splash"); // New user → Splash → Onboarding
+          setAppState("splash"); // New user → Splash → Wake Word → Onboarding
         }
       } catch (error) {
         console.error("Error checking auth:", error);
@@ -68,7 +68,14 @@ const Index = () => {
   return (
     <AnimatePresence mode="wait">
       {appState === "splash" && (
-        <Splash key="splash" onComplete={() => setAppState("onboarding")} />
+        <Splash key="splash" onComplete={() => setAppState("sleeping")} />
+      )}
+      
+      {appState === "sleeping" && (
+        <SleepingKaeva 
+          key="sleeping" 
+          onWake={() => setAppState("onboarding")} 
+        />
       )}
       
       {appState === "onboarding" && (
@@ -77,14 +84,8 @@ const Index = () => {
           onComplete={(profile) => {
             setUserProfile(profile);
             setAppState("dashboard");
-          }} 
-        />
-      )}
-      
-      {appState === "sleeping" && (
-        <SleepingKaeva 
-          key="sleeping" 
-          onWake={() => setAppState("dashboard")} 
+          }}
+          onExit={() => setAppState("dashboard")} 
         />
       )}
       
