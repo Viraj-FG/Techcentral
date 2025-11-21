@@ -1,5 +1,8 @@
 project_id = "btgmvuieishjiybgcmpj"
 
+[functions.analyze-vision]
+verify_jwt = false
+
 [functions.generate-signed-url]
 verify_jwt = false
 

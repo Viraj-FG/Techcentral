@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { RefreshCw, LucideIcon } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface InventoryItem {
   name: string;
@@ -16,6 +17,15 @@ interface InventoryCardProps {
 }
 
 const InventoryCard = ({ title, icon: Icon, items }: InventoryCardProps) => {
+  const [shouldFlash, setShouldFlash] = useState(false);
+
+  // Flash animation when items change
+  useEffect(() => {
+    setShouldFlash(true);
+    const timer = setTimeout(() => setShouldFlash(false), 1500);
+    return () => clearTimeout(timer);
+  }, [items.length]);
+
   const getIconBg = (title: string) => {
     switch(title) {
       case "Fridge": return "bg-emerald-400/10";
@@ -48,6 +58,14 @@ const InventoryCard = ({ title, icon: Icon, items }: InventoryCardProps) => {
   return (
     <motion.div
       variants={cardVariants}
+      animate={shouldFlash ? {
+        boxShadow: [
+          "0 0 0px rgba(112,224,152,0)",
+          "0 0 40px rgba(112,224,152,0.8)",
+          "0 0 0px rgba(112,224,152,0)"
+        ]
+      } : {}}
+      transition={{ duration: 1.5 }}
       className="group relative overflow-hidden rounded-xl backdrop-blur-xl bg-white/5 border border-white/10 p-6 hover:bg-white/10 transition-colors"
     >
       {/* Icon with contextual color */}
