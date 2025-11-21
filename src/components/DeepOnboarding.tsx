@@ -1,14 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import KaevaAperture from "./KaevaAperture";
 import ClusterLanguage from "./ClusterLanguage";
 import ClusterSafety from "./ClusterSafety";
+import ClusterBeauty from "./ClusterBeauty";
 import ClusterHousehold from "./ClusterHousehold";
 import ClusterMission from "./ClusterMission";
 import DigitalTwinSummary from "./DigitalTwinSummary";
 import AuroraBackground from "./AuroraBackground";
 import PermissionRequest from "./PermissionRequest";
+import { convertPCMtoWAV, playAudio } from "@/lib/audioEngine";
 
 interface UserProfile {
   language: string;
@@ -16,6 +18,7 @@ interface UserProfile {
     values: string[];
     allergies: string[];
   };
+  skinProfile: string[];
   household: {
     adults: number;
     kids: number;
@@ -35,7 +38,7 @@ interface DeepOnboardingProps {
   onComplete: (profile: UserProfile) => void;
 }
 
-type ClusterType = "language" | "safety" | "household" | "mission" | "summary";
+type ClusterType = "language" | "safety" | "beauty" | "household" | "mission" | "summary";
 type ApertureState = "idle" | "thinking" | "speaking";
 
 const springTransition = {
@@ -44,13 +47,23 @@ const springTransition = {
   damping: 20
 };
 
+const clusterColors: Record<ClusterType, string> = {
+  language: "#70E098",
+  safety: "#70E098",
+  beauty: "#D97757",
+  household: "#E2E8F0",
+  mission: "#2DD4BF",
+  summary: "#70E098"
+};
+
 const getFallbackMessage = (cluster: ClusterType): string => {
   const fallbacks: Record<ClusterType, string> = {
-    language: "Hello. I am Kaeva. What is your preferred language?",
-    safety: "Understood. Now, let's set your safety parameters. Select all that apply.",
-    household: "Noted. Who are we nourishing? This defines portions and budget.",
+    language: "Hello. I am Kaeva. How do we speak?",
+    safety: "Protecting your body. Any dietary boundaries?",
+    beauty: "Optimizing your routine. Tell me about your skin.",
+    household: "Who enters your kitchen?",
     mission: "Final calibration. What is our primary mission?",
-    summary: "Profile generated. All systems calibrated. Ready to begin."
+    summary: "Profile generated. Systems calibrated."
   };
   return fallbacks[cluster];
 };
@@ -59,57 +72,24 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
   const [permissionsGranted, setPermissionsGranted] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile>({
     language: "",
-    dietaryRestrictions: {
-      values: [],
-      allergies: []
-    },
-    household: {
-      adults: 1,
-      kids: 0,
-      dogs: 0,
-      cats: 0
-    },
-    missions: {
-      medical: [],
-      lifestyle: []
-    },
-    internalFlags: {
-      enableToxicFoodWarnings: false
-    }
+    dietaryRestrictions: { values: [], allergies: [] },
+    skinProfile: [],
+    household: { adults: 1, kids: 0, dogs: 0, cats: 0 },
+    missions: { medical: [], lifestyle: [] },
+    internalFlags: { enableToxicFoodWarnings: false }
   });
 
   const [currentCluster, setCurrentCluster] = useState<ClusterType>("language");
   const [apertureState, setApertureState] = useState<ApertureState>("idle");
   const [aiMessage, setAiMessage] = useState("");
-  const [displayedMessage, setDisplayedMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [conversationHistory, setConversationHistory] = useState<
     Array<{ role: "user" | "model"; parts: Array<{ text: string }> }>
   >([]);
+  
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Typewriter effect
-  useEffect(() => {
-    if (!aiMessage) {
-      setDisplayedMessage("");
-      return;
-    }
-    
-    let index = 0;
-    setDisplayedMessage("");
-    
-    const interval = setInterval(() => {
-      if (index < aiMessage.length) {
-        setDisplayedMessage(aiMessage.slice(0, index + 1));
-        index++;
-      } else {
-        clearInterval(interval);
-      }
-    }, 30);
-    
-    return () => clearInterval(interval);
-  }, [aiMessage]);
-
-  // Initial AI greeting - only run after permissions are granted
+  // Initial AI greeting with TTS
   useEffect(() => {
     if (!permissionsGranted) return;
 
@@ -118,25 +98,32 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
       await new Promise(resolve => setTimeout(resolve, 800));
       
       try {
-        const { data, error } = await supabase.functions.invoke('interview-ai', {
+        const { data, error } = await supabase.functions.invoke('kaeva-tts', {
           body: {
-            cluster: 'language',
-            userProfile: {},
+            text: "Hello. I am Kaeva. Let's calibrate your Life OS. First, how do we speak?",
             conversationHistory: []
           }
         });
 
         if (error) throw error;
         
-        // Store AI's first message in history
-        setConversationHistory([
-          { role: "model", parts: [{ text: data.message }] }
-        ]);
+        const message = data.text || getFallbackMessage("language");
+        setAiMessage(message);
         
-        setApertureState("speaking");
-        setAiMessage(data.message || getFallbackMessage("language"));
-        await new Promise(resolve => setTimeout(resolve, 600));
-        setApertureState("idle");
+        setConversationHistory([
+          { role: "model", parts: [{ text: message }] }
+        ]);
+
+        // Play audio if available
+        if (data.audioData) {
+          setApertureState("speaking");
+          const audioBlob = convertPCMtoWAV(data.audioData);
+          const audio = await playAudio(audioBlob);
+          audioRef.current = audio;
+          setApertureState("idle");
+        } else {
+          setApertureState("idle");
+        }
       } catch (error) {
         console.error("Initial greeting error:", error);
         setAiMessage(getFallbackMessage("language"));
@@ -148,21 +135,24 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
   }, [permissionsGranted]);
 
   const getNextCluster = (current: ClusterType): ClusterType => {
-    const flow: ClusterType[] = ["language", "safety", "household", "mission", "summary"];
+    const flow: ClusterType[] = ["language", "safety", "beauty", "household", "mission", "summary"];
     const currentIndex = flow.indexOf(current);
     return flow[currentIndex + 1] || "summary";
   };
 
   const formatUserInput = (clusterData: any): string => {
-    if (clusterData.language) {
-      return `I prefer ${clusterData.language}`;
-    }
+    if (clusterData.language) return `I prefer ${clusterData.language}`;
     if (clusterData.dietaryRestrictions) {
       const { values, allergies } = clusterData.dietaryRestrictions;
       let text = "";
       if (values.length > 0) text += `My dietary preferences: ${values.join(", ")}. `;
       if (allergies.length > 0) text += `My allergies: ${allergies.join(", ")}.`;
       return text || "No dietary restrictions";
+    }
+    if (clusterData.skinProfile) {
+      return clusterData.skinProfile.length > 0 
+        ? `My skin profile: ${clusterData.skinProfile.join(", ")}`
+        : "No specific skin concerns";
     }
     if (clusterData.household) {
       const { adults, kids, dogs, cats } = clusterData.household;
@@ -181,7 +171,6 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
   const handleClusterSubmit = async (clusterData: any) => {
     const updatedProfile = { ...userProfile, ...clusterData };
     
-    // Auto-enable toxic food warnings if dogs > 0
     if (clusterData.household?.dogs > 0) {
       updatedProfile.internalFlags.enableToxicFoodWarnings = true;
     }
@@ -190,11 +179,10 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
     setApertureState("thinking");
     setIsLoading(true);
 
-    await new Promise(resolve => setTimeout(resolve, 1200));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     const nextCluster = getNextCluster(currentCluster);
     
-    // Add user's selection to conversation history
     const userMessage = {
       role: "user" as const,
       parts: [{ text: formatUserInput(clusterData) }]
@@ -203,28 +191,33 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
     const updatedHistory = [...conversationHistory, userMessage];
     
     try {
-      const { data, error } = await supabase.functions.invoke('interview-ai', {
+      const { data, error } = await supabase.functions.invoke('kaeva-tts', {
         body: {
-          cluster: nextCluster,
-          userProfile: updatedProfile,
+          text: getFallbackMessage(nextCluster),
           conversationHistory: updatedHistory
         }
       });
 
       if (error) throw error;
 
-      // Add AI's response to conversation history
+      const message = data.text || getFallbackMessage(nextCluster);
+      
       const aiResponse = {
         role: "model" as const,
-        parts: [{ text: data.message }]
+        parts: [{ text: message }]
       };
       
       setConversationHistory([...updatedHistory, aiResponse]);
+      setAiMessage(message);
 
-      setApertureState("speaking");
-      setAiMessage(data.message || getFallbackMessage(nextCluster));
+      // Play audio if available
+      if (data.audioData) {
+        setApertureState("speaking");
+        const audioBlob = convertPCMtoWAV(data.audioData);
+        const audio = await playAudio(audioBlob);
+        audioRef.current = audio;
+      }
       
-      await new Promise(resolve => setTimeout(resolve, 800));
       setCurrentCluster(nextCluster);
       setApertureState("idle");
     } catch (error) {
@@ -245,6 +238,10 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
     handleClusterSubmit({ dietaryRestrictions: data });
   };
 
+  const handleBeautySubmit = (data: { skinProfile: string[] }) => {
+    handleClusterSubmit({ skinProfile: data.skinProfile });
+  };
+
   const handleHouseholdSubmit = (data: { adults: number; kids: number; dogs: number; cats: number }) => {
     handleClusterSubmit({ household: data });
   };
@@ -263,6 +260,8 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
         return <ClusterLanguage onSelect={handleLanguageSelect} selectedLanguage={userProfile.language} />;
       case "safety":
         return <ClusterSafety onSubmit={handleSafetySubmit} />;
+      case "beauty":
+        return <ClusterBeauty onSubmit={handleBeautySubmit} />;
       case "household":
         return <ClusterHousehold onSubmit={handleHouseholdSubmit} />;
       case "mission":
@@ -274,35 +273,31 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
     }
   };
 
-  // Show permission request first
   if (!permissionsGranted) {
     return <PermissionRequest onPermissionsGranted={() => setPermissionsGranted(true)} />;
   }
 
   return (
     <div className="min-h-screen bg-kaeva-void relative flex items-center justify-center p-4 sm:p-8">
-      <AuroraBackground />
+      <AuroraBackground atmosphereColor={clusterColors[currentCluster]} />
       
       <div className="relative z-10 w-full max-w-4xl space-y-8">
-        {/* Kaeva Aperture */}
         <div className="flex flex-col items-center space-y-6">
-          <KaevaAperture state={apertureState} size="lg" />
+          <KaevaAperture state={apertureState} size="lg" audioElement={audioRef.current} />
           
-          {/* AI Message */}
-          {displayedMessage && (
+          {aiMessage && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-center max-w-2xl"
             >
-              <p className="text-lg sm:text-xl md:text-2xl text-kaeva-slate-200 tracking-wide">
-                {displayedMessage}
+              <p className="text-lg sm:text-xl md:text-2xl text-kaeva-slate-400 tracking-wide">
+                {aiMessage}
               </p>
             </motion.div>
           )}
         </div>
 
-        {/* Cluster Content */}
         <AnimatePresence mode="wait">
           <motion.div
             key={currentCluster}

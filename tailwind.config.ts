@@ -62,6 +62,9 @@ export default {
           sage: "hsl(var(--kaeva-sage))",
           teal: "hsl(var(--kaeva-teal))",
           "slate-400": "hsl(var(--kaeva-slate-400))",
+          terracotta: "hsl(var(--kaeva-terracotta))",
+          oatmeal: "hsl(var(--kaeva-oatmeal))",
+          "electric-teal": "hsl(var(--kaeva-electric-teal))",
         },
       },
       letterSpacing: {
