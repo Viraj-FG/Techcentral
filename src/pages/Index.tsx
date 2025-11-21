@@ -1,20 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { AnimatePresence } from "framer-motion";
 import Splash from "@/components/Splash";
+import DeepOnboarding from "@/components/DeepOnboarding";
+import Dashboard from "@/components/Dashboard";
 
 const Index = () => {
-  const [showSplash, setShowSplash] = useState(true);
+  const [appState, setAppState] = useState<"splash" | "onboarding" | "dashboard">("splash");
+  const [userProfile, setUserProfile] = useState(null);
 
-  if (showSplash) {
-    return <Splash onComplete={() => setShowSplash(false)} />;
-  }
+  useEffect(() => {
+    const completed = localStorage.getItem("kaeva_onboarding_complete");
+    const savedProfile = localStorage.getItem("kaeva_user_profile");
+    
+    if (completed && savedProfile) {
+      setUserProfile(JSON.parse(savedProfile));
+      setAppState("dashboard");
+    }
+  }, []);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-kaeva-void">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold text-white tracking-premium">KAEVA Dashboard</h1>
-        <p className="text-xl text-kaeva-slate-400 tracking-wide">AI Kitchen OS - System Online</p>
-      </div>
-    </div>
+    <AnimatePresence mode="wait">
+      {appState === "splash" && (
+        <Splash key="splash" onComplete={() => setAppState("onboarding")} />
+      )}
+      
+      {appState === "onboarding" && (
+        <DeepOnboarding 
+          key="onboarding"
+          onComplete={(profile) => {
+            setUserProfile(profile);
+            setAppState("dashboard");
+          }} 
+        />
+      )}
+      
+      {appState === "dashboard" && userProfile && (
+        <Dashboard key="dashboard" profile={userProfile} />
+      )}
+    </AnimatePresence>
   );
 };
 

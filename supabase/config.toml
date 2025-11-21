@@ -1,1 +1,4 @@
 project_id = "btgmvuieishjiybgcmpj"
+
+[functions.interview-ai]
+verify_jwt = false
