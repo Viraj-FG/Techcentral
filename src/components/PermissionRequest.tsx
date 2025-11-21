@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "./ui/button";
-import { Mic, Volume2, AlertCircle } from "lucide-react";
+import { Mic, Volume2, AlertCircle, TestTube2 } from "lucide-react";
 import KaevaAperture from "./KaevaAperture";
 import AuroraBackground from "./AuroraBackground";
 
@@ -13,6 +13,49 @@ const PermissionRequest = ({ onPermissionsGranted }: PermissionRequestProps) => 
   const [isRequesting, setIsRequesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [audioReady, setAudioReady] = useState(false);
+  const [isTestingAudio, setIsTestingAudio] = useState(false);
+
+  const playTestBeep = async () => {
+    setIsTestingAudio(true);
+    try {
+      // Get saved volume preference or default to 0.7
+      const savedVolume = localStorage.getItem('kaeva_volume');
+      const volume = savedVolume ? parseFloat(savedVolume) : 0.7;
+
+      // Create audio context
+      const audioContext = new AudioContext();
+      
+      // Create oscillator for beep sound (pure tone at 800Hz)
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Configure the beep
+      oscillator.frequency.value = 800; // 800Hz tone
+      oscillator.type = 'sine'; // Pure sine wave
+      
+      // Set volume and create a fade in/out envelope
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(volume * 0.3, audioContext.currentTime + 0.05); // Fade in
+      gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3); // Fade out
+      
+      // Play the beep for 300ms
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+      
+      // Wait for beep to finish
+      await new Promise(resolve => setTimeout(resolve, 400));
+      
+      console.log('🔔 Test beep played at volume:', volume);
+    } catch (err) {
+      console.error('Test audio error:', err);
+      setError('Failed to play test sound. Please check your audio settings.');
+    } finally {
+      setIsTestingAudio(false);
+    }
+  };
 
   const requestPermissions = async () => {
     setIsRequesting(true);
@@ -129,6 +172,28 @@ const PermissionRequest = ({ onPermissionsGranted }: PermissionRequestProps) => 
               <p className="text-sm text-kaeva-mint font-medium">Audio system ready ✓</p>
             </motion.div>
           )}
+
+          {/* Test Audio Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="flex flex-col items-center gap-3"
+          >
+            <Button
+              onClick={playTestBeep}
+              disabled={isTestingAudio}
+              variant="outline"
+              size="sm"
+              className="border-kaeva-slate-600 text-kaeva-slate-300 hover:bg-kaeva-slate-800 hover:text-kaeva-slate-100 transition-colors"
+            >
+              <TestTube2 className="w-4 h-4 mr-2" />
+              {isTestingAudio ? "Playing Beep..." : "Test Audio"}
+            </Button>
+            <p className="text-xs text-kaeva-slate-400 text-center max-w-xs">
+              Test your speakers and volume before starting
+            </p>
+          </motion.div>
 
           {/* Error Message */}
           {error && (
