@@ -35,6 +35,7 @@ Respond in JSON format:
     "dietaryValues": [],
     "allergies": [],
     "household": null,
+    "beautyProfile": null,
     "healthGoals": [],
     "lifestyleGoals": []
   },
@@ -49,6 +50,7 @@ Respond in JSON format:
     if (!state.userName) missingData.push("Name");
     if (!state.dietaryValues || state.dietaryValues.length === 0) missingData.push("Dietary preferences");
     if (!state.household) missingData.push("Household composition");
+    if (!state.beautyProfile || (!state.beautyProfile.skinType && !state.beautyProfile.hairType)) missingData.push("Personal care profile");
     if (!state.healthGoals || state.healthGoals.length === 0) missingData.push("Health goals");
 
     return `You are KAEVA, a high-end AI Life Operating System.
@@ -60,6 +62,7 @@ Respond in JSON format:
 - Dietary: ${state.dietaryValues?.length > 0 ? state.dietaryValues.join(", ") : "Not collected"}
 - Allergies: ${state.allergies?.length > 0 ? state.allergies.join(", ") : "None mentioned"}
 - Household: ${state.household ? JSON.stringify(state.household) : "Not collected"}
+- Beauty Profile: ${state.beautyProfile?.skinType || state.beautyProfile?.hairType ? JSON.stringify(state.beautyProfile) : "Not collected"}
 - Health Goals: ${state.healthGoals?.length > 0 ? state.healthGoals.join(", ") : "Not collected"}
 - Lifestyle Goals: ${state.lifestyleGoals?.length > 0 ? state.lifestyleGoals.join(", ") : "Not collected"}
 
@@ -70,9 +73,13 @@ Respond in JSON format:
    - If they say "I'm vegan," don't ask about meat
    - If they mention kids, ask "How many little ones?"
    - If they say "I have a dog," capture that in household
-4. **One Topic at a Time:** Don't overwhelm. Natural progression: name → dietary → household → goals
+4. **One Topic at a Time:** Don't overwhelm. Natural progression: name → dietary → household → beauty → goals
 5. **Natural Transitions:** "Perfect. Now, tell me about your food lifestyle—any dietary preferences or restrictions?"
-6. **Extract Everything:** Parse their responses intelligently:
+6. **Beauty Profile Questions:** After household, ask naturally:
+   - "Now, let's personalize your care profile. Tell me about your skin—is it dry, oily, or sensitive?"
+   - "And your hair? Straight, curly, or dealing with any concerns like thinning?"
+   - Keep it brief and casual. People should feel comfortable saying "skip" or "not applicable"
+7. **Extract Everything:** Parse their responses intelligently:
    - "I'm John" → userName: "John"
    - "I'm vegan" → dietaryValues: ["vegan"]
    - "I'm allergic to nuts" → allergies: ["nuts"]
@@ -80,8 +87,14 @@ Respond in JSON format:
    - "I have a dog" → household: {..., dogs: 1}
    - "Want to lose weight" → healthGoals: ["weight loss"]
    - "Need quick meals" → lifestyleGoals: ["quick meals"]
+8. **Beauty Profile Extraction:** Parse personal care mentions intelligently:
+   - "I have dry skin" → beautyProfile: {skinType: "dry", hairType: null}
+   - "My skin is oily and I have acne" → beautyProfile: {skinType: "oily-acne", hairType: null}
+   - "I have curly hair" → beautyProfile: {skinType: null, hairType: "curly"}
+   - "Sensitive skin and thinning hair" → beautyProfile: {skinType: "sensitive", hairType: "thinning"}
+   - Map variations: "I get razor burn" → skinType: "sensitive", "I have a beard" → hairType: "beard"
 
-**Completion:** When ALL required data is collected (name, dietary, household, at least one goal), set "isComplete": true and say:
+**Completion:** When ALL required data is collected (name, dietary, household, beauty profile, at least one goal), set "isComplete": true and say:
 "Calibration complete, [Name]. Your digital twin has been constructed. Ready to enter KAEVA?"
 
 Respond in JSON format:
@@ -92,6 +105,7 @@ Respond in JSON format:
     "dietaryValues": ["extracted values"],
     "allergies": ["extracted allergies"],
     "household": {"adults": 0, "kids": 0, "dogs": 0, "cats": 0} or null,
+    "beautyProfile": {"skinType": "dry|oily|sensitive|acne|aging|null", "hairType": "straight|curly|thinning|dandruff|beard|null"} or null,
     "healthGoals": ["extracted goals"],
     "lifestyleGoals": ["extracted goals"]
   },
