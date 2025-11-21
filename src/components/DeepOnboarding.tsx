@@ -51,7 +51,7 @@ const springTransition = {
 const clusterColors: Record<ClusterType, string> = {
   language: "#70E098",
   safety: "#70E098",
-  beauty: "#D97757",
+  beauty: "#C2410C",
   household: "#E2E8F0",
   mission: "#2DD4BF",
   summary: "#70E098"
@@ -61,7 +61,7 @@ const getFallbackMessage = (cluster: ClusterType): string => {
   const fallbacks: Record<ClusterType, string> = {
     language: "Hello. I am Kaeva. How do we speak?",
     safety: "Protecting your body. Any dietary boundaries?",
-    beauty: "Optimizing your routine. Tell me about your skin.",
+    beauty: "Optimizing your personal care. To track products and effectiveness, I need to know your profile.",
     household: "Who enters your kitchen?",
     mission: "Final calibration. What is our primary mission?",
     summary: "Profile generated. Systems calibrated."
