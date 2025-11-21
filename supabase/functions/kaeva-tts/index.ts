@@ -46,8 +46,7 @@ serve(async (req) => {
                 prebuiltVoiceConfig: {
                   voiceName: "Kore"
                 }
-              },
-              audioEncoding: "MP3"
+              }
             }
           }
         })
