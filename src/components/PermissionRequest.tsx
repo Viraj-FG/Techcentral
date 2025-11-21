@@ -12,6 +12,7 @@ interface PermissionRequestProps {
 const PermissionRequest = ({ onPermissionsGranted }: PermissionRequestProps) => {
   const [isRequesting, setIsRequesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [audioReady, setAudioReady] = useState(false);
 
   const requestPermissions = async () => {
     setIsRequesting(true);
@@ -32,10 +33,27 @@ const PermissionRequest = ({ onPermissionsGranted }: PermissionRequestProps) => 
       // Stop the test stream immediately after permission is granted
       stream.getTracks().forEach(track => track.stop());
 
-      // Check if audio playback is available
+      // Unlock audio playback by playing a brief silent audio
       const audioContext = new AudioContext();
       await audioContext.resume();
-      audioContext.close();
+
+      // Create a 10ms silent buffer
+      const sampleRate = audioContext.sampleRate;
+      const bufferLength = Math.floor(sampleRate * 0.01); // 10ms
+      const buffer = audioContext.createBuffer(1, bufferLength, sampleRate);
+
+      // Create and play the silent audio
+      const source = audioContext.createBufferSource();
+      source.buffer = buffer;
+      source.connect(audioContext.destination);
+      source.start(0);
+
+      // Wait for silent audio to "play" and unlock the audio system
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Don't close the AudioContext - keep it alive for the session
+      console.log('Audio system unlocked successfully');
+      setAudioReady(true);
 
       // All permissions granted
       onPermissionsGranted();
@@ -98,6 +116,18 @@ const PermissionRequest = ({ onPermissionsGranted }: PermissionRequestProps) => 
             </motion.div>
           </div>
 
+          {/* Success Message */}
+          {audioReady && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-kaeva-mint/10 border border-kaeva-mint/20"
+            >
+              <div className="w-2 h-2 rounded-full bg-kaeva-mint animate-pulse" />
+              <p className="text-sm text-kaeva-mint font-medium">Audio system ready ✓</p>
+            </motion.div>
+          )}
+
           {/* Error Message */}
           {error && (
             <motion.div
@@ -117,7 +147,7 @@ const PermissionRequest = ({ onPermissionsGranted }: PermissionRequestProps) => 
             size="lg"
             className="bg-kaeva-mint hover:bg-kaeva-mint/90 text-kaeva-void font-semibold px-8 py-6 text-lg"
           >
-            {isRequesting ? "Requesting Access..." : "Grant Permissions"}
+            {isRequesting ? "Initializing Audio..." : audioReady ? "Permissions Granted ✓" : "Grant Permissions"}
           </Button>
 
           {/* Privacy Note */}
