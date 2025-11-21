@@ -66,14 +66,16 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
     onMessage: (message) => {
       console.log("ElevenLabs message:", message);
       
-      if (message.message?.role === "user") {
-        setUserTranscript(message.message.content || "");
+      // Handle user transcripts
+      if (message.source === "user") {
+        setUserTranscript(message.message || "");
         setShowSubtitles(true);
         setApertureState("thinking");
       }
       
-      if (message.message?.role === "assistant") {
-        setAiTranscript(message.message.content || "");
+      // Handle assistant responses
+      if (message.source === "ai") {
+        setAiTranscript(message.message || "");
         setShowSubtitles(true);
       }
     },
