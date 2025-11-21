@@ -10,7 +10,7 @@ import ClusterMission from "./ClusterMission";
 import DigitalTwinSummary from "./DigitalTwinSummary";
 import AuroraBackground from "./AuroraBackground";
 import PermissionRequest from "./PermissionRequest";
-import { base64ToAudioBlob, playAudio } from "@/lib/audioEngine";
+import { convertPCMtoWAV, playAudio } from "@/lib/audioEngine";
 
 interface UserProfile {
   language: string;
@@ -108,11 +108,11 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
 
         // Play audio if available
         if (data.audioData) {
-          console.log('🎤 Received MP3 audio data, length:', data.audioData.length);
+          console.log('🎤 Received PCM audio data, length:', data.audioData.length);
           setApertureState("speaking");
           try {
-            const audioBlob = base64ToAudioBlob(data.audioData, 'audio/mp3');
-            console.log('🎤 Created MP3 blob, size:', audioBlob.size);
+            const audioBlob = convertPCMtoWAV(data.audioData);
+            console.log('🎤 Converted to WAV blob, size:', audioBlob.size);
             const audio = await playAudio(audioBlob);
             audioRef.current = audio;
             console.log('🎤 Audio playback completed');
@@ -198,7 +198,7 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
       // Play audio if available
       if (data.audioData) {
         setApertureState("speaking");
-        const audioBlob = base64ToAudioBlob(data.audioData, 'audio/mp3');
+        const audioBlob = convertPCMtoWAV(data.audioData);
         const audio = await playAudio(audioBlob);
         audioRef.current = audio;
       }
