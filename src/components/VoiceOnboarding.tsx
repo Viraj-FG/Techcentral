@@ -127,7 +127,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
         }));
         return "Profile updated";
       },
-      completeOnboarding: () => {
+      completeConversation: () => {
         console.log("🎉 Completing onboarding - stopping ElevenLabs");
         // Stop the conversation when onboarding is complete
         if (conversation.status === "connected") {
