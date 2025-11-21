@@ -3,10 +3,11 @@ import { AnimatePresence } from "framer-motion";
 import Splash from "@/components/Splash";
 import DeepOnboarding from "@/components/DeepOnboarding";
 import VoiceOnboarding from "@/components/VoiceOnboarding";
+import SleepingKaeva from "@/components/SleepingKaeva";
 import Dashboard from "@/components/Dashboard";
 
 const Index = () => {
-  const [appState, setAppState] = useState<"splash" | "onboarding" | "dashboard">("splash");
+  const [appState, setAppState] = useState<"splash" | "onboarding" | "sleeping" | "dashboard">("splash");
   const [userProfile, setUserProfile] = useState(null);
   // Always use voice mode with OpenAI Realtime API (works cross-browser)
   const [useVoiceMode] = useState(true);
@@ -33,7 +34,7 @@ const Index = () => {
             key="voice-onboarding"
             onComplete={(profile) => {
               setUserProfile(profile);
-              setAppState("dashboard");
+              setAppState("sleeping");
             }} 
           />
         ) : (
@@ -41,10 +42,17 @@ const Index = () => {
             key="onboarding"
             onComplete={(profile) => {
               setUserProfile(profile);
-              setAppState("dashboard");
+              setAppState("sleeping");
             }} 
           />
         )
+      )}
+      
+      {appState === "sleeping" && (
+        <SleepingKaeva 
+          key="sleeping" 
+          onWake={() => setAppState("dashboard")} 
+        />
       )}
       
       {appState === "dashboard" && userProfile && (
