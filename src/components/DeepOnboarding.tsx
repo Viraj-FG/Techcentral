@@ -81,6 +81,9 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
   const [aiMessage, setAiMessage] = useState("");
   const [displayedMessage, setDisplayedMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState<
+    Array<{ role: "user" | "model"; parts: Array<{ text: string }> }>
+  >([]);
 
   // Typewriter effect
   useEffect(() => {
@@ -115,11 +118,16 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
           body: {
             cluster: 'language',
             userProfile: {},
-            userMessage: 'Start interview'
+            conversationHistory: []
           }
         });
 
         if (error) throw error;
+        
+        // Store AI's first message in history
+        setConversationHistory([
+          { role: "model", parts: [{ text: data.message }] }
+        ]);
         
         setApertureState("speaking");
         setAiMessage(data.message || getFallbackMessage("language"));
@@ -141,6 +149,31 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
     return flow[currentIndex + 1] || "summary";
   };
 
+  const formatUserInput = (clusterData: any): string => {
+    if (clusterData.language) {
+      return `I prefer ${clusterData.language}`;
+    }
+    if (clusterData.dietaryRestrictions) {
+      const { values, allergies } = clusterData.dietaryRestrictions;
+      let text = "";
+      if (values.length > 0) text += `My dietary preferences: ${values.join(", ")}. `;
+      if (allergies.length > 0) text += `My allergies: ${allergies.join(", ")}.`;
+      return text || "No dietary restrictions";
+    }
+    if (clusterData.household) {
+      const { adults, kids, dogs, cats } = clusterData.household;
+      return `My household has ${adults} adults, ${kids} kids, ${dogs} dogs, and ${cats} cats.`;
+    }
+    if (clusterData.missions) {
+      const { medical, lifestyle } = clusterData.missions;
+      let text = "";
+      if (medical.length > 0) text += `Medical goals: ${medical.join(", ")}. `;
+      if (lifestyle.length > 0) text += `Lifestyle goals: ${lifestyle.join(", ")}.`;
+      return text || "No specific goals";
+    }
+    return JSON.stringify(clusterData);
+  };
+
   const handleClusterSubmit = async (clusterData: any) => {
     const updatedProfile = { ...userProfile, ...clusterData };
     
@@ -157,16 +190,32 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
 
     const nextCluster = getNextCluster(currentCluster);
     
+    // Add user's selection to conversation history
+    const userMessage = {
+      role: "user" as const,
+      parts: [{ text: formatUserInput(clusterData) }]
+    };
+    
+    const updatedHistory = [...conversationHistory, userMessage];
+    
     try {
       const { data, error } = await supabase.functions.invoke('interview-ai', {
         body: {
           cluster: nextCluster,
           userProfile: updatedProfile,
-          userMessage: JSON.stringify(clusterData)
+          conversationHistory: updatedHistory
         }
       });
 
       if (error) throw error;
+
+      // Add AI's response to conversation history
+      const aiResponse = {
+        role: "model" as const,
+        parts: [{ text: data.message }]
+      };
+      
+      setConversationHistory([...updatedHistory, aiResponse]);
 
       setApertureState("speaking");
       setAiMessage(data.message || getFallbackMessage(nextCluster));

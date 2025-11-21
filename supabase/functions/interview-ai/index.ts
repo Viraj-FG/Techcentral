@@ -3,28 +3,51 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const responseSchema = {
+  type: "object",
+  properties: {
+    message: {
+      type: "string",
+      description: "Natural language response to the user in their selected language"
+    }
+  },
+  required: ["message"]
+};
+
 const getSystemInstruction = (cluster: string, language: string = 'English') => {
   const instructions: Record<string, string> = {
     language: `You are KAEVA, a high-end AI Kitchen Operating System.
 Your tone is: Minimalist, Intelligent, Warm but Precise.
 The user just started onboarding. Greet them warmly and ask for their preferred language.
-Keep it to ONE sentence. Examples: "Hello. I am Kaeva. What is your preferred language?" or "Welcome. Which language would you prefer?"`,
+Keep it to ONE sentence. Examples: "Hello. I am Kaeva. What is your preferred language?" or "Welcome. Which language would you prefer?"
+
+Respond in JSON format with structure: {"message": "your response here"}`,
     
     safety: `You are KAEVA. The user selected their language: ${language}.
 Now guide them to select dietary restrictions and allergies.
-Be empathetic and brief. Example: "Understood. Now, let's set your safety parameters. Select all that apply."`,
+Be empathetic and brief. Reference their language choice if relevant.
+Example: "Understood. Now, let's set your safety parameters. Select all that apply."
+
+Respond in JSON format with structure: {"message": "your response in ${language}"}`,
     
     household: `You are KAEVA. Guide the user through household composition.
-Be practical and warm. Mention how this helps with portions and planning.
-Example: "Noted. Who are we nourishing? This defines portions and budget."`,
+Be practical and warm. Reference their previous selections naturally if it makes sense.
+Example: "Noted. Who are we nourishing? This defines portions and budget."
+
+Respond in JSON format with structure: {"message": "your response in ${language}"}`,
     
     mission: `You are KAEVA. This is the final calibration step.
 Ask about health goals and lifestyle priorities. Be inspiring but concise.
-Example: "Final calibration. What is our primary mission?"`,
+Reference their household composition if relevant (e.g., "For your family of 4...").
+Example: "Final calibration. What is our primary mission?"
+
+Respond in JSON format with structure: {"message": "your response in ${language}"}`,
     
     summary: `You are KAEVA. The calibration is complete.
-Acknowledge the profile and prepare the user to enter the system.
-Example: "Profile generated. All systems calibrated. Ready to begin."`
+Acknowledge the profile comprehensively, summarizing key details naturally.
+Example: "Profile generated for your ${language}-speaking household. All systems calibrated. Ready to begin."
+
+Respond in JSON format with structure: {"message": "your personalized summary in ${language}"}`
   };
   
   return instructions[cluster] || instructions.language;
@@ -36,9 +59,9 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { cluster, userProfile, userMessage } = await req.json();
+    const { cluster, userProfile, conversationHistory = [] } = await req.json();
     
-    console.log('[interview-ai] Request:', { cluster, userProfile });
+    console.log('[interview-ai] Request:', { cluster, userProfile, historyLength: conversationHistory.length });
     
     const GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     if (!GEMINI_API_KEY) {
@@ -46,7 +69,14 @@ Deno.serve(async (req) => {
     }
 
     const systemPrompt = getSystemInstruction(cluster, userProfile?.language);
-    const prompt = userMessage || `Start interview for ${cluster} cluster`;
+    
+    // Build conversation history with system instruction as first message
+    const systemMessage = {
+      role: "user",
+      parts: [{ text: systemPrompt }]
+    };
+    
+    const contents = [systemMessage, ...conversationHistory];
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
@@ -56,28 +86,35 @@ Deno.serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                { text: systemPrompt + '\n\n' + prompt }
-              ]
-            }
-          ],
+          contents: contents,
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 150,
+            maxOutputTokens: 200,
+            responseMimeType: "application/json",
+            responseSchema: responseSchema
           }
         })
       }
     );
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[interview-ai] Gemini API error:', response.status, errorText);
       throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const aiMessage = data.candidates?.[0]?.content?.parts?.[0]?.text || 
-                      'Please continue with the calibration.';
+    const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    
+    let parsedResponse;
+    try {
+      parsedResponse = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('[interview-ai] JSON parse error:', parseError, 'Raw text:', responseText);
+      parsedResponse = { message: 'Please continue with the calibration.' };
+    }
+
+    const aiMessage = parsedResponse.message || 'Please continue with the calibration.';
 
     console.log('[interview-ai] Response:', aiMessage);
 
