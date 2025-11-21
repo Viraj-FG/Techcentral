@@ -2,11 +2,16 @@ import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import Splash from "@/components/Splash";
 import DeepOnboarding from "@/components/DeepOnboarding";
+import VoiceOnboarding from "@/components/VoiceOnboarding";
 import Dashboard from "@/components/Dashboard";
 
 const Index = () => {
   const [appState, setAppState] = useState<"splash" | "onboarding" | "dashboard">("splash");
   const [userProfile, setUserProfile] = useState(null);
+  const [useVoiceMode] = useState(() => {
+    // Check if Web Speech API is available
+    return 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
+  });
 
   useEffect(() => {
     const completed = localStorage.getItem("kaeva_onboarding_complete");
@@ -25,13 +30,23 @@ const Index = () => {
       )}
       
       {appState === "onboarding" && (
-        <DeepOnboarding 
-          key="onboarding"
-          onComplete={(profile) => {
-            setUserProfile(profile);
-            setAppState("dashboard");
-          }} 
-        />
+        useVoiceMode ? (
+          <VoiceOnboarding 
+            key="voice-onboarding"
+            onComplete={(profile) => {
+              setUserProfile(profile);
+              setAppState("dashboard");
+            }} 
+          />
+        ) : (
+          <DeepOnboarding 
+            key="onboarding"
+            onComplete={(profile) => {
+              setUserProfile(profile);
+              setAppState("dashboard");
+            }} 
+          />
+        )
       )}
       
       {appState === "dashboard" && userProfile && (
