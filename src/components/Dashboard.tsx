@@ -1,4 +1,6 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 import PulseHeader from "./dashboard/PulseHeader";
 import SmartCartWidget from "./dashboard/SmartCartWidget";
 import InventoryMatrix from "./dashboard/InventoryMatrix";
@@ -35,8 +37,66 @@ const mockInventoryData = {
 };
 
 const Dashboard = ({ profile }: DashboardProps) => {
+  const [inventoryData, setInventoryData] = useState(mockInventoryData);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchInventory = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) return;
+
+        const { data: inventory } = await supabase
+          .from('inventory')
+          .select('*')
+          .eq('user_id', session.user.id);
+
+        if (inventory && inventory.length > 0) {
+          // Group inventory by category
+          const grouped = {
+            fridge: inventory.filter(i => i.category === 'fridge').map(i => ({
+              name: i.name,
+              fillLevel: i.fill_level || 0,
+              unit: i.unit || '',
+              status: i.fill_level && i.fill_level <= 20 ? 'low' : i.fill_level && i.fill_level <= 50 ? 'medium' : 'good',
+              autoOrdering: i.auto_order_enabled
+            })),
+            pantry: inventory.filter(i => i.category === 'pantry').map(i => ({
+              name: i.name,
+              fillLevel: i.fill_level || 0,
+              unit: i.unit || '',
+              status: i.fill_level && i.fill_level <= 20 ? 'low' : i.fill_level && i.fill_level <= 50 ? 'medium' : 'good',
+              autoOrdering: i.auto_order_enabled
+            })),
+            beauty: inventory.filter(i => i.category === 'beauty').map(i => ({
+              name: i.name,
+              fillLevel: i.fill_level || 0,
+              unit: i.unit || '',
+              status: i.fill_level && i.fill_level <= 20 ? 'low' : i.fill_level && i.fill_level <= 50 ? 'medium' : 'good',
+              autoOrdering: i.auto_order_enabled
+            })),
+            pets: inventory.filter(i => i.category === 'pets').map(i => ({
+              name: i.name,
+              fillLevel: i.fill_level || 0,
+              unit: i.unit || '',
+              status: i.fill_level && i.fill_level <= 20 ? 'low' : i.fill_level && i.fill_level <= 50 ? 'medium' : 'good',
+              autoOrdering: i.auto_order_enabled
+            }))
+          };
+          setInventoryData(grouped);
+        }
+      } catch (error) {
+        console.error("Error fetching inventory:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInventory();
+  }, []);
+
   // Get all items that need auto-ordering (fillLevel < 20%)
-  const lowStockItems = Object.values(mockInventoryData)
+  const lowStockItems = Object.values(inventoryData)
     .flat()
     .filter(item => item.fillLevel <= 20);
 
@@ -61,7 +121,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
         <ConfigurationBanner />
         <PulseHeader profile={profile} />
         <SmartCartWidget cartItems={lowStockItems} />
-        <InventoryMatrix inventory={mockInventoryData} />
+        {!isLoading && <InventoryMatrix inventory={inventoryData} />}
         <ShieldStatus profile={profile} />
       </div>
 

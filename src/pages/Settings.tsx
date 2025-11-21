@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   User, Shield, Users, Heart, Clock, Sparkles, PawPrint, 
   ArrowLeft, Save, Leaf, ShieldAlert, Home 
@@ -56,74 +57,100 @@ const Settings = () => {
   });
 
   useEffect(() => {
-    const savedProfile = localStorage.getItem("kaeva_user_profile");
-    if (savedProfile) {
-      const profile = JSON.parse(savedProfile);
-      reset({
-        userName: profile.userName || "",
-        dietaryValues: Array.isArray(profile.dietaryRestrictions) 
-          ? profile.dietaryRestrictions.join(", ") 
-          : "",
-        allergies: Array.isArray(profile.allergies) 
-          ? profile.allergies.join(", ") 
-          : "",
-        skinType: profile.beautyProfile?.skinType || "",
-        hairType: profile.beautyProfile?.hairType || "",
-        householdAdults: profile.household?.adults || 0,
-        householdKids: profile.household?.kids || 0,
-        householdDogs: profile.household?.dogs || 0,
-        householdCats: profile.household?.cats || 0,
-        petDetails: profile.household?.petDetails || "",
-        healthGoals: Array.isArray(profile.medicalGoals) 
-          ? profile.medicalGoals.join(", ") 
-          : "",
-        lifestyleGoals: Array.isArray(profile.lifestyleGoals) 
-          ? profile.lifestyleGoals.join(", ") 
-          : "",
-      });
-    } else {
-      navigate('/');
-    }
+    const loadProfile = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+          navigate('/auth');
+          return;
+        }
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile) {
+          const beautyProfile = profile.beauty_profile as { skinType?: string; hairType?: string } | null;
+          reset({
+            userName: profile.user_name || "",
+            dietaryValues: Array.isArray(profile.dietary_preferences) 
+              ? profile.dietary_preferences.join(", ") 
+              : "",
+            allergies: Array.isArray(profile.allergies) 
+              ? profile.allergies.join(", ") 
+              : "",
+            skinType: beautyProfile?.skinType || "",
+            hairType: beautyProfile?.hairType || "",
+            householdAdults: profile.household_adults || 0,
+            householdKids: profile.household_kids || 0,
+            householdDogs: 0, // TODO: Fetch from pets table
+            householdCats: 0, // TODO: Fetch from pets table
+            petDetails: "",
+            healthGoals: Array.isArray(profile.health_goals) 
+              ? profile.health_goals.join(", ") 
+              : "",
+            lifestyleGoals: Array.isArray(profile.lifestyle_goals) 
+              ? profile.lifestyle_goals.join(", ") 
+              : "",
+          });
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+        navigate('/');
+      }
+    };
+
+    loadProfile();
   }, [reset, navigate]);
 
   const onSubmit = async (data: ProfileFormData) => {
     setIsSaving(true);
     
     try {
-      const updatedProfile = {
-        language: "English",
-        userName: data.userName,
-        dietaryRestrictions: data.dietaryValues
-          .split(",")
-          .map(v => v.trim())
-          .filter(v => v.length > 0),
-        allergies: data.allergies
-          .split(",")
-          .map(v => v.trim())
-          .filter(v => v.length > 0),
-        beautyProfile: {
-          skinType: data.skinType || null,
-          hairType: data.hairType || null,
-        },
-        household: {
-          adults: data.householdAdults,
-          kids: data.householdKids,
-          dogs: data.householdDogs,
-          cats: data.householdCats,
-          petDetails: data.petDetails || undefined,
-        },
-        medicalGoals: data.healthGoals
-          .split(",")
-          .map(v => v.trim())
-          .filter(v => v.length > 0),
-        lifestyleGoals: data.lifestyleGoals
-          .split(",")
-          .map(v => v.trim())
-          .filter(v => v.length > 0),
-        enableToxicFoodWarnings: data.householdDogs > 0 || data.householdCats > 0
-      };
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        toast({
+          title: "Error",
+          description: "Not authenticated",
+          variant: "destructive"
+        });
+        return;
+      }
 
-      localStorage.setItem("kaeva_user_profile", JSON.stringify(updatedProfile));
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          user_name: data.userName,
+          dietary_preferences: data.dietaryValues
+            .split(",")
+            .map(v => v.trim())
+            .filter(v => v.length > 0),
+          allergies: data.allergies
+            .split(",")
+            .map(v => v.trim())
+            .filter(v => v.length > 0),
+          beauty_profile: {
+            skinType: data.skinType || null,
+            hairType: data.hairType || null,
+          },
+          household_adults: data.householdAdults,
+          household_kids: data.householdKids,
+          health_goals: data.healthGoals
+            .split(",")
+            .map(v => v.trim())
+            .filter(v => v.length > 0),
+          lifestyle_goals: data.lifestyleGoals
+            .split(",")
+            .map(v => v.trim())
+            .filter(v => v.length > 0),
+        })
+        .eq('id', session.user.id);
+
+      if (error) {
+        throw error;
+      }
       
       toast({
         title: "Profile Updated",
@@ -134,6 +161,7 @@ const Settings = () => {
         navigate('/');
       }, 1500);
     } catch (error) {
+      console.error("Error saving profile:", error);
       toast({
         title: "Error",
         description: "Failed to save profile. Please try again.",

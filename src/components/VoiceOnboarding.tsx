@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useConversation } from "@11labs/react";
 import { getSignedUrl } from "@/lib/elevenLabsAudio";
+import { supabase } from "@/integrations/supabase/client";
 import KaevaAperture from "./KaevaAperture";
 import VoiceSubtitles from "./VoiceSubtitles";
 import DigitalTwinCard from "./DigitalTwinCard";
@@ -204,23 +205,100 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
     setUserTranscript("");
     setAiTranscript("");
 
-    // Build final profile
-    const profile = {
-      language: "English",
-      userName: conversationState.userName,
-      dietaryRestrictions: conversationState.dietaryValues,
-      allergies: conversationState.allergies,
-      beautyProfile: conversationState.beautyProfile,
-      household: conversationState.household,
-      medicalGoals: conversationState.healthGoals,
-      lifestyleGoals: conversationState.lifestyleGoals,
-      enableToxicFoodWarnings: (conversationState.household?.dogs || 0) > 0 || (conversationState.household?.cats || 0) > 0
-    };
+    // Get current user session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      toast({
+        title: "Error",
+        description: "Not authenticated",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    // Save to localStorage
-    localStorage.setItem("kaeva_user_profile", JSON.stringify(profile));
-    localStorage.setItem("kaeva_onboarding_complete", "true");
-    onComplete(profile);
+    const userId = session.user.id;
+
+    try {
+      // Update profile in database
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          user_name: conversationState.userName,
+          dietary_preferences: conversationState.dietaryValues,
+          allergies: conversationState.allergies,
+          beauty_profile: conversationState.beautyProfile,
+          health_goals: conversationState.healthGoals,
+          lifestyle_goals: conversationState.lifestyleGoals,
+          household_adults: conversationState.household?.adults || 1,
+          household_kids: conversationState.household?.kids || 0,
+          onboarding_completed: true
+        })
+        .eq('id', userId);
+
+      if (profileError) {
+        console.error("Profile update error:", profileError);
+        toast({
+          title: "Error",
+          description: "Failed to save profile",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Save pets if any
+      if (conversationState.household?.dogs || conversationState.household?.cats) {
+        const pets = [];
+
+        for (let i = 0; i < (conversationState.household.dogs || 0); i++) {
+          pets.push({
+            user_id: userId,
+            species: 'Dog',
+            name: conversationState.household.petDetails ? `Dog ${i + 1}` : `Dog ${i + 1}`,
+            toxic_flags_enabled: true
+          });
+        }
+
+        for (let i = 0; i < (conversationState.household.cats || 0); i++) {
+          pets.push({
+            user_id: userId,
+            species: 'Cat',
+            name: conversationState.household.petDetails ? `Cat ${i + 1}` : `Cat ${i + 1}`,
+            toxic_flags_enabled: true
+          });
+        }
+
+        if (pets.length > 0) {
+          const { error: petsError } = await supabase.from('pets').insert(pets);
+          if (petsError) {
+            console.error("Pets insert error:", petsError);
+          }
+        }
+      }
+
+      // Build profile object for local state
+      const profile = {
+        id: userId,
+        language: "English",
+        userName: conversationState.userName,
+        dietaryRestrictions: conversationState.dietaryValues,
+        allergies: conversationState.allergies,
+        beautyProfile: conversationState.beautyProfile,
+        household: conversationState.household,
+        medicalGoals: conversationState.healthGoals,
+        lifestyleGoals: conversationState.lifestyleGoals,
+        enableToxicFoodWarnings: (conversationState.household?.dogs || 0) > 0 || (conversationState.household?.cats || 0) > 0,
+        onboarding_completed: true
+      };
+
+      onComplete(profile);
+    } catch (error) {
+      console.error("Error saving onboarding data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to complete onboarding",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDismissTutorial = () => {

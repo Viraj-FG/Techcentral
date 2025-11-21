@@ -14,7 +14,144 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      inventory: {
+        Row: {
+          auto_order_enabled: boolean
+          category: Database["public"]["Enums"]["inventory_category"]
+          created_at: string
+          expiry_date: string | null
+          fill_level: number | null
+          id: string
+          name: string
+          quantity: number | null
+          reorder_threshold: number | null
+          status: Database["public"]["Enums"]["inventory_status"] | null
+          unit: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_order_enabled?: boolean
+          category: Database["public"]["Enums"]["inventory_category"]
+          created_at?: string
+          expiry_date?: string | null
+          fill_level?: number | null
+          id?: string
+          name: string
+          quantity?: number | null
+          reorder_threshold?: number | null
+          status?: Database["public"]["Enums"]["inventory_status"] | null
+          unit?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_order_enabled?: boolean
+          category?: Database["public"]["Enums"]["inventory_category"]
+          created_at?: string
+          expiry_date?: string | null
+          fill_level?: number | null
+          id?: string
+          name?: string
+          quantity?: number | null
+          reorder_threshold?: number | null
+          status?: Database["public"]["Enums"]["inventory_status"] | null
+          unit?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pets: {
+        Row: {
+          age: number | null
+          breed: string | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          species: string
+          toxic_flags_enabled: boolean
+          user_id: string
+        }
+        Insert: {
+          age?: number | null
+          breed?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          species: string
+          toxic_flags_enabled?: boolean
+          user_id: string
+        }
+        Update: {
+          age?: number | null
+          breed?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          species?: string
+          toxic_flags_enabled?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          agent_configured: boolean | null
+          agent_configured_at: string | null
+          allergies: Json | null
+          beauty_profile: Json | null
+          created_at: string
+          dietary_preferences: Json | null
+          health_goals: Json | null
+          household_adults: number | null
+          household_kids: number | null
+          id: string
+          language: string | null
+          lifestyle_goals: Json | null
+          onboarding_completed: boolean
+          updated_at: string
+          user_name: string | null
+        }
+        Insert: {
+          agent_configured?: boolean | null
+          agent_configured_at?: string | null
+          allergies?: Json | null
+          beauty_profile?: Json | null
+          created_at?: string
+          dietary_preferences?: Json | null
+          health_goals?: Json | null
+          household_adults?: number | null
+          household_kids?: number | null
+          id: string
+          language?: string | null
+          lifestyle_goals?: Json | null
+          onboarding_completed?: boolean
+          updated_at?: string
+          user_name?: string | null
+        }
+        Update: {
+          agent_configured?: boolean | null
+          agent_configured_at?: string | null
+          allergies?: Json | null
+          beauty_profile?: Json | null
+          created_at?: string
+          dietary_preferences?: Json | null
+          health_goals?: Json | null
+          household_adults?: number | null
+          household_kids?: number | null
+          id?: string
+          language?: string | null
+          lifestyle_goals?: Json | null
+          onboarding_completed?: boolean
+          updated_at?: string
+          user_name?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +160,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      inventory_category: "fridge" | "pantry" | "beauty" | "pets"
+      inventory_status: "sufficient" | "low" | "critical" | "out"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +288,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      inventory_category: ["fridge", "pantry", "beauty", "pets"],
+      inventory_status: ["sufficient", "low", "critical", "out"],
+    },
   },
 } as const
