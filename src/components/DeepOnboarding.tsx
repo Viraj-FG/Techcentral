@@ -108,12 +108,20 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
 
         // Play audio if available
         if (data.audioData) {
+          console.log('🎤 Received audio data, length:', data.audioData.length);
           setApertureState("speaking");
-          const audioBlob = convertPCMtoWAV(data.audioData);
-          const audio = await playAudio(audioBlob);
-          audioRef.current = audio;
+          try {
+            const audioBlob = convertPCMtoWAV(data.audioData);
+            console.log('🎤 Converted to WAV blob');
+            const audio = await playAudio(audioBlob);
+            audioRef.current = audio;
+            console.log('🎤 Audio playback completed');
+          } catch (audioError) {
+            console.error('🎤 Audio playback failed:', audioError);
+          }
           setApertureState("idle");
         } else {
+          console.log('🎤 No audio data received');
           setApertureState("idle");
         }
       } catch (error) {
