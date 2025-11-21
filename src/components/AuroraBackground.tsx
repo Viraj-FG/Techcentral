@@ -12,7 +12,7 @@ const AuroraBackground = ({ atmosphereColor = "#70E098" }: AuroraBackgroundProps
         className="absolute w-96 h-96 rounded-full blur-3xl"
         animate={{
           backgroundColor: atmosphereColor,
-          x: ["-20%", "120%"],
+          x: ["10%", "80%"],
           y: ["20%", "80%"]
         }}
         transition={{
@@ -28,8 +28,8 @@ const AuroraBackground = ({ atmosphereColor = "#70E098" }: AuroraBackgroundProps
         className="absolute w-80 h-80 rounded-full blur-3xl"
         animate={{
           backgroundColor: atmosphereColor,
-          x: ["100%", "-20%"],
-          y: ["60%", "10%"]
+          x: ["80%", "10%"],
+          y: ["50%", "20%"]
         }}
         transition={{
           backgroundColor: { duration: 1.5, ease: "easeInOut" },
@@ -45,7 +45,7 @@ const AuroraBackground = ({ atmosphereColor = "#70E098" }: AuroraBackgroundProps
         animate={{
           backgroundColor: atmosphereColor,
           x: ["50%", "50%"],
-          y: ["-10%", "110%"]
+          y: ["10%", "90%"]
         }}
         transition={{
           backgroundColor: { duration: 1.5, ease: "easeInOut" },
