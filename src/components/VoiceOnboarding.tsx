@@ -119,7 +119,7 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
     },
     clientTools: {
       updateProfile: (parameters: { field: string; value: any }) => {
-        console.log("Updating profile:", parameters);
+        console.log("✅ Profile field update:", parameters.field, parameters.value);
         setConversationState(prev => ({
           ...prev,
           [parameters.field]: parameters.value
