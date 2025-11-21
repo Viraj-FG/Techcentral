@@ -8,39 +8,46 @@ import { UserManagement } from "@/components/admin/UserManagement";
 import { DatabaseInspector } from "@/components/admin/DatabaseInspector";
 import { SystemLogs } from "@/components/admin/SystemLogs";
 import { Analytics } from "@/components/admin/Analytics";
+import { motion } from "framer-motion";
+import { kaevaTransition } from "@/hooks/useKaevaMotion";
 
 const Admin = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-kaeva-seattle-slate p-6">
+      <motion.div 
+        className="max-w-7xl mx-auto space-y-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={kaevaTransition}
+      >
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Shield className="h-6 w-6 text-primary" />
-              <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+              <Shield size={24} strokeWidth={1.5} className="text-kaeva-sage" />
+              <h1 className="text-display text-3xl text-white">ADMIN DASHBOARD</h1>
             </div>
-            <p className="text-muted-foreground">
+            <p className="text-body text-white/60">
               Manage agent configuration, testing, and system monitoring
             </p>
           </div>
-          <Button variant="outline" onClick={() => navigate("/")}>
-            <ArrowLeft className="h-4 w-4" />
-            Back to Dashboard
+          <Button variant="glass" onClick={() => navigate("/")}>
+            <ArrowLeft size={20} strokeWidth={1.5} />
+            <span className="text-micro ml-2">Back to Dashboard</span>
           </Button>
         </div>
 
         {/* Tabs */}
         <Tabs defaultValue="agent" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="agent">Agent Config</TabsTrigger>
-            <TabsTrigger value="testing">Testing</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="database">Database</TabsTrigger>
-            <TabsTrigger value="logs">Logs</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-6 glass-card">
+            <TabsTrigger value="agent" className="text-micro">Agent Config</TabsTrigger>
+            <TabsTrigger value="testing" className="text-micro">Testing</TabsTrigger>
+            <TabsTrigger value="users" className="text-micro">Users</TabsTrigger>
+            <TabsTrigger value="database" className="text-micro">Database</TabsTrigger>
+            <TabsTrigger value="logs" className="text-micro">Logs</TabsTrigger>
+            <TabsTrigger value="analytics" className="text-micro">Analytics</TabsTrigger>
           </TabsList>
 
           <TabsContent value="agent">
@@ -67,7 +74,7 @@ const Admin = () => {
             <Analytics />
           </TabsContent>
         </Tabs>
-      </div>
+      </motion.div>
     </div>
   );
 };
