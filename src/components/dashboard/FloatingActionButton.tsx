@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Settings, LogOut } from "lucide-react";
 import VisionSpotlight from "./VisionSpotlight";
+import { kaevaTransition } from "@/hooks/useKaevaMotion";
 
 const FloatingActionButton = () => {
   const { toast } = useToast();
@@ -42,61 +43,62 @@ const FloatingActionButton = () => {
         onItemsAdded={() => window.location.reload()}
       />
 
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex gap-4">
-        {/* Logout Button */}
-        <motion.button
-          className="p-4 rounded-full bg-kaeva-void/80 backdrop-blur-sm border-2 border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.1)]"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", delay: 0.7 }}
-          onClick={handleLogout}
-        >
-          <LogOut className="w-6 h-6 text-white" />
-        </motion.button>
+      {/* Unified Glass Capsule Dock */}
+      <motion.div
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40"
+        initial={{ opacity: 0, y: 100 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ ...kaevaTransition, delay: 0.5 }}
+      >
+        <div className="backdrop-blur-xl bg-slate-900/90 border-2 border-white/10 rounded-full px-6 py-3 shadow-2xl">
+          <div className="flex items-center gap-6">
+            {/* Settings Button */}
+            <motion.button
+              onClick={() => navigate('/settings')}
+              className="p-3 rounded-full hover:bg-white/10 transition-kaeva active-press"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              transition={kaevaTransition}
+            >
+              <Settings size={24} strokeWidth={1.5} className="text-white" />
+            </motion.button>
 
-        {/* Settings Button */}
-        <motion.button
-          className="p-4 rounded-full bg-kaeva-void/80 backdrop-blur-sm border-2 border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.1)]"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", delay: 0.8 }}
-          onClick={() => navigate('/settings')}
-        >
-          <Settings className="w-6 h-6 text-white" />
-        </motion.button>
+            {/* Vision Spotlight - Living Aperture (Center) */}
+            <motion.button
+              onClick={() => setSpotlightOpen(true)}
+              className="relative"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              transition={kaevaTransition}
+              animate={{
+                scale: [1, 1.05, 1],
+                boxShadow: [
+                  "0 0 20px rgba(112,224,152,0.3)",
+                  "0 0 40px rgba(112,224,152,0.6)",
+                  "0 0 20px rgba(112,224,152,0.3)"
+                ]
+              }}
+              style={{
+                transition: 'all 3s ease-in-out',
+                animationIterationCount: 'infinite'
+              }}
+            >
+              <KaevaAperture state="idle" size="lg" />
+            </motion.button>
 
-        {/* Vision Spotlight Trigger - Living Aperture */}
-        <motion.button
-          className="p-4 rounded-full bg-kaeva-void/80 backdrop-blur-sm border-2 border-kaeva-sage/50 shadow-[0_0_30px_rgba(112,224,152,0.3)] group relative"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ 
-            y: 0, 
-            opacity: 1,
-            scale: [1, 1.05, 1],
-            boxShadow: [
-              "0 0 30px rgba(112,224,152,0.3)",
-              "0 0 50px rgba(112,224,152,0.6)",
-              "0 0 30px rgba(112,224,152,0.3)"
-            ]
-          }}
-          transition={{ 
-            y: { type: "spring", delay: 0.9 },
-            opacity: { type: "spring", delay: 0.9 },
-            scale: { duration: 3, repeat: Infinity, ease: "easeInOut" },
-            boxShadow: { duration: 3, repeat: Infinity, ease: "easeInOut" }
-          }}
-          onClick={() => setSpotlightOpen(true)}
-        >
-          <KaevaAperture state="idle" size="sm" />
-          <div className="absolute inset-0 rounded-full bg-kaeva-sage/20 opacity-0 group-hover:opacity-100 transition-opacity blur-xl"></div>
-        </motion.button>
-      </div>
+            {/* Logout Button */}
+            <motion.button
+              onClick={handleLogout}
+              className="p-3 rounded-full hover:bg-white/10 transition-kaeva active-press"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              transition={kaevaTransition}
+            >
+              <LogOut size={24} strokeWidth={1.5} className="text-white" />
+            </motion.button>
+          </div>
+        </div>
+      </motion.div>
     </>
   );
 };
