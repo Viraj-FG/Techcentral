@@ -187,6 +187,44 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
     }));
     setApertureState("listening");
   };
+
+  const transformProfileData = (state: ConversationState) => {
+    // Ensure dietary values is an array
+    const dietaryPreferences = Array.isArray(state.dietaryValues) 
+      ? state.dietaryValues 
+      : [];
+
+    // Ensure allergies is an array  
+    const allergies = Array.isArray(state.allergies)
+      ? state.allergies
+      : [];
+
+    // Ensure health goals is an array
+    const healthGoals = Array.isArray(state.healthGoals)
+      ? state.healthGoals
+      : [];
+
+    // Ensure lifestyle goals is an array
+    const lifestyleGoals = Array.isArray(state.lifestyleGoals)
+      ? state.lifestyleGoals
+      : [];
+
+    // Ensure beauty profile is a proper object
+    const beautyProfile = state.beautyProfile || { skinType: null, hairType: null };
+
+    return {
+      user_name: state.userName || null,
+      dietary_preferences: dietaryPreferences,
+      allergies: allergies,
+      beauty_profile: beautyProfile,
+      health_goals: healthGoals,
+      lifestyle_goals: lifestyleGoals,
+      household_adults: state.household?.adults || 1,
+      household_kids: state.household?.kids || 0,
+      onboarding_completed: true
+    };
+  };
+
   const handleEnterKaeva = async () => {
     // Forcefully disconnect ElevenLabs before proceeding
     try {
@@ -219,31 +257,30 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
     const userId = session.user.id;
 
     try {
+      // Log the raw state for debugging
+      console.log("📊 Raw conversationState:", JSON.stringify(conversationState, null, 2));
+      
+      // Transform data to match database schema
+      const transformedData = transformProfileData(conversationState);
+      console.log("✅ Transformed data:", JSON.stringify(transformedData, null, 2));
+
       // Update profile in database
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({
-          user_name: conversationState.userName,
-          dietary_preferences: conversationState.dietaryValues,
-          allergies: conversationState.allergies,
-          beauty_profile: conversationState.beautyProfile,
-          health_goals: conversationState.healthGoals,
-          lifestyle_goals: conversationState.lifestyleGoals,
-          household_adults: conversationState.household?.adults || 1,
-          household_kids: conversationState.household?.kids || 0,
-          onboarding_completed: true
-        })
+        .update(transformedData)
         .eq('id', userId);
 
       if (profileError) {
-        console.error("Profile update error:", profileError);
+        console.error("❌ Profile update error:", profileError);
         toast({
           title: "Error",
-          description: "Failed to save profile",
+          description: `Failed to save profile: ${profileError.message}`,
           variant: "destructive"
         });
         return;
       }
+
+      console.log("✅ Profile saved successfully");
 
       // Save pets if any
       if (conversationState.household?.dogs || conversationState.household?.cats) {
@@ -275,21 +312,22 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
         }
       }
 
-      // Build profile object for local state
+      // Build profile object for local state using transformed data
       const profile = {
         id: userId,
         language: "English",
-        userName: conversationState.userName,
-        dietaryRestrictions: conversationState.dietaryValues,
-        allergies: conversationState.allergies,
-        beautyProfile: conversationState.beautyProfile,
+        userName: transformedData.user_name,
+        dietaryRestrictions: transformedData.dietary_preferences,
+        allergies: transformedData.allergies,
+        beautyProfile: transformedData.beauty_profile,
         household: conversationState.household,
-        medicalGoals: conversationState.healthGoals,
-        lifestyleGoals: conversationState.lifestyleGoals,
+        medicalGoals: transformedData.health_goals,
+        lifestyleGoals: transformedData.lifestyle_goals,
         enableToxicFoodWarnings: (conversationState.household?.dogs || 0) > 0 || (conversationState.household?.cats || 0) > 0,
         onboarding_completed: true
       };
 
+      console.log("🎉 Calling onComplete with profile");
       onComplete(profile);
     } catch (error) {
       console.error("Error saving onboarding data:", error);
