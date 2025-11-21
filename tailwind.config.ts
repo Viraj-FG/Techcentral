@@ -57,6 +57,18 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        kaeva: {
+          void: "hsl(var(--kaeva-void))",
+          sage: "hsl(var(--kaeva-sage))",
+          teal: "hsl(var(--kaeva-teal))",
+          "slate-400": "hsl(var(--kaeva-slate-400))",
+        },
+      },
+      letterSpacing: {
+        wider: "0.05em",
+        widest: "0.1em",
+        "ultra-wide": "0.2em",
+        "premium": "0.3em",
       },
       borderRadius: {
         lg: "var(--radius)",

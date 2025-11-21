@@ -1,11 +1,18 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import Splash from "@/components/Splash";
 
 const Index = () => {
+  const [showSplash, setShowSplash] = useState(true);
+
+  if (showSplash) {
+    return <Splash onComplete={() => setShowSplash(false)} />;
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
+    <div className="flex min-h-screen items-center justify-center bg-kaeva-void">
       <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+        <h1 className="mb-4 text-4xl font-bold text-white tracking-premium">KAEVA Dashboard</h1>
+        <p className="text-xl text-kaeva-slate-400 tracking-wide">AI Kitchen OS - System Online</p>
       </div>
     </div>
   );
