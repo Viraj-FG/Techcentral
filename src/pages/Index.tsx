@@ -10,7 +10,7 @@ import Dashboard from "@/components/Dashboard";
 
 const Index = () => {
   const navigate = useNavigate();
-  const [appState, setAppState] = useState<"splash" | "onboarding" | "sleeping" | "dashboard">("splash");
+  const [appState, setAppState] = useState<"splash" | "onboarding" | "sleeping" | "dashboard" | null>(null);
   const [userProfile, setUserProfile] = useState(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   // Always use voice mode with OpenAI Realtime API (works cross-browser)
@@ -36,9 +36,9 @@ const Index = () => {
 
         if (profile?.onboarding_completed) {
           setUserProfile(profile);
-          setAppState("dashboard");
+          setAppState("dashboard"); // Returning user → Dashboard directly
         } else {
-          setAppState("onboarding");
+          setAppState("splash"); // New user → Splash → Onboarding
         }
       } catch (error) {
         console.error("Error checking auth:", error);
@@ -60,8 +60,12 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  if (isCheckingAuth) {
-    return null; // Or a loading spinner
+  if (isCheckingAuth || appState === null) {
+    return (
+      <div className="fixed inset-0 bg-kaeva-void flex items-center justify-center">
+        <div className="text-kaeva-sage text-lg animate-pulse">Loading Kaeva...</div>
+      </div>
+    );
   }
 
   return (

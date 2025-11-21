@@ -113,6 +113,7 @@ export type Database = {
           language: string | null
           lifestyle_goals: Json | null
           onboarding_completed: boolean
+          permissions_granted: boolean | null
           updated_at: string
           user_name: string | null
         }
@@ -130,6 +131,7 @@ export type Database = {
           language?: string | null
           lifestyle_goals?: Json | null
           onboarding_completed?: boolean
+          permissions_granted?: boolean | null
           updated_at?: string
           user_name?: string | null
         }
@@ -147,6 +149,7 @@ export type Database = {
           language?: string | null
           lifestyle_goals?: Json | null
           onboarding_completed?: boolean
+          permissions_granted?: boolean | null
           updated_at?: string
           user_name?: string | null
         }

@@ -143,6 +143,27 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
     }
   }, [conversation.isSpeaking, conversation.status]);
 
+  // Fetch permission status from database on mount
+  useEffect(() => {
+    const fetchPermissionStatus = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('permissions_granted')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profile?.permissions_granted) {
+        console.log("✅ Permissions already granted, skipping request");
+        setPermissionsGranted(true);
+      }
+    };
+
+    fetchPermissionStatus();
+  }, []);
+
   // Initialize ElevenLabs conversation
   useEffect(() => {
     if (!permissionsGranted) return;
@@ -186,6 +207,25 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
       isComplete: false
     }));
     setApertureState("listening");
+  };
+
+  const handlePermissionsGranted = async () => {
+    setPermissionsGranted(true);
+    
+    // Save to database
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ permissions_granted: true })
+        .eq('id', session.user.id);
+
+      if (error) {
+        console.error("Failed to save permissions status:", error);
+      } else {
+        console.log("✅ Permissions status saved to database");
+      }
+    }
   };
 
   const transformProfileData = (state: ConversationState) => {
@@ -349,7 +389,7 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
   }
 
   if (!permissionsGranted) {
-    return <PermissionRequest onPermissionsGranted={() => setPermissionsGranted(true)} />;
+    return <PermissionRequest onPermissionsGranted={handlePermissionsGranted} />;
   }
 
   return <motion.div initial={{
