@@ -7,6 +7,7 @@ import VoiceSubtitles from "./VoiceSubtitles";
 import DigitalTwinCard from "./DigitalTwinCard";
 import AuroraBackground from "./AuroraBackground";
 import VolumeControl from "./VolumeControl";
+import PermissionRequest from "./PermissionRequest";
 import { useToast } from "@/hooks/use-toast";
 interface ConversationState {
   userName: string | null;
@@ -32,6 +33,7 @@ const VoiceOnboarding = ({
   const {
     toast
   } = useToast();
+  const [permissionsGranted, setPermissionsGranted] = useState(false);
   const [apertureState, setApertureState] = useState<ApertureState>("idle");
   const [userTranscript, setUserTranscript] = useState("");
   const [aiTranscript, setAiTranscript] = useState("");
@@ -54,6 +56,7 @@ const VoiceOnboarding = ({
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const isProcessingRef = useRef(false);
+  const shouldListenRef = useRef(false);
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const currentTranscriptRef = useRef("");
 
@@ -73,6 +76,9 @@ const VoiceOnboarding = ({
     recognition.interimResults = true;
     recognition.lang = "en-US";
     recognition.onresult = (event: any) => {
+      // Ignore input when not actively listening
+      if (!shouldListenRef.current) return;
+
       let finalTranscript = "";
       let interimTranscript = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -97,7 +103,7 @@ const VoiceOnboarding = ({
       if (finalTranscript.trim() && !isProcessingRef.current) {
         silenceTimerRef.current = setTimeout(() => {
           handleUserFinishedSpeaking(currentTranscriptRef.current.trim());
-        }, 1500);
+        }, 800);
       }
     };
     recognition.onerror = (event: any) => {
@@ -121,6 +127,7 @@ const VoiceOnboarding = ({
     };
     recognitionRef.current = recognition;
     return () => {
+      shouldListenRef.current = false;
       if (silenceTimerRef.current) {
         clearTimeout(silenceTimerRef.current);
       }
@@ -130,9 +137,20 @@ const VoiceOnboarding = ({
 
   // Start conversation on mount
   useEffect(() => {
+    if (!permissionsGranted) return;
+
     const startConversation = async () => {
       try {
         setApertureState("thinking");
+
+        // Start recognition immediately
+        if (recognitionRef.current) {
+          try {
+            recognitionRef.current.start();
+          } catch (e) {
+            console.log("Recognition already started:", e);
+          }
+        }
 
         // Get initial greeting from AI
         const {
@@ -163,17 +181,13 @@ const VoiceOnboarding = ({
       }
     };
     startConversation();
-  }, []);
+  }, [permissionsGranted]);
   const handleUserFinishedSpeaking = async (transcript: string) => {
-    if (!transcript || isProcessingRef.current) return;
+    if (!transcript || isProcessingRef.current || !shouldListenRef.current) return;
     isProcessingRef.current = true;
+    shouldListenRef.current = false;
     setApertureState("thinking");
     setShowSubtitles(false);
-
-    // Stop listening
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
     try {
       // Add user message to history
       conversationHistory.current.push({
@@ -219,6 +233,7 @@ const VoiceOnboarding = ({
         // Show summary
         setShowSummary(true);
         setApertureState("idle");
+        shouldListenRef.current = false;
       } else {
         // Continue conversation
         await speakResponse(message);
@@ -232,9 +247,7 @@ const VoiceOnboarding = ({
 
       // Resume listening
       setApertureState("listening");
-      if (recognitionRef.current) {
-        recognitionRef.current.start();
-      }
+      shouldListenRef.current = true;
     } finally {
       isProcessingRef.current = false;
       currentTranscriptRef.current = "";
@@ -260,14 +273,10 @@ const VoiceOnboarding = ({
       audio.onended = () => {
         setShowSubtitles(false);
         setApertureState("listening");
-
+        
         // Resume listening after AI finishes speaking
-        if (recognitionRef.current && !showSummary) {
-          try {
-            recognitionRef.current.start();
-          } catch (e) {
-            console.log("Recognition restart prevented:", e);
-          }
+        if (!showSummary) {
+          shouldListenRef.current = true;
         }
       };
     } catch (error) {
@@ -275,9 +284,7 @@ const VoiceOnboarding = ({
       // Fallback to continuing without audio
       setShowSubtitles(false);
       setApertureState("listening");
-      if (recognitionRef.current) {
-        recognitionRef.current.start();
-      }
+      shouldListenRef.current = true;
     }
   };
   const handleProfileUpdate = async () => {
@@ -286,11 +293,13 @@ const VoiceOnboarding = ({
       ...prev,
       isComplete: false
     }));
+    shouldListenRef.current = false;
     const updateMessage = "What would you like to update?";
     await speakResponse(updateMessage);
   };
   const handleEnterKaeva = () => {
     // Stop all audio/recognition
+    shouldListenRef.current = false;
     if (audioRef.current) {
       audioRef.current.pause();
     }
@@ -316,6 +325,11 @@ const VoiceOnboarding = ({
     localStorage.setItem("kaeva_onboarding_complete", "true");
     onComplete(profile);
   };
+
+  if (!permissionsGranted) {
+    return <PermissionRequest onPermissionsGranted={() => setPermissionsGranted(true)} />;
+  }
+
   return <motion.div initial={{
     opacity: 0
   }} animate={{
