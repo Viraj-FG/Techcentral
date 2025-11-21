@@ -26,7 +26,7 @@ interface ConversationState {
 interface VoiceOnboardingProps {
   onComplete: (profile: any) => void;
 }
-type ApertureState = "idle" | "listening" | "thinking" | "speaking";
+type ApertureState = "idle" | "wakeword" | "listening" | "thinking" | "speaking";
 const VoiceOnboarding = ({
   onComplete
 }: VoiceOnboardingProps) => {
@@ -57,6 +57,7 @@ const VoiceOnboarding = ({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const isProcessingRef = useRef(false);
   const shouldListenRef = useRef(false);
+  const isWakeWordModeRef = useRef(true);
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const currentTranscriptRef = useRef("");
 
@@ -76,9 +77,6 @@ const VoiceOnboarding = ({
     recognition.interimResults = true;
     recognition.lang = "en-US";
     recognition.onresult = (event: any) => {
-      // Ignore input when not actively listening
-      if (!shouldListenRef.current) return;
-
       let finalTranscript = "";
       let interimTranscript = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -90,6 +88,32 @@ const VoiceOnboarding = ({
         }
       }
       const fullTranscript = finalTranscript || interimTranscript;
+      
+      // Check for wake word when in wake word mode
+      if (isWakeWordModeRef.current) {
+        const lowerTranscript = fullTranscript.toLowerCase();
+        if (lowerTranscript.includes("hey kaeva") || 
+            lowerTranscript.includes("hey kava") || 
+            lowerTranscript.includes("hey keva") ||
+            lowerTranscript.includes("hi kaeva")) {
+          console.log("Wake word detected!");
+          isWakeWordModeRef.current = false;
+          shouldListenRef.current = true;
+          setApertureState("listening");
+          setUserTranscript("");
+          currentTranscriptRef.current = "";
+          toast({
+            title: "Kaeva Activated",
+            description: "I'm listening...",
+          });
+          return;
+        }
+        return; // Don't process anything else in wake word mode
+      }
+
+      // Normal listening mode
+      if (!shouldListenRef.current) return;
+
       currentTranscriptRef.current = fullTranscript;
       setUserTranscript(fullTranscript);
       setShowSubtitles(true);
@@ -110,14 +134,14 @@ const VoiceOnboarding = ({
       console.error("Speech recognition error:", event.error);
       if (event.error === "no-speech") {
         // User stopped speaking, continue listening
-        if (apertureState === "listening") {
+        if (apertureState === "listening" || apertureState === "wakeword") {
           recognition.start();
         }
       }
     };
     recognition.onend = () => {
-      // Automatically restart if we're still in listening mode
-      if (apertureState === "listening" && !isProcessingRef.current) {
+      // Automatically restart if we're in wake word or listening mode
+      if ((apertureState === "listening" || apertureState === "wakeword") && !isProcessingRef.current) {
         try {
           recognition.start();
         } catch (e) {
@@ -128,6 +152,7 @@ const VoiceOnboarding = ({
     recognitionRef.current = recognition;
     return () => {
       shouldListenRef.current = false;
+      isWakeWordModeRef.current = false;
       if (silenceTimerRef.current) {
         clearTimeout(silenceTimerRef.current);
       }
@@ -142,6 +167,7 @@ const VoiceOnboarding = ({
     const startConversation = async () => {
       try {
         setApertureState("thinking");
+        isWakeWordModeRef.current = false;
 
         // Start recognition immediately
         if (recognitionRef.current) {
@@ -272,11 +298,24 @@ const VoiceOnboarding = ({
       audioRef.current = audio;
       audio.onended = () => {
         setShowSubtitles(false);
-        setApertureState("listening");
         
         // Resume listening after AI finishes speaking
         if (!showSummary) {
           shouldListenRef.current = true;
+          setApertureState("listening");
+          
+          // After 10 seconds of no input, go back to wake word mode
+          setTimeout(() => {
+            if (shouldListenRef.current && !isProcessingRef.current) {
+              shouldListenRef.current = false;
+              isWakeWordModeRef.current = true;
+              setApertureState("wakeword");
+              toast({
+                title: "Wake Word Mode",
+                description: "Say 'Hey Kaeva' to activate",
+              });
+            }
+          }, 10000);
         }
       };
     } catch (error) {
@@ -300,6 +339,7 @@ const VoiceOnboarding = ({
   const handleEnterKaeva = () => {
     // Stop all audio/recognition
     shouldListenRef.current = false;
+    isWakeWordModeRef.current = false;
     if (audioRef.current) {
       audioRef.current.pause();
     }
@@ -362,6 +402,7 @@ const VoiceOnboarding = ({
           }} transition={{
             delay: 0.3
           }} className="mt-6 sm:mt-8 text-kaeva-sage text-xs sm:text-sm tracking-widest">
+                {apertureState === "wakeword" && "SAY 'HEY KAEVA'"}
                 {apertureState === "listening" && "LISTENING"}
                 {apertureState === "thinking" && "PROCESSING"}
                 {apertureState === "speaking" && "SPEAKING"}

@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 interface KaevaApertureProps {
-  state: "idle" | "listening" | "thinking" | "speaking";
+  state: "idle" | "wakeword" | "listening" | "thinking" | "speaking";
   size?: "sm" | "md" | "lg";
   audioElement?: HTMLAudioElement | null;
 }
@@ -58,6 +58,25 @@ const KaevaAperture = ({ state, size = "md", audioElement }: KaevaApertureProps)
             duration: 3,
             repeat: Infinity,
             ease: "easeInOut"
+          }}
+        />
+      )}
+      
+      {/* WAKE WORD: Subtle waiting pulse */}
+      {state === 'wakeword' && (
+        <motion.div
+          className="absolute inset-0 rounded-full border-3 sm:border-4 border-kaeva-sage"
+          animate={{
+            scale: [1, 1.08, 1],
+            opacity: [0.4, 0.7, 0.4]
+          }}
+          transition={{
+            duration: 2.5,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          style={{
+            filter: 'drop-shadow(0 0 15px rgb(112 224 152 / 0.3))'
           }}
         />
       )}
