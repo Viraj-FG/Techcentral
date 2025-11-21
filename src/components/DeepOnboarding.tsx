@@ -12,6 +12,8 @@ import AuroraBackground from "./AuroraBackground";
 import PermissionRequest from "./PermissionRequest";
 import VolumeControl from "./VolumeControl";
 import { convertPCMtoWAV, playAudio } from "@/lib/audioEngine";
+import { Button } from "./ui/button";
+import { Mic } from "lucide-react";
 
 interface UserProfile {
   language: string;
@@ -37,6 +39,7 @@ interface UserProfile {
 
 interface DeepOnboardingProps {
   onComplete: (profile: UserProfile) => void;
+  onToggleMode?: () => void;
 }
 
 type ClusterType = "language" | "safety" | "beauty" | "household" | "mission" | "summary";
@@ -69,7 +72,7 @@ const getFallbackMessage = (cluster: ClusterType): string => {
   return fallbacks[cluster];
 };
 
-const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
+const DeepOnboarding = ({ onComplete, onToggleMode }: DeepOnboardingProps) => {
   const [permissionsGranted, setPermissionsGranted] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile>({
     language: "",
@@ -301,8 +304,21 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
+            className="flex items-center gap-3"
           >
             <VolumeControl volume={volume} onVolumeChange={setVolume} />
+            
+            {onToggleMode && (
+              <Button
+                onClick={onToggleMode}
+                variant="outline"
+                size="sm"
+                className="gap-2 border-kaeva-sage/20 hover:border-kaeva-sage/40 bg-kaeva-void/50"
+              >
+                <Mic className="w-4 h-4" />
+                <span className="text-xs">Switch to Voice Mode</span>
+              </Button>
+            )}
           </motion.div>
         </div>
 
