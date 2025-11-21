@@ -62,14 +62,18 @@ serve(async (req) => {
     const data = await response.json();
     console.log('TTS response received');
 
-    // Extract audio data and text
-    const audioData = data.candidates?.[0]?.content?.parts?.find((part: any) => part.inlineData)?.inlineData?.data;
+    // Extract audio data, mimeType, and text
+    const inlineData = data.candidates?.[0]?.content?.parts?.find((part: any) => part.inlineData)?.inlineData;
+    const audioData = inlineData?.data;
+    const mimeType = inlineData?.mimeType || 'audio/L16;codec=pcm;rate=24000';
     const textResponse = data.candidates?.[0]?.content?.parts?.find((part: any) => part.text)?.text || text;
+
+    console.log('Audio mimeType:', mimeType);
 
     if (!audioData) {
       console.warn('No audio data in response, returning text only');
       return new Response(
-        JSON.stringify({ text: textResponse, audioData: null }),
+        JSON.stringify({ text: textResponse, audioData: null, mimeType: null }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -77,6 +81,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         audioData,
+        mimeType,
         text: textResponse
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
