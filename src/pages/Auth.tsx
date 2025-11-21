@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import AuroraBackground from "@/components/AuroraBackground";
-import { Mail, Lock, Loader2, Sparkles } from "lucide-react";
+import { Mail, Lock, Loader2 } from "lucide-react";
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -150,16 +150,43 @@ const Auth = () => {
             transition={{ delay: 0.2 }}
             className="text-center mb-8"
           >
-            <motion.div
-              animate={{
-                scale: [1, 1.1, 1],
-                rotate: [0, 5, -5, 0]
-              }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="inline-block mb-4"
+          <div className="inline-block mb-4">
+            <svg
+              width="80"
+              height="80"
+              viewBox="0 0 100 100"
+              className="w-16 h-16 sm:w-20 sm:h-20"
             >
-              <Sparkles className="w-16 h-16 text-kaeva-sage" strokeWidth={1.5} />
-            </motion.div>
+              {/* K Shape with Viewfinder Aesthetic */}
+              <motion.path
+                d="M 20 20 L 20 80 M 20 50 L 60 20 M 20 50 L 60 80 M 15 15 L 15 25 M 15 15 L 25 15 M 15 85 L 15 75 M 15 85 L 25 85 M 85 15 L 85 25 M 85 15 L 75 15 M 85 85 L 85 75 M 85 85 L 75 85"
+                stroke="hsl(var(--kaeva-sage))"
+                strokeWidth="2.5"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 1.5, ease: "easeInOut", repeat: Infinity, repeatDelay: 2 }}
+              />
+              
+              {/* Focus Dot */}
+              <motion.circle
+                cx="50"
+                cy="50"
+                r="3"
+                fill="hsl(var(--kaeva-sage))"
+                initial={{ scale: 0 }}
+                animate={{ scale: [0, 1, 1, 0] }}
+                transition={{ 
+                  duration: 3.5,
+                  times: [0, 0.46, 0.92, 1],
+                  repeat: Infinity,
+                  repeatDelay: 0
+                }}
+              />
+            </svg>
+          </div>
             <h1 className="text-4xl font-light tracking-wider text-white mb-2">
               Kaeva
             </h1>
