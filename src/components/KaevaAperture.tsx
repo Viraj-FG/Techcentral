@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 interface KaevaApertureProps {
-  state: "idle" | "thinking" | "speaking";
+  state: "idle" | "listening" | "thinking" | "speaking";
   size?: "sm" | "md" | "lg";
   audioElement?: HTMLAudioElement | null;
 }
@@ -58,6 +58,26 @@ const KaevaAperture = ({ state, size = "md", audioElement }: KaevaApertureProps)
             duration: 3,
             repeat: Infinity,
             ease: "easeInOut"
+          }}
+        />
+      )}
+      
+      {/* LISTENING: Expanded glow */}
+      {state === 'listening' && (
+        <motion.div
+          className="absolute inset-0 rounded-full border-4 border-kaeva-sage"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.7, 0.9, 0.7],
+            rotate: [0, 360]
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          style={{
+            filter: 'drop-shadow(0 0 20px rgb(112 224 152 / 0.6))'
           }}
         />
       )}
