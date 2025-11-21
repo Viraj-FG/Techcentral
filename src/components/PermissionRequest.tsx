@@ -99,15 +99,8 @@ const PermissionRequest = ({
       setIsRequesting(false);
     }
   };
-  return <div className="min-h-screen bg-gradient-to-br from-kaeva-void via-purple-900/30 to-kaeva-void relative flex items-center justify-center p-4 sm:p-8 overflow-hidden">
+  return <div className="min-h-screen bg-kaeva-void relative flex items-center justify-center p-4 sm:p-8">
       <AuroraBackground />
-      
-      {/* Additional colorful accent orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-kaeva-mint/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-kaeva-cyan/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 right-1/3 w-80 h-80 bg-purple-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-      </div>
       
       <div className="relative z-10 w-full max-w-2xl">
         <motion.div initial={{
@@ -122,10 +115,10 @@ const PermissionRequest = ({
 
           {/* Title */}
           <div className="text-center space-y-4">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-kaeva-mint via-kaeva-cyan to-purple-400 bg-clip-text text-transparent tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-kaeva-slate-100 tracking-tight">
               Audio Permissions Required
             </h1>
-            <p className="text-lg sm:text-xl text-kaeva-slate-100 max-w-xl mx-auto">
+            <p className="text-lg sm:text-xl text-kaeva-slate-300 max-w-xl mx-auto">
               Kaeva needs access to your microphone and speakers to communicate with you during the onboarding process.
             </p>
           </div>
@@ -141,10 +134,10 @@ const PermissionRequest = ({
           }} transition={{
             delay: 0.2
           }} className="flex flex-col items-center space-y-3">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-kaeva-mint/30 to-kaeva-cyan/30 backdrop-blur-xl border-2 border-kaeva-mint/40 flex items-center justify-center shadow-lg shadow-kaeva-mint/50">
-                <Mic className="w-8 h-8 sm:w-10 sm:h-10 text-kaeva-mint drop-shadow-lg" />
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-kaeva-mint/20 flex items-center justify-center">
+                <Mic className="w-8 h-8 sm:w-10 sm:h-10 text-kaeva-mint" />
               </div>
-              <p className="text-sm text-kaeva-slate-100 font-medium">Microphone</p>
+              <p className="text-sm text-kaeva-slate-300">Microphone</p>
             </motion.div>
 
             <motion.div initial={{
@@ -156,10 +149,10 @@ const PermissionRequest = ({
           }} transition={{
             delay: 0.3
           }} className="flex flex-col items-center space-y-3">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-kaeva-cyan/30 to-purple-500/30 backdrop-blur-xl border-2 border-kaeva-cyan/40 flex items-center justify-center shadow-lg shadow-kaeva-cyan/50">
-                <Volume2 className="w-8 h-8 sm:w-10 sm:h-10 text-kaeva-cyan drop-shadow-lg" />
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-kaeva-cyan/20 flex items-center justify-center">
+                <Volume2 className="w-8 h-8 sm:w-10 sm:h-10 text-kaeva-cyan" />
               </div>
-              <p className="text-sm text-kaeva-slate-100 font-medium">Speakers</p>
+              <p className="text-sm text-kaeva-slate-300">Speakers</p>
             </motion.div>
           </div>
 
@@ -191,17 +184,12 @@ const PermissionRequest = ({
             </motion.div>}
 
           {/* Request Button */}
-          <Button 
-            onClick={requestPermissions} 
-            disabled={isRequesting} 
-            size="lg" 
-            className="bg-gradient-to-r from-kaeva-mint via-kaeva-cyan to-kaeva-mint bg-[length:200%_100%] hover:bg-right text-kaeva-void font-bold px-8 py-6 text-lg shadow-2xl shadow-kaeva-mint/50 border-2 border-kaeva-mint/50 animate-[gradient_3s_ease_infinite] transition-all hover:scale-105"
-          >
+          <Button onClick={requestPermissions} disabled={isRequesting} size="lg" className="bg-kaeva-mint hover:bg-kaeva-mint/90 text-kaeva-void font-semibold px-8 py-6 text-lg">
             {isRequesting ? "Initializing Audio..." : audioReady ? "Permissions Granted ✓" : "Grant Permissions"}
           </Button>
 
           {/* Privacy Note */}
-          <p className="text-xs text-kaeva-slate-300/80 text-center max-w-md">
+          <p className="text-xs text-kaeva-slate-400 text-center max-w-md">
             Your privacy is important. Audio is processed in real-time and not stored permanently.
           </p>
         </motion.div>
