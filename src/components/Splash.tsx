@@ -33,7 +33,7 @@ const Splash = ({ onComplete }: SplashProps) => {
         >
           {/* Atmospheric Orb 1 - Top-Left Sage Green */}
           <motion.div
-            className="absolute -top-40 -left-40 w-80 h-80 bg-kaeva-sage rounded-full blur-[100px]"
+            className="absolute -top-40 -left-40 w-80 h-80 bg-kaeva-sage rounded-full blur-[60px] sm:blur-[80px] md:blur-[100px]"
             animate={{
               x: [-20, 20, -20],
               y: [-20, 20, -20],
@@ -48,7 +48,7 @@ const Splash = ({ onComplete }: SplashProps) => {
 
           {/* Atmospheric Orb 2 - Bottom-Right Teal */}
           <motion.div
-            className="absolute -bottom-40 -right-40 w-96 h-96 bg-kaeva-teal rounded-full blur-[100px]"
+            className="absolute -bottom-40 -right-40 w-96 h-96 bg-kaeva-teal rounded-full blur-[60px] sm:blur-[80px] md:blur-[100px]"
             animate={{
               x: [20, -20, 20],
               y: [20, -20, 20],
@@ -66,10 +66,10 @@ const Splash = ({ onComplete }: SplashProps) => {
             {/* Logo Construction */}
             <div className="flex flex-col items-center gap-8">
               <svg
-                width="120"
-                height="120"
+                width="80"
+                height="80"
                 viewBox="0 0 100 100"
-                className="sm:w-[140px] sm:h-[140px]"
+                className="sm:w-[100px] sm:h-[100px] md:w-[120px] md:h-[120px]"
               >
                 {/* K Shape with Viewfinder Aesthetic */}
                 <motion.path
@@ -118,7 +118,7 @@ const Splash = ({ onComplete }: SplashProps) => {
                         delay: 1.8 + index * 0.1, 
                         duration: 0.4 
                       }}
-                      className="text-5xl sm:text-6xl font-bold text-white tracking-premium"
+                      className="text-4xl sm:text-5xl md:text-6xl font-bold text-white tracking-premium"
                     >
                       {letter}
                     </motion.span>
@@ -148,7 +148,7 @@ const Splash = ({ onComplete }: SplashProps) => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
                 onClick={handleGetStarted}
-                className="group relative px-8 py-3 bg-white/5 border border-white/10 backdrop-blur-md rounded-full text-white tracking-wide text-sm font-medium overflow-hidden transition-all hover:bg-white/10"
+                className="group relative px-8 py-4 bg-white/5 border border-white/10 backdrop-blur-md rounded-full text-white tracking-wide text-base font-medium overflow-hidden transition-all hover:bg-white/10 min-h-[48px]"
               >
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"

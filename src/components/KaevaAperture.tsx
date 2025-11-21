@@ -11,9 +11,9 @@ const KaevaAperture = ({ state, size = "md", audioElement }: KaevaApertureProps)
   const [audioPulse, setAudioPulse] = useState(false);
 
   const sizeClasses = {
-    sm: "w-24 h-24",
-    md: "w-32 h-32 sm:w-40 sm:h-40",
-    lg: "w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56"
+    sm: "w-20 h-20 sm:w-24 sm:h-24",
+    md: "w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40",
+    lg: "w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56"
   };
 
   // Sync pulse with audio playback
@@ -41,15 +41,15 @@ const KaevaAperture = ({ state, size = "md", audioElement }: KaevaApertureProps)
   }, [state, audioElement]);
 
   return (
-    <div className={`relative ${sizeClasses[size]} mx-auto`}>
+    <div className={`relative ${sizeClasses[size]} mx-auto`} style={{ willChange: 'transform', transform: 'translateZ(0)' }}>
       {/* Inner glow */}
-      <div className="absolute inset-0 rounded-full bg-kaeva-sage/20 blur-2xl" />
+      <div className="absolute inset-0 rounded-full bg-kaeva-sage/20 blur-lg sm:blur-xl md:blur-2xl" />
       <div className="absolute inset-0 rounded-full bg-gradient-to-br from-kaeva-sage/40 to-kaeva-teal/40" />
       
       {/* IDLE: Slow breathing */}
       {state === 'idle' && (
         <motion.div
-          className="absolute inset-0 rounded-full border-4 border-kaeva-sage"
+          className="absolute inset-0 rounded-full border-3 sm:border-4 border-kaeva-sage"
           animate={{
             scale: [1, 1.05, 1],
             opacity: [0.6, 1, 0.6]
@@ -65,7 +65,7 @@ const KaevaAperture = ({ state, size = "md", audioElement }: KaevaApertureProps)
       {/* LISTENING: Expanded glow */}
       {state === 'listening' && (
         <motion.div
-          className="absolute inset-0 rounded-full border-4 border-kaeva-sage"
+          className="absolute inset-0 rounded-full border-3 sm:border-4 border-kaeva-sage"
           animate={{
             scale: [1, 1.2, 1],
             opacity: [0.7, 0.9, 0.7],
@@ -85,7 +85,7 @@ const KaevaAperture = ({ state, size = "md", audioElement }: KaevaApertureProps)
       {/* THINKING: Rapid pulsing with rotation */}
       {state === 'thinking' && (
         <motion.div
-          className="absolute inset-0 rounded-full border-4 border-kaeva-sage"
+          className="absolute inset-0 rounded-full border-3 sm:border-4 border-kaeva-sage"
           animate={{
             scale: [1, 1.15, 1, 1.1, 1],
             rotate: [0, 5, -5, 3, 0],
@@ -101,7 +101,7 @@ const KaevaAperture = ({ state, size = "md", audioElement }: KaevaApertureProps)
       {/* SPEAKING: Rapid vibration synced to audio */}
       {state === 'speaking' && (
         <motion.div
-          className="absolute inset-0 rounded-full border-4 border-kaeva-sage"
+          className="absolute inset-0 rounded-full border-3 sm:border-4 border-kaeva-sage"
           animate={{
             scale: audioPulse ? 1.2 : 1,
             opacity: audioPulse ? 1 : 0.7

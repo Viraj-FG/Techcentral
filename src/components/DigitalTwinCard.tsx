@@ -42,9 +42,9 @@ const DigitalTwinCard = ({ profile, onUpdate, onComplete }: DigitalTwinCardProps
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ type: "spring", duration: 0.6 }}
-      className="w-full max-w-2xl mx-8"
+      className="w-full max-w-2xl mx-4 sm:mx-6 md:mx-8"
     >
-      <div className="glass-card p-8 backdrop-blur-xl bg-white/5 border border-white/10">
+      <div className="glass-card p-4 sm:p-6 md:p-8 backdrop-blur-xl bg-white/5 border border-white/10">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -52,7 +52,7 @@ const DigitalTwinCard = ({ profile, onUpdate, onComplete }: DigitalTwinCardProps
           transition={{ delay: 0.2 }}
           className="text-center mb-8"
         >
-          <h2 className="text-2xl font-light tracking-wider text-white mb-2">
+          <h2 className="text-xl sm:text-2xl font-light tracking-wider text-white mb-2">
             Digital Twin Constructed
           </h2>
           <p className="text-emerald-400 text-sm tracking-widest">PROFILE SUMMARY</p>
@@ -66,9 +66,9 @@ const DigitalTwinCard = ({ profile, onUpdate, onComplete }: DigitalTwinCardProps
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              className="flex items-center gap-4 p-4 bg-white/5 rounded-lg border border-white/10"
+              className="flex items-center gap-4 p-3 sm:p-4 bg-white/5 rounded-lg border border-white/10"
             >
-              <User className="text-emerald-400" strokeWidth={1.5} size={24} />
+              <User className="text-emerald-400" strokeWidth={1.5} size={20} />
               <div>
                 <p className="text-xs text-emerald-400 uppercase tracking-wider mb-1">Name</p>
                 <p className="text-white font-light">{profile.userName}</p>
@@ -82,10 +82,10 @@ const DigitalTwinCard = ({ profile, onUpdate, onComplete }: DigitalTwinCardProps
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
-              className="p-4 bg-white/5 rounded-lg border border-white/10"
+              className="p-3 sm:p-4 bg-white/5 rounded-lg border border-white/10"
             >
               <div className="flex items-center gap-2 mb-3">
-                <Shield className="text-emerald-400" strokeWidth={1.5} size={24} />
+                <Shield className="text-emerald-400" strokeWidth={1.5} size={20} />
                 <p className="text-xs text-emerald-400 uppercase tracking-wider">Dietary Values</p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -108,10 +108,10 @@ const DigitalTwinCard = ({ profile, onUpdate, onComplete }: DigitalTwinCardProps
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.45 }}
-              className="p-4 bg-white/5 rounded-lg border border-white/10"
+              className="p-3 sm:p-4 bg-white/5 rounded-lg border border-white/10"
             >
               <div className="flex items-center gap-2 mb-3">
-                <ShieldAlert className="text-emerald-400" strokeWidth={1.5} size={24} />
+                <ShieldAlert className="text-emerald-400" strokeWidth={1.5} size={20} />
                 <p className="text-xs text-emerald-400 uppercase tracking-wider">Allergies</p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -133,10 +133,10 @@ const DigitalTwinCard = ({ profile, onUpdate, onComplete }: DigitalTwinCardProps
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 }}
-              className="p-4 bg-white/5 rounded-lg border border-white/10"
+              className="p-3 sm:p-4 bg-white/5 rounded-lg border border-white/10"
             >
               <div className="flex items-center gap-2 mb-3">
-                <Users className="text-emerald-400" strokeWidth={1.5} size={24} />
+                <Users className="text-emerald-400" strokeWidth={1.5} size={20} />
                 <p className="text-xs text-emerald-400 uppercase tracking-wider">Household</p>
               </div>
               <div className="text-white space-y-1">
@@ -162,10 +162,10 @@ const DigitalTwinCard = ({ profile, onUpdate, onComplete }: DigitalTwinCardProps
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.55 }}
-              className="p-4 bg-white/5 rounded-lg border border-white/10"
+              className="p-3 sm:p-4 bg-white/5 rounded-lg border border-white/10"
             >
               <div className="flex items-center gap-2 mb-3">
-                <Heart className="text-emerald-400" strokeWidth={1.5} size={24} />
+                <Heart className="text-emerald-400" strokeWidth={1.5} size={20} />
                 <p className="text-xs text-emerald-400 uppercase tracking-wider">Health Goals</p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -187,10 +187,10 @@ const DigitalTwinCard = ({ profile, onUpdate, onComplete }: DigitalTwinCardProps
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.6 }}
-              className="p-4 bg-white/5 rounded-lg border border-white/10"
+              className="p-3 sm:p-4 bg-white/5 rounded-lg border border-white/10"
             >
               <div className="flex items-center gap-2 mb-3">
-                <Clock className="text-emerald-400" strokeWidth={1.5} size={24} />
+                <Clock className="text-emerald-400" strokeWidth={1.5} size={20} />
                 <p className="text-xs text-emerald-400 uppercase tracking-wider">Lifestyle</p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -212,18 +212,18 @@ const DigitalTwinCard = ({ profile, onUpdate, onComplete }: DigitalTwinCardProps
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
-          className="flex gap-4"
+          className="flex flex-col sm:flex-row gap-3 sm:gap-4"
         >
           <Button
             onClick={onUpdate}
             variant="outline"
-            className="flex-1 border-emerald-400/30 text-emerald-400 hover:bg-emerald-400/10"
+            className="flex-1 min-h-[48px] text-base sm:text-sm border-emerald-400/30 text-emerald-400 hover:bg-emerald-400/10"
           >
             Update Profile
           </Button>
           <Button
             onClick={onComplete}
-            className="flex-1 bg-emerald-400 text-kaeva-void hover:bg-emerald-500"
+            className="flex-1 min-h-[48px] text-base sm:text-sm bg-emerald-400 text-kaeva-void hover:bg-emerald-500"
           >
             Enter KAEVA
           </Button>
