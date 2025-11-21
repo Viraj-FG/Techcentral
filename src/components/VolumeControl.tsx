@@ -1,0 +1,44 @@
+import { Volume2, VolumeX } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+
+interface VolumeControlProps {
+  volume: number;
+  onVolumeChange: (volume: number) => void;
+}
+
+const VolumeControl = ({ volume, onVolumeChange }: VolumeControlProps) => {
+  const isMuted = volume === 0;
+
+  return (
+    <div className="flex items-center gap-3 px-4 py-3 bg-kaeva-void/40 backdrop-blur-sm border border-kaeva-slate-700/30 rounded-lg">
+      <button
+        onClick={() => onVolumeChange(isMuted ? 0.7 : 0)}
+        className="text-kaeva-slate-400 hover:text-kaeva-slate-300 transition-colors"
+        aria-label={isMuted ? "Unmute" : "Mute"}
+      >
+        {isMuted ? (
+          <VolumeX className="w-5 h-5" />
+        ) : (
+          <Volume2 className="w-5 h-5" />
+        )}
+      </button>
+      
+      <div className="flex-1 min-w-[120px] max-w-[200px]">
+        <Slider
+          value={[volume * 100]}
+          onValueChange={([value]) => onVolumeChange(value / 100)}
+          max={100}
+          step={1}
+          className="cursor-pointer"
+          aria-label="Volume control"
+        />
+      </div>
+      
+      <span className="text-kaeva-slate-400 text-sm font-mono min-w-[3ch] text-right">
+        {Math.round(volume * 100)}%
+      </span>
+    </div>
+  );
+};
+
+export default VolumeControl;
