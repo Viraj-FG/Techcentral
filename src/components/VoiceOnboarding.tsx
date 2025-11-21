@@ -32,15 +32,17 @@ interface ConversationState {
 }
 interface VoiceOnboardingProps {
   onComplete: (profile: any) => void;
+  onExit?: () => void;
 }
 type ApertureState = "idle" | "wakeword" | "listening" | "thinking" | "speaking";
-const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
+const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
   const { toast } = useToast();
   const [showTutorial, setShowTutorial] = useState(() => {
     return !localStorage.getItem("kaeva_tutorial_seen");
   });
   const [permissionsGranted, setPermissionsGranted] = useState(false);
   const [apertureState, setApertureState] = useState<ApertureState>("idle");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [userTranscript, setUserTranscript] = useState("");
   const [aiTranscript, setAiTranscript] = useState("");
   const [showSubtitles, setShowSubtitles] = useState(false);
@@ -126,7 +128,11 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
         return "Profile updated";
       },
       completeOnboarding: () => {
-        console.log("Completing onboarding");
+        console.log("🎉 Completing onboarding - stopping ElevenLabs");
+        // Stop the conversation when onboarding is complete
+        if (conversation.status === "connected") {
+          conversation.endSession();
+        }
         setShowSummary(true);
         return "Onboarding complete";
       }
@@ -142,11 +148,19 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
     }
   }, [conversation.isSpeaking, conversation.status]);
 
-  // Fetch permission status from database on mount
+  // Fetch permission status and check admin on mount
   useEffect(() => {
     const fetchPermissionStatus = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
+
+      // Check admin status
+      const { data: adminData } = await supabase.functions.invoke("check-admin", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (adminData?.isAdmin) {
+        setIsAdmin(true);
+      }
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -398,6 +412,25 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
   }} exit={{
     opacity: 0
   }} className="fixed inset-0 bg-kaeva-void overflow-hidden">
+      {/* Admin Exit Button */}
+      {isAdmin && onExit && (
+        <motion.button
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          onClick={() => {
+            // Clean up ElevenLabs session
+            if (conversation.status === "connected") {
+              console.log("🔌 Admin exit: Disconnecting ElevenLabs");
+              conversation.endSession();
+            }
+            onExit();
+          }}
+          className="absolute top-4 right-4 z-50 px-4 py-2 bg-destructive/20 hover:bg-destructive/30 border border-destructive/50 rounded-lg text-destructive text-sm font-medium transition-colors backdrop-blur-sm"
+        >
+          Exit to Dashboard
+        </motion.button>
+      )}
+
       <AuroraBackground vertical={activeVertical} />
 
       <div className="relative z-10 h-full flex flex-col items-center justify-center">
