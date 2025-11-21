@@ -10,8 +10,6 @@ import VolumeControl from "./VolumeControl";
 import PermissionRequest from "./PermissionRequest";
 import TutorialOverlay from "./TutorialOverlay";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "./ui/button";
-import { MousePointer2 } from "lucide-react";
 interface ConversationState {
   userName: string | null;
   dietaryValues: string[];
@@ -28,12 +26,10 @@ interface ConversationState {
 }
 interface VoiceOnboardingProps {
   onComplete: (profile: any) => void;
-  onToggleMode?: () => void;
 }
 type ApertureState = "idle" | "wakeword" | "listening" | "thinking" | "speaking";
 const VoiceOnboarding = ({
-  onComplete,
-  onToggleMode
+  onComplete
 }: VoiceOnboardingProps) => {
   const {
     toast
@@ -470,19 +466,9 @@ const VoiceOnboarding = ({
 
         {showSubtitles && !showSummary && <VoiceSubtitles userText={apertureState === "thinking" ? userTranscript : ""} aiText={apertureState === "speaking" ? aiTranscript : ""} />}
 
-        {onToggleMode && !showSummary && (
-          <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8">
-            <Button
-              onClick={onToggleMode}
-              variant="outline"
-              size="sm"
-              className="gap-2 border-kaeva-sage/20 hover:border-kaeva-sage/40 bg-kaeva-void/50"
-            >
-              <MousePointer2 className="w-4 h-4" />
-              <span className="text-xs">Switch to Button Mode</span>
-            </Button>
-          </div>
-        )}
+        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8">
+          
+        </div>
       </div>
     </motion.div>;
 };
