@@ -49,12 +49,12 @@ export function convertPCMtoWAV(base64PCM: string, mimeType: string = 'audio/L16
   const view = new DataView(header);
 
   // "RIFF" chunk descriptor
-  view.setUint32(0, 0x46464952, false); // "RIFF"
+  view.setUint32(0, 0x52494646, false); // "RIFF" (correct byte order)
   view.setUint32(4, 36 + dataSize, true); // File size - 8
-  view.setUint32(8, 0x45564157, false); // "WAVE"
+  view.setUint32(8, 0x57415645, false); // "WAVE" (correct byte order)
 
   // "fmt " sub-chunk
-  view.setUint32(12, 0x20746d66, false); // "fmt "
+  view.setUint32(12, 0x666D7420, false); // "fmt " (correct byte order)
   view.setUint32(16, 16, true); // Subchunk size
   view.setUint16(20, 1, true); // Audio format (1 = PCM)
   view.setUint16(22, numChannels, true);
@@ -64,7 +64,7 @@ export function convertPCMtoWAV(base64PCM: string, mimeType: string = 'audio/L16
   view.setUint16(34, bitsPerSample, true);
 
   // "data" sub-chunk
-  view.setUint32(36, 0x61746164, false); // "data"
+  view.setUint32(36, 0x64617461, false); // "data" (correct byte order)
   view.setUint32(40, dataSize, true);
 
   // Combine header and PCM data
