@@ -1,10 +1,42 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Settings, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const ConfigurationBanner = () => {
   const navigate = useNavigate();
+  const [isConfigured, setIsConfigured] = useState(true); // Default to true to hide banner until we check
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkConfiguration = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) return;
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('agent_configured')
+          .eq('id', session.user.id)
+          .single();
+
+        setIsConfigured(profile?.agent_configured || false);
+      } catch (error) {
+        console.error("Error checking configuration:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkConfiguration();
+  }, []);
+
+  // Don't show banner if configured or still loading
+  if (isConfigured || isLoading) {
+    return null;
+  }
 
   return (
     <motion.div

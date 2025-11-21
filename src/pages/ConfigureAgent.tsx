@@ -29,6 +29,18 @@ const ConfigureAgent = () => {
       }
 
       console.log("Agent configuration response:", data);
+
+      // Mark agent as configured in database
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await supabase
+          .from('profiles')
+          .update({
+            agent_configured: true,
+            agent_configured_at: new Date().toISOString()
+          })
+          .eq('id', session.user.id);
+      }
       
       setIsConfigured(true);
       toast({
