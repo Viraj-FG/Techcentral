@@ -4,6 +4,7 @@ import SmartCartWidget from "./dashboard/SmartCartWidget";
 import InventoryMatrix from "./dashboard/InventoryMatrix";
 import ShieldStatus from "./dashboard/ShieldStatus";
 import FloatingActionButton from "./dashboard/FloatingActionButton";
+import ConfigurationBanner from "./dashboard/ConfigurationBanner";
 
 interface DashboardProps {
   profile: any;
@@ -57,6 +58,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
       transition={{ duration: 0.5 }}
     >
       <div className="max-w-7xl mx-auto space-y-6">
+        <ConfigurationBanner />
         <PulseHeader profile={profile} />
         <SmartCartWidget cartItems={lowStockItems} />
         <InventoryMatrix inventory={mockInventoryData} />
