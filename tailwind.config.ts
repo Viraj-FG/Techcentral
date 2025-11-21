@@ -60,7 +60,11 @@ export default {
         kaeva: {
           void: "hsl(var(--kaeva-void))",
           sage: "hsl(var(--kaeva-sage))",
+          mint: "hsl(var(--kaeva-mint))",
+          cyan: "hsl(var(--kaeva-cyan))",
           teal: "hsl(var(--kaeva-teal))",
+          "slate-100": "hsl(var(--kaeva-slate-100))",
+          "slate-300": "hsl(var(--kaeva-slate-300))",
           "slate-400": "hsl(var(--kaeva-slate-400))",
           terracotta: "hsl(var(--kaeva-terracotta))",
           oatmeal: "hsl(var(--kaeva-oatmeal))",

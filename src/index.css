@@ -58,8 +58,12 @@ All colors MUST be HSL.
     /* KAEVA - Seattle Solstice Palette */
     --kaeva-void: 222 47% 11%;
     --kaeva-sage: 142 70% 66%;
+    --kaeva-mint: 160 75% 72%;
+    --kaeva-cyan: 190 75% 60%;
     --kaeva-teal: 173 68% 51%;
     --kaeva-slate-400: 215 16% 47%;
+    --kaeva-slate-100: 220 15% 95%;
+    --kaeva-slate-300: 217 14% 70%;
     
     /* KAEVA - Cluster-specific atmospheres */
     --kaeva-terracotta: 14 66% 61%;
@@ -123,8 +127,12 @@ All colors MUST be HSL.
     /* KAEVA - Seattle Solstice Palette (same in dark mode) */
     --kaeva-void: 222 47% 11%;
     --kaeva-sage: 142 70% 66%;
+    --kaeva-mint: 160 75% 72%;
+    --kaeva-cyan: 190 75% 60%;
     --kaeva-teal: 173 68% 51%;
     --kaeva-slate-400: 215 16% 47%;
+    --kaeva-slate-100: 220 15% 95%;
+    --kaeva-slate-300: 217 14% 70%;
     
     /* KAEVA - Cluster-specific atmospheres (same in dark mode) */
     --kaeva-terracotta: 14 66% 61%;
