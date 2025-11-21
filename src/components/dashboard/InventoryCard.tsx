@@ -16,57 +16,71 @@ interface InventoryCardProps {
 }
 
 const InventoryCard = ({ title, icon: Icon, items }: InventoryCardProps) => {
-  const getFillBarColor = (level: number) => {
-    if (level <= 20) return 'bg-kaeva-terracotta';
-    if (level <= 50) return 'bg-yellow-500';
-    return 'bg-kaeva-sage';
+  const getIconBg = (title: string) => {
+    switch(title) {
+      case "Fridge": return "bg-emerald-400/10";
+      case "Pantry": return "bg-emerald-400/10";
+      case "Beauty": return "bg-orange-400/10";
+      case "Pets": return "bg-sky-400/10";
+      default: return "bg-white/10";
+    }
   };
 
-  const getFillLevelColor = (level: number) => {
-    if (level <= 20) return 'text-kaeva-terracotta';
-    if (level <= 50) return 'text-yellow-500';
-    return 'text-kaeva-sage';
+  const getIconColor = (title: string) => {
+    switch(title) {
+      case "Beauty": return "text-orange-400";
+      case "Pets": return "text-sky-400";
+      default: return "text-emerald-400";
+    }
+  };
+
+  const getFillColor = (level: number) => {
+    if (level <= 20) return "bg-red-400";
+    if (level <= 50) return "bg-amber-400";
+    return "bg-emerald-400";
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
   };
 
   return (
     <motion.div
-      className="glass-card p-5"
-      variants={{
-        hidden: { opacity: 0, y: 20 },
-        show: { opacity: 1, y: 0 }
-      }}
-      whileHover={{ scale: 1.02 }}
-      transition={{ type: "spring", stiffness: 300 }}
+      variants={cardVariants}
+      className="group relative overflow-hidden rounded-xl backdrop-blur-xl bg-white/5 border border-white/10 p-6 hover:bg-white/10 transition-colors"
     >
-      <div className="flex items-center gap-3 mb-4">
-        <Icon className="text-kaeva-sage" size={28} />
-        <h3 className="text-lg font-semibold text-kaeva-slate-200">{title}</h3>
+      {/* Icon with contextual color */}
+      <div className={`p-3 rounded-lg mb-4 ${getIconBg(title)}`}>
+        <Icon className={getIconColor(title)} size={24} strokeWidth={1.5} />
       </div>
-
-      <div className="space-y-4">
+      
+      {/* Title */}
+      <h3 className="text-lg font-light tracking-wider text-white/90 mb-4">
+        {title}
+      </h3>
+      
+      {/* Fill Level Bars */}
+      <div className="space-y-3">
         {items.slice(0, 3).map((item, idx) => (
           <div key={idx}>
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-kaeva-slate-300">{item.name}</span>
-              <span className={`text-sm font-semibold ${getFillLevelColor(item.fillLevel)}`}>
-                {item.fillLevel}%
-              </span>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-white/70">{item.name}</span>
+              <span className="text-white/50">{item.fillLevel}%</span>
             </div>
-
-            {/* Fill Level Bar */}
-            <div className="h-2 bg-kaeva-void rounded-full overflow-hidden">
+            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
               <motion.div
-                className={`h-full ${getFillBarColor(item.fillLevel)}`}
                 initial={{ width: 0 }}
                 animate={{ width: `${item.fillLevel}%` }}
-                transition={{ duration: 0.8, delay: idx * 0.1 }}
+                transition={{ duration: 1, delay: idx * 0.1 }}
+                className={`h-full ${getFillColor(item.fillLevel)}`}
               />
             </div>
-
+            
             {/* Auto-ordering Indicator */}
             {item.autoOrdering && (
               <motion.p
-                className="text-xs text-kaeva-teal mt-1 flex items-center gap-1"
+                className="text-xs text-emerald-400 mt-1 flex items-center gap-1"
                 animate={{ opacity: [0.5, 1, 0.5] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >

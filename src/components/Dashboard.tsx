@@ -49,7 +49,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
 
   return (
     <motion.div
-      className="min-h-screen bg-kaeva-void p-4 sm:p-8"
+      className="min-h-screen bg-kaeva-seattle-slate p-4 sm:p-8"
       variants={dashboardVariants}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}

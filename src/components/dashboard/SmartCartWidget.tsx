@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ShoppingBag, Loader2 } from "lucide-react";
+import { ShoppingCart, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,45 +59,60 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
 
   return (
     <motion.div
-      className="glass-card p-6 border-2 border-kaeva-sage/30"
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.5, delay: 0.15 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.2 }}
+      className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-6"
     >
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="p-3 rounded-full bg-kaeva-sage/20">
-            <ShoppingBag className="text-kaeva-sage" size={32} />
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="p-3 rounded-lg bg-emerald-400/10">
+            <ShoppingCart className="text-emerald-400" size={24} strokeWidth={1.5} />
           </div>
-
-          <div>
-            <h3 className="text-xl font-semibold text-kaeva-slate-200">
-              Smart Cart
-            </h3>
-            <p className="text-kaeva-slate-400">
-              Next Delivery: Tuesday, 5 PM
-            </p>
-            <p className="text-sm text-kaeva-sage">
-              ({cartItems.length} Items Queued)
-            </p>
-          </div>
+          <h2 className="text-xl font-light tracking-wider text-white">Smart Cart</h2>
         </div>
-
-        <Button
-          onClick={handleReviewCart}
-          disabled={loading || cartItems.length === 0}
-          className="bg-kaeva-sage hover:bg-kaeva-sage/80 text-kaeva-void font-semibold px-6 py-3 shadow-[0_0_20px_rgba(112,224,152,0.3)]"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="animate-spin mr-2" size={18} />
-              Generating...
-            </>
-          ) : (
-            `Review Cart ($${totalValue})`
-          )}
-        </Button>
+        <span className="text-emerald-400 text-sm tracking-widest">AUTO-ORDERING</span>
       </div>
+      
+      {cartItems.length > 0 ? (
+        <>
+          <p className="text-white/70 text-sm mb-4">
+            Next Delivery: <span className="text-white">Friday, Dec 27</span>
+          </p>
+          
+          <div className="space-y-2 mb-4">
+            {cartItems.map((item, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                className="flex items-center justify-between py-2 border-b border-white/10"
+              >
+                <span className="text-white/90 text-sm">{item.name}</span>
+                <span className="text-white/50 text-xs">{item.fillLevel}% remaining</span>
+              </motion.div>
+            ))}
+          </div>
+
+          <Button
+            onClick={handleReviewCart}
+            disabled={loading}
+            className="w-full bg-emerald-400 hover:bg-emerald-500 text-kaeva-void font-semibold shadow-[0_0_20px_rgba(112,224,152,0.3)]"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin mr-2" size={18} />
+                Generating...
+              </>
+            ) : (
+              `Review Cart ($${totalValue})`
+            )}
+          </Button>
+        </>
+      ) : (
+        <p className="text-white/50 text-sm">All items stocked sufficiently</p>
+      )}
     </motion.div>
   );
 };
