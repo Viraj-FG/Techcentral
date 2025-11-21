@@ -35,6 +35,7 @@ const VoiceOnboarding = ({
   } = useToast();
   const [permissionsGranted, setPermissionsGranted] = useState(false);
   const [apertureState, setApertureState] = useState<ApertureState>("idle");
+  const [isDetectingSound, setIsDetectingSound] = useState(false);
   const [userTranscript, setUserTranscript] = useState("");
   const [aiTranscript, setAiTranscript] = useState("");
   const [showSubtitles, setShowSubtitles] = useState(false);
@@ -59,6 +60,7 @@ const VoiceOnboarding = ({
   const shouldListenRef = useRef(false);
   const isWakeWordModeRef = useRef(true);
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const soundDetectionTimerRef = useRef<NodeJS.Timeout | null>(null);
   const currentTranscriptRef = useRef("");
 
   // Initialize Web Speech API
@@ -91,12 +93,28 @@ const VoiceOnboarding = ({
       
       // Check for wake word when in wake word mode
       if (isWakeWordModeRef.current) {
+        // Show visual feedback that sound is being detected
+        if (fullTranscript.trim()) {
+          setIsDetectingSound(true);
+          
+          // Clear previous timer
+          if (soundDetectionTimerRef.current) {
+            clearTimeout(soundDetectionTimerRef.current);
+          }
+          
+          // Reset detection state after 500ms of no new speech
+          soundDetectionTimerRef.current = setTimeout(() => {
+            setIsDetectingSound(false);
+          }, 500);
+        }
+        
         const lowerTranscript = fullTranscript.toLowerCase();
         if (lowerTranscript.includes("hey kaeva") || 
             lowerTranscript.includes("hey kava") || 
             lowerTranscript.includes("hey keva") ||
             lowerTranscript.includes("hi kaeva")) {
           console.log("Wake word detected!");
+          setIsDetectingSound(false);
           isWakeWordModeRef.current = false;
           shouldListenRef.current = true;
           setApertureState("listening");
@@ -155,6 +173,9 @@ const VoiceOnboarding = ({
       isWakeWordModeRef.current = false;
       if (silenceTimerRef.current) {
         clearTimeout(silenceTimerRef.current);
+      }
+      if (soundDetectionTimerRef.current) {
+        clearTimeout(soundDetectionTimerRef.current);
       }
       recognition.stop();
     };
@@ -391,7 +412,12 @@ const VoiceOnboarding = ({
           scale: 0.8,
           opacity: 0
         }} className="flex flex-col items-center">
-              <KaevaAperture state={apertureState} size="lg" audioElement={audioRef.current} />
+              <KaevaAperture 
+                state={apertureState} 
+                size="lg" 
+                audioElement={audioRef.current}
+                isDetectingSound={isDetectingSound}
+              />
 
               <motion.p initial={{
             opacity: 0,

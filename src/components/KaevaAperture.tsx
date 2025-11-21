@@ -5,9 +5,10 @@ interface KaevaApertureProps {
   state: "idle" | "wakeword" | "listening" | "thinking" | "speaking";
   size?: "sm" | "md" | "lg";
   audioElement?: HTMLAudioElement | null;
+  isDetectingSound?: boolean;
 }
 
-const KaevaAperture = ({ state, size = "md", audioElement }: KaevaApertureProps) => {
+const KaevaAperture = ({ state, size = "md", audioElement, isDetectingSound = false }: KaevaApertureProps) => {
   const [audioPulse, setAudioPulse] = useState(false);
 
   const sizeClasses = {
@@ -63,7 +64,7 @@ const KaevaAperture = ({ state, size = "md", audioElement }: KaevaApertureProps)
       )}
       
       {/* WAKE WORD: Subtle waiting pulse */}
-      {state === 'wakeword' && (
+      {state === 'wakeword' && !isDetectingSound && (
         <motion.div
           className="absolute inset-0 rounded-full border-3 sm:border-4 border-kaeva-sage"
           animate={{
@@ -77,6 +78,25 @@ const KaevaAperture = ({ state, size = "md", audioElement }: KaevaApertureProps)
           }}
           style={{
             filter: 'drop-shadow(0 0 15px rgb(112 224 152 / 0.3))'
+          }}
+        />
+      )}
+      
+      {/* WAKE WORD + SOUND DETECTED: Active pulse */}
+      {state === 'wakeword' && isDetectingSound && (
+        <motion.div
+          className="absolute inset-0 rounded-full border-3 sm:border-4 border-kaeva-sage"
+          animate={{
+            scale: [1, 1.15, 1.05],
+            opacity: [0.6, 1, 0.8]
+          }}
+          transition={{
+            duration: 0.4,
+            repeat: Infinity,
+            ease: "easeOut"
+          }}
+          style={{
+            filter: 'drop-shadow(0 0 25px rgb(112 224 152 / 0.8))'
           }}
         />
       )}
