@@ -4,7 +4,6 @@ import { useConversation } from "@11labs/react";
 import { getSignedUrl } from "@/lib/elevenLabsAudio";
 import { supabase } from "@/integrations/supabase/client";
 import KaevaAperture from "./KaevaAperture";
-import VoiceSubtitles from "./VoiceSubtitles";
 import DigitalTwinCard from "./DigitalTwinCard";
 import AuroraBackground from "./AuroraBackground";
 import PermissionRequest from "./PermissionRequest";
@@ -538,8 +537,6 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
               </AnimatePresence>
             </motion.div> : <DigitalTwinCard key="summary" profile={conversationState} onUpdate={handleProfileUpdate} onComplete={handleEnterKaeva} />}
         </AnimatePresence>
-
-        {showSubtitles && !showSummary && <VoiceSubtitles userText={userTranscript} aiText={aiTranscript} />}
       </div>
     </motion.div>;
 };
