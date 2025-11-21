@@ -34,7 +34,7 @@ const Index = () => {
             key="voice-onboarding"
             onComplete={(profile) => {
               setUserProfile(profile);
-              setAppState("sleeping");
+              setAppState("dashboard");
             }} 
           />
         ) : (
@@ -42,7 +42,7 @@ const Index = () => {
             key="onboarding"
             onComplete={(profile) => {
               setUserProfile(profile);
-              setAppState("sleeping");
+              setAppState("dashboard");
             }} 
           />
         )
