@@ -433,6 +433,21 @@ const VoiceOnboarding = ({
                 {apertureState === "thinking" && "PROCESSING"}
                 {apertureState === "speaking" && "SPEAKING"}
               </motion.p>
+
+              {/* Hint text when sound is detected in wake word mode */}
+              <AnimatePresence>
+                {apertureState === "wakeword" && isDetectingSound && (
+                  <motion.p
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                    className="mt-3 text-kaeva-sage/70 text-[10px] sm:text-xs tracking-wide italic"
+                  >
+                    I hear you... say "Hey Kaeva"
+                  </motion.p>
+                )}
+              </AnimatePresence>
             </motion.div> : <DigitalTwinCard key="summary" profile={conversationState} onUpdate={handleProfileUpdate} onComplete={handleEnterKaeva} />}
         </AnimatePresence>
 
