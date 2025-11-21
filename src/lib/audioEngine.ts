@@ -80,13 +80,16 @@ export function convertPCMtoWAV(base64PCM: string, mimeType: string = 'audio/L16
 
 /**
  * Play audio blob and return promise that resolves when playback ends
+ * @param audioBlob - Audio blob to play
+ * @param volume - Volume level (0.0 to 1.0), defaults to 1.0
  */
-export function playAudio(audioBlob: Blob): Promise<HTMLAudioElement> {
+export function playAudio(audioBlob: Blob, volume: number = 1.0): Promise<HTMLAudioElement> {
   return new Promise((resolve, reject) => {
     console.log('🔊 Creating audio element, blob size:', audioBlob.size, 'type:', audioBlob.type);
+    console.log('🔊 Volume setting:', volume);
     
     const audio = new Audio(URL.createObjectURL(audioBlob));
-    audio.volume = 1.0; // Ensure max volume
+    audio.volume = Math.max(0, Math.min(1, volume)); // Clamp between 0 and 1
     
     console.log('🔊 Audio element created, src:', audio.src);
     

@@ -10,6 +10,7 @@ import ClusterMission from "./ClusterMission";
 import DigitalTwinSummary from "./DigitalTwinSummary";
 import AuroraBackground from "./AuroraBackground";
 import PermissionRequest from "./PermissionRequest";
+import VolumeControl from "./VolumeControl";
 import { convertPCMtoWAV, playAudio } from "@/lib/audioEngine";
 
 interface UserProfile {
@@ -83,8 +84,21 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
   const [apertureState, setApertureState] = useState<ApertureState>("idle");
   const [aiMessage, setAiMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [volume, setVolume] = useState<number>(() => {
+    const savedVolume = localStorage.getItem('kaeva_volume');
+    return savedVolume ? parseFloat(savedVolume) : 0.7;
+  });
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Save volume to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('kaeva_volume', volume.toString());
+    // Update current audio element volume if playing
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
+  }, [volume]);
 
   // Initial AI greeting with TTS
   useEffect(() => {
@@ -114,7 +128,7 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
           try {
             const audioBlob = convertPCMtoWAV(data.audioData, data.mimeType);
             console.log('🎤 Converted to WAV blob, size:', audioBlob.size);
-            const audio = await playAudio(audioBlob);
+            const audio = await playAudio(audioBlob, volume);
             audioRef.current = audio;
             console.log('🎤 Audio playback completed');
           } catch (audioError) {
@@ -200,7 +214,7 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
       if (data.audioData) {
         setApertureState("speaking");
         const audioBlob = convertPCMtoWAV(data.audioData, data.mimeType);
-        const audio = await playAudio(audioBlob);
+        const audio = await playAudio(audioBlob, volume);
         audioRef.current = audio;
       }
       
@@ -282,6 +296,14 @@ const DeepOnboarding = ({ onComplete }: DeepOnboardingProps) => {
               </p>
             </motion.div>
           )}
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <VolumeControl volume={volume} onVolumeChange={setVolume} />
+          </motion.div>
         </div>
 
         <AnimatePresence mode="wait">
