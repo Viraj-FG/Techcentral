@@ -148,10 +148,10 @@ const Splash = ({ onComplete }: SplashProps) => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
                 onClick={handleGetStarted}
-                className="group relative px-10 py-4 sm:px-12 sm:py-5 bg-white/5 border border-white/10 backdrop-blur-md rounded-full text-white tracking-wide text-base sm:text-lg font-medium overflow-hidden transition-all hover:bg-white/10 min-h-[48px]"
+                className="group relative px-10 py-4 sm:px-12 sm:py-5 bg-kaeva-sage/90 border-2 border-kaeva-sage backdrop-blur-md rounded-full text-kaeva-void tracking-wide text-base sm:text-lg font-bold overflow-hidden transition-all hover:bg-kaeva-sage hover:scale-105 shadow-lg shadow-kaeva-sage/50 min-h-[48px]"
               >
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
                   initial={{ x: "-100%" }}
                   whileHover={{ x: "200%" }}
                   transition={{ duration: 0.6, ease: "easeInOut" }}
