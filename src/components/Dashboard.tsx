@@ -10,6 +10,7 @@ import InventoryMatrix from "./dashboard/InventoryMatrix";
 import ShieldStatus from "./dashboard/ShieldStatus";
 import FloatingActionButton from "./dashboard/FloatingActionButton";
 import ConfigurationBanner from "./dashboard/ConfigurationBanner";
+import VoiceAssistant from "./voice/VoiceAssistant";
 
 interface DashboardProps {
   profile: any;
@@ -140,6 +141,9 @@ const Dashboard = ({ profile }: DashboardProps) => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
+      {/* Voice Assistant - always active */}
+      <VoiceAssistant userProfile={profile} onProfileUpdate={setInventoryData} />
+
       <div className="max-w-7xl mx-auto space-y-6">
         <ConfigurationBanner />
         
