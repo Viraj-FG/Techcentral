@@ -4,12 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Splash from "@/components/Splash";
 import VoiceOnboarding from "@/components/VoiceOnboarding";
-import SleepingKaeva from "@/components/SleepingKaeva";
 import Dashboard from "@/components/Dashboard";
 
 const Index = () => {
   const navigate = useNavigate();
-  const [appState, setAppState] = useState<"splash" | "onboarding" | "sleeping" | "dashboard" | null>(null);
+  const [appState, setAppState] = useState<"splash" | "onboarding" | "dashboard" | null>(null);
   const [userProfile, setUserProfile] = useState(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
@@ -33,9 +32,9 @@ const Index = () => {
 
         if (profile?.onboarding_completed) {
           setUserProfile(profile);
-          setAppState("dashboard"); // Returning user → Dashboard directly
+          setAppState("dashboard"); // Returning user → Dashboard with voice assistant
         } else {
-          setAppState("splash"); // New user → Splash → Wake Word → Onboarding
+          setAppState("onboarding"); // New user → Onboarding (which includes splash internally)
         }
       } catch (error) {
         console.error("Error checking auth:", error);
@@ -67,17 +66,6 @@ const Index = () => {
 
   return (
     <AnimatePresence mode="wait">
-      {appState === "splash" && (
-        <Splash key="splash" onComplete={() => setAppState("sleeping")} />
-      )}
-      
-      {appState === "sleeping" && (
-        <SleepingKaeva 
-          key="sleeping" 
-          onWake={() => setAppState("onboarding")} 
-        />
-      )}
-      
       {appState === "onboarding" && (
         <VoiceOnboarding 
           key="voice-onboarding"
