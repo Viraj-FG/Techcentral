@@ -69,6 +69,13 @@ All colors MUST be HSL.
     --kaeva-terracotta: 14 66% 61%;
     --kaeva-oatmeal: 214 32% 91%;
     --kaeva-electric-teal: 174 72% 56%;
+    
+    /* KAEVA - Multi-Vertical Atmosphere Colors (Seattle Solstice) */
+    --kaeva-atmosphere-food: 142 79% 71%;       /* #70E098 Sage Green */
+    --kaeva-atmosphere-beauty: 21 90% 48%;      /* #C2410C Terracotta */
+    --kaeva-atmosphere-pets: 199 95% 74%;       /* #38BDF8 Electric Sky */
+    --kaeva-atmosphere-neutral: 215 16% 47%;    /* Slate-400 */
+    --kaeva-seattle-slate: 222 47% 11%;         /* #0F172A Deep Slate */
 
     --sidebar-background: 0 0% 98%;
 
@@ -138,6 +145,13 @@ All colors MUST be HSL.
     --kaeva-terracotta: 14 66% 61%;
     --kaeva-oatmeal: 214 32% 91%;
     --kaeva-electric-teal: 174 72% 56%;
+    
+    /* KAEVA - Multi-Vertical Atmosphere Colors (Seattle Solstice) */
+    --kaeva-atmosphere-food: 142 79% 71%;
+    --kaeva-atmosphere-beauty: 21 90% 48%;
+    --kaeva-atmosphere-pets: 199 95% 74%;
+    --kaeva-atmosphere-neutral: 215 16% 47%;
+    --kaeva-seattle-slate: 222 47% 11%;
   }
 }
 

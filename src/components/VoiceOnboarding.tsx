@@ -9,16 +9,22 @@ import AuroraBackground from "./AuroraBackground";
 import PermissionRequest from "./PermissionRequest";
 import TutorialOverlay from "./TutorialOverlay";
 import { useToast } from "@/hooks/use-toast";
-import { Mic, Brain, Volume2 } from "lucide-react";
+import { Mic, Brain, Volume2, Leaf, PawPrint, Sparkles } from "lucide-react";
+
 interface ConversationState {
   userName: string | null;
   dietaryValues: string[];
   allergies: string[];
+  beautyProfile: {
+    skinType: string | null;
+    hairType: string | null;
+  } | null;
   household: {
     adults: number;
     kids: number;
     dogs: number;
     cats: number;
+    petDetails?: string;
   } | null;
   healthGoals: string[];
   lifestyleGoals: string[];
@@ -39,10 +45,13 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
   const [aiTranscript, setAiTranscript] = useState("");
   const [showSubtitles, setShowSubtitles] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
+  const [activeVertical, setActiveVertical] = useState<"food" | "beauty" | "pets" | null>(null);
+  const [detectedKeywords, setDetectedKeywords] = useState<string[]>([]);
   const [conversationState, setConversationState] = useState<ConversationState>({
     userName: null,
     dietaryValues: [],
     allergies: [],
+    beautyProfile: null,
     household: null,
     healthGoals: [],
     lifestyleGoals: [],
@@ -75,6 +84,26 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
       
       // Handle assistant responses
       if (message.source === "ai") {
+        const text = message.message?.toLowerCase() || "";
+        
+        // Detect conversation context
+        if (text.includes("skin") || text.includes("hair") || text.includes("beauty")) {
+          setActiveVertical("beauty");
+        } else if (text.includes("pet") || text.includes("dog") || text.includes("cat")) {
+          setActiveVertical("pets");
+        } else if (text.includes("diet") || text.includes("food") || text.includes("allergy")) {
+          setActiveVertical("food");
+        }
+        
+        // Detect specific keywords for icon animation
+        const keywords = [];
+        if (text.includes("vegan")) keywords.push("vegan");
+        if (text.includes("halal")) keywords.push("halal");
+        if (text.includes("dog")) keywords.push("dog");
+        if (text.includes("cat")) keywords.push("cat");
+        if (text.includes("skin") || text.includes("hair")) keywords.push("beauty");
+        setDetectedKeywords(keywords);
+        
         setAiTranscript(message.message || "");
         setShowSubtitles(true);
       }
@@ -181,6 +210,7 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
       userName: conversationState.userName,
       dietaryRestrictions: conversationState.dietaryValues,
       allergies: conversationState.allergies,
+      beautyProfile: conversationState.beautyProfile,
       household: conversationState.household,
       medicalGoals: conversationState.healthGoals,
       lifestyleGoals: conversationState.lifestyleGoals,
@@ -213,7 +243,7 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
   }} exit={{
     opacity: 0
   }} className="fixed inset-0 bg-kaeva-void overflow-hidden">
-      <AuroraBackground />
+      <AuroraBackground vertical={activeVertical} />
 
       <div className="relative z-10 h-full flex flex-col items-center justify-center">
         <AnimatePresence mode="wait">
@@ -233,6 +263,55 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
                 audioElement={null}
                 isDetectingSound={false}
               />
+
+              {/* Keyword Icon Feedback */}
+              <AnimatePresence>
+                {detectedKeywords.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="mt-8 flex gap-4"
+                  >
+                    {detectedKeywords.includes("vegan") && (
+                      <motion.div
+                        animate={{ 
+                          scale: [1, 1.2, 1],
+                          rotate: [0, 5, -5, 0]
+                        }}
+                        transition={{ duration: 0.6 }}
+                        className="p-3 rounded-full bg-emerald-400/20 backdrop-blur-sm border border-emerald-400/30"
+                      >
+                        <Leaf className="w-6 h-6 text-emerald-400" strokeWidth={1.5} />
+                      </motion.div>
+                    )}
+                    {(detectedKeywords.includes("dog") || detectedKeywords.includes("cat")) && (
+                      <motion.div
+                        animate={{ 
+                          scale: [1, 1.2, 1],
+                          rotate: [0, 5, -5, 0]
+                        }}
+                        transition={{ duration: 0.6 }}
+                        className="p-3 rounded-full bg-sky-400/20 backdrop-blur-sm border border-sky-400/30"
+                      >
+                        <PawPrint className="w-6 h-6 text-sky-400" strokeWidth={1.5} />
+                      </motion.div>
+                    )}
+                    {detectedKeywords.includes("beauty") && (
+                      <motion.div
+                        animate={{ 
+                          scale: [1, 1.2, 1],
+                          rotate: [0, 5, -5, 0]
+                        }}
+                        transition={{ duration: 0.6 }}
+                        className="p-3 rounded-full bg-orange-400/20 backdrop-blur-sm border border-orange-400/30"
+                      >
+                        <Sparkles className="w-6 h-6 text-orange-400" strokeWidth={1.5} />
+                      </motion.div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <AnimatePresence mode="wait">
                 {apertureState === "listening" && (

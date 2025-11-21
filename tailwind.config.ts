@@ -69,6 +69,11 @@ export default {
           terracotta: "hsl(var(--kaeva-terracotta))",
           oatmeal: "hsl(var(--kaeva-oatmeal))",
           "electric-teal": "hsl(var(--kaeva-electric-teal))",
+          "atmosphere-food": "hsl(var(--kaeva-atmosphere-food))",
+          "atmosphere-beauty": "hsl(var(--kaeva-atmosphere-beauty))",
+          "atmosphere-pets": "hsl(var(--kaeva-atmosphere-pets))",
+          "atmosphere-neutral": "hsl(var(--kaeva-atmosphere-neutral))",
+          "seattle-slate": "hsl(var(--kaeva-seattle-slate))",
         },
       },
       letterSpacing: {

@@ -101,22 +101,22 @@ const KaevaAperture = ({ state, size = "md", audioElement, isDetectingSound = fa
         />
       )}
       
-      {/* LISTENING: Expanded glow */}
+      {/* LISTENING: Deep expansion (more meditative) */}
       {state === 'listening' && (
         <motion.div
           className="absolute inset-0 rounded-full border-3 sm:border-4 border-kaeva-sage"
           animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.7, 0.9, 0.7],
+            scale: [1, 1.3, 1],
+            opacity: [0.6, 0.95, 0.6],
             rotate: [0, 360]
           }}
           transition={{
-            duration: 4,
+            duration: 5,
             repeat: Infinity,
             ease: "easeInOut"
           }}
           style={{
-            filter: 'drop-shadow(0 0 20px rgb(112 224 152 / 0.6))'
+            filter: 'drop-shadow(0 0 25px rgb(112 224 152 / 0.7))'
           }}
         />
       )}
@@ -137,16 +137,21 @@ const KaevaAperture = ({ state, size = "md", audioElement, isDetectingSound = fa
         />
       )}
       
-      {/* SPEAKING: Rapid vibration synced to audio */}
+      {/* SPEAKING: Rapid pulse (more energetic) */}
       {state === 'speaking' && (
         <motion.div
           className="absolute inset-0 rounded-full border-3 sm:border-4 border-kaeva-sage"
           animate={{
-            scale: audioPulse ? 1.2 : 1,
-            opacity: audioPulse ? 1 : 0.7
+            scale: [1, 1.25, 1.1, 1.3, 1],
+            opacity: [0.8, 1, 0.9, 1, 0.8]
           }}
           transition={{
-            duration: 0.15
+            duration: 0.4,
+            repeat: Infinity,
+            ease: "easeOut"
+          }}
+          style={{
+            filter: 'drop-shadow(0 0 30px rgb(112 224 152 / 0.9))'
           }}
         />
       )}

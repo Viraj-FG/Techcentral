@@ -1,16 +1,21 @@
 import { motion } from "framer-motion";
-import { User, Shield, Users, Heart, Clock, Award, Leaf, Ban, ShieldAlert } from "lucide-react";
+import { User, Shield, Users, Heart, Clock, Award, Leaf, Ban, ShieldAlert, Sparkles, PawPrint } from "lucide-react";
 import { Button } from "./ui/button";
 
 interface ProfileData {
   userName: string | null;
   dietaryValues: string[];
   allergies: string[];
+  beautyProfile: {
+    skinType: string | null;
+    hairType: string | null;
+  } | null;
   household: {
     adults: number;
     kids: number;
     dogs: number;
     cats: number;
+    petDetails?: string;
   } | null;
   healthGoals: string[];
   lifestyleGoals: string[];
@@ -127,6 +132,39 @@ const DigitalTwinCard = ({ profile, onUpdate, onComplete }: DigitalTwinCardProps
             </motion.div>
           )}
 
+          {/* Beauty Profile */}
+          {profile.beautyProfile && (
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.48 }}
+              className="p-3 sm:p-4 bg-white/5 rounded-lg border border-white/10"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="text-orange-400" strokeWidth={1.5} size={20} />
+                <p className="text-xs text-orange-400 uppercase tracking-wider">Beauty Profile</p>
+              </div>
+              <div className="space-y-2">
+                {profile.beautyProfile.skinType && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-orange-400/50" />
+                    <span className="text-white text-sm">
+                      Skin: {profile.beautyProfile.skinType}
+                    </span>
+                  </div>
+                )}
+                {profile.beautyProfile.hairType && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-orange-400/50" />
+                    <span className="text-white text-sm">
+                      Hair: {profile.beautyProfile.hairType}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
           {/* Household */}
           {profile.household && (
             <motion.div
@@ -146,11 +184,28 @@ const DigitalTwinCard = ({ profile, onUpdate, onComplete }: DigitalTwinCardProps
                 {profile.household.kids > 0 && (
                   <p className="text-sm">Children: {profile.household.kids}</p>
                 )}
-                {profile.household.dogs > 0 && (
-                  <p className="text-sm">Dogs: {profile.household.dogs}</p>
-                )}
-                {profile.household.cats > 0 && (
-                  <p className="text-sm">Cats: {profile.household.cats}</p>
+                {(profile.household.dogs > 0 || profile.household.cats > 0) && (
+                  <div className="mt-2 pt-2 border-t border-white/10">
+                    <div className="flex items-center gap-2 mb-1">
+                      <PawPrint className="w-4 h-4 text-sky-400" />
+                      <span className="text-xs text-sky-400 uppercase tracking-wider">Pets</span>
+                    </div>
+                    {profile.household.dogs > 0 && (
+                      <p className="text-sm">Dogs: {profile.household.dogs}</p>
+                    )}
+                    {profile.household.cats > 0 && (
+                      <p className="text-sm">Cats: {profile.household.cats}</p>
+                    )}
+                    {profile.household.petDetails && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {profile.household.petDetails}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-1 mt-2 px-2 py-1 bg-amber-500/10 rounded border border-amber-400/30">
+                      <ShieldAlert className="w-3 h-3 text-amber-400" />
+                      <span className="text-xs text-amber-400">Toxic Ingredient Safety Active</span>
+                    </div>
+                  </div>
                 )}
               </div>
             </motion.div>
