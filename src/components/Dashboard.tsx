@@ -3,7 +3,9 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "./ui/button";
+import { Icon } from "./ui/icon";
 import { Shield } from "lucide-react";
+import { kaevaTransition, kaevaEntranceVariants } from "@/hooks/useKaevaMotion";
 import PulseHeader from "./dashboard/PulseHeader";
 import SmartCartWidget from "./dashboard/SmartCartWidget";
 import InventoryMatrix from "./dashboard/InventoryMatrix";
@@ -136,10 +138,10 @@ const Dashboard = ({ profile }: DashboardProps) => {
     <motion.div
       className="min-h-screen bg-kaeva-seattle-slate p-4 sm:p-8"
       variants={dashboardVariants}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      initial="hidden"
+      animate="show"
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={kaevaTransition}
     >
       {/* Voice Assistant - always active */}
       <VoiceAssistant userProfile={profile} onProfileUpdate={setInventoryData} />
@@ -149,17 +151,16 @@ const Dashboard = ({ profile }: DashboardProps) => {
         
         {isAdmin && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
+            variants={kaevaEntranceVariants}
             className="flex justify-end"
           >
             <Button
-              variant="outline"
+              variant="glass"
               onClick={() => navigate("/admin")}
               className="gap-2"
             >
-              <Shield className="h-4 w-4" />
-              Admin Dashboard
+              <Icon icon={Shield} size="sm" />
+              <span className="text-micro">Admin Dashboard</span>
             </Button>
           </motion.div>
         )}

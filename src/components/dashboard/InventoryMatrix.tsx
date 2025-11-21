@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Refrigerator, Package, Sparkles, PawPrint } from "lucide-react";
 import InventoryCard from "./InventoryCard";
+import { kaevaTransition } from "@/hooks/useKaevaMotion";
 
 interface InventoryItem {
   name: string;
@@ -24,10 +25,10 @@ const InventoryMatrix = ({ inventory }: InventoryMatrixProps) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.3 }}
+      transition={kaevaTransition}
     >
-      <h2 className="text-2xl font-semibold text-kaeva-slate-200 mb-4 tracking-wide">
-        Inventory Status
+      <h2 className="text-display text-2xl text-white mb-4">
+        INVENTORY STATUS
       </h2>
 
       <motion.div

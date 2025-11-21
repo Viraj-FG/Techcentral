@@ -4,13 +4,18 @@
 
 @layer components {
   .glass-card {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl;
+    @apply bg-white/5 backdrop-blur-xl border-2 border-white/10 rounded-2xl;
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.02);
+  }
+
+  .glass-card-large {
+    @apply glass-card rounded-3xl;
   }
 
   .glass-chip {
     @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-full 
-           px-6 py-3 hover:bg-white/10 transition-all cursor-pointer
-           flex items-center gap-2 justify-center;
+           px-6 py-3 hover:bg-white/10 transition-kaeva cursor-pointer
+           flex items-center gap-2 justify-center active:scale-[0.98];
   }
 
   .glass-chip-active {
@@ -65,9 +70,10 @@ All colors MUST be HSL.
     --kaeva-slate-100: 220 15% 95%;
     --kaeva-slate-300: 217 14% 70%;
     
-    /* KAEVA - Cluster-specific atmospheres */
-    --kaeva-terracotta: 14 66% 61%;
-    --kaeva-oatmeal: 214 32% 91%;
+    /* KAEVA - Cluster-specific atmospheres (Seattle Solstice) */
+    --kaeva-terracotta: 21 59% 60%;      /* #D97757 Terracotta (Beauty/Human) */
+    --kaeva-oatmeal: 210 40% 93%;        /* #E2E8F0 Oatmeal (Neutral/Pets) */
+    --kaeva-electric-sky: 199 95% 60%;   /* #38BDF8 Electric Sky (Medical/Data) */
     --kaeva-electric-teal: 174 72% 56%;
     
     /* KAEVA - Multi-Vertical Atmosphere Colors (Seattle Solstice) */
@@ -141,9 +147,10 @@ All colors MUST be HSL.
     --kaeva-slate-100: 220 15% 95%;
     --kaeva-slate-300: 217 14% 70%;
     
-    /* KAEVA - Cluster-specific atmospheres (same in dark mode) */
-    --kaeva-terracotta: 14 66% 61%;
-    --kaeva-oatmeal: 214 32% 91%;
+    /* KAEVA - Cluster-specific atmospheres (Seattle Solstice) */
+    --kaeva-terracotta: 21 59% 60%;      /* #D97757 Terracotta (Beauty/Human) */
+    --kaeva-oatmeal: 210 40% 93%;        /* #E2E8F0 Oatmeal (Neutral/Pets) */
+    --kaeva-electric-sky: 199 95% 60%;   /* #38BDF8 Electric Sky (Medical/Data) */
     --kaeva-electric-teal: 174 72% 56%;
     
     /* KAEVA - Multi-Vertical Atmosphere Colors (Seattle Solstice) */
@@ -201,5 +208,33 @@ All colors MUST be HSL.
   
   .pt-safe {
     padding-top: max(0.5rem, env(safe-area-inset-top));
+  }
+
+  /* Seattle Solstice Typography */
+  .text-display {
+    @apply font-light tracking-wider;
+    font-weight: 300;
+  }
+  
+  .text-body {
+    @apply font-normal tracking-normal;
+  }
+  
+  .text-data {
+    @apply font-mono font-medium;
+  }
+  
+  .text-micro {
+    @apply font-semibold uppercase tracking-widest text-xs;
+  }
+
+  /* Seattle Solstice Motion */
+  .transition-kaeva {
+    transition-duration: 500ms;
+    transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  
+  .active-press:active {
+    transform: scale(0.98);
   }
 }
