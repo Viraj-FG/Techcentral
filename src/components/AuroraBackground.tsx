@@ -9,7 +9,8 @@ const AuroraBackground = ({ atmosphereColor = "#70E098" }: AuroraBackgroundProps
     <div className="fixed inset-0 overflow-hidden pointer-events-none">
       {/* Primary Orb */}
       <motion.div
-        className="absolute w-96 h-96 rounded-full blur-3xl"
+        className="absolute w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-full blur-xl sm:blur-2xl md:blur-3xl"
+        style={{ willChange: 'transform', transform: 'translateZ(0)', opacity: 0.3 }}
         animate={{
           backgroundColor: atmosphereColor,
           x: ["10%", "80%"],
@@ -20,12 +21,12 @@ const AuroraBackground = ({ atmosphereColor = "#70E098" }: AuroraBackgroundProps
           x: { duration: 20, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" },
           y: { duration: 20, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }
         }}
-        style={{ opacity: 0.3 }}
       />
       
       {/* Secondary Orb */}
       <motion.div
-        className="absolute w-80 h-80 rounded-full blur-3xl"
+        className="absolute w-56 h-56 sm:w-64 sm:h-64 md:w-80 md:h-80 rounded-full blur-xl sm:blur-2xl md:blur-3xl"
+        style={{ willChange: 'transform', transform: 'translateZ(0)', opacity: 0.2 }}
         animate={{
           backgroundColor: atmosphereColor,
           x: ["80%", "10%"],
@@ -36,12 +37,12 @@ const AuroraBackground = ({ atmosphereColor = "#70E098" }: AuroraBackgroundProps
           x: { duration: 25, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" },
           y: { duration: 25, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }
         }}
-        style={{ opacity: 0.2 }}
       />
       
       {/* Tertiary Small Orb */}
       <motion.div
-        className="absolute w-64 h-64 rounded-full blur-2xl"
+        className="absolute w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 rounded-full blur-lg sm:blur-xl md:blur-2xl"
+        style={{ willChange: 'transform', transform: 'translateZ(0)', opacity: 0.15 }}
         animate={{
           backgroundColor: atmosphereColor,
           x: ["50%", "50%"],
@@ -52,7 +53,6 @@ const AuroraBackground = ({ atmosphereColor = "#70E098" }: AuroraBackgroundProps
           x: { duration: 18, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" },
           y: { duration: 18, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }
         }}
-        style={{ opacity: 0.15 }}
       />
     </div>
   );

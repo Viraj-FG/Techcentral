@@ -352,7 +352,7 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="mt-8 text-kaeva-sage text-sm tracking-widest"
+                className="mt-6 sm:mt-8 text-kaeva-sage text-xs sm:text-sm tracking-widest"
               >
                 {apertureState === "listening" && "LISTENING"}
                 {apertureState === "thinking" && "PROCESSING"}
@@ -376,7 +376,7 @@ const VoiceOnboarding = ({ onComplete }: VoiceOnboardingProps) => {
           />
         )}
 
-        <div className="fixed bottom-8 right-8">
+        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8">
           <VolumeControl volume={volume} onVolumeChange={setVolume} />
         </div>
       </div>

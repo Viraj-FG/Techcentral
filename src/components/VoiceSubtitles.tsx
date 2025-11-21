@@ -44,11 +44,11 @@ const VoiceSubtitles = ({ userText, aiText }: VoiceSubtitlesProps) => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.3 }}
-          className="fixed bottom-32 left-1/2 -translate-x-1/2 w-full max-w-3xl px-8"
+          className="fixed bottom-24 sm:bottom-32 left-1/2 -translate-x-1/2 w-full max-w-[90vw] sm:max-w-xl md:max-w-2xl lg:max-w-3xl px-4 sm:px-6 md:px-8"
         >
-          <div className="glass-card p-6 text-center backdrop-blur-xl bg-white/5 border border-white/10">
+          <div className="glass-card p-4 sm:p-6 text-center backdrop-blur-xl bg-white/5 border border-white/10 min-h-[60px] sm:min-h-[80px]">
             <p
-              className={`text-base leading-relaxed ${
+              className={`text-sm sm:text-base leading-relaxed ${
                 userText ? "text-emerald-300" : "text-white"
               }`}
             >

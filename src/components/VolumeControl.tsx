@@ -10,10 +10,10 @@ const VolumeControl = ({ volume, onVolumeChange }: VolumeControlProps) => {
   const isMuted = volume === 0;
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 bg-kaeva-void/40 backdrop-blur-sm border border-kaeva-slate-700/30 rounded-lg">
+    <div className="flex items-center gap-2 sm:gap-3 px-3 py-2 sm:px-4 sm:py-3 bg-kaeva-void/40 backdrop-blur-sm border border-kaeva-slate-700/30 rounded-lg">
       <button
         onClick={() => onVolumeChange(isMuted ? 0.7 : 0)}
-        className="text-kaeva-slate-400 hover:text-kaeva-slate-300 transition-colors"
+        className="p-2 text-kaeva-slate-400 hover:text-kaeva-slate-300 transition-colors"
         aria-label={isMuted ? "Unmute" : "Mute"}
       >
         {isMuted ? (
@@ -23,7 +23,7 @@ const VolumeControl = ({ volume, onVolumeChange }: VolumeControlProps) => {
         )}
       </button>
       
-      <div className="flex-1 min-w-[120px] max-w-[200px]">
+      <div className="flex-1 min-w-[80px] sm:min-w-[120px] max-w-[140px] sm:max-w-[200px]">
         <Slider
           value={[volume * 100]}
           onValueChange={([value]) => onVolumeChange(value / 100)}
