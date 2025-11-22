@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 interface KaevaApertureProps {
   state: "idle" | "wakeword" | "listening" | "thinking" | "speaking";
   size?: "sm" | "md" | "lg";
+  audioAmplitude?: number;
   audioElement?: HTMLAudioElement | null;
   isDetectingSound?: boolean;
 }
 
-const KaevaAperture = ({ state, size = "md", audioElement, isDetectingSound = false }: KaevaApertureProps) => {
+const KaevaAperture = ({ state, size = "md", audioAmplitude = 0, audioElement, isDetectingSound = false }: KaevaApertureProps) => {
   const [audioPulse, setAudioPulse] = useState(false);
 
   const sizeClasses = {
@@ -101,22 +102,21 @@ const KaevaAperture = ({ state, size = "md", audioElement, isDetectingSound = fa
         />
       )}
       
-      {/* LISTENING: Deep expansion (more meditative) */}
+      {/* LISTENING: Reactive to user voice amplitude */}
       {state === 'listening' && (
         <motion.div
           className="absolute inset-0 rounded-full border-3 sm:border-4 border-kaeva-sage"
           animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.6, 0.95, 0.6],
+            scale: [1, 1 + (audioAmplitude / 200), 1],
+            opacity: [0.6, 0.8 + (audioAmplitude / 500), 0.6],
             rotate: [0, 360]
           }}
           transition={{
-            duration: 5,
-            repeat: Infinity,
-            ease: "easeInOut"
+            duration: 0.3,
+            ease: "easeOut"
           }}
           style={{
-            filter: 'drop-shadow(0 0 25px rgb(112 224 152 / 0.7))'
+            filter: `drop-shadow(0 0 ${Math.max(15, audioAmplitude / 3)}px rgb(112 224 152 / ${Math.min(0.9, 0.4 + audioAmplitude / 500)}))`
           }}
         />
       )}
