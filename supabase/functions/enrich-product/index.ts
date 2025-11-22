@@ -269,50 +269,71 @@ function extractDietaryFlags(food: any): string[] {
 }
 
 async function searchOpenFoodFacts(name: string, brand?: string) {
-  const searchTerm = brand ? `${brand} ${name}` : name;
-  console.log('Searching Open Food Facts for:', searchTerm);
-  
-  const response = await fetch(
-    `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(searchTerm)}&search_simple=1&json=1&page_size=5`
-  );
-  
-  if (!response.ok) {
-    console.error('Open Food Facts search failed:', response.status);
+  try {
+    const searchTerm = brand ? `${brand} ${name}` : name;
+    console.log('Searching Open Food Facts for:', searchTerm);
+    
+    const response = await fetch(
+      `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(searchTerm)}&search_simple=1&action=process&json=1&page_size=10`,
+      {
+        headers: {
+          'User-Agent': 'Kaeva-App/1.0'
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      console.error('Open Food Facts search failed:', response.status);
+      return null;
+    }
+    
+    const data = await response.json();
+    console.log('Open Food Facts response:', JSON.stringify(data).substring(0, 500));
+    
+    if (!data.products || data.products.length === 0) {
+      console.log('No products found in Open Food Facts');
+      return null;
+    }
+    
+    console.log('Found products in Open Food Facts:', data.products.length);
+    // Return first product with complete data
+    const validProduct = data.products.find((p: any) => 
+      p.product_name && (p.nutriments?.energy || p.nutriments?.['energy-kcal'])
+    );
+    return validProduct || data.products[0];
+  } catch (error) {
+    console.error('Open Food Facts error:', error);
     return null;
   }
-  
-  const data = await response.json();
-  
-  if (!data.products || data.products.length === 0) {
-    console.log('No products found in Open Food Facts');
-    return null;
-  }
-  
-  console.log('Found products in Open Food Facts:', data.products.length);
-  return data.products[0]; // Return first match
 }
 
 function processOpenFoodFactsProduct(product: any) {
   const nutriments = product.nutriments || {};
   
+  // Convert energy from kJ to kcal if needed (1 kcal = 4.184 kJ)
+  let calories = parseFloat(nutriments['energy-kcal'] || nutriments.energy_value || '0');
+  if (calories === 0 && nutriments.energy) {
+    calories = parseFloat(nutriments.energy) / 4.184;
+  }
+  
   return {
     fatsecret_id: null,
     name: product.product_name || product.product_name_en || 'Unknown Product',
-    brand: product.brands || null,
-    image_url: product.image_url || product.image_front_url || null,
+    brand: product.brands?.split(',')[0]?.trim() || null,
+    image_url: product.image_url || product.image_front_url || product.image_small_url || null,
     nutrition: {
-      calories: parseFloat(nutriments.energy_value || nutriments['energy-kcal'] || '0'),
-      protein: parseFloat(nutriments.proteins || '0'),
-      carbs: parseFloat(nutriments.carbohydrates || '0'),
-      fat: parseFloat(nutriments.fat || '0'),
-      saturated_fat: parseFloat(nutriments['saturated-fat'] || '0'),
-      sodium: parseFloat(nutriments.sodium || '0'),
-      sugar: parseFloat(nutriments.sugars || '0'),
-      fiber: parseFloat(nutriments.fiber || '0')
+      calories: Math.round(calories),
+      protein: parseFloat(nutriments.proteins || nutriments.proteins_100g || '0'),
+      carbs: parseFloat(nutriments.carbohydrates || nutriments.carbohydrates_100g || '0'),
+      fat: parseFloat(nutriments.fat || nutriments.fat_100g || '0'),
+      saturated_fat: parseFloat(nutriments['saturated-fat'] || nutriments['saturated-fat_100g'] || '0'),
+      sodium: parseFloat(nutriments.sodium || nutriments.sodium_100g || '0') * 1000, // Convert to mg
+      sugar: parseFloat(nutriments.sugars || nutriments.sugars_100g || '0'),
+      fiber: parseFloat(nutriments.fiber || nutriments.fiber_100g || '0')
     },
     allergens: extractAllergensFromOFF(product),
     dietary_flags: extractDietaryFlagsFromOFF(product),
-    serving_size: product.serving_size || null,
+    serving_size: product.serving_size || product.serving_quantity || '100g',
     source: 'openfoodfacts'
   };
 }

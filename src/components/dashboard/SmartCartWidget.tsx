@@ -69,7 +69,11 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
               }
             });
 
-            if (error) throw error;
+            // Silently handle errors - just show what we have
+            if (error || !data || data.error) {
+              console.log('Enrichment skipped for', item.name);
+              return item;
+            }
 
             // Update inventory with enriched data
             if (item.id) {
@@ -96,7 +100,8 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
               brand_name: data.brand
             };
           } catch (err) {
-            console.error('Enrichment failed for', item.name, err);
+            // Silently continue if enrichment fails
+            console.log('Enrichment failed for', item.name);
             return item;
           }
         })
