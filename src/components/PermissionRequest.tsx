@@ -13,90 +13,56 @@ const PermissionRequest = ({
   const [isRequesting, setIsRequesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [audioReady, setAudioReady] = useState(false);
-  const [isTestingAudio, setIsTestingAudio] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const playTestBeep = async () => {
-    setIsTestingAudio(true);
-    try {
-      // Get saved volume preference or default to 0.7
-      const savedVolume = localStorage.getItem('kaeva_volume');
-      const volume = savedVolume ? parseFloat(savedVolume) : 0.7;
-
-      // Create audio context
-      const audioContext = new AudioContext();
-
-      // Create oscillator for beep sound (pure tone at 800Hz)
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      // Configure the beep
-      oscillator.frequency.value = 800; // 800Hz tone
-      oscillator.type = 'sine'; // Pure sine wave
-
-      // Set volume and create a fade in/out envelope
-      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-      gainNode.gain.linearRampToValueAtTime(volume * 0.3, audioContext.currentTime + 0.05); // Fade in
-      gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3); // Fade out
-
-      // Play the beep for 300ms
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.3);
-
-      // Wait for beep to finish
-      await new Promise(resolve => setTimeout(resolve, 400));
-      console.log('🔔 Test beep played at volume:', volume);
-    } catch (err) {
-      console.error('Test audio error:', err);
-      setError('Failed to play test sound. Please check your audio settings.');
-    } finally {
-      setIsTestingAudio(false);
-    }
-  };
   const requestPermissions = async () => {
     console.log('🎯 Permission button clicked');
     setIsRequesting(true);
     setError(null);
     
     try {
-      // CRITICAL: Unlock AudioContext IMMEDIATELY on user click (iOS requirement)
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      await audioContext.resume();
-      console.log('🔊 AudioContext unlocked immediately, state:', audioContext.state);
+      // 1. IOS UNLOCK: Create & Resume AudioContext immediately (Top priority)
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const audioContext = new AudioContextClass();
+      
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+      console.log('🔊 AudioContext unlocked, state:', audioContext.state);
 
-      // Request BOTH microphone AND camera (needed for scanner)
+      // 2. IOS UNLOCK: Play silent HTML5 audio immediately
+      const silentAudio = new Audio();
+      silentAudio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+      try {
+        await silentAudio.play();
+        console.log('🎵 HTML5 Audio unlocked');
+      } catch (audioErr) {
+        console.warn("Silent audio play failed (non-critical):", audioErr);
+      }
+
+      // 3. REQUEST MEDIA (Removed strict sampleRate for iOS compatibility)
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
-          sampleRate: 24000,
-          channelCount: 1,
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true
         },
         video: { 
-          facingMode: "user" // iOS needs to know which camera
+          facingMode: "user" 
         }
       });
+      
       console.log('✅ getUserMedia successful');
 
-      // Stop the test stream immediately after permission is granted
-      stream.getTracks().forEach(track => track.stop());
-
-      // Unlock HTML5 Audio (for ElevenLabs voice playback)
-      const silentAudio = new Audio();
-      silentAudio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
-      await silentAudio.play();
-      console.log('🎵 HTML5 Audio unlocked');
-      
+      // 4. SUCCESS STATE
       setAudioReady(true);
-      console.log('🚀 All permissions granted, transitioning...');
-
-      // Add small delay to ensure state is flushed
-      await new Promise(resolve => setTimeout(resolve, 100));
       
+      // 5. TRANSITION LOGIC (Delay track stopping)
       setIsTransitioning(true);
-      console.log('🔄 Starting transition to onboarding...');
+      
+      // Artificial delay to show "Success" state to user
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      console.log('🔄 Calling onPermissionsGranted...');
 
       try {
         // Call callback with 5-second timeout safety net
@@ -110,32 +76,66 @@ const PermissionRequest = ({
         console.log('✅ Permission callback completed successfully');
       } catch (timeoutErr) {
         console.error('⏱️ Callback timeout or error:', timeoutErr);
-        // Force transition anyway - don't block user
         alert('Taking longer than expected. Continuing anyway...');
       } finally {
         setIsRequesting(false);
         setIsTransitioning(false);
       }
-      
+
+      // Clean up tracks only AFTER we've handed off control
+      setTimeout(() => {
+        stream.getTracks().forEach(track => track.stop());
+        console.log('🛑 Tracks stopped (cleanup)');
+      }, 2000);
+
     } catch (err: any) {
       console.error("❌ Permission error:", err);
       
-      // Mobile-visible error alert
-      const errorMessage = `Permission Error: ${err.name} - ${err.message}`;
-      alert(errorMessage);
-      
-      // User-friendly error messages
-      if (err.name === 'NotAllowedError') {
-        setError('Camera/microphone access denied. Please enable in browser settings: Safari → Website Settings → Camera & Microphone.');
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setError('Access denied. Please enable Microphone & Camera in your iOS Settings → Safari.');
       } else if (err.name === 'NotFoundError') {
-        setError('No camera or microphone detected on this device.');
+        setError('No camera or microphone found.');
       } else if (err.name === 'NotReadableError') {
-        setError('Camera/microphone is already in use by another app. Please close other apps and try again.');
+        setError('Hardware is busy. Close other apps (Zoom/FaceTime) and try again.');
+      } else if (err.name === 'OverconstrainedError') {
+        setError('Invalid configuration. Retrying with defaults...');
+        // Fallback retry with minimal constraints
+        try {
+          const fallbackStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+          console.log('✅ Fallback getUserMedia successful');
+          setAudioReady(true);
+          setIsTransitioning(true);
+          await new Promise(resolve => setTimeout(resolve, 800));
+          
+          try {
+            await Promise.race([
+              onPermissionsGranted(),
+              new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Transition timeout')), 5000)
+              )
+            ]);
+          } catch (timeoutErr) {
+            console.error('⏱️ Callback timeout:', timeoutErr);
+            alert('Taking longer than expected. Continuing anyway...');
+          } finally {
+            setIsRequesting(false);
+            setIsTransitioning(false);
+          }
+          
+          setTimeout(() => {
+            fallbackStream.getTracks().forEach(track => track.stop());
+            console.log('🛑 Fallback tracks stopped');
+          }, 2000);
+          return;
+        } catch (retryErr) {
+          setError('Hardware incompatible. Please use a newer device.');
+        }
       } else {
         setError(`${err.name}: ${err.message}`);
       }
       
       setIsRequesting(false);
+      setIsTransitioning(false);
     }
   };
   return <motion.div 
@@ -212,9 +212,6 @@ const PermissionRequest = ({
               <div className="w-2 h-2 rounded-full bg-kaeva-mint animate-pulse" />
               <p className="text-sm text-kaeva-mint font-medium">Audio system ready ✓</p>
             </motion.div>}
-
-          {/* Test Audio Button */}
-          
 
           {/* Error Message */}
           {error && <motion.div initial={{
