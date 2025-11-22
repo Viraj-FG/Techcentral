@@ -180,54 +180,59 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
         }));
         return "Profile updated";
       },
-      completeConversation: async () => {
-        console.log("🎉 Completing onboarding - saving to database...");
+      completeConversation: async (parameters: { reason: string }) => {
+        console.log("🎉 Completing onboarding:", parameters.reason);
         
-        // Stop ElevenLabs session first
-        if (conversation.status === "connected") {
-          await conversation.endSession();
-        }
-        
-        // Clean up UI state
-        setApertureState("idle");
-        setShowSubtitles(false);
-        setUserTranscript("");
-        setAiTranscript("");
-        
-        // Save to database
-        const saveSuccess = await saveOnboardingData();
-        
-        if (saveSuccess) {
-          console.log("✅ Data saved successfully, navigating to dashboard...");
+        try {
+          // Stop ElevenLabs session
+          if (conversation.status === "connected") {
+            await conversation.endSession();
+          }
           
-          // Build profile object for navigation
-          const transformedData = transformProfileData(conversationState);
-          const { data: { session } } = await supabase.auth.getSession();
+          // Clean up UI state
+          setApertureState("idle");
+          setShowSubtitles(false);
+          setUserTranscript("");
+          setAiTranscript("");
           
-          const profile = {
-            id: session?.user?.id,
-            language: "English",
-            userName: transformedData.user_name,
-            dietaryRestrictions: transformedData.dietary_preferences,
-            allergies: transformedData.allergies,
-            beautyProfile: transformedData.beauty_profile,
-            household: conversationState.household,
-            medicalGoals: transformedData.health_goals,
-            lifestyleGoals: transformedData.lifestyle_goals,
-            enableToxicFoodWarnings: (conversationState.household?.dogs || 0) > 0 || 
-                                     (conversationState.household?.cats || 0) > 0,
-            onboarding_completed: true
-          };
+          // Save to database
+          const saveSuccess = await saveOnboardingData();
           
-          // Auto-navigate after short delay
-          setTimeout(() => {
-            onComplete(profile);
-          }, 2000);
-          
-          return "Profile saved and onboarding complete";
-        } else {
-          setShowSummary(true);
-          return "Failed to save profile, please try again";
+          if (saveSuccess) {
+            console.log("✅ Data saved, navigating to dashboard...");
+            
+            // Build profile object
+            const transformedData = transformProfileData(conversationState);
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            const profile = {
+              id: session?.user?.id,
+              language: "English",
+              userName: transformedData.user_name,
+              dietaryRestrictions: transformedData.dietary_preferences,
+              allergies: transformedData.allergies,
+              beautyProfile: transformedData.beauty_profile,
+              household: conversationState.household,
+              medicalGoals: transformedData.health_goals,
+              lifestyleGoals: transformedData.lifestyle_goals,
+              enableToxicFoodWarnings: (conversationState.household?.dogs || 0) > 0 || 
+                                       (conversationState.household?.cats || 0) > 0,
+              onboarding_completed: true
+            };
+            
+            // Auto-navigate after delay
+            setTimeout(() => {
+              onComplete(profile);
+            }, 1500);
+            
+            return "SUCCESS: Onboarding complete, navigating to dashboard";
+          } else {
+            setShowSummary(true);
+            return "ERROR: Failed to save profile, please review and try again";
+          }
+        } catch (error) {
+          console.error("completeConversation error:", error);
+          return `ERROR: ${error instanceof Error ? error.message : "Unknown error"}`;
         }
       }
     }
