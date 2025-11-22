@@ -13,6 +13,94 @@ interface EnrichRequest {
   category?: 'fridge' | 'pantry' | 'beauty' | 'pets';
 }
 
+// OAuth 1.0 Helper Functions
+async function generateOAuthSignature(
+  method: string,
+  url: string,
+  params: Record<string, string>,
+  consumerSecret: string,
+  tokenSecret: string = ''
+): Promise<string> {
+  // Sort parameters alphabetically
+  const sortedParams = Object.keys(params)
+    .sort()
+    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+    .join('&');
+
+  // Create signature base string
+  const signatureBaseString = [
+    method.toUpperCase(),
+    encodeURIComponent(url),
+    encodeURIComponent(sortedParams)
+  ].join('&');
+
+  // Create signing key
+  const signingKey = `${encodeURIComponent(consumerSecret)}&${encodeURIComponent(tokenSecret)}`;
+
+  // Generate HMAC-SHA1 signature
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(signingKey);
+  const messageData = encoder.encode(signatureBaseString);
+
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-1' },
+    false,
+    ['sign']
+  );
+
+  const signature = await crypto.subtle.sign('HMAC', cryptoKey, messageData);
+  
+  // Convert to base64
+  return btoa(String.fromCharCode(...new Uint8Array(signature)));
+}
+
+function generateNonce(): string {
+  return Math.random().toString(36).substring(2, 15) + 
+         Math.random().toString(36).substring(2, 15);
+}
+
+function generateTimestamp(): string {
+  return Math.floor(Date.now() / 1000).toString();
+}
+
+async function buildOAuth1Request(
+  method: string,
+  baseUrl: string,
+  queryParams: Record<string, string>,
+  consumerKey: string,
+  consumerSecret: string
+): Promise<string> {
+  // Generate OAuth parameters
+  const oauthParams: Record<string, string> = {
+    oauth_consumer_key: consumerKey,
+    oauth_signature_method: 'HMAC-SHA1',
+    oauth_timestamp: generateTimestamp(),
+    oauth_nonce: generateNonce(),
+    oauth_version: '1.0',
+    ...queryParams
+  };
+
+  // Generate signature
+  const signature = await generateOAuthSignature(
+    method,
+    baseUrl,
+    oauthParams,
+    consumerSecret
+  );
+
+  oauthParams.oauth_signature = signature;
+
+  // Build query string
+  const queryString = Object.keys(oauthParams)
+    .sort()
+    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(oauthParams[key])}`)
+    .join('&');
+
+  return `${baseUrl}?${queryString}`;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -54,7 +142,7 @@ serve(async (req) => {
       );
     }
 
-    // Get OAuth token from FatSecret
+    // Get OAuth credentials from FatSecret
     const clientId = Deno.env.get('FATSECRET_CLIENT_ID');
     const clientSecret = Deno.env.get('FATSECRET_CLIENT_SECRET');
 
@@ -97,47 +185,42 @@ serve(async (req) => {
       throw new Error('FatSecret credentials not configured');
     }
 
-    console.log('Requesting FatSecret OAuth token...');
-    const tokenResponse = await fetch(
-      'https://oauth.fatsecret.com/connect/token',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': `Basic ${btoa(`${clientId}:${clientSecret}`)}`
-        },
-        body: 'grant_type=client_credentials&scope=basic'
-      }
-    );
+    console.log('=== OAUTH 1.0 AUTHENTICATION ===');
+    console.log('Using OAuth 1.0 with Consumer Key:', clientId?.substring(0, 8) + '...');
+    console.log('Signature method: HMAC-SHA1');
 
-    if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error('FatSecret OAuth failed:', tokenResponse.status, errorText);
-      throw new Error(`Failed to get FatSecret access token: ${tokenResponse.status}`);
-    }
+    // Search for product using OAuth 1.0
+    let searchParams: Record<string, string> = { format: 'json' };
 
-    const { access_token } = await tokenResponse.json();
-    console.log('FatSecret OAuth token obtained successfully');
-
-    // Search for product
-    let searchQuery = '';
     if (barcode) {
-      searchQuery = `method=food.find_id_for_barcode&barcode=${barcode}&format=json`;
+      searchParams.method = 'food.find_id_for_barcode';
+      searchParams.barcode = barcode;
       console.log('Searching by barcode:', barcode);
     } else {
       const searchExpression = brand ? `${brand} ${name}` : name;
-      searchQuery = `method=foods.search.v3&search_expression=${encodeURIComponent(searchExpression)}&format=json&max_results=5`;
+      searchParams.method = 'foods.search.v3';
+      searchParams.search_expression = searchExpression;
+      searchParams.max_results = '5';
       console.log('Searching FatSecret for:', searchExpression);
     }
 
-    const searchResponse = await fetch(
-      `https://platform.fatsecret.com/rest/server.api?${searchQuery}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${access_token}`
-        }
-      }
+    // Build OAuth 1.0 signed URL
+    const signedUrl = await buildOAuth1Request(
+      'GET',
+      'https://platform.fatsecret.com/rest/server.api',
+      searchParams,
+      clientId,
+      clientSecret
     );
+
+    console.log('OAuth 1.0 signed request URL:', signedUrl.substring(0, 120) + '...');
+    console.log('Making OAuth 1.0 authenticated request...');
+
+    const searchResponse = await fetch(signedUrl, { method: 'GET' });
+
+    console.log('=== FATSECRET RESPONSE ===');
+    console.log('Status:', searchResponse.status);
+    console.log('Status Text:', searchResponse.statusText);
 
     if (!searchResponse.ok) {
       const errorText = await searchResponse.text();
@@ -151,15 +234,25 @@ serve(async (req) => {
     // Handle barcode response
     if (barcode && searchData.food_id) {
       const foodId = searchData.food_id.value;
-      // Fetch detailed food info
-      const detailResponse = await fetch(
-        `https://platform.fatsecret.com/rest/server.api?method=food.get.v4&food_id=${foodId}&format=json&include_food_images=true`,
-        {
-          headers: {
-            'Authorization': `Bearer ${access_token}`
-          }
-        }
+      console.log('Barcode matched food ID:', foodId);
+      
+      // Fetch detailed food info using OAuth 1.0
+      const detailParams: Record<string, string> = {
+        method: 'food.get.v4',
+        food_id: foodId,
+        format: 'json',
+        include_food_images: 'true'
+      };
+
+      const detailSignedUrl = await buildOAuth1Request(
+        'GET',
+        'https://platform.fatsecret.com/rest/server.api',
+        detailParams,
+        clientId,
+        clientSecret
       );
+
+      const detailResponse = await fetch(detailSignedUrl, { method: 'GET' });
       
       if (detailResponse.ok) {
         const detailData = await detailResponse.json();
@@ -202,6 +295,8 @@ serve(async (req) => {
     const foods = Array.isArray(searchData.foods.food) 
       ? searchData.foods.food 
       : [searchData.foods.food];
+
+    console.log('✅ FatSecret returned', foods.length, 'products');
 
     // Return top result + alternatives
     const topResult = processFood(foods[0]);
