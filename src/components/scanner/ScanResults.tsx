@@ -79,8 +79,16 @@ export interface ScanResultsProps {
   confidence: number;
   items: DetectedItem[];
   subtype?: 'raw' | 'cooked';
+  imageUrl?: string;
   additionalData?: {
     macros?: {
+      calories: number;
+      protein: number;
+      carbs: number;
+      fat: number;
+      fiber?: number;
+    };
+    totals?: {
       calories: number;
       protein: number;
       carbs: number;
@@ -102,6 +110,7 @@ const ScanResults = ({
   confidence,
   items,
   subtype,
+  imageUrl,
   additionalData,
   onConfirm
 }: ScanResultsProps) => {
@@ -143,8 +152,10 @@ const ScanResults = ({
         return <NutritionTrackResult 
           subtype={subtype} 
           items={items} 
-          macros={additionalData?.macros} 
-          recipes={additionalData?.recipes} 
+          macros={additionalData?.totals || additionalData?.macros}
+          recipes={additionalData?.recipes}
+          imageUrl={imageUrl}
+          onMealLogged={onConfirm}
         />;
       case 'PRODUCT_ANALYSIS':
         return <ProductAnalysisResult data={additionalData?.productTruth} />;

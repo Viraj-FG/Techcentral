@@ -340,51 +340,42 @@ const SmartScanner = ({ userId, onClose, onItemsAdded }: SmartScannerProps) => {
       }
 
     } else {
-      // Cooked meal -> Estimate macros and log
+      // Cooked meal -> Get enriched items + totals from analyze-meal
       toast.loading('Analyzing meal nutrition...');
 
-      const { data: macros, error } = await supabase.functions.invoke('analyze-meal', {
+      const { data: mealData, error } = await supabase.functions.invoke('analyze-meal', {
         body: {
-          items: items.map(i => i.name),
           image
         }
       });
 
       toast.dismiss();
 
-      if (error || !macros) {
+      if (error || !mealData) {
         toast.error('Failed to analyze meal');
         return;
       }
 
+      // mealData contains: { items: [...], totals: {...} }
+      const enrichedItems = mealData.items.map((item: any) => ({
+        name: item.name,
+        quantity: item.quantity,
+        nutrition: item.nutrition
+      }));
+
       setResultData({
         intent: 'NUTRITION_TRACK',
         confidence,
-        items,
+        items: enrichedItems,
         subtype: 'cooked',
+        imageUrl: image,
         additionalData: {
-          macros
+          totals: mealData.totals
         },
-        onConfirm: async () => {
-          const { error: insertError } = await supabase.from('meal_logs').insert({
-            user_id: userId,
-            meal_type: getMealType(new Date().getHours()),
-            calories: macros.calories,
-            protein: macros.protein,
-            carbs: macros.carbs,
-            fat: macros.fat,
-            fiber: macros.fiber,
-            image_url: image,
-            items: items.map(i => ({ name: i.name })),
-            logged_at: new Date().toISOString()
-          });
-
-          if (insertError) {
-            toast.error('Failed to log meal');
-          } else {
-            toast.success('Meal Logged Successfully');
-            setResultData(null);
-          }
+        onConfirm: () => {
+          toast.success('Meal logged!');
+          setResultData(null);
+          onItemsAdded?.();
         }
       });
     }
