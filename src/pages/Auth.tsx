@@ -134,7 +134,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-kaeva-void overflow-auto">
+    <div className="min-h-screen bg-kaeva-void overflow-y-auto">
       <AuroraBackground vertical="food" />
 
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
