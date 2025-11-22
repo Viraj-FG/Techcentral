@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Store, Loader2, X } from "lucide-react";
+import { MapPin, Store, Loader2, X, Locate } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -26,7 +26,106 @@ const StoreSelector = ({ open, onClose, userId, onStoreSelected }: StoreSelector
   const [retailers, setRetailers] = useState<Retailer[]>([]);
   const [loading, setLoading] = useState(false);
   const [selecting, setSelecting] = useState(false);
+  const [detectingLocation, setDetectingLocation] = useState(false);
   const { toast } = useToast();
+
+  const detectLocation = async () => {
+    if (!navigator.geolocation) {
+      toast({
+        title: "Location Not Supported",
+        description: "Your browser doesn't support location detection",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setDetectingLocation(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          
+          // Use Nominatim (OpenStreetMap) for reverse geocoding
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+            {
+              headers: {
+                'User-Agent': 'Kaeva-App/1.0' // Nominatim requires a user agent
+              }
+            }
+          );
+
+          if (!response.ok) throw new Error('Geocoding failed');
+
+          const data = await response.json();
+          const postalCode = data.address?.postcode;
+
+          if (postalCode) {
+            // Extract 5-digit zip code (US format)
+            const zipMatch = postalCode.match(/\d{5}/);
+            if (zipMatch) {
+              setZipCode(zipMatch[0]);
+              toast({
+                title: "Location Detected",
+                description: `Using zip code: ${zipMatch[0]}`
+              });
+              // Auto-fetch retailers
+              await fetchRetailers(zipMatch[0]);
+            } else {
+              toast({
+                title: "Location Detected",
+                description: "Please verify the zip code",
+              });
+              setZipCode(postalCode.replace(/\D/g, '').slice(0, 5));
+            }
+          } else {
+            toast({
+              title: "Zip Code Not Found",
+              description: "Please enter your zip code manually",
+              variant: "destructive"
+            });
+          }
+        } catch (error) {
+          console.error('Reverse geocoding error:', error);
+          toast({
+            title: "Location Error",
+            description: "Failed to get zip code from location",
+            variant: "destructive"
+          });
+        } finally {
+          setDetectingLocation(false);
+        }
+      },
+      (error) => {
+        setDetectingLocation(false);
+        let message = "Failed to detect location";
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            message = "Location permission denied. Please enable location access in your browser settings.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            message = "Location information unavailable";
+            break;
+          case error.TIMEOUT:
+            message = "Location request timed out";
+            break;
+        }
+
+        toast({
+          title: "Location Error",
+          description: message,
+          variant: "destructive"
+        });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  };
 
   const fetchRetailers = async (zip: string) => {
     if (!zip || zip.length < 5) {
@@ -132,6 +231,20 @@ const StoreSelector = ({ open, onClose, userId, onStoreSelected }: StoreSelector
                 maxLength={5}
               />
             </div>
+            <Button
+              onClick={detectLocation}
+              disabled={detectingLocation}
+              variant="outline"
+              size="icon"
+              className="border-slate-700 hover:bg-slate-800"
+              title="Detect my location"
+            >
+              {detectingLocation ? (
+                <Loader2 className="animate-spin text-emerald-400" size={18} />
+              ) : (
+                <Locate className="text-emerald-400" size={18} />
+              )}
+            </Button>
             <Button
               onClick={() => fetchRetailers(zipCode)}
               disabled={loading || zipCode.length < 5}
