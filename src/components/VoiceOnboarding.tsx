@@ -322,21 +322,37 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
   };
 
   const handlePermissionsGranted = async () => {
-    setPermissionsGranted(true);
+    console.log('📋 handlePermissionsGranted called');
     
-    // Save to database
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ permissions_granted: true })
-        .eq('id', session.user.id);
+    try {
+      setPermissionsGranted(true);
+      console.log('✅ permissionsGranted state set to true');
+      
+      // Save to database
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        console.log('👤 User session found, saving to database...');
+        const { error } = await supabase
+          .from('profiles')
+          .update({ permissions_granted: true })
+          .eq('id', session.user.id);
 
-      if (error) {
-        console.error("Failed to save permissions status:", error);
+        if (error) {
+          console.error("❌ Failed to save permissions:", error);
+          // Don't block transition - permissions are already granted locally
+        } else {
+          console.log("✅ Permissions saved to database");
+        }
       } else {
-        console.log("✅ Permissions status saved to database");
+        console.warn('⚠️ No session found, skipping database save');
       }
+      
+      console.log('🎬 Transition to voice onboarding should happen now');
+    } catch (err) {
+      console.error('❌ handlePermissionsGranted error:', err);
+      // Still set permissions granted - don't block user
+      setPermissionsGranted(true);
     }
   };
 
