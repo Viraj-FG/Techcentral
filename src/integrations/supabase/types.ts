@@ -243,11 +243,15 @@ export type Database = {
           household_kids: number | null
           id: string
           language: string | null
+          last_retailer_refresh: string | null
           lifestyle_goals: Json | null
           onboarding_completed: boolean
           permissions_granted: boolean | null
+          preferred_retailer_id: string | null
+          preferred_retailer_name: string | null
           updated_at: string
           user_name: string | null
+          user_zip_code: string | null
         }
         Insert: {
           agent_configured?: boolean | null
@@ -261,11 +265,15 @@ export type Database = {
           household_kids?: number | null
           id: string
           language?: string | null
+          last_retailer_refresh?: string | null
           lifestyle_goals?: Json | null
           onboarding_completed?: boolean
           permissions_granted?: boolean | null
+          preferred_retailer_id?: string | null
+          preferred_retailer_name?: string | null
           updated_at?: string
           user_name?: string | null
+          user_zip_code?: string | null
         }
         Update: {
           agent_configured?: boolean | null
@@ -279,11 +287,15 @@ export type Database = {
           household_kids?: number | null
           id?: string
           language?: string | null
+          last_retailer_refresh?: string | null
           lifestyle_goals?: Json | null
           onboarding_completed?: boolean
           permissions_granted?: boolean | null
+          preferred_retailer_id?: string | null
+          preferred_retailer_name?: string | null
           updated_at?: string
           user_name?: string | null
+          user_zip_code?: string | null
         }
         Relationships: []
       }

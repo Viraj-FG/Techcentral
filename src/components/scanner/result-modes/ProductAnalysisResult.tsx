@@ -1,7 +1,86 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Loader2, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import type { ProductTruthData } from '../ScanResults';
+
+// Better Alternative Card Component with Instacart swap
+const BetterAlternativeCard = ({ alternative }: { alternative: { name: string; brand?: string; reason: string; instacartLink?: string } }) => {
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleShopAlternative = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase.functions.invoke('instacart-service', {
+        body: {
+          action: 'swap_product',
+          userId: user.id,
+          swapData: {
+            productName: alternative.name,
+            brand: alternative.brand
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      window.open(data.productsLink, '_blank');
+      
+      toast({
+        title: "Better Choice!",
+        description: "Opening healthier alternative on Instacart with your dietary filters applied..."
+      });
+    } catch (error) {
+      console.error('Error creating swap link:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create shopping link. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="p-4 bg-gradient-to-br from-kaeva-sage/20 to-kaeva-mint/10 rounded-2xl border border-kaeva-sage/30">
+      <h4 className="text-sm font-semibold text-kaeva-sage uppercase tracking-wide mb-2">
+        ✨ Better Alternative
+      </h4>
+      <p className="text-white font-semibold mb-1">
+        {alternative.name}
+        {alternative.brand && <span className="text-slate-400 font-normal ml-2">by {alternative.brand}</span>}
+      </p>
+      <p className="text-sm text-slate-300 mb-3">{alternative.reason}</p>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleShopAlternative}
+        disabled={loading}
+        className="w-full border-kaeva-sage/50 text-kaeva-sage hover:bg-kaeva-sage/10 gap-2"
+      >
+        {loading ? (
+          <>
+            <Loader2 className="animate-spin" size={16} />
+            Creating Link...
+          </>
+        ) : (
+          <>
+            <ExternalLink size={16} />
+            Shop Better Alternative
+          </>
+        )}
+      </Button>
+    </div>
+  );
+};
 
 const ProductAnalysisResult = ({ data }: { data?: ProductTruthData }) => {
   if (!data) return null;
@@ -123,23 +202,7 @@ const ProductAnalysisResult = ({ data }: { data?: ProductTruthData }) => {
 
       {/* Better Alternative */}
       {data.betterAlternative && (
-        <div className="p-4 bg-gradient-to-br from-kaeva-sage/20 to-kaeva-mint/10 rounded-2xl border border-kaeva-sage/30">
-          <h4 className="text-sm font-semibold text-kaeva-sage uppercase tracking-wide mb-2">
-            ✨ Better Alternative
-          </h4>
-          <p className="text-white font-semibold mb-1">{data.betterAlternative.name}</p>
-          <p className="text-sm text-slate-300 mb-3">{data.betterAlternative.reason}</p>
-          {data.betterAlternative.instacartLink && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-kaeva-sage/50 text-kaeva-sage hover:bg-kaeva-sage/10"
-              onClick={() => window.open(data.betterAlternative!.instacartLink, '_blank')}
-            >
-              Shop on Instacart →
-            </Button>
-          )}
-        </div>
+        <BetterAlternativeCard alternative={data.betterAlternative} />
       )}
     </div>
   );
