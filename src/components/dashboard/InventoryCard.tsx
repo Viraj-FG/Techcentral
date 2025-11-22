@@ -66,27 +66,27 @@ const InventoryCard = ({ title, icon: Icon, items }: InventoryCardProps) => {
         ]
       } : {}}
       transition={{ duration: 1.5 }}
-      className="group relative overflow-hidden rounded-xl backdrop-blur-xl bg-white/5 border border-white/10 p-6 hover:bg-white/10 transition-colors"
+      className="group relative overflow-hidden rounded-xl backdrop-blur-xl bg-white/5 border border-white/10 p-4 hover:bg-white/10 transition-colors aspect-square flex flex-col"
     >
       {/* Icon with contextual color */}
-      <div className={`p-3 rounded-lg mb-4 ${getIconBg(title)}`}>
-        <Icon className={getIconColor(title)} size={24} strokeWidth={1.5} />
+      <div className={`p-2 rounded-lg mb-3 w-fit ${getIconBg(title)}`}>
+        <Icon className={getIconColor(title)} size={20} strokeWidth={1.5} />
       </div>
       
       {/* Title */}
-      <h3 className="text-lg font-light tracking-wider text-white/90 mb-4">
+      <h3 className="text-base font-light tracking-wider text-white/90 mb-3">
         {title}
       </h3>
       
-      {/* Fill Level Bars */}
-      <div className="space-y-3">
+      {/* Fill Level Bars (Scrollable if needed) */}
+      <div className="space-y-2 flex-1 overflow-y-auto">
         {items.slice(0, 3).map((item, idx) => (
           <div key={idx}>
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-white/70">{item.name}</span>
-              <span className="text-white/50">{item.fillLevel}%</span>
+            <div className="flex justify-between text-xs mb-1">
+              <span className="text-white/70 truncate">{item.name}</span>
+              <span className="text-white/50 text-data ml-2">{item.fillLevel}%</span>
             </div>
-            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${item.fillLevel}%` }}
@@ -98,11 +98,11 @@ const InventoryCard = ({ title, icon: Icon, items }: InventoryCardProps) => {
             {/* Auto-ordering Indicator */}
             {item.autoOrdering && (
               <motion.p
-                className="text-xs text-emerald-400 mt-1 flex items-center gap-1"
+                className="text-[10px] text-emerald-400 mt-0.5 flex items-center gap-1"
                 animate={{ opacity: [0.5, 1, 0.5] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                <RefreshCw size={12} className="animate-spin" />
+                <RefreshCw size={10} className="animate-spin" />
                 Auto-ordering...
               </motion.p>
             )}

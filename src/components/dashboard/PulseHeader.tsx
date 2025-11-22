@@ -21,60 +21,49 @@ const PulseHeader = ({ profile }: PulseHeaderProps) => {
 
   return (
     <motion.div
-      className="glass-card p-6 sm:p-8"
+      className="glass-card p-4 max-h-[140px]"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={kaevaTransition}
     >
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex-1">
-          <h1 className="text-display text-2xl sm:text-3xl text-white mb-2">
+      <div className="flex flex-row items-center justify-between gap-4">
+        {/* Left: Greeting */}
+        <div className="flex-1 min-w-0">
+          <h1 className="text-display text-xl text-white truncate">
             {getGreeting()}, {profile.user_name || "User"}
           </h1>
         </div>
 
-        {/* Compact Health Ring with Inline Insight */}
-        <div className="flex items-center gap-4">
-          <div className="relative w-24 h-24">
-            <svg
-              className="transform -rotate-90"
-              viewBox="0 0 100 100"
-            >
-              <circle
-                cx="50"
-                cy="50"
-                r="45"
-                stroke="hsl(var(--kaeva-slate-800))"
-                strokeWidth="6"
-                fill="none"
-              />
+        {/* Right: Compact Health Score */}
+        <div className="flex items-center gap-3 flex-shrink-0">
+          {/* Smaller Ring (64x64 instead of 96x96) */}
+          <div className="relative w-16 h-16">
+            <svg className="transform -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="45" stroke="hsl(var(--kaeva-slate-800))" strokeWidth="8" fill="none" />
               <motion.circle
-                cx="50"
-                cy="50"
-                r="45"
+                cx="50" cy="50" r="45"
                 stroke="hsl(var(--kaeva-sage))"
-                strokeWidth="6"
-                fill="none"
-                strokeLinecap="round"
+                strokeWidth="8" fill="none" strokeLinecap="round"
                 initial={{ strokeDashoffset: circumference }}
                 animate={{ strokeDashoffset }}
                 transition={{ duration: 1.5, ease: "easeOut" }}
                 style={{
                   strokeDasharray: circumference,
-                  filter: 'drop-shadow(0 0 10px rgba(112, 224, 152, 0.5))'
+                  filter: 'drop-shadow(0 0 8px rgba(112, 224, 152, 0.4))'
                 }}
               />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-data text-xl text-kaeva-sage">{healthScore}%</span>
+              <span className="text-data text-sm text-kaeva-sage">{healthScore}%</span>
             </div>
           </div>
 
-          <div className="max-w-[200px]">
-            <p className="text-micro text-kaeva-oatmeal mb-1">Household Health</p>
-            <p className="text-kaeva-teal flex items-center gap-2 text-xs">
-              <Sparkles size={14} strokeWidth={1.5} />
-              Sodium low this week
+          {/* Inline Insight (Next to Ring) */}
+          <div className="max-w-[140px]">
+            <p className="text-micro text-kaeva-oatmeal text-[10px] mb-0.5">Health</p>
+            <p className="text-kaeva-teal flex items-center gap-1 text-[11px]">
+              <Sparkles size={12} strokeWidth={1.5} />
+              Low sodium
             </p>
           </div>
         </div>

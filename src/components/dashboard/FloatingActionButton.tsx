@@ -43,15 +43,14 @@ const FloatingActionButton = () => {
         onItemsAdded={() => window.location.reload()}
       />
 
-      {/* Unified Glass Capsule Dock */}
+      {/* Unified Glass Capsule Dock - LAYER 50 */}
       <motion.div
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40"
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50"
         initial={{ opacity: 0, y: 100 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...kaevaTransition, delay: 0.5 }}
       >
-        <div className="backdrop-blur-xl bg-slate-900/90 border-2 border-white/10 rounded-full px-6 py-3 shadow-2xl">
-          <div className="flex items-center gap-6">
+        <div className="h-[72px] backdrop-blur-2xl bg-slate-900/80 border-2 border-white/10 rounded-full px-6 py-3 shadow-2xl flex items-center justify-between gap-6">
             {/* Settings Button */}
             <motion.button
               onClick={() => navigate('/settings')}
@@ -96,7 +95,6 @@ const FloatingActionButton = () => {
             >
               <LogOut size={24} strokeWidth={1.5} className="text-white" />
             </motion.button>
-          </div>
         </div>
       </motion.div>
     </>

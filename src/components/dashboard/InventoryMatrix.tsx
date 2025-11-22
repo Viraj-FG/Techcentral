@@ -31,18 +31,18 @@ const InventoryMatrix = ({ inventory }: InventoryMatrixProps) => {
         INVENTORY STATUS
       </h2>
 
-      <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
-        variants={{
-          show: {
-            transition: {
-              staggerChildren: 0.15
-            }
+    <motion.div
+      className="grid grid-cols-2 gap-4"
+      variants={{
+        show: {
+          transition: {
+            staggerChildren: 0.15
           }
-        }}
-        initial="hidden"
-        animate="show"
-      >
+        }
+      }}
+      initial="hidden"
+      animate="show"
+    >
         <InventoryCard
           title="Fridge"
           icon={Refrigerator}
