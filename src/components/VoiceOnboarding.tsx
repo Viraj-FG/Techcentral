@@ -11,6 +11,7 @@ import TutorialOverlay from "./TutorialOverlay";
 import { useToast } from "@/hooks/use-toast";
 import { Mic, Brain, Volume2, Leaf, PawPrint, Sparkles } from "lucide-react";
 import HouseholdMemberCard from "./HouseholdMemberCard";
+import { ELEVENLABS_CONFIG } from "@/config/agent";
 
 export interface BiometricData {
   age: number;
@@ -237,7 +238,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
       try {
         setApertureState("thinking");
         
-        const agentId = "agent_0501kakwnx5rffaby5px9y1pskkb";
+        const agentId = ELEVENLABS_CONFIG.agentId;
         
         console.log("Getting signed URL...");
         const signedUrl = await getSignedUrl(agentId);

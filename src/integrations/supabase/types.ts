@@ -330,6 +330,8 @@ export type Database = {
         Row: {
           agent_configured: boolean | null
           agent_configured_at: string | null
+          agent_last_configured_at: string | null
+          agent_prompt_version: string | null
           allergies: Json | null
           beauty_profile: Json | null
           calculated_tdee: number | null
@@ -358,6 +360,8 @@ export type Database = {
         Insert: {
           agent_configured?: boolean | null
           agent_configured_at?: string | null
+          agent_last_configured_at?: string | null
+          agent_prompt_version?: string | null
           allergies?: Json | null
           beauty_profile?: Json | null
           calculated_tdee?: number | null
@@ -386,6 +390,8 @@ export type Database = {
         Update: {
           agent_configured?: boolean | null
           agent_configured_at?: string | null
+          agent_last_configured_at?: string | null
+          agent_prompt_version?: string | null
           allergies?: Json | null
           beauty_profile?: Json | null
           calculated_tdee?: number | null

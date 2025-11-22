@@ -8,6 +8,9 @@ import { UserManagement } from "@/components/admin/UserManagement";
 import { DatabaseInspector } from "@/components/admin/DatabaseInspector";
 import { SystemLogs } from "@/components/admin/SystemLogs";
 import { Analytics } from "@/components/admin/Analytics";
+import { AgentStatus } from "@/components/admin/AgentStatus";
+import { AgentTestPanel } from "@/components/admin/AgentTestPanel";
+import { DeploymentChecklist } from "@/components/admin/DeploymentChecklist";
 import { motion } from "framer-motion";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
 
@@ -50,8 +53,13 @@ const Admin = () => {
             <TabsTrigger value="analytics" className="text-micro">Analytics</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="agent">
-            <AgentConfig />
+          <TabsContent value="agent" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <AgentConfig />
+              <AgentStatus />
+            </div>
+            <AgentTestPanel />
+            <DeploymentChecklist />
           </TabsContent>
 
           <TabsContent value="testing">

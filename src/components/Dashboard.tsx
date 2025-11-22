@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield } from "lucide-react";
+import { Shield, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Icon } from "@/components/ui/icon";
 import AppShell from "./layout/AppShell";
 import VoiceAssistant from "./voice/VoiceAssistant";
@@ -17,6 +18,7 @@ import RecentActivity from "./dashboard/RecentActivity";
 import SmartScanner from "./scanner/SmartScanner";
 import InventoryMatrixSkeleton from "./dashboard/InventoryMatrixSkeleton";
 import { kaevaEntranceVariants } from "@/hooks/useKaevaMotion";
+import { ELEVENLABS_CONFIG } from "@/config/agent";
 
 interface DashboardProps {
   profile: any;

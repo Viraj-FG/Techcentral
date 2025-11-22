@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PlayCircle, Trash2, Wifi, Mic, RefreshCw, Zap, StopCircle } from "lucide-react";
+import { ELEVENLABS_CONFIG } from "@/config/agent";
 
 export const TestingTools = () => {
   const [isTestingConnection, setIsTestingConnection] = useState(false);
@@ -20,7 +21,7 @@ export const TestingTools = () => {
       if (!session) throw new Error("No session");
 
       const { error } = await supabase.functions.invoke("generate-signed-url", {
-        body: { agentId: "agent_0501kakwnx5rffaby5px9y1pskkb" },
+        body: { agentId: ELEVENLABS_CONFIG.agentId },
       });
 
       if (error) throw error;
