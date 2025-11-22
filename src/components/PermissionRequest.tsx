@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "./ui/button";
-import { Mic, Volume2, AlertCircle, TestTube2 } from "lucide-react";
+import { Mic, Volume2, AlertCircle, Loader2 } from "lucide-react";
 import KaevaAperture from "./KaevaAperture";
 import AuroraBackground from "./AuroraBackground";
 interface PermissionRequestProps {
@@ -54,10 +54,17 @@ const PermissionRequest = ({
     }
   };
   const requestPermissions = async () => {
+    console.log('🎯 Permission button clicked');
     setIsRequesting(true);
     setError(null);
+    
     try {
-      // Request microphone access
+      // CRITICAL: Unlock AudioContext IMMEDIATELY on user click (iOS requirement)
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      await audioContext.resume();
+      console.log('🔊 AudioContext unlocked immediately, state:', audioContext.state);
+
+      // Request BOTH microphone AND camera (needed for scanner)
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           sampleRate: 24000,
@@ -65,37 +72,46 @@ const PermissionRequest = ({
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true
+        },
+        video: { 
+          facingMode: "user" // iOS needs to know which camera
         }
       });
+      console.log('✅ getUserMedia successful');
 
       // Stop the test stream immediately after permission is granted
       stream.getTracks().forEach(track => track.stop());
 
-      // Unlock audio playback - both Web Audio API and HTML5 Audio
-      // Method 1: Unlock Web Audio API (AudioContext)
-      const audioContext = new AudioContext();
-      await audioContext.resume();
-      const sampleRate = audioContext.sampleRate;
-      const bufferLength = Math.floor(sampleRate * 0.01); // 10ms
-      const buffer = audioContext.createBuffer(1, bufferLength, sampleRate);
-      const source = audioContext.createBufferSource();
-      source.buffer = buffer;
-      source.connect(audioContext.destination);
-      source.start(0);
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // Method 2: Unlock HTML5 Audio element (what Kaeva's voice uses)
+      // Unlock HTML5 Audio (for ElevenLabs voice playback)
       const silentAudio = new Audio();
       silentAudio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
       await silentAudio.play();
-      console.log('Both audio systems unlocked successfully');
+      console.log('🎵 HTML5 Audio unlocked');
+      
       setAudioReady(true);
+      console.log('🚀 All permissions granted, transitioning...');
 
       // All permissions granted
       onPermissionsGranted();
-    } catch (err) {
-      console.error("Permission error:", err);
-      setError("We need microphone and speaker access to have a conversation with you. Please enable these permissions in your browser settings and try again.");
+      
+    } catch (err: any) {
+      console.error("❌ Permission error:", err);
+      
+      // Mobile-visible error alert
+      const errorMessage = `Permission Error: ${err.name} - ${err.message}`;
+      alert(errorMessage);
+      
+      // User-friendly error messages
+      if (err.name === 'NotAllowedError') {
+        setError('Camera/microphone access denied. Please enable in browser settings: Safari → Website Settings → Camera & Microphone.');
+      } else if (err.name === 'NotFoundError') {
+        setError('No camera or microphone detected on this device.');
+      } else if (err.name === 'NotReadableError') {
+        setError('Camera/microphone is already in use by another app. Please close other apps and try again.');
+      } else {
+        setError(`${err.name}: ${err.message}`);
+      }
+      
       setIsRequesting(false);
     }
   };
@@ -190,7 +206,8 @@ const PermissionRequest = ({
             </motion.div>}
 
           {/* Request Button */}
-          <Button onClick={requestPermissions} disabled={isRequesting} size="lg" className="bg-kaeva-mint hover:bg-kaeva-mint/90 text-kaeva-void font-semibold px-8 py-6 text-lg">
+          <Button onClick={requestPermissions} disabled={isRequesting || audioReady} size="lg" className="bg-kaeva-mint hover:bg-kaeva-mint/90 text-kaeva-void font-semibold px-8 py-6 text-lg">
+            {isRequesting && <Loader2 className="w-5 h-5 mr-2 animate-spin" />}
             {isRequesting ? "Initializing Audio..." : audioReady ? "Permissions Granted ✓" : "Grant Permissions"}
           </Button>
 
