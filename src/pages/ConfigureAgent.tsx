@@ -68,13 +68,14 @@ const ConfigureAgent = () => {
   };
 
   return (
-    <div className="min-h-screen bg-kaeva-seattle-slate flex items-center justify-center p-4 overflow-y-auto">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={kaevaTransition}
-        className="w-full max-w-md my-8"
-      >
+    <div className="min-h-screen bg-kaeva-seattle-slate overflow-y-auto">
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={kaevaTransition}
+          className="w-full max-w-md my-8"
+        >
         <div className="glass-card p-8">
           <div className="flex flex-col items-center text-center space-y-6">
             {/* Icon */}
@@ -173,6 +174,7 @@ const ConfigureAgent = () => {
           </div>
         </div>
       </motion.div>
+      </div>
     </div>
   );
 };
