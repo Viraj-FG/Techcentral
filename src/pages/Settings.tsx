@@ -175,7 +175,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-kaeva-seattle-slate overflow-auto">
+    <div className="min-h-screen bg-kaeva-seattle-slate overflow-y-auto">
       <AuroraBackground vertical="food" />
       
       <div className="relative z-10 p-4 sm:p-8">
@@ -183,7 +183,7 @@ const Settings = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={kaevaTransition}
-          className="max-w-4xl mx-auto"
+          className="max-w-4xl mx-auto pb-16"
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-8">

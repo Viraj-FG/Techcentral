@@ -259,7 +259,7 @@ const Household = () => {
   };
 
   return (
-    <div className="min-h-screen bg-kaeva-void">
+    <div className="h-screen overflow-y-auto bg-kaeva-void">
       {/* Header */}
       <div className="border-b border-kaeva-sage/10 bg-kaeva-void/95 backdrop-blur-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -324,7 +324,7 @@ const Household = () => {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16">
         {/* User Profile Summary */}
         {userProfile && (
           <motion.div
