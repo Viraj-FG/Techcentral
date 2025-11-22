@@ -455,7 +455,9 @@ const SmartScanner = ({ userId, onClose, onItemsAdded }: SmartScannerProps) => {
       intent: 'PET_ID',
       confidence,
       items: [item],
-      petData,
+      additionalData: {
+        petData
+      },
       onConfirm: async () => {
         const petName = prompt(`Name your ${petData.breed || petData.species}:`);
         if (!petName) return;
@@ -542,72 +544,6 @@ const SmartScanner = ({ userId, onClose, onItemsAdded }: SmartScannerProps) => {
       console.error('Error handling empty package:', error);
       toast.error("Failed to update inventory");
     }
-  };
-
-  const startRecording = () => {
-    if (!items || items.length === 0) {
-      toast.error("No item identified");
-      return;
-    }
-
-    const item = items[0];
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      toast.error("Please sign in");
-      return;
-    }
-
-    try {
-      // Find matching inventory item
-      const { data: inventory, error: fetchError } = await supabase
-        .from('inventory')
-        .select('*')
-        .eq('user_id', user.id)
-        .ilike('name', `%${item.name}%`)
-        .limit(1)
-        .single();
-
-      if (fetchError || !inventory) {
-        toast.error(`${item.name} not found in inventory`);
-        return;
-      }
-
-      // Set quantity to 0 and mark as out of stock
-      const { error: updateError } = await supabase
-        .from('inventory')
-        .update({
-          quantity: 0,
-          status: 'out_of_stock'
-        })
-        .eq('id', inventory.id);
-
-      if (updateError) throw updateError;
-
-      // Add to shopping list
-      await supabase
-        .from('shopping_list')
-        .insert({
-          user_id: user.id,
-          item_name: inventory.name,
-          quantity: 1,
-          unit: inventory.unit,
-          source: 'replenishment',
-          priority: 'high',
-          inventory_id: inventory.id
-        });
-
-      toast.success(`${inventory.name} empty. Added to Smart Cart.`, {
-        duration: 4000
-      });
-      
-      onItemsAdded?.();
-      
-    } catch (error) {
-      console.error('Error handling empty package:', error);
-      toast.error("Failed to update inventory");
-    }
-  };
   };
 
   const startRecording = () => {
