@@ -57,6 +57,7 @@ export type Database = {
           fatsecret_id: string | null
           fill_level: number | null
           id: string
+          last_activity_at: string | null
           last_enriched_at: string | null
           name: string
           nutrition_data: Json | null
@@ -80,6 +81,7 @@ export type Database = {
           fatsecret_id?: string | null
           fill_level?: number | null
           id?: string
+          last_activity_at?: string | null
           last_enriched_at?: string | null
           name: string
           nutrition_data?: Json | null
@@ -103,6 +105,7 @@ export type Database = {
           fatsecret_id?: string | null
           fill_level?: number | null
           id?: string
+          last_activity_at?: string | null
           last_enriched_at?: string | null
           name?: string
           nutrition_data?: Json | null
@@ -157,6 +160,39 @@ export type Database = {
           logged_at?: string
           meal_type?: string
           protein?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          metadata: Json | null
+          read: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          read?: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          read?: boolean | null
+          title?: string
+          type?: string
           user_id?: string
         }
         Relationships: []
@@ -299,6 +335,56 @@ export type Database = {
         }
         Relationships: []
       }
+      shopping_list: {
+        Row: {
+          created_at: string
+          id: string
+          inventory_id: string | null
+          item_name: string
+          priority: string | null
+          quantity: number | null
+          source: string
+          status: string | null
+          unit: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inventory_id?: string | null
+          item_name: string
+          priority?: string | null
+          quantity?: number | null
+          source: string
+          status?: string | null
+          unit?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inventory_id?: string | null
+          item_name?: string
+          priority?: string | null
+          quantity?: number | null
+          source?: string
+          status?: string | null
+          unit?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopping_list_inventory_id_fkey"
+            columns: ["inventory_id"]
+            isOneToOne: false
+            referencedRelation: "inventory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -325,6 +411,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_spoilage: {
+        Args: never
+        Returns: {
+          category: Database["public"]["Enums"]["inventory_category"]
+          days_old: number
+          inventory_id: string
+          item_name: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -332,11 +427,18 @@ export type Database = {
         }
         Returns: boolean
       }
+      mark_spoilage: { Args: { _inventory_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user"
       inventory_category: "fridge" | "pantry" | "beauty" | "pets"
-      inventory_status: "sufficient" | "low" | "critical" | "out"
+      inventory_status:
+        | "sufficient"
+        | "low"
+        | "critical"
+        | "out"
+        | "out_of_stock"
+        | "likely_spoiled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -466,7 +568,14 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       inventory_category: ["fridge", "pantry", "beauty", "pets"],
-      inventory_status: ["sufficient", "low", "critical", "out"],
+      inventory_status: [
+        "sufficient",
+        "low",
+        "critical",
+        "out",
+        "out_of_stock",
+        "likely_spoiled",
+      ],
     },
   },
 } as const

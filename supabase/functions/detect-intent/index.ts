@@ -76,9 +76,13 @@ serve(async (req) => {
 6. PET_ID: Live animal (dog, cat, bird, etc.)
    - Detect: Species, breed (if identifiable), approximate size
 
+7. EMPTY_PACKAGE: Empty container, trash can with discarded packaging, or nearly empty bottle
+   - Detect: Product that is clearly empty or being thrown away
+   - Look for: Empty bottles, finished packages, items in trash
+
 Return JSON ONLY (no markdown):
 {
-  "intent": "INVENTORY_SWEEP|APPLIANCE_SCAN|VANITY_SWEEP|NUTRITION_TRACK|PRODUCT_ANALYSIS|PET_ID",
+  "intent": "INVENTORY_SWEEP|APPLIANCE_SCAN|VANITY_SWEEP|NUTRITION_TRACK|PRODUCT_ANALYSIS|PET_ID|EMPTY_PACKAGE",
   "confidence": 0.0-1.0,
   "subtype": "raw|cooked" (only for NUTRITION_TRACK),
   "items": [

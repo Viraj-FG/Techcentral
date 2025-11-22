@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.identify-product]
 verify_jwt = false
+
+[functions.cook-recipe]
+verify_jwt = false
+
+[functions.notify-spoilage]
+verify_jwt = false
