@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, AlertCircle } from "lucide-react";
+import { Shield, AlertCircle, Package, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -24,33 +24,14 @@ interface DashboardProps {
   profile: any;
 }
 
-// Mock inventory data
-const mockInventory = {
-  fridge: [
-    { name: "Milk", fillLevel: 20, unit: "gallon", status: "low", autoOrdering: true },
-    { name: "Eggs", fillLevel: 80, unit: "dozen", status: "good", autoOrdering: false },
-    { name: "Butter", fillLevel: 45, unit: "lb", status: "medium", autoOrdering: false }
-  ],
-  pantry: [
-    { name: "Rice", fillLevel: 60, unit: "lb", status: "good", autoOrdering: false },
-    { name: "Olive Oil", fillLevel: 15, unit: "L", status: "low", autoOrdering: true },
-    { name: "Pasta", fillLevel: 75, unit: "boxes", status: "good", autoOrdering: false }
-  ],
-  beauty: [
-    { name: "Face Serum", fillLevel: 10, unit: "ml", status: "critical", autoOrdering: true },
-    { name: "Shampoo", fillLevel: 55, unit: "oz", status: "good", autoOrdering: false },
-    { name: "Moisturizer", fillLevel: 30, unit: "oz", status: "medium", autoOrdering: false }
-  ],
-  pets: [
-    { name: "Dog Food", fillLevel: 25, unit: "lb", status: "low", autoOrdering: true },
-    { name: "Cat Litter", fillLevel: 70, unit: "lb", status: "good", autoOrdering: false },
-    { name: "Dog Treats", fillLevel: 40, unit: "bags", status: "medium", autoOrdering: false }
-  ]
-};
-
 const Dashboard = ({ profile }: DashboardProps) => {
   const navigate = useNavigate();
-  const [inventoryData, setInventoryData] = useState(mockInventory);
+  const [inventoryData, setInventoryData] = useState({
+    fridge: [],
+    pantry: [],
+    beauty: [],
+    pets: []
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [spotlightOpen, setSpotlightOpen] = useState(false);
@@ -133,6 +114,10 @@ const Dashboard = ({ profile }: DashboardProps) => {
     .flat()
     .filter(item => item.fillLevel <= 20);
 
+  // Check if all categories are empty
+  const isInventoryEmpty = Object.values(inventoryData).every(
+    category => category.length === 0
+  );
 
   // Determine inventory status for cards
   const getInventoryStatus = (items: any[]): 'good' | 'warning' | 'normal' => {
@@ -184,6 +169,30 @@ const Dashboard = ({ profile }: DashboardProps) => {
         {/* Inventory Matrix with Status */}
         {isLoading ? (
           <InventoryMatrixSkeleton />
+        ) : isInventoryEmpty ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-12 text-center"
+          >
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-kaeva-sage/10 flex items-center justify-center">
+              <Package className="text-kaeva-sage" size={40} strokeWidth={1.5} />
+            </div>
+            <h3 className="text-2xl font-light text-white mb-3">
+              Your Pantry is Empty
+            </h3>
+            <p className="text-white/60 mb-6 max-w-md mx-auto">
+              Start building your digital twin by scanning your first item
+            </p>
+            <Button
+              size="lg"
+              onClick={() => setSpotlightOpen(true)}
+              className="gap-2 bg-kaeva-sage text-kaeva-seattle-slate hover:bg-kaeva-sage/90"
+            >
+              <Camera size={20} strokeWidth={1.5} />
+              Scan Your First Item
+            </Button>
+          </motion.div>
         ) : (
           <div>
             <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3 px-1">

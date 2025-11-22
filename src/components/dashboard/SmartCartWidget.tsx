@@ -267,6 +267,29 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
     });
   };
 
+  // Calculate dynamic delivery date based on urgency
+  const getNextDeliveryDate = () => {
+    if (enrichedItems.length === 0) return null;
+    
+    // Get most urgent item (lowest fill level)
+    const mostUrgent = enrichedItems.reduce((min, item) => 
+      item.fillLevel < min.fillLevel ? item : min
+    );
+    
+    // Calculate days until delivery based on urgency
+    const daysUntilDelivery = mostUrgent.fillLevel <= 10 ? 1 : 
+                              mostUrgent.fillLevel <= 20 ? 2 : 3;
+    
+    const deliveryDate = new Date();
+    deliveryDate.setDate(deliveryDate.getDate() + daysUntilDelivery);
+    
+    return deliveryDate.toLocaleDateString('en-US', { 
+      weekday: 'short', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
   return (
     <>
       <motion.div
@@ -306,7 +329,9 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
         {enrichedItems.length > 0 ? (
           <>
             <p className="text-white/70 text-sm mb-4">
-              Next Delivery: <span className="text-white">Friday, Dec 27</span>
+              Next Delivery: <span className="text-white">
+                {getNextDeliveryDate() || "No delivery scheduled"}
+              </span>
             </p>
             
             <div className="space-y-2 mb-4">
@@ -372,7 +397,18 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
             </Button>
           </>
         ) : (
-          <p className="text-white/50 text-sm">All items stocked sufficiently</p>
+          <div className="text-center py-6">
+            <p className="text-white/50 text-sm mb-3">No items need restocking</p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => window.location.reload()}
+              className="gap-2"
+            >
+              <Sparkles className="h-4 w-4" />
+              Refresh Inventory
+            </Button>
+          </div>
         )}
       </motion.div>
 
