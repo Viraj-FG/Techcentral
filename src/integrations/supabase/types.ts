@@ -116,6 +116,51 @@ export type Database = {
         }
         Relationships: []
       }
+      meal_logs: {
+        Row: {
+          calories: number | null
+          carbs: number | null
+          created_at: string | null
+          fat: number | null
+          fiber: number | null
+          id: string
+          image_url: string | null
+          items: Json | null
+          logged_at: string
+          meal_type: string
+          protein: number | null
+          user_id: string
+        }
+        Insert: {
+          calories?: number | null
+          carbs?: number | null
+          created_at?: string | null
+          fat?: number | null
+          fiber?: number | null
+          id?: string
+          image_url?: string | null
+          items?: Json | null
+          logged_at: string
+          meal_type: string
+          protein?: number | null
+          user_id: string
+        }
+        Update: {
+          calories?: number | null
+          carbs?: number | null
+          created_at?: string | null
+          fat?: number | null
+          fiber?: number | null
+          id?: string
+          image_url?: string | null
+          items?: Json | null
+          logged_at?: string
+          meal_type?: string
+          protein?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       pets: {
         Row: {
           age: number | null
