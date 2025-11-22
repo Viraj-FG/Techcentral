@@ -12,6 +12,7 @@ import PulseHeader from "./dashboard/PulseHeader";
 import SmartCartWidget from "./dashboard/SmartCartWidget";
 import InventoryMatrix from "./dashboard/InventoryMatrix";
 import SafetyShield from "./dashboard/SafetyShield";
+import HouseholdQuickAccess from "./dashboard/HouseholdQuickAccess";
 import RecentActivity from "./dashboard/RecentActivity";
 import SmartScanner from "./scanner/SmartScanner";
 import InventoryMatrixSkeleton from "./dashboard/InventoryMatrixSkeleton";
@@ -171,6 +172,9 @@ const Dashboard = ({ profile }: DashboardProps) => {
         
         {/* Safety Shield */}
         <SafetyShield profile={profile} />
+        
+        {/* Household Quick Access */}
+        <HouseholdQuickAccess />
         
         {/* Smart Cart */}
         <SmartCartWidget cartItems={lowStockItems} />

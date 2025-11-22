@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Scan, LogOut } from 'lucide-react';
+import { Settings, Scan, LogOut, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -59,7 +59,7 @@ const AppShell = ({
 
       {/* LAYER 50: Navigation Dock */}
       <div className="fixed bottom-6 left-0 right-0 z-50 px-4 pointer-events-none">
-        <motion.div className="mx-auto max-w-sm h-[72px] bg-slate-900/80 backdrop-blur-2xl border border-white/10 rounded-full shadow-2xl pointer-events-auto flex items-center justify-between px-6" initial={{
+        <motion.div className="mx-auto max-w-sm h-[72px] bg-slate-900/80 backdrop-blur-2xl border border-white/10 rounded-full shadow-2xl pointer-events-auto flex items-center justify-around px-4" initial={{
         opacity: 0,
         y: 100
       }} animate={{
@@ -75,7 +75,16 @@ const AppShell = ({
         }} whileTap={{
           scale: 0.95
         }} transition={kaevaTransition}>
-            <Settings size={24} strokeWidth={1.5} />
+            <Settings size={22} strokeWidth={1.5} />
+          </motion.button>
+
+          {/* Household Button */}
+          <motion.button onClick={() => navigate('/household')} className="p-3 text-slate-400 hover:text-kaeva-accent transition-colors rounded-full hover:bg-white/10" whileHover={{
+          scale: 1.1
+        }} whileTap={{
+          scale: 0.95
+        }} transition={kaevaTransition}>
+            <Users size={22} strokeWidth={1.5} />
           </motion.button>
           
           {/* The Living Aperture - Vision Scanner Trigger */}
