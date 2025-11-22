@@ -44,6 +44,66 @@ export type Database = {
         }
         Relationships: []
       }
+      household_members: {
+        Row: {
+          activity_level: string | null
+          age: number | null
+          age_group: string | null
+          allergies: Json | null
+          calculated_tdee: number | null
+          created_at: string | null
+          dietary_restrictions: Json | null
+          gender: string | null
+          health_conditions: Json | null
+          height: number | null
+          id: string
+          medication_interactions: Json | null
+          member_type: string
+          name: string | null
+          updated_at: string | null
+          user_id: string
+          weight: number | null
+        }
+        Insert: {
+          activity_level?: string | null
+          age?: number | null
+          age_group?: string | null
+          allergies?: Json | null
+          calculated_tdee?: number | null
+          created_at?: string | null
+          dietary_restrictions?: Json | null
+          gender?: string | null
+          health_conditions?: Json | null
+          height?: number | null
+          id?: string
+          medication_interactions?: Json | null
+          member_type: string
+          name?: string | null
+          updated_at?: string | null
+          user_id: string
+          weight?: number | null
+        }
+        Update: {
+          activity_level?: string | null
+          age?: number | null
+          age_group?: string | null
+          allergies?: Json | null
+          calculated_tdee?: number | null
+          created_at?: string | null
+          dietary_restrictions?: Json | null
+          gender?: string | null
+          health_conditions?: Json | null
+          height?: number | null
+          id?: string
+          medication_interactions?: Json | null
+          member_type?: string
+          name?: string | null
+          updated_at?: string | null
+          user_id?: string
+          weight?: number | null
+        }
+        Relationships: []
+      }
       inventory: {
         Row: {
           allergens: Json | null
@@ -272,6 +332,7 @@ export type Database = {
           agent_configured_at: string | null
           allergies: Json | null
           beauty_profile: Json | null
+          calculated_tdee: number | null
           created_at: string
           dietary_preferences: Json | null
           health_goals: Json | null
@@ -286,7 +347,12 @@ export type Database = {
           preferred_retailer_id: string | null
           preferred_retailer_name: string | null
           updated_at: string
+          user_activity_level: string | null
+          user_age: number | null
+          user_gender: string | null
+          user_height: number | null
           user_name: string | null
+          user_weight: number | null
           user_zip_code: string | null
         }
         Insert: {
@@ -294,6 +360,7 @@ export type Database = {
           agent_configured_at?: string | null
           allergies?: Json | null
           beauty_profile?: Json | null
+          calculated_tdee?: number | null
           created_at?: string
           dietary_preferences?: Json | null
           health_goals?: Json | null
@@ -308,7 +375,12 @@ export type Database = {
           preferred_retailer_id?: string | null
           preferred_retailer_name?: string | null
           updated_at?: string
+          user_activity_level?: string | null
+          user_age?: number | null
+          user_gender?: string | null
+          user_height?: number | null
           user_name?: string | null
+          user_weight?: number | null
           user_zip_code?: string | null
         }
         Update: {
@@ -316,6 +388,7 @@ export type Database = {
           agent_configured_at?: string | null
           allergies?: Json | null
           beauty_profile?: Json | null
+          calculated_tdee?: number | null
           created_at?: string
           dietary_preferences?: Json | null
           health_goals?: Json | null
@@ -330,7 +403,12 @@ export type Database = {
           preferred_retailer_id?: string | null
           preferred_retailer_name?: string | null
           updated_at?: string
+          user_activity_level?: string | null
+          user_age?: number | null
+          user_gender?: string | null
+          user_height?: number | null
           user_name?: string | null
+          user_weight?: number | null
           user_zip_code?: string | null
         }
         Relationships: []
