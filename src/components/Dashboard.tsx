@@ -13,6 +13,8 @@ import ShieldStatus from "./dashboard/ShieldStatus";
 import FloatingActionButton from "./dashboard/FloatingActionButton";
 import ConfigurationBanner from "./dashboard/ConfigurationBanner";
 import VoiceAssistant from "./voice/VoiceAssistant";
+import InventoryMatrixSkeleton from "./dashboard/InventoryMatrixSkeleton";
+import AuroraBackground from "./AuroraBackground";
 
 interface DashboardProps {
   profile: any;
@@ -135,33 +137,21 @@ const Dashboard = ({ profile }: DashboardProps) => {
   };
 
   return (
-    <motion.div
-      className="min-h-screen bg-kaeva-seattle-slate p-4 sm:p-8 relative"
-      variants={dashboardVariants}
-      initial="hidden"
-      animate="show"
-      exit={{ opacity: 0 }}
-      transition={kaevaTransition}
-    >
-      {/* Voice Assistant - always active */}
-      <VoiceAssistant userProfile={profile} onProfileUpdate={setInventoryData} />
-
-      {/* Gradient Mask at Bottom - Seattle Mist Effect */}
-      <div className="fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-kaeva-seattle-slate to-transparent pointer-events-none z-30" />
-
-      <div className="max-w-7xl mx-auto space-y-6 pb-[140px]">
+    <div className="min-h-screen bg-[#0F172A] text-slate-100 relative overflow-hidden selection:bg-emerald-500/30">
+      
+      {/* LAYER 0: The Atmosphere (Fixed Background) */}
+      <AuroraBackground vertical="food" />
+      
+      {/* LAYER 10: The Scrollable Content (The Safe Zone) */}
+      <main className="relative z-10 max-w-7xl mx-auto space-y-6 pb-[160px] p-4 sm:p-8">
+        {/* Voice Assistant - always active */}
+        <VoiceAssistant userProfile={profile} onProfileUpdate={setInventoryData} />
+        
         <ConfigurationBanner />
         
         {isAdmin && (
-          <motion.div
-            variants={kaevaEntranceVariants}
-            className="flex justify-end"
-          >
-            <Button
-              variant="glass"
-              onClick={() => navigate("/admin")}
-              className="gap-2"
-            >
+          <motion.div variants={kaevaEntranceVariants} className="flex justify-end">
+            <Button variant="glass" onClick={() => navigate("/admin")} className="gap-2">
               <Icon icon={Shield} size="sm" />
               <span className="text-micro">Admin Dashboard</span>
             </Button>
@@ -170,12 +160,24 @@ const Dashboard = ({ profile }: DashboardProps) => {
 
         <PulseHeader profile={profile} />
         <SmartCartWidget cartItems={lowStockItems} />
-        {!isLoading && <InventoryMatrix inventory={inventoryData} />}
+        
+        {isLoading ? (
+          <InventoryMatrixSkeleton />
+        ) : (
+          <InventoryMatrix inventory={inventoryData} />
+        )}
+        
         <ShieldStatus profile={profile} />
-      </div>
+      </main>
 
-      <FloatingActionButton />
-    </motion.div>
+      {/* LAYER 20: The Bottom Mask (Fade Out) */}
+      <div className="fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0F172A] to-transparent pointer-events-none z-20" />
+
+      {/* LAYER 50: The Navigation Dock (Fixed Capsule) */}
+      <div className="z-50">
+        <FloatingActionButton />
+      </div>
+    </div>
   );
 };
 
