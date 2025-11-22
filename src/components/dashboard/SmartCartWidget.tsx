@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ShoppingCart, Loader2, Sparkles, Camera } from "lucide-react";
+import { ShoppingCart, Loader2, Sparkles, Camera, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ProductSelector from "./ProductSelector";
+import StoreSelector from "./StoreSelector";
 import Webcam from "react-webcam";
 import {
   Dialog,
@@ -40,8 +41,31 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
   const [alternatives, setAlternatives] = useState<any[]>([]);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [isIdentifying, setIsIdentifying] = useState(false);
+  const [storeSelectorOpen, setStoreSelectorOpen] = useState(false);
+  const [hasStore, setHasStore] = useState(true);
+  const [userId, setUserId] = useState<string>("");
   const webcamRef = useRef<Webcam>(null);
   const { toast } = useToast();
+
+  // Check if user has a preferred store
+  useEffect(() => {
+    const checkStore = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      setUserId(user.id);
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('preferred_retailer_id')
+        .eq('id', user.id)
+        .single();
+      
+      setHasStore(!!profile?.preferred_retailer_id);
+    };
+    
+    checkStore();
+  }, []);
 
   const totalValue = cartItems.reduce((sum, item) => {
     const price = (item.nutrition_data?.price_estimate as number) || 8.99;
@@ -115,6 +139,17 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
   }, [cartItems]);
 
   const handleReviewCart = async () => {
+    // Check if store is selected first
+    if (!hasStore) {
+      setStoreSelectorOpen(true);
+      toast({
+        title: "Store Required",
+        description: "Please select your preferred Instacart store first",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -399,6 +434,17 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
         ) : (
           <div className="text-center py-6">
             <p className="text-white/50 text-sm mb-3">No items need restocking</p>
+            {!hasStore && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setStoreSelectorOpen(true)}
+                className="gap-2 mb-2"
+              >
+                <Store className="h-4 w-4" />
+                Select Your Store
+              </Button>
+            )}
             <Button
               size="sm"
               variant="outline"
@@ -421,6 +467,13 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
           onSelect={handleProductSelect}
         />
       )}
+
+      <StoreSelector
+        open={storeSelectorOpen}
+        onClose={() => setStoreSelectorOpen(false)}
+        userId={userId}
+        onStoreSelected={() => setHasStore(true)}
+      />
 
       <Dialog open={cameraOpen} onOpenChange={setCameraOpen}>
         <DialogContent className="sm:max-w-md">

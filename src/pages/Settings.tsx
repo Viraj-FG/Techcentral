@@ -7,7 +7,7 @@ import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   User, Shield, Users, Heart, Clock, Sparkles, PawPrint, 
-  ArrowLeft, Save, Leaf, ShieldAlert, Home 
+  ArrowLeft, Save, Leaf, ShieldAlert, Home, Store 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AuroraBackground from "@/components/AuroraBackground";
 import ConversationHistory from "@/components/ConversationHistory";
+import StoreSelector from "@/components/dashboard/StoreSelector";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
 
 const profileSchema = z.object({
@@ -39,6 +40,9 @@ const Settings = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
+  const [storeSelectorOpen, setStoreSelectorOpen] = useState(false);
+  const [userId, setUserId] = useState<string>("");
+  const [selectedStore, setSelectedStore] = useState<{retailer_id: string; name: string} | null>(null);
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -67,6 +71,8 @@ const Settings = () => {
           return;
         }
 
+        setUserId(session.user.id);
+
         const { data: profile } = await supabase
           .from('profiles')
           .select('*')
@@ -74,6 +80,10 @@ const Settings = () => {
           .single();
 
         if (profile) {
+          setSelectedStore(profile.preferred_retailer_id ? {
+            retailer_id: profile.preferred_retailer_id,
+            name: profile.preferred_retailer_name || 'Selected Store'
+          } : null);
           const beautyProfile = profile.beauty_profile as { skinType?: string; hairType?: string } | null;
           reset({
             userName: profile.user_name || "",
@@ -212,12 +222,13 @@ const Settings = () => {
           {/* Settings Form */}
           <form onSubmit={handleSubmit(onSubmit)}>
             <Tabs defaultValue="personal" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 glass-card">
+              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7 glass-card">
                 <TabsTrigger value="personal" className="text-micro">Personal</TabsTrigger>
                 <TabsTrigger value="food" className="text-micro">Food</TabsTrigger>
                 <TabsTrigger value="beauty" className="text-micro">Beauty</TabsTrigger>
                 <TabsTrigger value="household" className="text-micro">Household</TabsTrigger>
                 <TabsTrigger value="goals" className="text-micro">Goals</TabsTrigger>
+                <TabsTrigger value="store" className="text-micro">Store</TabsTrigger>
                 <TabsTrigger value="history" className="text-micro">History</TabsTrigger>
               </TabsList>
 
@@ -465,6 +476,53 @@ const Settings = () => {
                 </motion.div>
               </TabsContent>
 
+              {/* Store Tab */}
+              <TabsContent value="store">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-6 space-y-6"
+                >
+                  <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+                    <Store className="text-emerald-400" size={24} strokeWidth={1.5} />
+                    <h2 className="text-xl font-light tracking-wider text-white">Preferred Store</h2>
+                  </div>
+
+                  <div className="space-y-4">
+                    {selectedStore ? (
+                      <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-white/90 font-medium">{selectedStore.name}</p>
+                            <p className="text-white/60 text-sm mt-1">Currently selected for Instacart orders</p>
+                          </div>
+                          <Button
+                            onClick={() => setStoreSelectorOpen(true)}
+                            variant="outline"
+                            size="sm"
+                          >
+                            Change
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Store className="mx-auto mb-4 text-white/40" size={48} strokeWidth={1.5} />
+                        <p className="text-white/60 mb-4">No store selected</p>
+                        <Button
+                          onClick={() => setStoreSelectorOpen(true)}
+                          variant="primary"
+                          className="gap-2"
+                        >
+                          <Store size={18} />
+                          Select Your Store
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              </TabsContent>
+
               {/* History Tab */}
               <TabsContent value="history">
                 <motion.div
@@ -514,6 +572,19 @@ const Settings = () => {
           </form>
         </motion.div>
       </div>
+
+      {/* Store Selector Dialog */}
+      <StoreSelector
+        open={storeSelectorOpen}
+        onClose={() => setStoreSelectorOpen(false)}
+        userId={userId}
+        onStoreSelected={(retailer) => {
+          setSelectedStore({
+            retailer_id: retailer.retailer_id,
+            name: retailer.name
+          });
+        }}
+      />
     </div>
   );
 };
