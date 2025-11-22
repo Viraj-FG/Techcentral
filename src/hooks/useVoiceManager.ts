@@ -3,12 +3,11 @@ import { useConversation } from "@11labs/react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { getSignedUrl } from "@/lib/elevenLabsAudio";
-import { VoiceActivityDetector, BargeInDetector } from "@/lib/audioMonitoring";
 import { ELEVENLABS_CONFIG } from "@/config/agent";
 import { useNavigate } from "react-router-dom";
 
-type VoiceState = "idle" | "sleeping" | "listening" | "processing" | "speaking";
-type ApertureState = "idle" | "wakeword" | "listening" | "thinking" | "speaking";
+type VoiceState = "idle" | "active" | "speaking";
+type ApertureState = "idle" | "listening" | "thinking" | "speaking";
 
 interface UseVoiceManagerProps {
   userProfile: any;
@@ -21,22 +20,22 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
   const [userTranscript, setUserTranscript] = useState("");
   const [aiTranscript, setAiTranscript] = useState("");
   const [showConversation, setShowConversation] = useState(false);
-  const [isWakeWordActive, setIsWakeWordActive] = useState(false);
   const [audioAmplitude, setAudioAmplitude] = useState(0);
   const [conversationHistory, setConversationHistory] = useState<any[]>([]);
 
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  const recognitionRef = useRef<any>(null);
   const currentConversationIdRef = useRef<string>("");
-  const vadRef = useRef<VoiceActivityDetector | null>(null);
-  const bargeInRef = useRef<BargeInDetector | null>(null);
 
   // ElevenLabs conversation hook
   const conversation = useConversation({
     onConnect: () => console.log("🔌 Connected to ElevenLabs"),
-    onDisconnect: () => console.log("🔌 Disconnected from ElevenLabs"),
+    onDisconnect: () => {
+      console.log("🔌 Disconnected from ElevenLabs");
+      setVoiceState("idle");
+      setApertureState("idle");
+    },
     onError: (error) => {
       console.error("❌ ElevenLabs error:", error);
       toast({
@@ -44,7 +43,7 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
         description: "Voice connection failed. Please try again.",
         variant: "destructive"
       });
-      returnToSleeping();
+      endConversation();
     },
     onMessage: (message) => {
       console.log("📨 Message received:", message);
@@ -170,10 +169,35 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
           return "Failed to update profile";
         }
       },
-      completeConversation: () => {
-        console.log("🎯 Complete conversation called");
-        endConversation();
-        return "Conversation ended";
+      completeConversation: async (parameters: { reason: string }) => {
+        console.log("🎯 Complete conversation:", parameters.reason);
+        
+        try {
+          // 1. Stop ElevenLabs session
+          await conversation.endSession();
+          
+          // 2. Reset all state
+          setShowConversation(false);
+          setUserTranscript("");
+          setAiTranscript("");
+          setVoiceState("idle");
+          setApertureState("idle");
+          
+          // 3. If onboarding complete, navigate to dashboard
+          if (parameters.reason === "onboarding_complete") {
+            toast({
+              title: "Onboarding Complete!",
+              description: "Welcome to your Kaeva dashboard",
+            });
+            // Parent component handles navigation
+          }
+          
+          // 4. Return blocking response
+          return "SUCCESS: Conversation ended. Returning to dashboard.";
+        } catch (error) {
+          console.error("completeConversation error:", error);
+          return `ERROR: ${error instanceof Error ? error.message : "Failed to complete"}`;
+        }
       },
       navigateTo: (parameters: { page: string }) => {
         console.log("🧭 Navigate to:", parameters.page);
@@ -221,173 +245,28 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
     }
   };
 
-  // === STATE TRANSITIONS ===
-
-  const transitionToListening = useCallback(() => {
-    console.log("🎤 → LISTENING");
-    stopWakeWordDetection();
-    
-    // Play wake sound
-    const audio = new Audio('/sounds/wake.mp3');
-    audio.volume = 0.3;
-    audio.play().catch(e => console.log("Wake sound failed:", e));
-    
-    setVoiceState("listening");
-    setApertureState("listening");
-    setShowConversation(true);
-    
-    // Start VAD monitoring
-    vadRef.current = new VoiceActivityDetector();
-    vadRef.current.start(
-      () => {
-        console.log("🔇 Silence detected - transitioning to processing");
-        transitionToProcessing();
-      },
-      (level) => {
-        setAudioAmplitude(level);
-      }
-    ).catch(err => {
-      console.error("VAD start failed:", err);
-      transitionToProcessing(); // Fallback
-    });
-  }, []);
-
-  const transitionToProcessing = useCallback(() => {
-    console.log("⚙️ → PROCESSING");
-    
-    // Stop VAD
-    if (vadRef.current) {
-      vadRef.current.stop();
-      vadRef.current = null;
-    }
-    
-    setVoiceState("processing");
-    setApertureState("thinking");
-    setAudioAmplitude(0);
-  }, []);
-
-  const transitionToSpeaking = useCallback(() => {
-    console.log("🗣️ → SPEAKING");
-    setVoiceState("speaking");
-    setApertureState("speaking");
-    
-    // Start barge-in detection
-    bargeInRef.current = new BargeInDetector();
-    bargeInRef.current.start(() => {
-      console.log("🛑 Barge-in detected!");
-      conversation.endSession();
-      setTimeout(() => transitionToListening(), 100);
-    }).catch(err => console.error("Barge-in start failed:", err));
-  }, [conversation, transitionToListening]);
-
-  const returnToSleeping = useCallback(() => {
-    console.log("😴 → SLEEPING");
-    
-    // Cleanup all monitors
-    if (vadRef.current) {
-      vadRef.current.stop();
-      vadRef.current = null;
-    }
-    if (bargeInRef.current) {
-      bargeInRef.current.stop();
-      bargeInRef.current = null;
-    }
-    
-    setVoiceState("sleeping");
-    setApertureState("wakeword");
-    setShowConversation(false);
-    setUserTranscript("");
-    setAiTranscript("");
-    setAudioAmplitude(0);
-    
-    startWakeWordDetection();
-  }, []);
+  // === CONVERSATION STATE MANAGEMENT ===
 
   // Monitor conversation speaking state
   useEffect(() => {
-    if (conversation.isSpeaking && voiceState !== "speaking") {
-      transitionToSpeaking();
-    } else if (!conversation.isSpeaking && voiceState === "speaking") {
-      // AI finished speaking - back to listening
-      if (bargeInRef.current) {
-        bargeInRef.current.stop();
-        bargeInRef.current = null;
-      }
-      transitionToListening();
+    if (conversation.isSpeaking) {
+      setVoiceState("speaking");
+      setApertureState("speaking");
+      setAudioAmplitude(0.8); // Visual feedback during speech
+    } else if (conversation.status === "connected") {
+      setVoiceState("active");
+      setApertureState("listening");
+      setAudioAmplitude(0);
     }
-  }, [conversation.isSpeaking, voiceState, transitionToSpeaking, transitionToListening]);
-
-  // === WAKE WORD DETECTION ===
-
-  const startWakeWordDetection = useCallback(() => {
-    if (!('webkitSpeechRecognition' in window)) {
-      console.warn("Speech recognition not supported");
-      return;
-    }
-
-    try {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = "en-US";
-
-      recognitionRef.current.onstart = () => {
-        console.log("👂 Wake word detection started");
-        setIsWakeWordActive(true);
-      };
-
-      recognitionRef.current.onresult = (event: any) => {
-        const transcript = Array.from(event.results)
-          .map((result: any) => result[0])
-          .map((result: any) => result.transcript)
-          .join("")
-          .toLowerCase();
-
-        if (transcript.includes("kaeva") || transcript.includes("hey kaeva")) {
-          console.log("🎤 Wake word detected:", transcript);
-          startConversation();
-        }
-      };
-
-      recognitionRef.current.onerror = (event: any) => {
-        console.error("Speech recognition error:", event.error);
-        if (event.error !== "aborted") {
-          setTimeout(() => startWakeWordDetection(), 1000);
-        }
-      };
-
-      recognitionRef.current.onend = () => {
-        if (voiceState === "sleeping") {
-          console.log("🔄 Restarting wake word detection");
-          setTimeout(() => recognitionRef.current?.start(), 500);
-        }
-      };
-
-      recognitionRef.current.start();
-    } catch (error) {
-      console.error("Wake word detection error:", error);
-    }
-  }, [voiceState]);
-
-  const stopWakeWordDetection = useCallback(() => {
-    if (recognitionRef.current) {
-      console.log("🛑 Stopping wake word detection");
-      setIsWakeWordActive(false);
-      try {
-        recognitionRef.current.stop();
-      } catch (e) {
-        console.log("Already stopped");
-      }
-      recognitionRef.current = null;
-    }
-  }, []);
+  }, [conversation.isSpeaking, conversation.status]);
 
   // === CONVERSATION CONTROL ===
 
   const startConversation = useCallback(async () => {
     console.log("🚀 Starting conversation");
-    transitionToListening();
+    setShowConversation(true);
+    setVoiceState("active");
+    setApertureState("thinking");
 
     try {
       currentConversationIdRef.current = crypto.randomUUID();
@@ -396,7 +275,7 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) throw new Error("Not authenticated");
 
-      // Fetch context
+      // Fetch context data
       const { data: householdMembers } = await supabase
         .from('household_members')
         .select('*')
@@ -422,109 +301,63 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
       const mode = isOnboardingComplete ? "assistant" : "onboarding";
       
       console.log(`🤖 Starting in ${mode} mode`);
-      console.log('📝 Context injected:', {
-        mode,
-        hasProfile: !!userProfile,
-        householdSize: householdMembers?.length || 0,
-        petsCount: pets?.length || 0,
-        inventoryItems: inventory?.length || 0
-      });
 
-      let contextPrompt = "";
+      // Build dynamic variables for assistant mode
+      const variables: Record<string, string> = {};
       if (mode === "assistant") {
-        contextPrompt = `You are Kaeva in ASSISTANT MODE.
-
-**VOICE BEHAVIOR RULES**:
-- Keep responses under 30 seconds unless user asks for details
-- If user interrupts you (barge-in), immediately stop and listen
-- Acknowledge interruptions: "Yes?" or "Go ahead"
-- For quick confirmations, use 1-2 words: "Done", "Added", "Got it"
-
-**USER PROFILE**:
-- Name: ${userProfile.user_name || 'User'}
-- Age: ${userProfile.user_age || 'Unknown'}
-- Gender: ${userProfile.user_gender || 'Unknown'}
-- TDEE: ${userProfile.calculated_tdee || 'Not calculated'} cal/day
-- Activity Level: ${userProfile.user_activity_level || 'Unknown'}
-- Dietary Preferences: ${JSON.stringify(userProfile.dietary_preferences || [])}
-- Allergies: ${JSON.stringify(userProfile.allergies || [])}
-- Health Goals: ${JSON.stringify(userProfile.health_goals || [])}
-- Lifestyle Goals: ${JSON.stringify(userProfile.lifestyle_goals || [])}
-
-**HOUSEHOLD MEMBERS** (${householdMembers?.length || 0} members):
-${householdMembers?.map(m => `- ${m.name || m.member_type} (${m.age_group}): Allergies: ${JSON.stringify(m.allergies || [])}, Dietary: ${JSON.stringify(m.dietary_restrictions || [])}, Health: ${JSON.stringify(m.health_conditions || [])}`).join('\n') || 'None'}
-
-**PETS** (${pets?.length || 0} pets):
-${pets?.map(p => `- ${p.name} (${p.species}, ${p.breed || 'breed unknown'}): Toxic flags ${p.toxic_flags_enabled ? 'ENABLED' : 'disabled'}`).join('\n') || 'None'}
-
-**RECENT INVENTORY** (Top 20 active items):
-${inventory?.map(i => `- ${i.name} (${i.category}): ${i.quantity} ${i.unit || ''}, Status: ${i.status}${i.expiry_date ? `, Expires: ${i.expiry_date}` : ''}`).join('\n') || 'No inventory data'}
-
-**RECENT CONVERSATION HISTORY**:
-${recentHistory.length > 0 ? recentHistory.map((msg: any) => `${msg.role === "user" ? "User" : "Kaeva"}: ${msg.message}`).join('\n') : 'No recent history'}
-
-**INSTRUCTIONS**:
-- Be proactive: Use this context to suggest actions
-- Safety-first: Check allergies and pet toxicity before recommending food
-- Reference inventory: "You have X in your pantry, so I suggest Y"
-- Know the household: "Since Emma has a peanut allergy, avoid recipes with nuts"
-- Call completeConversation() when user is done
-`;
-      } else {
-        contextPrompt = "You are Kaeva in ONBOARDING MODE. New user - follow the structured interview to collect all required information.";
+        variables.user_name = userProfile.user_name || 'User';
+        variables.calculated_tdee = userProfile.calculated_tdee?.toString() || 'Not calculated';
+        variables.allergies = JSON.stringify(userProfile.allergies || []);
+        variables.household_summary = householdMembers?.map(m => 
+          `${m.name || m.member_type} (${m.age_group}): ${JSON.stringify(m.allergies || [])}`
+        ).join(', ') || 'None';
+        variables.pets_summary = pets?.map(p => 
+          `${p.name} (${p.species})`
+        ).join(', ') || 'None';
+        variables.recent_inventory = inventory?.slice(0, 10).map(i => 
+          `${i.name} (${i.quantity} ${i.unit || ''})`
+        ).join(', ') || 'No inventory';
       }
 
       await conversation.startSession({ 
         signedUrl,
-        overrides: {
-          agent: {
-            prompt: { prompt: contextPrompt }
-          }
-        }
+        ...(mode === "assistant" ? { variables } : {})
       });
 
-      transitionToProcessing();
+      setApertureState("listening");
     } catch (error) {
       console.error("❌ Failed to start conversation:", error);
       toast({
         title: "Connection Failed",
-        description: "Could not start conversation. Please try again.",
+        description: "Could not start voice conversation",
         variant: "destructive"
       });
-      returnToSleeping();
+      endConversation();
     }
-  }, [userProfile, conversation, toast, transitionToListening, transitionToProcessing, returnToSleeping]);
+  }, [userProfile, onProfileUpdate]);
 
   const endConversation = useCallback(async () => {
-    console.log("👋 Ending conversation");
+    console.log("🔚 Ending conversation");
     
-    try {
+    if (conversation.status === "connected") {
       await conversation.endSession();
-    } catch (error) {
-      console.error("Error ending conversation:", error);
     }
 
-    returnToSleeping();
-  }, [conversation, returnToSleeping]);
+    currentConversationIdRef.current = "";
+    setUserTranscript("");
+    setAiTranscript("");
+    setShowConversation(false);
+    setVoiceState("idle");
+    setApertureState("idle");
+    setAudioAmplitude(0);
+  }, [conversation]);
 
-  // Initialize wake word detection on mount
+  // Cleanup on unmount
   useEffect(() => {
-    // Request notification permissions for timers
-    if ("Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission();
-    }
-
-    const timer = setTimeout(() => {
-      setVoiceState("sleeping");
-      setApertureState("wakeword");
-      startWakeWordDetection();
-    }, 2000);
-
     return () => {
-      clearTimeout(timer);
-      stopWakeWordDetection();
-      if (vadRef.current) vadRef.current.stop();
-      if (bargeInRef.current) bargeInRef.current.stop();
+      if (conversation.status === "connected") {
+        conversation.endSession();
+      }
     };
   }, []);
 
@@ -535,7 +368,6 @@ ${recentHistory.length > 0 ? recentHistory.map((msg: any) => `${msg.role === "us
     userTranscript,
     aiTranscript,
     showConversation,
-    isWakeWordActive,
     conversationHistory,
     startConversation,
     endConversation
