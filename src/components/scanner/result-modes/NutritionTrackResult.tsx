@@ -1,5 +1,9 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Clock } from 'lucide-react';
+import { Clock, ShoppingCart, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import type { Recipe } from '../ScanResults';
 
 interface DetectedItem {
@@ -25,6 +29,55 @@ const NutritionTrackResult = ({
   macros?: Macros;
   recipes?: Recipe[];
 }) => {
+  const [orderingRecipe, setOrderingRecipe] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const handleOrderIngredients = async (recipe: Recipe) => {
+    setOrderingRecipe(recipe.name);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Transform recipe ingredients format
+      const ingredients = items.map(item => ({
+        name: item.name,
+        quantity: '1',
+        unit: 'item'
+      }));
+
+      const { data, error } = await supabase.functions.invoke('instacart-service', {
+        body: {
+          action: 'create_recipe',
+          userId: user.id,
+          recipeData: {
+            name: recipe.name,
+            ingredients,
+            servings: 4,
+            description: `${recipe.cookingTime} min • ${recipe.difficulty}`
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      window.open(data.recipeLink, '_blank');
+      
+      toast({
+        title: "Recipe Cart Ready!",
+        description: "Opening Instacart with ingredients (pantry items excluded)..."
+      });
+    } catch (error) {
+      console.error('Error creating recipe cart:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create recipe cart. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setOrderingRecipe(null);
+    }
+  };
+
   if (subtype === 'raw' && recipes) {
     // Recipe suggestions view
     return (
@@ -50,13 +103,31 @@ const NutritionTrackResult = ({
                 <span className="capitalize px-2 py-0.5 bg-slate-700 rounded-full">{recipe.difficulty}</span>
                 <span>{recipe.calories} cal</span>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 mb-3">
                 {recipe.requiredAppliances.map(appliance => (
                   <span key={appliance} className="text-xs px-2 py-1 bg-kaeva-sage/20 text-kaeva-sage rounded-full">
                     {appliance}
                   </span>
                 ))}
               </div>
+              <Button
+                onClick={() => handleOrderIngredients(recipe)}
+                disabled={orderingRecipe === recipe.name}
+                className="w-full bg-kaeva-sage hover:bg-kaeva-sage/90 text-kaeva-void font-semibold gap-2"
+                size="sm"
+              >
+                {orderingRecipe === recipe.name ? (
+                  <>
+                    <Loader2 className="animate-spin" size={16} />
+                    Creating Cart...
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart size={16} />
+                    Order Ingredients
+                  </>
+                )}
+              </Button>
             </motion.div>
           ))}
         </div>

@@ -118,14 +118,23 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
     setLoading(true);
 
     try {
-      const items = cartItems.map(item => ({
+      // Get user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const items = enrichedItems.map(item => ({
         name: item.name,
+        brand: item.brand_name,
         quantity: 1,
         unit: item.unit
       }));
 
-      const { data, error } = await supabase.functions.invoke('instacart-create-cart', {
-        body: { items }
+      const { data, error } = await supabase.functions.invoke('instacart-service', {
+        body: { 
+          action: 'create_cart',
+          userId: user.id,
+          items
+        }
       });
 
       if (error) throw error;
@@ -135,7 +144,7 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
 
       toast({
         title: "Cart Ready!",
-        description: "Opening Instacart shopping list..."
+        description: "Opening Instacart with your dietary preferences applied..."
       });
     } catch (error) {
       console.error('Error creating cart:', error);
