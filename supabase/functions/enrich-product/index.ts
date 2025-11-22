@@ -13,6 +13,19 @@ interface EnrichRequest {
   category?: 'fridge' | 'pantry' | 'beauty' | 'pets';
 }
 
+/**
+ * RFC 3986 compliant percent encoding for OAuth 1.0
+ * Encodes all characters except: A-Z a-z 0-9 - _ . ~
+ */
+function percentEncode(value: string): string {
+  return encodeURIComponent(value)
+    .replace(/!/g, '%21')   // Encode !
+    .replace(/\*/g, '%2A')  // Encode *
+    .replace(/'/g, '%27')   // Encode '
+    .replace(/\(/g, '%28')  // Encode (
+    .replace(/\)/g, '%29'); // Encode )
+}
+
 // OAuth 1.0 Helper Functions
 async function generateOAuthSignature(
   method: string,
@@ -24,7 +37,7 @@ async function generateOAuthSignature(
   // Sort parameters alphabetically
   const sortedParams = Object.keys(params)
     .sort()
-    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+    .map(key => `${percentEncode(key)}=${percentEncode(params[key])}`)
     .join('&');
 
   // Create signature base string
@@ -35,7 +48,7 @@ async function generateOAuthSignature(
   ].join('&');
 
   // Create signing key
-  const signingKey = `${encodeURIComponent(consumerSecret)}&${encodeURIComponent(tokenSecret)}`;
+  const signingKey = `${percentEncode(consumerSecret)}&${percentEncode(tokenSecret)}`;
 
   // Generate HMAC-SHA1 signature
   const encoder = new TextEncoder();
@@ -82,6 +95,24 @@ async function buildOAuth1Request(
     ...queryParams
   };
 
+  console.log('=== OAUTH SIGNATURE DEBUG ===');
+  console.log('Base URL:', baseUrl);
+  console.log('Method:', method);
+  console.log('Parameters (before encoding):', JSON.stringify(oauthParams, null, 2));
+
+  // Log signature base string components
+  const sortedParams = Object.keys(oauthParams)
+    .sort()
+    .map(key => `${percentEncode(key)}=${percentEncode(oauthParams[key])}`)
+    .join('&');
+    
+  console.log('Sorted params string:', sortedParams);
+  console.log('Signature base components:', {
+    method: method.toUpperCase(),
+    url: percentEncode(baseUrl),
+    params: percentEncode(sortedParams)
+  });
+
   // Generate signature
   const signature = await generateOAuthSignature(
     method,
@@ -92,10 +123,14 @@ async function buildOAuth1Request(
 
   oauthParams.oauth_signature = signature;
 
+  console.log('Generated signature:', signature);
+  console.log('Signature length:', signature.length);
+  console.log('=== END DEBUG ===');
+
   // Build query string
   const queryString = Object.keys(oauthParams)
     .sort()
-    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(oauthParams[key])}`)
+    .map(key => `${percentEncode(key)}=${percentEncode(oauthParams[key])}`)
     .join('&');
 
   return `${baseUrl}?${queryString}`;
@@ -222,14 +257,33 @@ serve(async (req) => {
     console.log('Status:', searchResponse.status);
     console.log('Status Text:', searchResponse.statusText);
 
-    if (!searchResponse.ok) {
-      const errorText = await searchResponse.text();
-      console.error('FatSecret search failed:', searchResponse.status, errorText);
-      throw new Error(`FatSecret search failed: ${searchResponse.status}`);
+    const responseText = await searchResponse.text();
+    console.log('FatSecret search response:', responseText);
+
+    let searchData;
+    try {
+      searchData = JSON.parse(responseText);
+    } catch (e) {
+      console.error('Failed to parse FatSecret response:', e);
+      throw new Error('Invalid response from FatSecret');
     }
 
-    const searchData = await searchResponse.json();
-    console.log('FatSecret search response:', JSON.stringify(searchData).substring(0, 500));
+    if (searchData.error) {
+      console.error('FatSecret API error:', searchData.error);
+      console.log('No products found in FatSecret, trying Open Food Facts...');
+      
+      // Fallback to Open Food Facts
+      const offProduct = await searchOpenFoodFacts(name, brand);
+      
+      if (offProduct) {
+        const enriched = processOpenFoodFactsProduct(offProduct);
+        await cacheResult(supabaseClient, searchTerm, { source: 'openfoodfacts', data: offProduct }, enriched);
+        return new Response(
+          JSON.stringify(enriched),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
     
     // Handle barcode response
     if (barcode && searchData.food_id) {
