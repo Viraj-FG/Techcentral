@@ -14,9 +14,10 @@ interface InventoryCardProps {
   title: string;
   icon: LucideIcon;
   items: InventoryItem[];
+  status?: 'good' | 'warning' | 'normal';
 }
 
-const InventoryCard = ({ title, icon: Icon, items }: InventoryCardProps) => {
+const InventoryCard = ({ title, icon: Icon, items, status = 'normal' }: InventoryCardProps) => {
   const [shouldFlash, setShouldFlash] = useState(false);
 
   // Flash animation when items change
@@ -26,23 +27,16 @@ const InventoryCard = ({ title, icon: Icon, items }: InventoryCardProps) => {
     return () => clearTimeout(timer);
   }, [items.length]);
 
-  const getIconBg = (title: string) => {
-    switch(title) {
-      case "Fridge": return "bg-emerald-400/10";
-      case "Pantry": return "bg-emerald-400/10";
-      case "Beauty": return "bg-orange-400/10";
-      case "Pets": return "bg-sky-400/10";
-      default: return "bg-white/10";
-    }
-  };
+  // Calculate average fill level for status bar
+  const avgFillLevel = items.length > 0 
+    ? Math.round(items.reduce((acc, item) => acc + item.fillLevel, 0) / items.length)
+    : 50;
 
-  const getIconColor = (title: string) => {
-    switch(title) {
-      case "Beauty": return "text-orange-400";
-      case "Pets": return "text-sky-400";
-      default: return "text-emerald-400";
-    }
-  };
+  // Status-based styling
+  const statusColor = status === 'good' ? 'text-emerald-400' : status === 'warning' ? 'text-[#D97757]' : 'text-slate-400';
+  const statusBg = status === 'good' ? 'bg-emerald-400/10' : status === 'warning' ? 'bg-[#D97757]/10' : 'bg-white/5';
+  const barColor = status === 'good' ? 'bg-emerald-500' : status === 'warning' ? 'bg-[#D97757]' : 'bg-slate-600';
+  const barWidth = status === 'good' ? 'w-[80%]' : status === 'warning' ? 'w-[20%]' : 'w-[50%]';
 
   const getFillColor = (level: number) => {
     if (level <= 20) return "bg-red-400";
@@ -66,48 +60,36 @@ const InventoryCard = ({ title, icon: Icon, items }: InventoryCardProps) => {
         ]
       } : {}}
       transition={{ duration: 1.5 }}
-      className="group relative overflow-hidden rounded-xl backdrop-blur-xl bg-white/5 border border-white/10 p-4 hover:bg-white/10 transition-colors aspect-square flex flex-col"
+      className="group relative overflow-hidden rounded-2xl backdrop-blur-md bg-white/5 border border-white/10 p-4 hover:bg-white/10 transition-all cursor-pointer aspect-square flex flex-col justify-between"
     >
-      {/* Icon with contextual color */}
-      <div className={`p-2 rounded-lg mb-3 w-fit ${getIconBg(title)}`}>
-        <Icon className={getIconColor(title)} size={20} strokeWidth={1.5} />
+      {/* Header: Icon & Warning Dot */}
+      <div className="flex justify-between items-start">
+        <div className={`p-2 rounded-lg ${statusBg}`}>
+          <Icon className={statusColor} size={20} strokeWidth={1.5} />
+        </div>
+        {status === 'warning' && (
+          <div className="w-2 h-2 rounded-full bg-[#D97757] animate-pulse" />
+        )}
       </div>
       
-      {/* Title */}
-      <h3 className="text-base font-light tracking-wider text-white/90 mb-3">
-        {title}
-      </h3>
-      
-      {/* Fill Level Bars (Scrollable if needed) */}
-      <div className="space-y-2 flex-1 overflow-y-auto">
-        {items.slice(0, 3).map((item, idx) => (
-          <div key={idx}>
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-white/70 truncate">{item.name}</span>
-              <span className="text-white/50 text-data ml-2">{item.fillLevel}%</span>
-            </div>
-            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${item.fillLevel}%` }}
-                transition={{ duration: 1, delay: idx * 0.1 }}
-                className={`h-full ${getFillColor(item.fillLevel)}`}
-              />
-            </div>
-            
-            {/* Auto-ordering Indicator */}
-            {item.autoOrdering && (
-              <motion.p
-                className="text-[10px] text-emerald-400 mt-0.5 flex items-center gap-1"
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <RefreshCw size={10} className="animate-spin" />
-                Auto-ordering...
-              </motion.p>
-            )}
-          </div>
-        ))}
+      {/* Title & Subtitle */}
+      <div>
+        <h3 className="text-base font-medium text-slate-200 mb-1">
+          {title}
+        </h3>
+        <p className="text-xs text-slate-400 mb-3">
+          {status === 'good' ? 'Stock Good' : status === 'warning' ? `${items[0]?.name || 'Item'} Low` : 'Routine Active'}
+        </p>
+        
+        {/* Status Fill Bar */}
+        <div className="h-1 w-full bg-slate-700/50 rounded-full overflow-hidden">
+          <motion.div 
+            className={`h-full ${barColor} ${barWidth} rounded-full`}
+            initial={{ width: 0 }}
+            animate={{ width: barWidth }}
+            transition={{ duration: 1, ease: "easeOut" }}
+          />
+        </div>
       </div>
     </motion.div>
   );

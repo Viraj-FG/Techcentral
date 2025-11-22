@@ -203,174 +203,148 @@ const VisionSpotlight = ({ isOpen, onClose, onItemsAdded }: VisionSpotlightProps
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={kaevaTransition}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-kaeva-seattle-slate/95 backdrop-blur-xl"
+          className="fixed inset-0 z-[100] flex flex-col justify-end sm:justify-center items-center bg-[#0F172A]/90 backdrop-blur-xl p-4"
         >
-          {/* Camera overlay gradient - Seattle Solstice */}
-          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-kaeva-seattle-slate/80 to-transparent pointer-events-none z-10" />
+          {/* Close Button */}
+          <Button
+            variant="glass"
+            size="icon"
+            onClick={onClose}
+            className="absolute top-6 right-6 z-10"
+          >
+            <X size={24} strokeWidth={1.5} />
+          </Button>
 
           <motion.div
-            variants={kaevaEntranceVariants}
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
+            initial={{ y: 100, scale: 0.95 }}
+            animate={{ y: 0, scale: 1 }}
+            exit={{ y: 100, scale: 0.95 }}
             transition={kaevaTransition}
-            className="relative w-full max-w-5xl h-[90vh] glass-card p-8 mx-4 z-20"
+            className="w-full max-w-md bg-slate-900/80 border border-emerald-500/50 rounded-3xl shadow-[0_0_40px_rgba(112,224,152,0.15)] overflow-hidden"
           >
-            {/* Close Button */}
-            <Button
-              variant="glass"
-              size="icon"
-              onClick={onClose}
-              className="absolute top-4 right-4 z-10"
-            >
-              <X size={24} strokeWidth={1.5} />
-            </Button>
-
-            {/* Mode Selector */}
-            <div className="absolute top-4 left-4 flex gap-2">
-              <Button
-                variant={mode === 'quick_scan' ? 'primary' : 'glass'}
-                size="sm"
-                onClick={() => setMode('quick_scan')}
-                className="gap-2"
+            {/* Search Input Area */}
+            <div className="flex items-center gap-4 p-4 border-b border-white/10">
+              <Camera className="text-emerald-400" size={24} strokeWidth={1.5} />
+              <input 
+                type="text" 
+                placeholder="Ask Kaeva or scan an item..." 
+                value={transcript}
+                readOnly
+                className="flex-1 bg-transparent border-none outline-none text-lg text-white placeholder-slate-500 font-light"
+              />
+              <motion.div 
+                className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400"
+                animate={{
+                  scale: isListening ? [1, 1.2, 1] : 1,
+                  opacity: isListening ? [0.5, 1, 0.5] : 0.5
+                }}
+                transition={{ duration: 1.5, repeat: Infinity }}
               >
-                <Camera size={20} strokeWidth={1.5} />
-                <span className="text-micro">Quick Scan</span>
-              </Button>
-              <Button
-                variant={mode === 'pantry_sweep' ? 'primary' : 'glass'}
-                size="sm"
-                onClick={() => setMode('pantry_sweep')}
-                className="gap-2"
-              >
-                <Package size={20} strokeWidth={1.5} />
-                <span className="text-micro">Pantry Sweep</span>
-              </Button>
-              <Button
-                variant={mode === 'pet_id' ? 'primary' : 'glass'}
-                size="sm"
-                onClick={() => setMode('pet_id')}
-                className="gap-2"
-              >
-                <PawPrint size={20} strokeWidth={1.5} />
-                <span className="text-micro">Pet ID</span>
-              </Button>
+                {isListening ? <Mic size={18} strokeWidth={1.5} /> : <MicOff size={18} strokeWidth={1.5} />}
+              </motion.div>
             </div>
 
-            {/* Main Content */}
-            <div className="h-full flex flex-col items-center justify-center pt-16">
-              {/* Camera/Image Display */}
-              <div className="relative w-full max-w-2xl aspect-video rounded-3xl overflow-hidden border-2 border-white/20 mb-6">
-                {!capturedImage ? (
-                  <>
-                    <Webcam
-                      ref={webcamRef}
-                      audio={false}
-                      screenshotFormat="image/jpeg"
-                      className="w-full h-full object-cover"
-                      videoConstraints={{
-                        width: 1280,
-                        height: 720,
-                        facingMode: 'user'
-                      }}
-                    />
-                    
-                    {/* Scanning Animation */}
-                    {isAnalyzing && (
-                      <motion.div
-                        className="absolute inset-0 pointer-events-none"
-                        style={{
-                          background: 'linear-gradient(180deg, transparent 0%, rgba(112,224,152,0.3) 50%, transparent 100%)',
-                          height: '4px'
-                        }}
-                        animate={{ y: [0, 720, 0] }}
-                        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                      />
-                    )}
+            {/* Mode Selector Pills */}
+            <div className="flex gap-2 p-2 border-b border-white/10">
+              <button
+                onClick={() => setMode('quick_scan')}
+                className={`flex-1 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
+                  mode === 'quick_scan' 
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+                    : 'bg-white/5 text-slate-400 hover:bg-white/10'
+                }`}
+              >
+                Quick Scan
+              </button>
+              <button
+                onClick={() => setMode('pantry_sweep')}
+                className={`flex-1 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
+                  mode === 'pantry_sweep' 
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+                    : 'bg-white/5 text-slate-400 hover:bg-white/10'
+                }`}
+              >
+                Pantry Sweep
+              </button>
+              <button
+                onClick={() => setMode('pet_id')}
+                className={`flex-1 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
+                  mode === 'pet_id' 
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+                    : 'bg-white/5 text-slate-400 hover:bg-white/10'
+                }`}
+              >
+                Pet ID
+              </button>
+            </div>
 
-                    {/* Success Ring */}
-                    {showSuccess && (
-                      <motion.div
-                        className="absolute inset-0 border-8 border-kaeva-sage rounded-3xl"
-                        animate={{
-                          scale: [1, 1.05, 1],
-                          opacity: [1, 0.5, 1]
-                        }}
-                        transition={kaevaTransition}
-                      />
-                    )}
-                  </>
-                ) : (
-                  <div className="relative w-full h-full">
-                    <img src={capturedImage} alt="Captured" className="w-full h-full object-cover" />
-                    
-                    {/* Tethered Tags for pantry sweep - Seattle Solstice */}
-                    {result && mode === 'pantry_sweep' && result.objects.map((obj, idx) => {
-                      if (!obj.boundingBox) return null;
-                      
-                      const centerX = obj.boundingBox.x + obj.boundingBox.width / 2;
-                      const centerY = obj.boundingBox.y + obj.boundingBox.height / 2;
-                      
-                      return (
-                        <TetheredTag
-                          key={idx}
-                          label={obj.name}
-                          position={{ 
-                            x: (centerX / 100) * 640 + 100, 
-                            y: (centerY / 100) * 360 - 40 
-                          }}
-                          targetPosition={{ 
-                            x: (centerX / 100) * 640, 
-                            y: (centerY / 100) * 360 
-                          }}
-                          confidence={obj.confidence}
-                        />
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Voice Indicator */}
-              <div className="flex items-center gap-4 mb-6">
-                <motion.div
-                  animate={{
-                    scale: isListening ? [1, 1.2, 1] : 1,
-                    opacity: isListening ? [0.5, 1, 0.5] : 0.5
+            {/* Camera/Image Display */}
+            {!capturedImage ? (
+              <div className="relative h-48 bg-slate-800 w-full overflow-hidden group cursor-pointer" onClick={capture}>
+                <Webcam
+                  ref={webcamRef}
+                  audio={false}
+                  screenshotFormat="image/jpeg"
+                  className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity"
+                  videoConstraints={{
+                    width: 1280,
+                    height: 720,
+                    facingMode: 'user'
                   }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                  className={`p-3 rounded-full ${isListening ? 'bg-kaeva-sage/20' : 'bg-white/10'}`}
-                >
-                  {isListening ? <Mic size={24} strokeWidth={1.5} className="text-kaeva-sage" /> : <MicOff size={24} strokeWidth={1.5} className="text-white/50" />}
-                </motion.div>
+                />
                 
-                {transcript && (
-                  <motion.div
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={kaevaTransition}
-                    className="text-white/80 text-body"
-                  >
-                    "{transcript}"
-                  </motion.div>
-                )}
+                {/* Scanning Line Animation */}
+                <motion.div
+                  className="absolute inset-0 z-10 bg-gradient-to-b from-transparent via-emerald-500/20 to-transparent h-[20%] w-full"
+                  animate={isAnalyzing ? { y: ['0%', '400%', '0%'] } : {}}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                />
+                
+                <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+                  <div className="flex flex-col items-center gap-2">
+                    <Camera size={32} className="text-white drop-shadow-lg" strokeWidth={1.5} />
+                    <span className="text-xs font-bold tracking-widest text-white uppercase">
+                      {isAnalyzing ? 'Analyzing...' : 'Tap to Scan Item'}
+                    </span>
+                  </div>
+                </div>
               </div>
+            ) : (
+              <div className="relative h-48 w-full overflow-hidden">
+                <img src={capturedImage} alt="Captured" className="w-full h-full object-cover" />
+              </div>
+            )}
 
-              {/* Capture Button */}
-              {!capturedImage && !isAnalyzing && (
-                <Button
-                  variant="primary"
-                  size="lg"
-                  onClick={capture}
-                  className="gap-2"
+            {/* Quick Actions (shown when no capture) */}
+            {!capturedImage && !isAnalyzing && (
+              <div className="p-2 grid grid-cols-2 gap-2">
+                <button 
+                  onClick={() => setMode('quick_scan')}
+                  className="p-3 rounded-xl hover:bg-white/5 text-left transition-colors group"
                 >
-                  <Camera size={20} strokeWidth={1.5} />
-                  <span className="text-micro">Capture & Analyze</span>
-                </Button>
-              )}
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                    Recent
+                  </span>
+                  <div className="flex items-center justify-between text-slate-300 group-hover:text-white text-sm">
+                    <span>Add Item to Fridge</span>
+                  </div>
+                </button>
+                <button 
+                  onClick={() => setMode('pet_id')}
+                  className="p-3 rounded-xl hover:bg-white/5 text-left transition-colors group"
+                >
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                    Suggestion
+                  </span>
+                  <div className="flex items-center justify-between text-slate-300 group-hover:text-white text-sm">
+                    <span>Identify Your Pet</span>
+                  </div>
+                </button>
+              </div>
+            )}
 
-              {/* Results Display */}
-              {result && capturedImage && !showSuccess && (
+            {/* Results Display */}
+            {result && capturedImage && !showSuccess && (
                 <motion.div
                   variants={kaevaEntranceVariants}
                   initial="hidden"
@@ -433,20 +407,6 @@ const VisionSpotlight = ({ isOpen, onClose, onItemsAdded }: VisionSpotlightProps
                   </div>
                 </motion.div>
               )}
-
-              {/* Analyzing State */}
-              {isAnalyzing && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={kaevaTransition}
-                  className="text-center space-y-2"
-                >
-                  <div className="text-display text-kaeva-sage">Analyzing...</div>
-                  <div className="text-body text-white/50">Using Gemini Vision AI</div>
-                </motion.div>
-              )}
-            </div>
           </motion.div>
         </motion.div>
       )}
