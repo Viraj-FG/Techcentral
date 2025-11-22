@@ -30,7 +30,42 @@ const NutritionTrackResult = ({
   recipes?: Recipe[];
 }) => {
   const [orderingRecipe, setOrderingRecipe] = useState<string | null>(null);
+  const [cookingRecipe, setCookingRecipe] = useState(false);
   const { toast } = useToast();
+
+  const handleCookRecipe = async (recipe: Recipe) => {
+    setCookingRecipe(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('cook-recipe', {
+        body: {
+          recipe: {
+            name: recipe.name,
+            ingredients: items.map(item => ({
+              name: item.name,
+              quantity: 1,
+              unit: 'item'
+            }))
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Recipe logged!",
+        description: data.message
+      });
+    } catch (error) {
+      console.error('Error logging recipe:', error);
+      toast({
+        title: "Error",
+        description: "Failed to log recipe ingredients",
+        variant: "destructive"
+      });
+    } finally {
+      setCookingRecipe(false);
+    }
+  };
 
   const handleOrderIngredients = async (recipe: Recipe) => {
     setOrderingRecipe(recipe.name);
