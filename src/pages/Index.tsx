@@ -74,9 +74,16 @@ const Index = () => {
             setAppState("dashboard");
           }}
           onExit={async () => {
-            // For admin testing: create a minimal profile
+            // For admin testing: mark onboarding as complete to prevent loop
             const { data: { session } } = await supabase.auth.getSession();
             if (session?.user) {
+              // Update profile to mark onboarding as complete
+              await supabase
+                .from('profiles')
+                .update({ onboarding_completed: true })
+                .eq('id', session.user.id);
+              
+              // Fetch updated profile
               const { data: profile } = await supabase
                 .from('profiles')
                 .select('*')
@@ -86,7 +93,7 @@ const Index = () => {
               setUserProfile(profile);
             }
             setAppState("dashboard");
-          }} 
+          }}
         />
       )}
       
