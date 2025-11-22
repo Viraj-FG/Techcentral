@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import ScanResults, { type ScanResultsProps } from './ScanResults';
 
 type Intent = 'INVENTORY_SWEEP' | 'APPLIANCE_SCAN' | 'VANITY_SWEEP' | 'NUTRITION_TRACK' | 'PRODUCT_ANALYSIS' | 'PET_ID';
 
@@ -48,7 +49,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded }: SmartScannerProps) => {
   const [isScanning, setIsScanning] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [videoFrames, setVideoFrames] = useState<string[]>([]);
-  const [showResults, setShowResults] = useState(false);
+  const [resultData, setResultData] = useState<Omit<ScanResultsProps, 'isOpen' | 'onClose'> | null>(null);
 
   const getMealType = (hour: number): string => {
     if (hour < 11) return 'breakfast';
@@ -121,152 +122,174 @@ const SmartScanner = ({ userId, onClose, onItemsAdded }: SmartScannerProps) => {
   };
 
   const handleInventorySweep = async (items: DetectedItem[]) => {
-    toast.loading(`Enriching ${items.length} items...`);
-
     // Filter out non-inventory categories
     const inventoryItems = items.filter(item => 
       item.category === 'fridge' || item.category === 'pantry' || item.category === 'beauty' || item.category === 'pets'
     );
 
-    const enrichedItems = await Promise.all(
-      inventoryItems.map(async (item) => {
-        try {
-          const { data } = await supabase.functions.invoke('enrich-product', {
-            body: {
-              name: item.name,
-              brand: item.brand,
-              category: item.category
+    // Show results modal immediately with items
+    setResultData({
+      intent: 'INVENTORY_SWEEP',
+      confidence,
+      items: inventoryItems,
+      onConfirm: async () => {
+        toast.loading(`Adding ${inventoryItems.length} items to inventory...`);
+        
+        const enrichedItems = await Promise.all(
+          inventoryItems.map(async (item) => {
+            try {
+              const { data } = await supabase.functions.invoke('enrich-product', {
+                body: {
+                  name: item.name,
+                  brand: item.brand,
+                  category: item.category
+                }
+              });
+
+              return {
+                name: item.name,
+                brand_name: item.brand || data?.brand,
+                category: item.category as 'fridge' | 'pantry' | 'beauty' | 'pets',
+                product_image_url: data?.image_url,
+                nutrition_data: data?.nutrition,
+                allergens: data?.allergens,
+                dietary_flags: data?.dietary_flags,
+                user_id: userId,
+                quantity: 1,
+                status: 'sufficient' as const
+              };
+            } catch (error) {
+              console.error('Enrichment failed for', item.name, error);
+              return {
+                name: item.name,
+                brand_name: item.brand,
+                category: item.category as 'fridge' | 'pantry' | 'beauty' | 'pets',
+                user_id: userId,
+                quantity: 1,
+                status: 'sufficient' as const
+              };
             }
-          });
+          })
+        );
 
-          return {
-            name: item.name,
-            brand_name: item.brand || data?.brand,
-            category: item.category as 'fridge' | 'pantry' | 'beauty' | 'pets',
-            product_image_url: data?.image_url,
-            nutrition_data: data?.nutrition,
-            allergens: data?.allergens,
-            dietary_flags: data?.dietary_flags,
-            user_id: userId,
-            quantity: 1,
-            status: 'sufficient' as const
-          };
-        } catch (error) {
-          console.error('Enrichment failed for', item.name, error);
-          return {
-            name: item.name,
-            brand_name: item.brand,
-            category: item.category as 'fridge' | 'pantry' | 'beauty' | 'pets',
-            user_id: userId,
-            quantity: 1,
-            status: 'sufficient' as const
-          };
+        const { error } = await supabase.from('inventory').insert(enrichedItems);
+
+        toast.dismiss();
+
+        if (error) {
+          console.error('Failed to add items:', error);
+          toast.error('Failed to add items to inventory');
+        } else {
+          toast.success(`Added ${enrichedItems.length} items to inventory`);
+          onItemsAdded?.();
+          setResultData(null);
         }
-      })
-    );
-
-    // Insert into inventory
-    const { error } = await supabase.from('inventory').insert(enrichedItems);
-
-    toast.dismiss();
-
-    if (error) {
-      console.error('Failed to add items:', error);
-      toast.error('Failed to add items to inventory');
-    } else {
-      toast.success(`Added ${enrichedItems.length} items to inventory`);
-      onItemsAdded?.();
-      setShowResults(true);
-    }
+      }
+    });
   };
 
   const handleApplianceScan = async (items: DetectedItem[]) => {
-    const appliances = items.filter(i => i.category === 'appliance').map(i => i.name);
+    const appliances = items.filter(i => i.category === 'appliance');
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('lifestyle_goals')
-      .eq('id', userId)
-      .single();
+    setResultData({
+      intent: 'APPLIANCE_SCAN',
+      confidence,
+      items: appliances,
+      onConfirm: async () => {
+        const applianceNames = appliances.map(i => i.name);
+        
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('lifestyle_goals')
+          .eq('id', userId)
+          .single();
 
-    const lifestyleGoals = (profile?.lifestyle_goals as any) || {};
-    const existingAppliances = lifestyleGoals.appliances || [];
-    const newAppliances = [...new Set([...existingAppliances, ...appliances])];
+        const lifestyleGoals = (profile?.lifestyle_goals as any) || {};
+        const existingAppliances = lifestyleGoals.appliances || [];
+        const newAppliances = [...new Set([...existingAppliances, ...applianceNames])];
 
-    await supabase
-      .from('profiles')
-      .update({
-        lifestyle_goals: {
-          ...lifestyleGoals,
-          appliances: newAppliances
-        }
-      })
-      .eq('id', userId);
+        await supabase
+          .from('profiles')
+          .update({
+            lifestyle_goals: {
+              ...lifestyleGoals,
+              appliances: newAppliances
+            }
+          })
+          .eq('id', userId);
 
-    toast.success(`${appliances.length} Appliance${appliances.length > 1 ? 's' : ''} Detected`, {
-      description: `${appliances.join(', ')} - New recipe capabilities unlocked!`
+        toast.success(`${applianceNames.length} Appliance${applianceNames.length > 1 ? 's' : ''} Added`, {
+          description: `New recipe capabilities unlocked!`
+        });
+        
+        setResultData(null);
+      }
     });
-
-    setShowResults(true);
   };
 
   const handleVanitySweep = async (items: DetectedItem[]) => {
-    toast.loading(`Adding ${items.length} beauty products...`);
+    setResultData({
+      intent: 'VANITY_SWEEP',
+      confidence,
+      items,
+      onConfirm: async () => {
+        toast.loading(`Adding ${items.length} beauty products...`);
 
-    const beautyItems = items.map(item => {
-      const paoMonths = item.metadata?.pao_symbol
-        ? parseInt(item.metadata.pao_symbol.replace('M', ''))
-        : 12;
+        const beautyItems = items.map(item => {
+          const paoMonths = item.metadata?.pao_symbol
+            ? parseInt(item.metadata.pao_symbol.replace('M', ''))
+            : 12;
 
-      const expiryDate = new Date();
-      expiryDate.setMonth(expiryDate.getMonth() + paoMonths);
-
-      return {
-        name: item.name,
-        brand_name: item.brand,
-        category: 'beauty' as const,
-        expiry_date: expiryDate.toISOString(),
-        user_id: userId,
-        quantity: 1,
-        status: 'sufficient' as const
-      };
-    });
-
-    // Enrich with Makeup API
-    const enrichedBeautyItems = await Promise.all(
-      beautyItems.map(async (item) => {
-        try {
-          const { data } = await supabase.functions.invoke('enrich-product', {
-            body: {
-              name: item.name,
-              brand: item.brand_name,
-              category: 'beauty'
-            }
-          });
+          const expiryDate = new Date();
+          expiryDate.setMonth(expiryDate.getMonth() + paoMonths);
 
           return {
-            ...item,
-            product_image_url: data?.image_url
+            name: item.name,
+            brand_name: item.brand,
+            category: 'beauty' as const,
+            expiry_date: expiryDate.toISOString(),
+            user_id: userId,
+            quantity: 1,
+            status: 'sufficient' as const
           };
-        } catch {
-          return item;
+        });
+
+        const enrichedBeautyItems = await Promise.all(
+          beautyItems.map(async (item) => {
+            try {
+              const { data } = await supabase.functions.invoke('enrich-product', {
+                body: {
+                  name: item.name,
+                  brand: item.brand_name,
+                  category: 'beauty'
+                }
+              });
+
+              return {
+                ...item,
+                product_image_url: data?.image_url
+              };
+            } catch {
+              return item;
+            }
+          })
+        );
+
+        const { error } = await supabase.from('inventory').insert(enrichedBeautyItems);
+
+        toast.dismiss();
+
+        if (error) {
+          toast.error('Failed to add beauty products');
+        } else {
+          toast.success('Beauty Products Added', {
+            description: `${beautyItems.length} items added to your vanity inventory`
+          });
+          onItemsAdded?.();
+          setResultData(null);
         }
-      })
-    );
-
-    const { error } = await supabase.from('inventory').insert(enrichedBeautyItems);
-
-    toast.dismiss();
-
-    if (error) {
-      toast.error('Failed to add beauty products');
-    } else {
-      toast.success('Beauty Products Added', {
-        description: `${beautyItems.length} items added to your vanity inventory`
-      });
-      onItemsAdded?.();
-      setShowResults(true);
-    }
+      }
+    });
   };
 
   const handleNutritionTrack = async (items: DetectedItem[], subtype: 'raw' | 'cooked', image: string) => {
@@ -298,12 +321,19 @@ const SmartScanner = ({ userId, onClose, onItemsAdded }: SmartScannerProps) => {
       if (error || !recipes) {
         toast.error('Failed to get recipe suggestions');
       } else {
-        toast.success('Recipe Suggestions Ready!', {
-          description: `Found ${recipes.length} recipes using your ingredients`
+        setResultData({
+          intent: 'NUTRITION_TRACK',
+          confidence,
+          items,
+          subtype: 'raw',
+          additionalData: {
+            recipes
+          },
+          onConfirm: () => {
+            toast.success('Recipes saved!');
+            setResultData(null);
+          }
         });
-        // Here you would show a recipe modal - simplified for now
-        console.log('Recipes:', recipes);
-        setShowResults(true);
       }
 
     } else {
@@ -317,35 +347,43 @@ const SmartScanner = ({ userId, onClose, onItemsAdded }: SmartScannerProps) => {
         }
       });
 
+      toast.dismiss();
+
       if (error || !macros) {
-        toast.dismiss();
         toast.error('Failed to analyze meal');
         return;
       }
 
-      const { error: insertError } = await supabase.from('meal_logs').insert({
-        user_id: userId,
-        meal_type: getMealType(new Date().getHours()),
-        calories: macros.calories,
-        protein: macros.protein,
-        carbs: macros.carbs,
-        fat: macros.fat,
-        fiber: macros.fiber,
-        image_url: image,
-        items: items.map(i => ({ name: i.name })),
-        logged_at: new Date().toISOString()
+      setResultData({
+        intent: 'NUTRITION_TRACK',
+        confidence,
+        items,
+        subtype: 'cooked',
+        additionalData: {
+          macros
+        },
+        onConfirm: async () => {
+          const { error: insertError } = await supabase.from('meal_logs').insert({
+            user_id: userId,
+            meal_type: getMealType(new Date().getHours()),
+            calories: macros.calories,
+            protein: macros.protein,
+            carbs: macros.carbs,
+            fat: macros.fat,
+            fiber: macros.fiber,
+            image_url: image,
+            items: items.map(i => ({ name: i.name })),
+            logged_at: new Date().toISOString()
+          });
+
+          if (insertError) {
+            toast.error('Failed to log meal');
+          } else {
+            toast.success('Meal Logged Successfully');
+            setResultData(null);
+          }
+        }
       });
-
-      toast.dismiss();
-
-      if (insertError) {
-        toast.error('Failed to log meal');
-      } else {
-        toast.success('Meal Logged Successfully', {
-          description: `${macros.calories} cal • ${macros.protein}g protein • ${macros.carbs}g carbs • ${macros.fat}g fat`
-        });
-        setShowResults(true);
-      }
     }
   };
 
@@ -371,49 +409,76 @@ const SmartScanner = ({ userId, onClose, onItemsAdded }: SmartScannerProps) => {
 
     const userAllergies = (profile?.allergies as any) || [];
     const allergenWarnings = (productData?.allergens || [])
-      .filter((allergen: string) => Array.isArray(userAllergies) && userAllergies.includes(allergen));
+      .filter((allergen: string) => Array.isArray(userAllergies) && userAllergies.includes(allergen))
+      .map((allergen: string) => ({
+        allergen,
+        severity: 'high' as const,
+        message: `Contains ${allergen} - You are allergic!`
+      }));
 
-    if (allergenWarnings.length > 0) {
-      toast.error('⚠️ Allergen Warning!', {
-        description: `Contains: ${allergenWarnings.join(', ')}`
-      });
-    } else {
-      toast.success('Product Analysis Complete', {
-        description: 'No allergen conflicts detected'
-      });
-    }
+    // Calculate truth score (simplified)
+    const truthScore = allergenWarnings.length === 0 ? 85 : 45;
 
-    setShowResults(true);
+    setResultData({
+      intent: 'PRODUCT_ANALYSIS',
+      confidence,
+      items: [item],
+      additionalData: {
+        productTruth: {
+          name: productData?.name || item.name,
+          brand: productData?.brand || item.brand,
+          image_url: productData?.image_url,
+          truthScore,
+          allergenWarnings,
+          dietaryConflicts: [],
+          deceptionFlags: []
+        }
+      },
+      onConfirm: () => {
+        toast.success('Analysis complete');
+        setResultData(null);
+      }
+    });
   };
 
   const handlePetId = async (item: DetectedItem) => {
     const petData = {
       species: item.metadata?.species || 'Unknown',
-      breed: item.metadata?.breed || null,
-      size: item.metadata?.size || null
+      breed: item.metadata?.breed || undefined,
+      size: item.metadata?.size || undefined
     };
 
-    const petName = prompt(`Name your ${petData.breed || petData.species}:`);
+    setResultData({
+      intent: 'PET_ID',
+      confidence,
+      items: [item],
+      additionalData: {
+        petData
+      },
+      onConfirm: async () => {
+        const petName = prompt(`Name your ${petData.breed || petData.species}:`);
+        
+        if (!petName) return;
 
-    if (!petName) return;
+        const { error } = await supabase.from('pets').insert({
+          user_id: userId,
+          name: petName,
+          species: petData.species,
+          breed: petData.breed,
+          notes: petData.size ? `Size: ${petData.size}` : null,
+          toxic_flags_enabled: true
+        });
 
-    const { error } = await supabase.from('pets').insert({
-      user_id: userId,
-      name: petName,
-      species: petData.species,
-      breed: petData.breed,
-      notes: petData.size ? `Size: ${petData.size}` : null,
-      toxic_flags_enabled: true
+        if (error) {
+          toast.error('Failed to add pet');
+        } else {
+          toast.success(`${petName} Added!`, {
+            description: `${petData.breed || petData.species} is now in your Guardian system`
+          });
+          setResultData(null);
+        }
+      }
     });
-
-    if (error) {
-      toast.error('Failed to add pet');
-    } else {
-      toast.success(`${petName} Added!`, {
-        description: `${petData.breed || petData.species} is now in your Guardian system`
-      });
-      setShowResults(true);
-    }
   };
 
   const startRecording = () => {
@@ -518,7 +583,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded }: SmartScannerProps) => {
         />
 
         {/* Scanning animation */}
-        {!detectedIntent && !showResults && (
+        {!detectedIntent && !resultData && (
           <motion.div
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -531,7 +596,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded }: SmartScannerProps) => {
 
         {/* Intent overlay */}
         <AnimatePresence>
-          {detectedIntent && !showResults && (
+          {detectedIntent && !resultData && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -554,7 +619,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded }: SmartScannerProps) => {
         </AnimatePresence>
 
         {/* Item count overlay */}
-        {detectedItems.length > 0 && !showResults && (
+        {detectedItems.length > 0 && !resultData && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -609,6 +674,15 @@ const SmartScanner = ({ userId, onClose, onItemsAdded }: SmartScannerProps) => {
           </Button>
         </div>
       </div>
+
+      {/* Results Modal */}
+      {resultData && (
+        <ScanResults
+          isOpen={!!resultData}
+          onClose={() => setResultData(null)}
+          {...resultData}
+        />
+      )}
     </div>
   );
 };
