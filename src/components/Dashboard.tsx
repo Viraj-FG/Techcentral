@@ -13,7 +13,7 @@ import SmartCartWidget from "./dashboard/SmartCartWidget";
 import InventoryMatrix from "./dashboard/InventoryMatrix";
 import SafetyShield from "./dashboard/SafetyShield";
 import RecentActivity from "./dashboard/RecentActivity";
-import VisionSpotlight from "./dashboard/VisionSpotlight";
+import SmartScanner from "./scanner/SmartScanner";
 import InventoryMatrixSkeleton from "./dashboard/InventoryMatrixSkeleton";
 import { kaevaEntranceVariants } from "@/hooks/useKaevaMotion";
 
@@ -197,60 +197,62 @@ const Dashboard = ({ profile }: DashboardProps) => {
         </div>
       </AppShell>
 
-      {/* Vision Spotlight Overlay */}
-      <VisionSpotlight 
-        isOpen={spotlightOpen} 
-        onClose={() => setSpotlightOpen(false)}
-        onItemsAdded={() => {
-          setIsLoading(true);
-          // Refetch inventory after items added
-          const refetchInventory = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) {
-              const { data, error } = await supabase
-                .from('inventory')
-                .select('*')
-                .eq('user_id', session.user.id);
+      {/* Smart Scanner Overlay */}
+      {spotlightOpen && (
+        <SmartScanner
+          userId={profile.id}
+          onClose={() => setSpotlightOpen(false)}
+          onItemsAdded={() => {
+            setIsLoading(true);
+            // Refetch inventory after items added
+            const refetchInventory = async () => {
+              const { data: { session } } = await supabase.auth.getSession();
+              if (session?.user) {
+                const { data, error } = await supabase
+                  .from('inventory')
+                  .select('*')
+                  .eq('user_id', session.user.id);
 
-              if (!error && data) {
-                const categorized = {
-                  fridge: data.filter(i => i.category === 'fridge').map(i => ({
-                    name: i.name,
-                    fillLevel: i.fill_level || 50,
-                    unit: i.unit || '',
-                    status: i.status || 'sufficient',
-                    autoOrdering: i.auto_order_enabled
-                  })),
-                  pantry: data.filter(i => i.category === 'pantry').map(i => ({
-                    name: i.name,
-                    fillLevel: i.fill_level || 50,
-                    unit: i.unit || '',
-                    status: i.status || 'sufficient',
-                    autoOrdering: i.auto_order_enabled
-                  })),
-                  beauty: data.filter(i => i.category === 'beauty').map(i => ({
-                    name: i.name,
-                    fillLevel: i.fill_level || 50,
-                    unit: i.unit || '',
-                    status: i.status || 'sufficient',
-                    autoOrdering: i.auto_order_enabled
-                  })),
-                  pets: data.filter(i => i.category === 'pets').map(i => ({
-                    name: i.name,
-                    fillLevel: i.fill_level || 50,
-                    unit: i.unit || '',
-                    status: i.status || 'sufficient',
-                    autoOrdering: i.auto_order_enabled
-                  }))
-                };
-                setInventoryData(categorized);
+                if (!error && data) {
+                  const categorized = {
+                    fridge: data.filter(i => i.category === 'fridge').map(i => ({
+                      name: i.name,
+                      fillLevel: i.fill_level || 50,
+                      unit: i.unit || '',
+                      status: i.status || 'sufficient',
+                      autoOrdering: i.auto_order_enabled
+                    })),
+                    pantry: data.filter(i => i.category === 'pantry').map(i => ({
+                      name: i.name,
+                      fillLevel: i.fill_level || 50,
+                      unit: i.unit || '',
+                      status: i.status || 'sufficient',
+                      autoOrdering: i.auto_order_enabled
+                    })),
+                    beauty: data.filter(i => i.category === 'beauty').map(i => ({
+                      name: i.name,
+                      fillLevel: i.fill_level || 50,
+                      unit: i.unit || '',
+                      status: i.status || 'sufficient',
+                      autoOrdering: i.auto_order_enabled
+                    })),
+                    pets: data.filter(i => i.category === 'pets').map(i => ({
+                      name: i.name,
+                      fillLevel: i.fill_level || 50,
+                      unit: i.unit || '',
+                      status: i.status || 'sufficient',
+                      autoOrdering: i.auto_order_enabled
+                    }))
+                  };
+                  setInventoryData(categorized);
+                }
               }
-            }
-            setIsLoading(false);
-          };
-          refetchInventory();
-        }}
-      />
+              setIsLoading(false);
+            };
+            refetchInventory();
+          }}
+        />
+      )}
     </>
   );
 };
