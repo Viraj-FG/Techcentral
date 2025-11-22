@@ -17,6 +17,7 @@ import HouseholdQuickAccess from "./dashboard/HouseholdQuickAccess";
 import RecentActivity from "./dashboard/RecentActivity";
 import SmartScanner from "./scanner/SmartScanner";
 import InventoryMatrixSkeleton from "./dashboard/InventoryMatrixSkeleton";
+import NutritionWidget from "./dashboard/NutritionWidget";
 import { kaevaEntranceVariants } from "@/hooks/useKaevaMotion";
 import { ELEVENLABS_CONFIG } from "@/config/agent";
 
@@ -165,6 +166,9 @@ const Dashboard = ({ profile }: DashboardProps) => {
         
         {/* Smart Cart */}
         <SmartCartWidget cartItems={lowStockItems} />
+        
+        {/* Nutrition Tracking */}
+        <NutritionWidget userId={profile.id} />
         
         {/* Inventory Matrix with Status */}
         {isLoading ? (
