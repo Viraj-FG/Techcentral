@@ -6,6 +6,7 @@ import { Button } from "../ui/button";
 interface ConversationOverlayProps {
   isOpen: boolean;
   apertureState: "idle" | "wakeword" | "listening" | "thinking" | "speaking";
+  audioAmplitude: number;
   userTranscript: string;
   aiTranscript: string;
   onClose: () => void;
@@ -14,6 +15,7 @@ interface ConversationOverlayProps {
 const ConversationOverlay = ({
   isOpen,
   apertureState,
+  audioAmplitude,
   userTranscript,
   aiTranscript,
   onClose
@@ -52,6 +54,7 @@ const ConversationOverlay = ({
           <KaevaAperture
             state={apertureState}
             size="lg"
+            audioAmplitude={audioAmplitude}
             audioElement={null}
             isDetectingSound={false}
           />

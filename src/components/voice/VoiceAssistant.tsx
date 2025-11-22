@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
-import { useVoiceAssistant } from "@/hooks/useVoiceAssistant";
+import { useVoiceManager } from "@/hooks/useVoiceManager";
 import SleepingIndicator from "./SleepingIndicator";
 import ConversationOverlay from "./ConversationOverlay";
 
@@ -13,12 +13,13 @@ const VoiceAssistant = ({ userProfile, onProfileUpdate }: VoiceAssistantProps) =
   const {
     voiceState,
     apertureState,
+    audioAmplitude,
     userTranscript,
     aiTranscript,
     showConversation,
     isWakeWordActive,
     endConversation
-  } = useVoiceAssistant({ userProfile, onProfileUpdate });
+  } = useVoiceManager({ userProfile, onProfileUpdate });
 
   // Handle ESC key to close conversation
   useEffect(() => {
@@ -45,6 +46,7 @@ const VoiceAssistant = ({ userProfile, onProfileUpdate }: VoiceAssistantProps) =
           <ConversationOverlay
             isOpen={showConversation}
             apertureState={apertureState}
+            audioAmplitude={audioAmplitude}
             userTranscript={userTranscript}
             aiTranscript={aiTranscript}
             onClose={endConversation}
