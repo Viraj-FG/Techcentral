@@ -46,13 +46,21 @@ export type Database = {
       }
       inventory: {
         Row: {
+          allergens: Json | null
           auto_order_enabled: boolean
+          barcode: string | null
+          brand_name: string | null
           category: Database["public"]["Enums"]["inventory_category"]
           created_at: string
+          dietary_flags: Json | null
           expiry_date: string | null
+          fatsecret_id: string | null
           fill_level: number | null
           id: string
+          last_enriched_at: string | null
           name: string
+          nutrition_data: Json | null
+          product_image_url: string | null
           quantity: number | null
           reorder_threshold: number | null
           status: Database["public"]["Enums"]["inventory_status"] | null
@@ -61,13 +69,21 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          allergens?: Json | null
           auto_order_enabled?: boolean
+          barcode?: string | null
+          brand_name?: string | null
           category: Database["public"]["Enums"]["inventory_category"]
           created_at?: string
+          dietary_flags?: Json | null
           expiry_date?: string | null
+          fatsecret_id?: string | null
           fill_level?: number | null
           id?: string
+          last_enriched_at?: string | null
           name: string
+          nutrition_data?: Json | null
+          product_image_url?: string | null
           quantity?: number | null
           reorder_threshold?: number | null
           status?: Database["public"]["Enums"]["inventory_status"] | null
@@ -76,13 +92,21 @@ export type Database = {
           user_id: string
         }
         Update: {
+          allergens?: Json | null
           auto_order_enabled?: boolean
+          barcode?: string | null
+          brand_name?: string | null
           category?: Database["public"]["Enums"]["inventory_category"]
           created_at?: string
+          dietary_flags?: Json | null
           expiry_date?: string | null
+          fatsecret_id?: string | null
           fill_level?: number | null
           id?: string
+          last_enriched_at?: string | null
           name?: string
+          nutrition_data?: Json | null
+          product_image_url?: string | null
           quantity?: number | null
           reorder_threshold?: number | null
           status?: Database["public"]["Enums"]["inventory_status"] | null
@@ -125,6 +149,39 @@ export type Database = {
           species?: string
           toxic_flags_enabled?: boolean
           user_id?: string
+        }
+        Relationships: []
+      }
+      product_cache: {
+        Row: {
+          cached_at: string | null
+          created_at: string | null
+          expires_at: string | null
+          fatsecret_response: Json
+          id: string
+          image_url: string | null
+          nutrition_summary: Json | null
+          search_term: string
+        }
+        Insert: {
+          cached_at?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          fatsecret_response: Json
+          id?: string
+          image_url?: string | null
+          nutrition_summary?: Json | null
+          search_term: string
+        }
+        Update: {
+          cached_at?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          fatsecret_response?: Json
+          id?: string
+          image_url?: string | null
+          nutrition_summary?: Json | null
+          search_term?: string
         }
         Relationships: []
       }
