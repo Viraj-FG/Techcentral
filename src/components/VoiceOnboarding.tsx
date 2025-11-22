@@ -180,14 +180,55 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
         }));
         return "Profile updated";
       },
-      completeConversation: () => {
-        console.log("🎉 Completing onboarding - stopping ElevenLabs");
-        // Stop the conversation when onboarding is complete
+      completeConversation: async () => {
+        console.log("🎉 Completing onboarding - saving to database...");
+        
+        // Stop ElevenLabs session first
         if (conversation.status === "connected") {
-          conversation.endSession();
+          await conversation.endSession();
         }
-        setShowSummary(true);
-        return "Onboarding complete";
+        
+        // Clean up UI state
+        setApertureState("idle");
+        setShowSubtitles(false);
+        setUserTranscript("");
+        setAiTranscript("");
+        
+        // Save to database
+        const saveSuccess = await saveOnboardingData();
+        
+        if (saveSuccess) {
+          console.log("✅ Data saved successfully, navigating to dashboard...");
+          
+          // Build profile object for navigation
+          const transformedData = transformProfileData(conversationState);
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          const profile = {
+            id: session?.user?.id,
+            language: "English",
+            userName: transformedData.user_name,
+            dietaryRestrictions: transformedData.dietary_preferences,
+            allergies: transformedData.allergies,
+            beautyProfile: transformedData.beauty_profile,
+            household: conversationState.household,
+            medicalGoals: transformedData.health_goals,
+            lifestyleGoals: transformedData.lifestyle_goals,
+            enableToxicFoodWarnings: (conversationState.household?.dogs || 0) > 0 || 
+                                     (conversationState.household?.cats || 0) > 0,
+            onboarding_completed: true
+          };
+          
+          // Auto-navigate after short delay
+          setTimeout(() => {
+            onComplete(profile);
+          }, 2000);
+          
+          return "Profile saved and onboarding complete";
+        } else {
+          setShowSummary(true);
+          return "Failed to save profile, please try again";
+        }
       }
     }
   });
@@ -347,25 +388,9 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
     };
   };
 
-  const handleEnterKaeva = async () => {
-    // Forcefully disconnect ElevenLabs before proceeding
-    try {
-      if (conversation.status === "connected") {
-        console.log("🔌 Disconnecting ElevenLabs session...");
-        await conversation.endSession();
-        console.log("✅ ElevenLabs disconnected successfully");
-      }
-    } catch (error) {
-      console.error("❌ Error disconnecting ElevenLabs:", error);
-    }
-
-    // Ensure complete cleanup
-    setApertureState("idle");
-    setShowSubtitles(false);
-    setUserTranscript("");
-    setAiTranscript("");
-
-    // Get current user session
+  const saveOnboardingData = async (): Promise<boolean> => {
+    console.log("💾 Starting database save...");
+    
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) {
       toast({
@@ -373,20 +398,20 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
         description: "Not authenticated",
         variant: "destructive"
       });
-      return;
+      return false;
     }
 
     const userId = session.user.id;
 
     try {
-      // Log the raw state for debugging
+      // Log raw state
       console.log("📊 Raw conversationState:", JSON.stringify(conversationState, null, 2));
       
-      // Transform data to match database schema
+      // Transform data
       const transformedData = transformProfileData(conversationState);
       console.log("✅ Transformed data:", JSON.stringify(transformedData, null, 2));
 
-      // Update profile in database
+      // Update profile
       const { error: profileError } = await supabase
         .from('profiles')
         .update(transformedData)
@@ -399,12 +424,12 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
           description: `Failed to save profile: ${profileError.message}`,
           variant: "destructive"
         });
-        return;
+        return false;
       }
 
       console.log("✅ Profile saved successfully");
 
-      // Save household members if any
+      // Save household members
       if (conversationState.householdMembers && conversationState.householdMembers.length > 0) {
         const membersToInsert = conversationState.householdMembers.map(member => ({
           user_id: userId,
@@ -426,13 +451,13 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
           .insert(membersToInsert);
 
         if (membersError) {
-          console.error("Household members insert error:", membersError);
+          console.error("❌ Household members error:", membersError);
         } else {
           console.log(`✅ Saved ${membersToInsert.length} household members`);
         }
       }
 
-      // Save pets if any (legacy support)
+      // Save pets (legacy support)
       if (conversationState.household?.dogs || conversationState.household?.cats) {
         const pets = [];
 
@@ -440,7 +465,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
           pets.push({
             user_id: userId,
             species: 'Dog',
-            name: conversationState.household.petDetails ? `Dog ${i + 1}` : `Dog ${i + 1}`,
+            name: `Dog ${i + 1}`,
             toxic_flags_enabled: true
           });
         }
@@ -449,7 +474,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
           pets.push({
             user_id: userId,
             species: 'Cat',
-            name: conversationState.household.petDetails ? `Cat ${i + 1}` : `Cat ${i + 1}`,
+            name: `Cat ${i + 1}`,
             toxic_flags_enabled: true
           });
         }
@@ -457,14 +482,35 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
         if (pets.length > 0) {
           const { error: petsError } = await supabase.from('pets').insert(pets);
           if (petsError) {
-            console.error("Pets insert error:", petsError);
+            console.error("❌ Pets insert error:", petsError);
+          } else {
+            console.log(`✅ Saved ${pets.length} pets`);
           }
         }
       }
 
-      // Build profile object for local state using transformed data
+      return true;
+    } catch (error) {
+      console.error("❌ Error saving onboarding data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to complete onboarding",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
+  const handleEnterKaeva = async () => {
+    // This function is now for manual retry only
+    const success = await saveOnboardingData();
+    
+    if (success) {
+      const transformedData = transformProfileData(conversationState);
+      const { data: { session } } = await supabase.auth.getSession();
+      
       const profile = {
-        id: userId,
+        id: session?.user?.id,
         language: "English",
         userName: transformedData.user_name,
         dietaryRestrictions: transformedData.dietary_preferences,
@@ -473,19 +519,13 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
         household: conversationState.household,
         medicalGoals: transformedData.health_goals,
         lifestyleGoals: transformedData.lifestyle_goals,
-        enableToxicFoodWarnings: (conversationState.household?.dogs || 0) > 0 || (conversationState.household?.cats || 0) > 0,
+        enableToxicFoodWarnings: (conversationState.household?.dogs || 0) > 0 || 
+                                 (conversationState.household?.cats || 0) > 0,
         onboarding_completed: true
       };
-
+      
       console.log("🎉 Calling onComplete with profile");
       onComplete(profile);
-    } catch (error) {
-      console.error("Error saving onboarding data:", error);
-      toast({
-        title: "Error",
-        description: "Failed to complete onboarding",
-        variant: "destructive"
-      });
     }
   };
 
