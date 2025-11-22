@@ -14,6 +14,7 @@ const PermissionRequest = ({
   const [error, setError] = useState<string | null>(null);
   const [audioReady, setAudioReady] = useState(false);
   const [isTestingAudio, setIsTestingAudio] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const playTestBeep = async () => {
     setIsTestingAudio(true);
     try {
@@ -91,8 +92,30 @@ const PermissionRequest = ({
       setAudioReady(true);
       console.log('🚀 All permissions granted, transitioning...');
 
-      // All permissions granted
-      onPermissionsGranted();
+      // Add small delay to ensure state is flushed
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      setIsTransitioning(true);
+      console.log('🔄 Starting transition to onboarding...');
+
+      try {
+        // Call callback with 5-second timeout safety net
+        await Promise.race([
+          onPermissionsGranted(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Transition timeout')), 5000)
+          )
+        ]);
+        
+        console.log('✅ Permission callback completed successfully');
+      } catch (timeoutErr) {
+        console.error('⏱️ Callback timeout or error:', timeoutErr);
+        // Force transition anyway - don't block user
+        alert('Taking longer than expected. Continuing anyway...');
+      } finally {
+        setIsRequesting(false);
+        setIsTransitioning(false);
+      }
       
     } catch (err: any) {
       console.error("❌ Permission error:", err);
@@ -206,10 +229,28 @@ const PermissionRequest = ({
             </motion.div>}
 
           {/* Request Button */}
-          <Button onClick={requestPermissions} disabled={isRequesting || audioReady} size="lg" className="bg-kaeva-mint hover:bg-kaeva-mint/90 text-kaeva-void font-semibold px-8 py-6 text-lg">
-            {isRequesting && <Loader2 className="w-5 h-5 mr-2 animate-spin" />}
-            {isRequesting ? "Initializing Audio..." : audioReady ? "Permissions Granted ✓" : "Grant Permissions"}
+          <Button onClick={requestPermissions} disabled={isRequesting || isTransitioning || audioReady} size="lg" className="bg-kaeva-mint hover:bg-kaeva-mint/90 text-kaeva-void font-semibold px-8 py-6 text-lg">
+            {(isRequesting || isTransitioning) && <Loader2 className="w-5 h-5 mr-2 animate-spin" />}
+            {isTransitioning ? "Loading Onboarding..." : 
+             isRequesting ? "Initializing Audio..." : 
+             audioReady ? "Permissions Granted ✓" : 
+             "Grant Permissions"}
           </Button>
+
+          {/* Developer Debug Button */}
+          {import.meta.env.DEV && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                console.log('🔧 DEV: Force skip permissions');
+                onPermissionsGranted();
+              }}
+              className="text-kaeva-slate-400 border-kaeva-slate-600"
+            >
+              DEV: Skip Permissions
+            </Button>
+          )}
 
           {/* Privacy Note */}
           <p className="text-xs text-kaeva-slate-400 text-center max-w-md">
