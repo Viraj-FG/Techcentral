@@ -5,6 +5,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const PROMPT_VERSION = 'v2.0-master-brain';
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -17,12 +19,15 @@ serve(async (req) => {
       throw new Error('ELEVENLABS_API_KEY not configured');
     }
 
-    const { agentId } = await req.json();
+    const { agentId, testMode } = await req.json();
     if (!agentId) {
       throw new Error('agentId is required');
     }
 
-    console.log('Configuring ElevenLabs agent:', agentId);
+    console.log('=== AGENT CONFIGURATION START ===');
+    console.log('Agent ID:', agentId);
+    console.log('Configuration timestamp:', new Date().toISOString());
+    console.log('Test mode:', testMode || false);
 
     // Configure the agent with full settings
     const agentConfig = {
@@ -197,6 +202,10 @@ You are a helpful assistant for users who have completed onboarding. You can:
       ],
     };
 
+    console.log('Prompt length:', agentConfig.conversation_config.agent.prompt.prompt.length, 'characters');
+    console.log('Client tools configured:', agentConfig.client_tools.length);
+    console.log('Voice ID:', agentConfig.conversation_config.tts.voice_id);
+
     console.log('Sending configuration to ElevenLabs API...');
 
     const response = await fetch(
@@ -213,18 +222,24 @@ You are a helpful assistant for users who have completed onboarding. You can:
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('ElevenLabs API error:', errorText);
+      console.error('ElevenLabs API error:', response.status, errorText);
       throw new Error(`Failed to configure agent: ${response.status} ${errorText}`);
     }
 
     const result = await response.json();
-    console.log('Agent configured successfully:', result);
+    
+    console.log('=== AGENT CONFIGURATION SUCCESS ===');
+    console.log('Agent name:', result.name);
+    console.log('Voice ID configured:', result.conversation_config?.tts?.voice_id);
+    console.log('Prompt version:', PROMPT_VERSION);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: 'Agent configured successfully',
-        agent: result 
+        agent: result,
+        configured_at: new Date().toISOString(),
+        prompt_version: PROMPT_VERSION
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -233,7 +248,8 @@ You are a helpful assistant for users who have completed onboarding. You can:
     );
 
   } catch (error) {
-    console.error('Error configuring ElevenLabs agent:', error);
+    console.error('=== AGENT CONFIGURATION FAILED ===');
+    console.error('Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ 

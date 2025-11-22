@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2, Settings, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { ELEVENLABS_CONFIG } from "@/config/agent";
 
 export const AgentConfig = () => {
   const [isConfiguring, setIsConfiguring] = useState(false);
@@ -15,10 +16,8 @@ export const AgentConfig = () => {
   const handleConfigure = async () => {
     setIsConfiguring(true);
     try {
-      const agentId = "agent_0501kakwnx5rffaby5px9y1pskkb";
-      
-      const { error } = await supabase.functions.invoke("configure-elevenlabs-agent", {
-        body: { agentId },
+      const { data, error } = await supabase.functions.invoke("configure-elevenlabs-agent", {
+        body: { agentId: ELEVENLABS_CONFIG.agentId },
       });
 
       if (error) throw error;
@@ -51,8 +50,11 @@ export const AgentConfig = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <Alert>
-            <AlertDescription>
-              Agent ID: <code className="bg-muted px-2 py-1 rounded">agent_0501kakwnx5rffaby5px9y1pskkb</code>
+            <AlertDescription className="space-y-2">
+              <div>Agent ID: <code className="bg-muted px-2 py-1 rounded">{ELEVENLABS_CONFIG.agentId}</code></div>
+              <div>Voice: <code className="bg-muted px-2 py-1 rounded">{ELEVENLABS_CONFIG.voiceId} (Aria)</code></div>
+              <div>Model: <code className="bg-muted px-2 py-1 rounded">{ELEVENLABS_CONFIG.model}</code></div>
+              <div>Prompt Version: <code className="bg-muted px-2 py-1 rounded">{ELEVENLABS_CONFIG.promptVersion}</code></div>
             </AlertDescription>
           </Alert>
 

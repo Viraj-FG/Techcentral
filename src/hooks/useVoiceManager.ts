@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { getSignedUrl } from "@/lib/elevenLabsAudio";
 import { VoiceActivityDetector, BargeInDetector } from "@/lib/audioMonitoring";
+import { ELEVENLABS_CONFIG } from "@/config/agent";
 import { useNavigate } from "react-router-dom";
 
 type VoiceState = "idle" | "sleeping" | "listening" | "processing" | "speaking";
@@ -413,13 +414,21 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
         .order('last_activity_at', { ascending: false })
         .limit(20);
 
-      const agentId = "agent_0501kakwnx5rffaby5rx9y1pskkb";
+      const agentId = ELEVENLABS_CONFIG.agentId;
+      console.log('🔗 Connecting to agent:', agentId);
       const signedUrl = await getSignedUrl(agentId);
       
       const isOnboardingComplete = userProfile?.onboarding_completed;
       const mode = isOnboardingComplete ? "assistant" : "onboarding";
       
       console.log(`🤖 Starting in ${mode} mode`);
+      console.log('📝 Context injected:', {
+        mode,
+        hasProfile: !!userProfile,
+        householdSize: householdMembers?.length || 0,
+        petsCount: pets?.length || 0,
+        inventoryItems: inventory?.length || 0
+      });
 
       let contextPrompt = "";
       if (mode === "assistant") {

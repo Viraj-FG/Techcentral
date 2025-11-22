@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Settings, CheckCircle2, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
+import { ELEVENLABS_CONFIG } from "@/config/agent";
 
 const ConfigureAgent = () => {
   const { toast } = useToast();
@@ -13,8 +14,6 @@ const ConfigureAgent = () => {
   const [isConfiguring, setIsConfiguring] = useState(false);
   const [isConfigured, setIsConfigured] = useState(false);
   
-  const AGENT_ID = "agent_0501kakwnx5rffaby5px9y1pskkb";
-
   const handleConfigure = async () => {
     setIsConfiguring(true);
     
@@ -22,7 +21,7 @@ const ConfigureAgent = () => {
       console.log("Configuring ElevenLabs agent with multi-vertical prompt...");
       
       const { data, error } = await supabase.functions.invoke('configure-elevenlabs-agent', {
-        body: { agentId: AGENT_ID }
+        body: { agentId: ELEVENLABS_CONFIG.agentId }
       });
 
       if (error) {
@@ -38,7 +37,9 @@ const ConfigureAgent = () => {
           .from('profiles')
           .update({
             agent_configured: true,
-            agent_configured_at: new Date().toISOString()
+            agent_configured_at: new Date().toISOString(),
+            agent_last_configured_at: data.configured_at || new Date().toISOString(),
+            agent_prompt_version: data.prompt_version || ELEVENLABS_CONFIG.promptVersion
           })
           .eq('id', session.user.id);
       }
