@@ -20,6 +20,8 @@ serve(async (req) => {
   try {
     const { name, brand, barcode }: EnrichRequest = await req.json();
     
+    console.log('Enrichment request:', { name, brand, barcode });
+    
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -55,10 +57,16 @@ serve(async (req) => {
     const clientId = Deno.env.get('FATSECRET_CLIENT_ID');
     const clientSecret = Deno.env.get('FATSECRET_CLIENT_SECRET');
 
+    console.log('FatSecret credentials check:', { 
+      hasClientId: !!clientId, 
+      hasClientSecret: !!clientSecret 
+    });
+
     if (!clientId || !clientSecret) {
       throw new Error('FatSecret credentials not configured');
     }
 
+    console.log('Requesting FatSecret OAuth token...');
     const tokenResponse = await fetch(
       'https://oauth.fatsecret.com/connect/token',
       {
@@ -72,18 +80,23 @@ serve(async (req) => {
     );
 
     if (!tokenResponse.ok) {
-      throw new Error('Failed to get FatSecret access token');
+      const errorText = await tokenResponse.text();
+      console.error('FatSecret OAuth failed:', tokenResponse.status, errorText);
+      throw new Error(`Failed to get FatSecret access token: ${tokenResponse.status}`);
     }
 
     const { access_token } = await tokenResponse.json();
+    console.log('FatSecret OAuth token obtained successfully');
 
     // Search for product
     let searchQuery = '';
     if (barcode) {
       searchQuery = `method=food.find_id_for_barcode&barcode=${barcode}&format=json`;
+      console.log('Searching by barcode:', barcode);
     } else {
       const searchExpression = brand ? `${brand} ${name}` : name;
       searchQuery = `method=foods.search.v3&search_expression=${encodeURIComponent(searchExpression)}&format=json&max_results=5`;
+      console.log('Searching FatSecret for:', searchExpression);
     }
 
     const searchResponse = await fetch(
@@ -96,10 +109,13 @@ serve(async (req) => {
     );
 
     if (!searchResponse.ok) {
-      throw new Error('FatSecret search failed');
+      const errorText = await searchResponse.text();
+      console.error('FatSecret search failed:', searchResponse.status, errorText);
+      throw new Error(`FatSecret search failed: ${searchResponse.status}`);
     }
 
     const searchData = await searchResponse.json();
+    console.log('FatSecret search response:', JSON.stringify(searchData).substring(0, 500));
     
     // Handle barcode response
     if (barcode && searchData.food_id) {
@@ -127,10 +143,12 @@ serve(async (req) => {
 
     // Handle search results
     if (!searchData.foods?.food || searchData.foods.food.length === 0) {
+      console.log('No products found for search term:', name);
       return new Response(
         JSON.stringify({ 
           error: 'No products found',
-          suggestions: []
+          searchTerm: name,
+          suggestion: 'Try a more generic product name (e.g., "milk" instead of "organic almond milk")'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
       );
