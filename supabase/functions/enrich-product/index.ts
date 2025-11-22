@@ -143,12 +143,26 @@ serve(async (req) => {
 
     // Handle search results
     if (!searchData.foods?.food || searchData.foods.food.length === 0) {
-      console.log('No products found for search term:', name);
+      console.log('No products found in FatSecret, trying Open Food Facts...');
+      
+      // Fallback to Open Food Facts
+      const offProduct = await searchOpenFoodFacts(name, brand);
+      
+      if (offProduct) {
+        const enriched = processOpenFoodFactsProduct(offProduct);
+        await cacheResult(supabaseClient, searchTerm, { source: 'openfoodfacts', data: offProduct }, enriched);
+        return new Response(
+          JSON.stringify(enriched),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      console.log('No products found in either FatSecret or Open Food Facts');
       return new Response(
         JSON.stringify({ 
           error: 'No products found',
           searchTerm: name,
-          suggestion: 'Try a more generic product name (e.g., "milk" instead of "organic almond milk")'
+          suggestion: 'Try a more generic product name or use camera to scan the product'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
       );
@@ -250,6 +264,94 @@ function extractDietaryFlags(food: any): string[] {
   if (description.includes('kosher')) flags.push('kosher');
   if (description.includes('halal')) flags.push('halal');
   if (description.includes('low sodium') || description.includes('low-sodium')) flags.push('low_sodium');
+  
+  return flags;
+}
+
+async function searchOpenFoodFacts(name: string, brand?: string) {
+  const searchTerm = brand ? `${brand} ${name}` : name;
+  console.log('Searching Open Food Facts for:', searchTerm);
+  
+  const response = await fetch(
+    `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(searchTerm)}&search_simple=1&json=1&page_size=5`
+  );
+  
+  if (!response.ok) {
+    console.error('Open Food Facts search failed:', response.status);
+    return null;
+  }
+  
+  const data = await response.json();
+  
+  if (!data.products || data.products.length === 0) {
+    console.log('No products found in Open Food Facts');
+    return null;
+  }
+  
+  console.log('Found products in Open Food Facts:', data.products.length);
+  return data.products[0]; // Return first match
+}
+
+function processOpenFoodFactsProduct(product: any) {
+  const nutriments = product.nutriments || {};
+  
+  return {
+    fatsecret_id: null,
+    name: product.product_name || product.product_name_en || 'Unknown Product',
+    brand: product.brands || null,
+    image_url: product.image_url || product.image_front_url || null,
+    nutrition: {
+      calories: parseFloat(nutriments.energy_value || nutriments['energy-kcal'] || '0'),
+      protein: parseFloat(nutriments.proteins || '0'),
+      carbs: parseFloat(nutriments.carbohydrates || '0'),
+      fat: parseFloat(nutriments.fat || '0'),
+      saturated_fat: parseFloat(nutriments['saturated-fat'] || '0'),
+      sodium: parseFloat(nutriments.sodium || '0'),
+      sugar: parseFloat(nutriments.sugars || '0'),
+      fiber: parseFloat(nutriments.fiber || '0')
+    },
+    allergens: extractAllergensFromOFF(product),
+    dietary_flags: extractDietaryFlagsFromOFF(product),
+    serving_size: product.serving_size || null,
+    source: 'openfoodfacts'
+  };
+}
+
+function extractAllergensFromOFF(product: any): string[] {
+  const allergens: string[] = [];
+  const allergenTags = product.allergens_tags || [];
+  const ingredients = (product.ingredients_text || '').toLowerCase();
+  
+  const allergenMap: Record<string, string[]> = {
+    dairy: ['en:milk', 'en:dairy'],
+    eggs: ['en:eggs'],
+    soy: ['en:soybeans'],
+    wheat: ['en:gluten'],
+    nuts: ['en:nuts'],
+    peanuts: ['en:peanuts'],
+    fish: ['en:fish'],
+    shellfish: ['en:crustaceans', 'en:molluscs']
+  };
+  
+  for (const [allergen, tags] of Object.entries(allergenMap)) {
+    if (tags.some(tag => allergenTags.includes(tag)) || 
+        tags.some(tag => ingredients.includes(tag.replace('en:', '')))) {
+      allergens.push(allergen);
+    }
+  }
+  
+  return allergens;
+}
+
+function extractDietaryFlagsFromOFF(product: any): string[] {
+  const flags: string[] = [];
+  const labels = product.labels_tags || [];
+  
+  if (labels.includes('en:organic')) flags.push('organic');
+  if (labels.includes('en:vegan')) flags.push('vegan');
+  if (labels.includes('en:gluten-free')) flags.push('gluten_free');
+  if (labels.includes('en:kosher')) flags.push('kosher');
+  if (labels.includes('en:halal')) flags.push('halal');
   
   return flags;
 }

@@ -1,10 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ShoppingCart, Loader2, Sparkles } from "lucide-react";
+import { ShoppingCart, Loader2, Sparkles, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ProductSelector from "./ProductSelector";
+import Webcam from "react-webcam";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface InventoryItem {
   id?: string;
@@ -30,6 +38,9 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [alternatives, setAlternatives] = useState<any[]>([]);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [isIdentifying, setIsIdentifying] = useState(false);
+  const webcamRef = useRef<Webcam>(null);
   const { toast } = useToast();
 
   const totalValue = cartItems.reduce((sum, item) => {
@@ -139,6 +150,70 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
     setSelectorOpen(true);
   };
 
+  const handleCameraCapture = async () => {
+    if (!webcamRef.current) return;
+    
+    const imageSrc = webcamRef.current.getScreenshot();
+    if (!imageSrc) {
+      toast({
+        title: "Camera Error",
+        description: "Failed to capture image. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsIdentifying(true);
+    
+    try {
+      console.log('Identifying product from image...');
+      
+      const { data, error } = await supabase.functions.invoke('identify-product', {
+        body: { image: imageSrc }
+      });
+
+      if (error) throw error;
+
+      console.log('Product identified:', data);
+      
+      setCameraOpen(false);
+      
+      if (data.enriched) {
+        // Product was identified and enriched
+        toast({
+          title: "Product Identified",
+          description: `Found: ${data.enriched.name}${data.brand ? ` by ${data.brand}` : ''}`,
+        });
+        
+        // Add to inventory if user confirms
+        // For now, just show the data
+        console.log('Enriched product data:', data.enriched);
+      } else if (data.name) {
+        // Product identified but not enriched
+        toast({
+          title: "Product Identified",
+          description: `${data.name} - Confidence: ${Math.round(data.confidence * 100)}%`,
+        });
+      } else {
+        toast({
+          title: "Identification Failed",
+          description: "Could not identify the product. Please try again with better lighting.",
+          variant: "destructive",
+        });
+      }
+      
+    } catch (error) {
+      console.error('Product identification error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to identify product. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsIdentifying(false);
+    }
+  };
+
   const handleProductSelect = async (product: any) => {
     // Update the enriched items
     setEnrichedItems(prev =>
@@ -196,12 +271,23 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
           <span className="text-emerald-400 text-sm tracking-widest">AUTO-ORDERING</span>
         </div>
         
-        {enriching && (
-          <div className="flex items-center gap-2 text-white/60 text-sm mb-4">
-            <Sparkles className="animate-pulse" size={16} />
-            <span>Enriching products...</span>
-          </div>
-        )}
+        <div className="flex items-center justify-between mb-4">
+          {enriching && (
+            <div className="flex items-center gap-2 text-white/60 text-sm">
+              <Sparkles className="animate-pulse" size={16} />
+              <span>Enriching products...</span>
+            </div>
+          )}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setCameraOpen(true)}
+            className="gap-2 ml-auto"
+          >
+            <Camera className="h-4 w-4" />
+            Scan Product
+          </Button>
+        </div>
         
         {enrichedItems.length > 0 ? (
           <>
@@ -218,11 +304,18 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
                   transition={{ delay: idx * 0.1 }}
                   className="flex items-center gap-3 py-2 border-b border-white/10"
                 >
-                  {item.product_image_url ? (
+                   {item.product_image_url ? (
                     <img
                       src={item.product_image_url}
                       alt={item.name}
                       className="w-10 h-10 rounded object-cover bg-white/5"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const parent = e.currentTarget.parentElement;
+                        if (parent) {
+                          parent.innerHTML = '<div class="w-10 h-10 rounded bg-white/5 flex items-center justify-center text-white/40">📦</div>';
+                        }
+                      }}
                     />
                   ) : (
                     <div className="w-10 h-10 rounded bg-white/5 flex items-center justify-center text-white/40">
@@ -278,6 +371,56 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
           onSelect={handleProductSelect}
         />
       )}
+
+      <Dialog open={cameraOpen} onOpenChange={setCameraOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Scan Product</DialogTitle>
+            <DialogDescription>
+              Point your camera at the product to identify it automatically
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="relative aspect-video rounded-lg overflow-hidden bg-black">
+              <Webcam
+                ref={webcamRef}
+                audio={false}
+                screenshotFormat="image/jpeg"
+                className="w-full h-full object-cover"
+                videoConstraints={{
+                  facingMode: { ideal: "environment" }
+                }}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleCameraCapture}
+                disabled={isIdentifying}
+                className="flex-1"
+              >
+                {isIdentifying ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Identifying...
+                  </>
+                ) : (
+                  <>
+                    <Camera className="mr-2 h-4 w-4" />
+                    Capture & Identify
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setCameraOpen(false)}
+                disabled={isIdentifying}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
