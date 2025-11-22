@@ -10,11 +10,38 @@ import PermissionRequest from "./PermissionRequest";
 import TutorialOverlay from "./TutorialOverlay";
 import { useToast } from "@/hooks/use-toast";
 import { Mic, Brain, Volume2, Leaf, PawPrint, Sparkles } from "lucide-react";
+import HouseholdMemberCard from "./HouseholdMemberCard";
+
+export interface BiometricData {
+  age: number;
+  weight: number; // kg
+  height: number; // cm
+  gender: 'male' | 'female' | 'other';
+  activityLevel: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
+}
+
+export interface HouseholdMember {
+  type: 'adult' | 'child' | 'elderly' | 'toddler';
+  name?: string;
+  ageGroup?: 'infant' | 'toddler' | 'child' | 'teen' | 'adult' | 'elderly';
+  age?: number;
+  biometrics?: Partial<BiometricData>;
+  allergies?: string[];
+  dietaryRestrictions?: string[];
+  healthConditions?: string[];
+}
 
 interface ConversationState {
+  // User's own data
   userName: string | null;
+  userBiometrics: BiometricData | null;
   dietaryValues: string[];
   allergies: string[];
+  
+  // Household roster - new detailed system
+  householdMembers: HouseholdMember[];
+  
+  // Legacy fields for backward compatibility
   beautyProfile: {
     skinType: string | null;
     hairType: string | null;
@@ -26,6 +53,7 @@ interface ConversationState {
     cats: number;
     petDetails?: string;
   } | null;
+  
   healthGoals: string[];
   lifestyleGoals: string[];
   isComplete: boolean;
@@ -51,8 +79,10 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
   const [detectedKeywords, setDetectedKeywords] = useState<string[]>([]);
   const [conversationState, setConversationState] = useState<ConversationState>({
     userName: null,
+    userBiometrics: null,
     dietaryValues: [],
     allergies: [],
+    householdMembers: [],
     beautyProfile: null,
     household: null,
     healthGoals: [],
@@ -121,6 +151,28 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
     clientTools: {
       updateProfile: (parameters: { field: string; value: any }) => {
         console.log("✅ Profile field update:", parameters.field, parameters.value);
+        
+        // Handle biometrics with TDEE calculation
+        if (parameters.field === 'userBiometrics') {
+          const { calculateTDEE } = require('@/lib/tdeeCalculator');
+          const tdee = calculateTDEE(parameters.value);
+          setConversationState(prev => ({
+            ...prev,
+            userBiometrics: { ...parameters.value, calculatedTDEE: tdee }
+          }));
+          return `Biometrics saved. Your baseline is ${tdee} calories per day.`;
+        }
+        
+        // Handle household members
+        if (parameters.field === 'householdMembers') {
+          setConversationState(prev => ({
+            ...prev,
+            householdMembers: parameters.value
+          }));
+          return `Household roster updated. ${parameters.value.length} members registered.`;
+        }
+        
+        // Standard field update
         setConversationState(prev => ({
           ...prev,
           [parameters.field]: parameters.value
@@ -242,6 +294,8 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
   };
 
   const transformProfileData = (state: ConversationState) => {
+    const { calculateTDEE } = require('@/lib/tdeeCalculator');
+    
     // Ensure dietary values is an array
     const dietaryPreferences = Array.isArray(state.dietaryValues) 
       ? state.dietaryValues 
@@ -267,13 +321,27 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
 
     return {
       user_name: state.userName || null,
+      
+      // New biometric fields
+      user_age: state.userBiometrics?.age || null,
+      user_weight: state.userBiometrics?.weight || null,
+      user_height: state.userBiometrics?.height || null,
+      user_gender: state.userBiometrics?.gender || null,
+      user_activity_level: state.userBiometrics?.activityLevel || null,
+      calculated_tdee: state.userBiometrics ? calculateTDEE(state.userBiometrics) : null,
+      
       dietary_preferences: dietaryPreferences,
       allergies: allergies,
       beauty_profile: beautyProfile,
       health_goals: healthGoals,
       lifestyle_goals: lifestyleGoals,
-      household_adults: state.household?.adults || 1,
-      household_kids: state.household?.kids || 0,
+      
+      // Calculate household size from both old and new systems
+      household_adults: state.household?.adults || 
+        state.householdMembers?.filter(m => m.type === 'adult').length || 1,
+      household_kids: state.household?.kids || 
+        state.householdMembers?.filter(m => m.type === 'child' || m.type === 'toddler').length || 0,
+      
       onboarding_completed: true
     };
   };
@@ -335,7 +403,35 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
 
       console.log("✅ Profile saved successfully");
 
-      // Save pets if any
+      // Save household members if any
+      if (conversationState.householdMembers && conversationState.householdMembers.length > 0) {
+        const membersToInsert = conversationState.householdMembers.map(member => ({
+          user_id: userId,
+          member_type: member.type,
+          name: member.name || null,
+          age: member.age || null,
+          age_group: member.ageGroup || null,
+          weight: member.biometrics?.weight || null,
+          height: member.biometrics?.height || null,
+          gender: member.biometrics?.gender || null,
+          activity_level: member.biometrics?.activityLevel || null,
+          dietary_restrictions: member.dietaryRestrictions || [],
+          allergies: member.allergies || [],
+          health_conditions: member.healthConditions || []
+        }));
+
+        const { error: membersError } = await supabase
+          .from('household_members')
+          .insert(membersToInsert);
+
+        if (membersError) {
+          console.error("Household members insert error:", membersError);
+        } else {
+          console.log(`✅ Saved ${membersToInsert.length} household members`);
+        }
+      }
+
+      // Save pets if any (legacy support)
       if (conversationState.household?.dogs || conversationState.household?.cats) {
         const pets = [];
 
@@ -451,6 +547,25 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
                 audioElement={null}
                 isDetectingSound={false}
               />
+
+              {/* Household Member Cards */}
+              <AnimatePresence>
+                {conversationState.householdMembers.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="mt-8 max-w-2xl w-full space-y-3 px-4"
+                  >
+                    <div className="text-center text-sm text-kaeva-sage/70 mb-4">
+                      Your Household Roster
+                    </div>
+                    {conversationState.householdMembers.map((member, idx) => (
+                      <HouseholdMemberCard key={idx} member={member} index={idx} />
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Keyword Icon Feedback */}
               <AnimatePresence>
