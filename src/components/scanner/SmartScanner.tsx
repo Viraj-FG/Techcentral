@@ -514,11 +514,23 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
     }
 
     try {
+      // Get user's household
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('current_household_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.current_household_id) {
+        toast.error("No household found");
+        return;
+      }
+
       // Find matching inventory item
       const { data: inventory, error: fetchError } = await supabase
         .from('inventory')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('household_id', profile.current_household_id)
         .ilike('name', `%${item.name}%`)
         .limit(1)
         .single();
@@ -539,15 +551,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
 
       if (updateError) throw updateError;
 
-      // Add to shopping list
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('current_household_id')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile?.current_household_id) return;
-
+      // Add to shopping list (using profile from earlier)
       await supabase
         .from('shopping_list')
         .insert({

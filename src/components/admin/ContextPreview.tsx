@@ -17,10 +17,10 @@ const ContextPreview = () => {
       } = await supabase.auth.getSession();
       if (!session?.user) return;
 
-      // Fetch profile
+      // Fetch profile with household
       const { data: profile } = await supabase
         .from("profiles")
-        .select("*")
+        .select("*, current_household_id")
         .eq("id", session.user.id)
         .single();
 
@@ -36,19 +36,21 @@ const ContextPreview = () => {
         .select("*")
         .eq("user_id", session.user.id);
 
-      // Fetch inventory
+      if (!profile?.current_household_id) return;
+
+      // Fetch inventory by household
       const { data: inventory } = await supabase
         .from("inventory")
         .select("*")
-        .eq("user_id", session.user.id)
+        .eq("household_id", profile.current_household_id)
         .order("last_activity_at", { ascending: false })
         .limit(20);
 
-      // Fetch shopping list
+      // Fetch shopping list by household
       const { data: shoppingList } = await supabase
         .from("shopping_list")
         .select("*")
-        .eq("user_id", session.user.id)
+        .eq("household_id", profile.current_household_id)
         .eq("status", "pending");
 
       setContext({
