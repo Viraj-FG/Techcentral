@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, Store, Loader2, X, Locate } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 interface Retailer {
   retailer_key: string;
@@ -35,7 +36,29 @@ const StoreSelector = ({ open, onClose, userId, onStoreSelected }: StoreSelector
   const [loading, setLoading] = useState(false);
   const [selecting, setSelecting] = useState(false);
   const [detectingLocation, setDetectingLocation] = useState(false);
+  const [selectedChains, setSelectedChains] = useState<string[]>([]);
+  const [availableChains, setAvailableChains] = useState<{name: string, count: number}[]>([]);
+  const [retailerHours, setRetailerHours] = useState<Record<string, any>>({});
+  const [loadingHours, setLoadingHours] = useState<Record<string, boolean>>({});
+  const [expandedHours, setExpandedHours] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
+
+  // Extract unique chains when retailers load
+  useEffect(() => {
+    if (retailers.length > 0) {
+      const chainMap = new Map<string, number>();
+      retailers.forEach(r => {
+        const chain = r.banner_name || r.name;
+        chainMap.set(chain, (chainMap.get(chain) || 0) + 1);
+      });
+      
+      const chains = Array.from(chainMap.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+      
+      setAvailableChains(chains);
+    }
+  }, [retailers]);
 
   const detectLocation = async () => {
     if (!navigator.geolocation) {
@@ -54,12 +77,11 @@ const StoreSelector = ({ open, onClose, userId, onStoreSelected }: StoreSelector
         try {
           const { latitude, longitude } = position.coords;
           
-          // Use Nominatim (OpenStreetMap) for reverse geocoding
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
             {
               headers: {
-                'User-Agent': 'Kaeva-App/1.0' // Nominatim requires a user agent
+                'User-Agent': 'Kaeva-App/1.0'
               }
             }
           );
@@ -70,7 +92,6 @@ const StoreSelector = ({ open, onClose, userId, onStoreSelected }: StoreSelector
           const postalCode = data.address?.postcode;
 
           if (postalCode) {
-            // Extract 5-digit zip code (US format)
             const zipMatch = postalCode.match(/\d{5}/);
             if (zipMatch) {
               setZipCode(zipMatch[0]);
@@ -78,7 +99,6 @@ const StoreSelector = ({ open, onClose, userId, onStoreSelected }: StoreSelector
                 title: "Location Detected",
                 description: `Using zip code: ${zipMatch[0]}`
               });
-              // Auto-fetch retailers
               await fetchRetailers(zipMatch[0]);
             } else {
               toast({
@@ -135,6 +155,39 @@ const StoreSelector = ({ open, onClose, userId, onStoreSelected }: StoreSelector
     );
   };
 
+  const fetchHoursForRetailer = async (retailer: Retailer) => {
+    const key = retailer.retailer_key;
+    
+    if (retailerHours[key] || loadingHours[key]) {
+      return;
+    }
+
+    setLoadingHours(prev => ({ ...prev, [key]: true }));
+
+    try {
+      const { data, error } = await supabase.functions.invoke('get-place-hours', {
+        body: {
+          name: retailer.name,
+          address: retailer.location?.address || '',
+          city: retailer.location?.city || '',
+          state: retailer.location?.state || '',
+        }
+      });
+
+      if (error) throw error;
+
+      setRetailerHours(prev => ({ ...prev, [key]: data }));
+    } catch (error) {
+      console.error('Error fetching hours:', error);
+      setRetailerHours(prev => ({ 
+        ...prev, 
+        [key]: { available: false, message: 'Hours unavailable' } 
+      }));
+    } finally {
+      setLoadingHours(prev => ({ ...prev, [key]: false }));
+    }
+  };
+
   const fetchRetailers = async (zip: string) => {
     if (!zip || zip.length < 5) {
       toast({
@@ -156,13 +209,19 @@ const StoreSelector = ({ open, onClose, userId, onStoreSelected }: StoreSelector
 
       if (error) throw error;
 
-      setRetailers(data.retailers || []);
+      const retailersData = data.retailers || [];
+      setRetailers(retailersData);
       
-      if (data.retailers.length === 0) {
+      if (retailersData.length === 0) {
         toast({
           title: "No Stores Found",
           description: "No Instacart retailers found in this area",
           variant: "destructive"
+        });
+      } else {
+        // Fetch hours for all retailers
+        retailersData.forEach((retailer: Retailer) => {
+          fetchHoursForRetailer(retailer);
         });
       }
     } catch (error) {
@@ -209,6 +268,27 @@ const StoreSelector = ({ open, onClose, userId, onStoreSelected }: StoreSelector
     } finally {
       setSelecting(false);
     }
+  };
+
+  const filteredRetailers = useMemo(() => {
+    if (selectedChains.length === 0) {
+      return retailers;
+    }
+    return retailers.filter(r => 
+      selectedChains.includes(r.banner_name || r.name)
+    );
+  }, [retailers, selectedChains]);
+
+  const toggleChain = (chainName: string) => {
+    setSelectedChains(prev => 
+      prev.includes(chainName) 
+        ? prev.filter(c => c !== chainName)
+        : [...prev, chainName]
+    );
+  };
+
+  const toggleHoursExpanded = (retailerKey: string) => {
+    setExpandedHours(prev => ({ ...prev, [retailerKey]: !prev[retailerKey] }));
   };
 
   return (
@@ -266,6 +346,44 @@ const StoreSelector = ({ open, onClose, userId, onStoreSelected }: StoreSelector
             </Button>
           </div>
 
+          {/* Chain Filter */}
+          {availableChains.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-slate-300">Filter by Store Chain</label>
+                {selectedChains.length > 0 && (
+                  <button
+                    onClick={() => setSelectedChains([])}
+                    className="text-xs text-slate-400 hover:text-white"
+                  >
+                    Clear filters
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {availableChains.map(chain => (
+                  <button
+                    key={chain.name}
+                    onClick={() => toggleChain(chain.name)}
+                    className={cn(
+                      "px-3 py-1.5 text-sm rounded-full border transition-colors",
+                      selectedChains.includes(chain.name)
+                        ? "bg-emerald-500 text-white border-emerald-500"
+                        : "bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300"
+                    )}
+                  >
+                    {chain.name} ({chain.count})
+                  </button>
+                ))}
+              </div>
+              {selectedChains.length > 0 && (
+                <p className="text-xs text-slate-400">
+                  Showing {filteredRetailers.length} of {retailers.length} stores
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Retailers List */}
           <div className="max-h-96 overflow-y-auto space-y-2">
             <AnimatePresence mode="wait">
@@ -279,7 +397,7 @@ const StoreSelector = ({ open, onClose, userId, onStoreSelected }: StoreSelector
                 >
                   <Loader2 className="animate-spin text-emerald-400" size={32} />
                 </motion.div>
-              ) : retailers.length > 0 ? (
+              ) : filteredRetailers.length > 0 ? (
                 <motion.div
                   key="retailers"
                   initial={{ opacity: 0 }}
@@ -287,67 +405,160 @@ const StoreSelector = ({ open, onClose, userId, onStoreSelected }: StoreSelector
                   exit={{ opacity: 0 }}
                   className="space-y-2"
                 >
-                  {retailers.map((retailer, index) => (
-                    <motion.div
-                      key={retailer.retailer_key}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="group p-4 bg-slate-800/60 hover:bg-slate-800 border border-slate-700 hover:border-emerald-500/50 rounded-lg transition-all cursor-pointer"
-                      onClick={() => handleSelectStore(retailer)}
-                    >
-                      <div className="flex items-center gap-3">
-                        {/* Retailer Logo */}
-                        {retailer.retailer_logo_url ? (
-                          <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center p-1.5 flex-shrink-0">
-                            <img 
-                              src={retailer.retailer_logo_url} 
-                              alt={retailer.name}
-                              className="w-full h-full object-contain"
-                            />
+                  {filteredRetailers.map((retailer, index) => {
+                    const hours = retailerHours[retailer.retailer_key];
+                    const isLoadingHours = loadingHours[retailer.retailer_key];
+                    const isExpanded = expandedHours[retailer.retailer_key];
+                    
+                    return (
+                      <motion.div
+                        key={retailer.retailer_key}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="group bg-slate-800/60 hover:bg-slate-800 border border-slate-700 hover:border-emerald-500/50 rounded-lg transition-all overflow-hidden"
+                      >
+                        <div 
+                          className="p-4 cursor-pointer"
+                          onClick={() => handleSelectStore(retailer)}
+                        >
+                          <div className="flex items-center gap-3">
+                            {/* Retailer Logo */}
+                            {retailer.retailer_logo_url ? (
+                              <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center p-1.5 flex-shrink-0">
+                                <img 
+                                  src={retailer.retailer_logo_url} 
+                                  alt={retailer.name}
+                                  className="w-full h-full object-contain"
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                <Store className="text-slate-400" size={24} />
+                              </div>
+                            )}
+
+                            {/* Store Information */}
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-white group-hover:text-emerald-400 transition-colors truncate">
+                                {retailer.name}
+                              </h4>
+                              {retailer.banner_name && retailer.banner_name !== retailer.name && (
+                                <p className="text-xs text-emerald-400/70 mt-0.5">{retailer.banner_name}</p>
+                              )}
+                              {retailer.location && (
+                                <p className="text-sm text-slate-400 mt-1 truncate">
+                                  {[
+                                    retailer.location.address,
+                                    retailer.location.city,
+                                    retailer.location.state,
+                                    retailer.location.zip_code
+                                  ].filter(Boolean).join(', ')}
+                                </p>
+                              )}
+                              {retailer.store_number && (
+                                <p className="text-xs text-slate-500 mt-0.5">Store #{retailer.store_number}</p>
+                              )}
+
+                              {/* Operating Hours */}
+                              {isLoadingHours ? (
+                                <div className="flex items-center gap-2 mt-2 text-xs text-slate-400">
+                                  <div className="w-3 h-3 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                                  Loading hours...
+                                </div>
+                              ) : hours?.available ? (
+                                <div className="mt-2">
+                                  <div className="flex items-center gap-2">
+                                    <div className={cn(
+                                      "w-2 h-2 rounded-full",
+                                      hours.isOpen ? "bg-green-500" : "bg-red-500"
+                                    )} />
+                                    <span className={cn(
+                                      "text-sm font-medium",
+                                      hours.isOpen ? "text-green-400" : "text-red-400"
+                                    )}>
+                                      {hours.currentStatus}
+                                    </span>
+                                    {hours.todayHours && (
+                                      <span className="text-xs text-slate-400">
+                                        · {hours.todayHours}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : hours?.available === false ? (
+                                <p className="text-xs text-slate-500 mt-2">
+                                  {hours.message || 'Hours unavailable'}
+                                </p>
+                              ) : null}
+                            </div>
+
+                            {/* Action Indicator */}
+                            <div className="flex-shrink-0">
+                              {selecting ? (
+                                <Loader2 className="animate-spin text-emerald-400" size={20} />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full bg-emerald-500/10 group-hover:bg-emerald-500/20 flex items-center justify-center transition-colors">
+                                  <Store className="text-emerald-400" size={18} />
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        ) : (
-                          <div className="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
-                            <Store className="text-slate-400" size={24} />
+                        </div>
+
+                        {/* Expandable Full Hours */}
+                        {hours?.available && hours.hours && (
+                          <div className="border-t border-slate-700/50">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleHoursExpanded(retailer.retailer_key);
+                              }}
+                              className="w-full px-4 py-2 text-xs text-slate-400 hover:text-white flex items-center justify-center gap-1"
+                            >
+                              {isExpanded ? 'Hide' : 'View'} full hours
+                              <motion.svg
+                                animate={{ rotate: isExpanded ? 180 : 0 }}
+                                className="w-3 h-3"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </motion.svg>
+                            </button>
+                            
+                            {isExpanded && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="px-4 pb-4 space-y-1 bg-slate-800/30"
+                              >
+                                {Object.entries(hours.hours).map(([day, time]) => (
+                                  <div key={day} className="flex justify-between text-xs">
+                                    <span className="capitalize font-medium text-slate-300">{day}</span>
+                                    <span className="text-slate-400">{time as string}</span>
+                                  </div>
+                                ))}
+                              </motion.div>
+                            )}
                           </div>
                         )}
-
-                        {/* Store Information */}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-white group-hover:text-emerald-400 transition-colors truncate">
-                            {retailer.name}
-                          </h4>
-                          {retailer.banner_name && retailer.banner_name !== retailer.name && (
-                            <p className="text-xs text-emerald-400/70 mt-0.5">{retailer.banner_name}</p>
-                          )}
-                          {retailer.location && (
-                            <p className="text-sm text-slate-400 mt-1 truncate">
-                              {[
-                                retailer.location.address,
-                                retailer.location.city,
-                                retailer.location.state,
-                                retailer.location.zip_code
-                              ].filter(Boolean).join(', ')}
-                            </p>
-                          )}
-                          {retailer.store_number && (
-                            <p className="text-xs text-slate-500 mt-0.5">Store #{retailer.store_number}</p>
-                          )}
-                        </div>
-
-                        {/* Action Indicator */}
-                        <div className="flex-shrink-0">
-                          {selecting ? (
-                            <Loader2 className="animate-spin text-emerald-400" size={20} />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full bg-emerald-500/10 group-hover:bg-emerald-500/20 flex items-center justify-center transition-colors">
-                              <Store className="text-emerald-400" size={18} />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    );
+                  })}
+                </motion.div>
+              ) : retailers.length > 0 ? (
+                <motion.div
+                  key="filtered-empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-center py-12 text-slate-400"
+                >
+                  <Store className="mx-auto mb-3 opacity-50" size={48} />
+                  <p>No stores match the selected filters.</p>
                 </motion.div>
               ) : zipCode.length === 5 ? (
                 <motion.div

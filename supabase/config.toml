@@ -26,3 +26,6 @@ verify_jwt = true
 
 [functions.notify-spoilage]
 verify_jwt = true
+
+[functions.get-place-hours]
+verify_jwt = false
