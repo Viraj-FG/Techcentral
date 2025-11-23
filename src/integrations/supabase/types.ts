@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      conversation_events: {
+        Row: {
+          agent_type: string
+          conversation_id: string
+          created_at: string
+          event_data: Json
+          event_type: string
+          id: string
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          agent_type: string
+          conversation_id: string
+          created_at?: string
+          event_data?: Json
+          event_type: string
+          id?: string
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          agent_type?: string
+          conversation_id?: string
+          created_at?: string
+          event_data?: Json
+          event_type?: string
+          id?: string
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversation_history: {
         Row: {
           conversation_id: string

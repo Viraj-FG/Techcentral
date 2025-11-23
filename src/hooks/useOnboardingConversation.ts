@@ -7,6 +7,7 @@ import { calculateTDEE } from "@/lib/tdeeCalculator";
 import { saveOnboardingData } from "@/lib/onboardingSave";
 import { transformProfileData, ConversationState } from "@/lib/onboardingTransforms";
 import { supabase } from "@/integrations/supabase/client";
+import { logConversationEvent, generateConversationId } from "@/lib/conversationLogger";
 
 interface UseOnboardingConversationProps {
   conversationState: ConversationState;
@@ -37,6 +38,7 @@ export const useOnboardingConversation = ({
 }: UseOnboardingConversationProps) => {
   const { toast } = useToast();
   const stateRef = useRef(conversationState);
+  const conversationIdRef = useRef<string>(generateConversationId());
 
   useEffect(() => {
     stateRef.current = conversationState;
@@ -46,6 +48,16 @@ export const useOnboardingConversation = ({
     onConnect: () => {
       console.log("ElevenLabs connected");
       setApertureState("listening");
+      
+      // Log session start
+      logConversationEvent({
+        conversationId: conversationIdRef.current,
+        agentType: 'onboarding',
+        eventType: 'session_start',
+        eventData: { timestamp: new Date().toISOString() },
+        role: 'system'
+      });
+      
       toast({
         title: "Connected",
         description: "Kaeva is ready to guide you",
@@ -54,6 +66,15 @@ export const useOnboardingConversation = ({
     onDisconnect: () => {
       console.log("ElevenLabs disconnected");
       setApertureState("idle");
+      
+      // Log session end
+      logConversationEvent({
+        conversationId: conversationIdRef.current,
+        agentType: 'onboarding',
+        eventType: 'session_end',
+        eventData: { timestamp: new Date().toISOString() },
+        role: 'system'
+      });
     },
     onMessage: (message) => {
       console.log("ElevenLabs message:", message);
@@ -62,6 +83,15 @@ export const useOnboardingConversation = ({
         setUserTranscript(message.message || "");
         setShowSubtitles(true);
         setApertureState("thinking");
+        
+        // Log user transcript
+        logConversationEvent({
+          conversationId: conversationIdRef.current,
+          agentType: 'onboarding',
+          eventType: 'user_transcript',
+          eventData: { text: message.message },
+          role: 'user'
+        });
       }
       
       if (message.source === "ai") {
@@ -85,6 +115,15 @@ export const useOnboardingConversation = ({
         
         setAiTranscript(message.message || "");
         setShowSubtitles(true);
+        
+        // Log agent transcript
+        logConversationEvent({
+          conversationId: conversationIdRef.current,
+          agentType: 'onboarding',
+          eventType: 'agent_transcript',
+          eventData: { text: message.message },
+          role: 'assistant'
+        });
       }
     },
     onError: (error) => {
@@ -99,31 +138,69 @@ export const useOnboardingConversation = ({
       updateProfile: (parameters: { field: string; value: any }) => {
         console.log("✅ Profile field update:", parameters.field, parameters.value);
         
+        // Log tool call
+        logConversationEvent({
+          conversationId: conversationIdRef.current,
+          agentType: 'onboarding',
+          eventType: 'tool_call',
+          eventData: { 
+            tool_name: 'updateProfile',
+            parameters 
+          },
+          role: 'assistant'
+        });
+        
+        let result = "";
+        
         if (parameters.field === 'userBiometrics') {
           const tdee = calculateTDEE(parameters.value);
           setConversationState(prev => ({
             ...prev,
             userBiometrics: { ...parameters.value, calculatedTDEE: tdee }
           }));
-          return `Biometrics saved. Your baseline is ${tdee} calories per day.`;
-        }
-        
-        if (parameters.field === 'householdMembers') {
+          result = `Biometrics saved. Your baseline is ${tdee} calories per day.`;
+        } else if (parameters.field === 'householdMembers') {
           setConversationState(prev => ({
             ...prev,
             householdMembers: parameters.value
           }));
-          return `Household roster updated. ${parameters.value.length} members registered.`;
+          result = `Household roster updated. ${parameters.value.length} members registered.`;
+        } else {
+          setConversationState(prev => ({
+            ...prev,
+            [parameters.field]: parameters.value
+          }));
+          result = "Profile updated";
         }
         
-        setConversationState(prev => ({
-          ...prev,
-          [parameters.field]: parameters.value
-        }));
-        return "Profile updated";
+        // Log tool response
+        logConversationEvent({
+          conversationId: conversationIdRef.current,
+          agentType: 'onboarding',
+          eventType: 'tool_response',
+          eventData: { 
+            tool_name: 'updateProfile',
+            result 
+          },
+          role: 'system'
+        });
+        
+        return result;
       },
       completeConversation: async (parameters: { reason: string }) => {
         console.log("🎉 Completing onboarding:", parameters.reason);
+        
+        // Log tool call
+        logConversationEvent({
+          conversationId: conversationIdRef.current,
+          agentType: 'onboarding',
+          eventType: 'tool_call',
+          eventData: { 
+            tool_name: 'completeConversation',
+            parameters 
+          },
+          role: 'assistant'
+        });
         
         try {
           // 1. Save onboarding data to database
@@ -179,10 +256,39 @@ export const useOnboardingConversation = ({
           console.log("Showing summary screen");
           setShowSummary(true);
           
-          return "SUCCESS: Onboarding complete, showing summary";
+          const successResult = "SUCCESS: Onboarding complete, showing summary";
+          
+          // Log tool response
+          logConversationEvent({
+            conversationId: conversationIdRef.current,
+            agentType: 'onboarding',
+            eventType: 'tool_response',
+            eventData: { 
+              tool_name: 'completeConversation',
+              result: successResult 
+            },
+            role: 'system'
+          });
+          
+          return successResult;
         } catch (error) {
           console.error("completeConversation error:", error);
-          return `ERROR: ${error instanceof Error ? error.message : "Unknown error"}`;
+          const errorResult = `ERROR: ${error instanceof Error ? error.message : "Unknown error"}`;
+          
+          // Log error response
+          logConversationEvent({
+            conversationId: conversationIdRef.current,
+            agentType: 'onboarding',
+            eventType: 'tool_response',
+            eventData: { 
+              tool_name: 'completeConversation',
+              result: errorResult,
+              error: true
+            },
+            role: 'system'
+          });
+          
+          return errorResult;
         }
       },
       navigateTo: (parameters: { page: string }) => {
