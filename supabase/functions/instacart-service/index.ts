@@ -7,14 +7,27 @@ const corsHeaders = {
 };
 
 const INSTACART_API_KEY = Deno.env.get('INSTACART_API_KEY');
+const INSTACART_ENV_SECRET = Deno.env.get('INSTACART_ENVIRONMENT');
 
-// Automatically determine environment based on API key prefix
-const isTestKey = INSTACART_API_KEY?.startsWith('test_');
-const INSTACART_BASE_URL = isTestKey 
+// Determine environment: prioritize explicit secret, fallback to API key detection
+let environment: string;
+let detectionMethod: string;
+
+if (INSTACART_ENV_SECRET) {
+  environment = INSTACART_ENV_SECRET.toLowerCase();
+  detectionMethod = 'explicit secret';
+} else {
+  const isTestKey = INSTACART_API_KEY?.startsWith('test_');
+  environment = isTestKey ? 'development' : 'production';
+  detectionMethod = 'API key prefix detection';
+}
+
+const INSTACART_BASE_URL = environment === 'development'
   ? 'https://connect.dev.instacart.tools/idp/v1'
   : 'https://connect.instacart.com/idp/v1';
 
-console.log(`🔧 Using Instacart environment: ${isTestKey ? 'DEVELOPMENT' : 'PRODUCTION'}`);
+console.log(`🔧 Environment detection method: ${detectionMethod}`);
+console.log(`🔧 Using Instacart environment: ${environment.toUpperCase()}`);
 console.log(`🔧 Base URL: ${INSTACART_BASE_URL}`);
 
 interface CartItem {
