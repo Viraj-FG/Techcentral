@@ -1,12 +1,14 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Scan, LogOut, Users, Mic, Bell } from 'lucide-react';
+import { Settings, Scan, LogOut, Users, Mic, Bell, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { kaevaTransition } from '@/hooks/useKaevaMotion';
 import KaevaAperture from '@/components/KaevaAperture';
 import { NotificationBell } from '@/components/ui/NotificationBell';
+import GlobalSearch from '@/components/search/GlobalSearch';
+
 interface AppShellProps {
   children: ReactNode;
   onScan: () => void;
@@ -18,9 +20,9 @@ const AppShell = ({
   onVoiceActivate
 }: AppShellProps) => {
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  const [searchOpen, setSearchOpen] = useState(false);
+  
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast({
@@ -74,6 +76,17 @@ const AppShell = ({
       }}>
           {/* Notification Bell */}
           <NotificationBell />
+
+          {/* Search Button */}
+          <motion.button 
+            onClick={() => setSearchOpen(true)}
+            className="p-3 text-slate-400 hover:text-white transition-colors rounded-full hover:bg-white/10" 
+            whileHover={{ scale: 1.1 }} 
+            whileTap={{ scale: 0.95 }}
+            transition={kaevaTransition}
+          >
+            <Search size={22} strokeWidth={1.5} />
+          </motion.button>
 
           {/* Settings Button */}
           <motion.button onClick={() => navigate('/settings')} className="p-3 text-slate-400 hover:text-white transition-colors rounded-full hover:bg-white/10" whileHover={{
@@ -134,6 +147,9 @@ const AppShell = ({
           </motion.button>
         </motion.div>
       </div>
+
+      {/* Global Search */}
+      <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
     </div>;
 };
 export default AppShell;

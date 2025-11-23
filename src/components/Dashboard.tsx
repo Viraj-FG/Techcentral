@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, AlertCircle, Package, Camera, Settings, ArrowRight } from "lucide-react";
+import { Shield, AlertCircle, Package, Camera, Settings, ArrowRight, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -25,6 +25,7 @@ import InventoryMatrixSkeleton from "./dashboard/InventoryMatrixSkeleton";
 import NutritionWidget from "./dashboard/NutritionWidget";
 import { kaevaEntranceVariants } from "@/hooks/useKaevaMotion";
 import { ELEVENLABS_CONFIG } from "@/config/agent";
+import GlobalSearch from "./search/GlobalSearch";
 
 interface DashboardProps {
   profile: any;
@@ -43,6 +44,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [spotlightOpen, setSpotlightOpen] = useState(false);
   const [socialImportOpen, setSocialImportOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   // Voice assistant hook
   const { startConversation } = useVoiceAssistant({ 
@@ -142,6 +144,27 @@ const Dashboard = ({ profile }: DashboardProps) => {
 
         {/* Welcome Banner for skipped onboarding */}
         <WelcomeBanner />
+
+        {/* Search Trigger Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 cursor-pointer hover:bg-slate-900/60 transition-all"
+          onClick={() => setSearchOpen(true)}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <div className="flex items-center gap-3">
+            <Search className="w-5 h-5 text-slate-400" />
+            <span className="text-slate-400 text-sm flex-1">
+              Search inventory, recipes, pets...
+            </span>
+            <kbd className="px-2 py-1 bg-slate-800/50 border border-white/10 rounded text-xs text-slate-400">
+              ⌘K
+            </kbd>
+          </div>
+        </motion.div>
         
         {isAdmin && (
           <motion.div 
@@ -244,6 +267,9 @@ const Dashboard = ({ profile }: DashboardProps) => {
         onSocialImport={() => { setSpotlightOpen(false); setSocialImportOpen(true); }}
       />
       <SocialImport open={socialImportOpen} onClose={() => setSocialImportOpen(false)} userId={profile.id} onItemsAdded={fetchInventory} />
+      
+      {/* Global Search */}
+      <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
     </>
   );
 };
