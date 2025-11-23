@@ -21,6 +21,7 @@ interface Retailer {
     zip_code?: string;
   };
   store_number?: string;
+  distance?: number | null;
 }
 
 interface StoreSelectorProps {
@@ -41,7 +42,50 @@ const StoreSelector = ({ open, onClose, userId, onStoreSelected }: StoreSelector
   const [retailerHours, setRetailerHours] = useState<Record<string, any>>({});
   const [loadingHours, setLoadingHours] = useState<Record<string, boolean>>({});
   const [expandedHours, setExpandedHours] = useState<Record<string, boolean>>({});
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const { toast } = useToast();
+
+  // Calculate distance between two coordinates using Haversine formula
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 3959; // Earth's radius in miles
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  // Geocode address to coordinates
+  const geocodeAddress = async (address: string, city: string, state: string, zip: string): Promise<{lat: number, lng: number} | null> => {
+    try {
+      const query = `${address}, ${city}, ${state} ${zip}`;
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`,
+        {
+          headers: {
+            'User-Agent': 'Kaeva-App/1.0'
+          }
+        }
+      );
+      
+      if (!response.ok) return null;
+      
+      const data = await response.json();
+      if (data.length > 0) {
+        return {
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon)
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      return null;
+    }
+  };
 
   // Extract unique chains when retailers load
   useEffect(() => {
@@ -76,6 +120,9 @@ const StoreSelector = ({ open, onClose, userId, onStoreSelected }: StoreSelector
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
+          
+          // Store user location for distance calculations
+          setUserLocation({ lat: latitude, lng: longitude });
           
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
@@ -209,7 +256,42 @@ const StoreSelector = ({ open, onClose, userId, onStoreSelected }: StoreSelector
 
       if (error) throw error;
 
-      const retailersData = data.retailers || [];
+      let retailersData = data.retailers || [];
+      
+      // Calculate distances if we have user location
+      if (userLocation && retailersData.length > 0) {
+        const retailersWithDistance = await Promise.all(
+          retailersData.map(async (retailer: any) => {
+            if (retailer.location?.address && retailer.location?.city && retailer.location?.state && retailer.location?.zip_code) {
+              const coords = await geocodeAddress(
+                retailer.location.address,
+                retailer.location.city,
+                retailer.location.state,
+                retailer.location.zip_code
+              );
+              
+              if (coords) {
+                const distance = calculateDistance(
+                  userLocation.lat,
+                  userLocation.lng,
+                  coords.lat,
+                  coords.lng
+                );
+                return { ...retailer, distance: Math.round(distance * 10) / 10 }; // Round to 1 decimal
+              }
+            }
+            return { ...retailer, distance: null };
+          })
+        );
+        
+        // Sort by distance (nulls at end)
+        retailersData = retailersWithDistance.sort((a, b) => {
+          if (a.distance === null) return 1;
+          if (b.distance === null) return -1;
+          return a.distance - b.distance;
+        });
+      }
+      
       setRetailers(retailersData);
       
       if (retailersData.length === 0) {
@@ -440,9 +522,16 @@ const StoreSelector = ({ open, onClose, userId, onStoreSelected }: StoreSelector
 
                             {/* Store Information */}
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-white group-hover:text-emerald-400 transition-colors truncate">
-                                {retailer.name}
-                              </h4>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-semibold text-white group-hover:text-emerald-400 transition-colors truncate">
+                                  {retailer.name}
+                                </h4>
+                                {retailer.distance !== null && retailer.distance !== undefined && (
+                                  <span className="text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full flex-shrink-0">
+                                    {retailer.distance} mi
+                                  </span>
+                                )}
+                              </div>
                               {retailer.banner_name && retailer.banner_name !== retailer.name && (
                                 <p className="text-xs text-emerald-400/70 mt-0.5">{retailer.banner_name}</p>
                               )}
