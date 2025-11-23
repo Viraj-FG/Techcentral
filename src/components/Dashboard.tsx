@@ -10,6 +10,7 @@ import AppShell from "./layout/AppShell";
 import { checkAdminStatus } from "@/lib/authUtils";
 import { groupInventoryByCategory, getInventoryStatus } from "@/lib/inventoryUtils";
 import VoiceAssistant from "./voice/VoiceAssistant";
+import WelcomeBanner from "./dashboard/WelcomeBanner";
 import ConfigurationBanner from "./dashboard/ConfigurationBanner";
 import PulseHeader from "./dashboard/PulseHeader";
 import SmartCartWidget from "./dashboard/SmartCartWidget";
@@ -86,6 +87,9 @@ const Dashboard = ({ profile }: DashboardProps) => {
       <AppShell onScan={() => setSpotlightOpen(true)}>
         {/* Voice Assistant - always active */}
         <VoiceAssistant userProfile={profile} onProfileUpdate={setInventoryData} />
+
+        {/* Welcome Banner for skipped onboarding */}
+        <WelcomeBanner />
 
         <ConfigurationBanner />
         
