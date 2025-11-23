@@ -30,18 +30,22 @@ export const AgentTestPanel = () => {
 
       if (error) throw error;
 
-      const hasCustomPrompt = data?.agent?.conversation_config?.prompt?.length > 1000;
+      console.log('🔍 Debug - Full response:', JSON.stringify(data, null, 2));
+
+      // Fix: ElevenLabs returns nested structure
+      const hasCustomPrompt = data?.agent?.conversation_config?.agent?.prompt?.prompt?.length > 1000;
       const clientToolsCount = data?.agent?.client_tools?.length || 0;
-      const voiceConfigured = !!data?.agent?.conversation_config?.voice?.voice_id;
+      const voiceConfigured = !!data?.agent?.conversation_config?.tts?.voice_id;
 
       if (hasCustomPrompt && clientToolsCount > 0 && voiceConfigured) {
         setConfigTest({
           status: 'success',
           message: 'Agent properly configured',
           details: {
-            promptLength: data.agent.conversation_config.prompt.length,
+            promptLength: data.agent.conversation_config.agent.prompt.prompt.length,
             clientTools: clientToolsCount,
-            voice: data.agent.conversation_config.voice.voice_id
+            voice: data.agent.conversation_config.tts.voice_id,
+            promptVersion: data.prompt_version
           }
         });
       } else {
