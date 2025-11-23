@@ -3,6 +3,8 @@ import { useConversation } from "@11labs/react";
 import { getSignedUrl } from "@/lib/elevenLabsAudio";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { storeMessage as storeMessageUtil, fetchRecentHistory, generateConversationId } from "@/lib/conversationUtils";
+import { createUpdateProfileTool } from "@/lib/voiceClientTools";
 
 type VoiceState = "sleeping" | "listening" | "thinking" | "speaking";
 type ApertureState = "idle" | "wakeword" | "listening" | "thinking" | "speaking";
@@ -66,77 +68,7 @@ export const useVoiceAssistant = ({ userProfile, onProfileUpdate }: UseVoiceAssi
       returnToSleeping();
     },
     clientTools: {
-      updateProfile: async (parameters: { field: string; value: any }) => {
-        console.log("🔄 Update profile:", parameters.field, parameters.value);
-        
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (!session?.user) return "Profile update failed - not authenticated";
-
-          // Map field names to database columns
-          const fieldMap: Record<string, string> = {
-            userName: 'user_name',
-            dietaryValues: 'dietary_preferences',
-            beautyProfile: 'beauty_profile',
-            healthGoals: 'health_goals',
-            lifestyleGoals: 'lifestyle_goals',
-            household: 'household_adults' // Will handle separately
-          };
-
-          const dbField = fieldMap[parameters.field] || parameters.field;
-          const updateData: any = {};
-
-          if (parameters.field === 'household') {
-            // Handle household as a special case
-            const household = parameters.value;
-            updateData.household_adults = household.adults || 1;
-            updateData.household_kids = household.kids || 0;
-
-            // Save pets if any
-            if (household.dogs || household.cats) {
-              const pets = [];
-              for (let i = 0; i < (household.dogs || 0); i++) {
-                pets.push({
-                  user_id: session.user.id,
-                  species: 'Dog',
-                  name: `Dog ${i + 1}`,
-                  toxic_flags_enabled: true
-                });
-              }
-              for (let i = 0; i < (household.cats || 0); i++) {
-                pets.push({
-                  user_id: session.user.id,
-                  species: 'Cat',
-                  name: `Cat ${i + 1}`,
-                  toxic_flags_enabled: true
-                });
-              }
-              if (pets.length > 0) {
-                await supabase.from('pets').insert(pets);
-              }
-            }
-          } else {
-            updateData[dbField] = parameters.value;
-          }
-
-          const { error } = await supabase
-            .from('profiles')
-            .update(updateData)
-            .eq('id', session.user.id);
-
-          if (error) throw error;
-
-          // Trigger callback if provided
-          if (onProfileUpdate) {
-            onProfileUpdate({ ...userProfile, ...updateData });
-          }
-
-          return "Profile updated successfully";
-        } catch (error) {
-          console.error("Profile update error:", error);
-          return "Profile update failed";
-        }
-      },
+      updateProfile: createUpdateProfileTool(onProfileUpdate),
       completeConversation: () => {
         console.log("🎯 Complete conversation");
         endConversation();
@@ -144,65 +76,15 @@ export const useVoiceAssistant = ({ userProfile, onProfileUpdate }: UseVoiceAssi
       },
       navigateTo: (parameters: { page: string }) => {
         console.log("🧭 Navigate to:", parameters.page);
-        // Could implement navigation logic here
         return `Navigating to ${parameters.page}`;
       }
     }
   });
 
-  // Store message to database
-  const storeMessage = async (role: "user" | "assistant", message: string) => {
-    if (!currentConversationIdRef.current || !message.trim()) return;
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) return;
-
-      const { error } = await supabase
-        .from('conversation_history')
-        .insert({
-          user_id: session.user.id,
-          conversation_id: currentConversationIdRef.current,
-          role,
-          message: message.trim()
-        });
-
-      if (error) {
-        console.error("Failed to store message:", error);
-      } else {
-        console.log(`✅ Stored ${role} message`);
-      }
-    } catch (error) {
-      console.error("Error storing message:", error);
-    }
-  };
-
-  // Fetch recent conversation history
-  const fetchRecentHistory = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) return [];
-
-      const { data, error } = await supabase
-        .from('conversation_history')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .order('created_at', { ascending: false })
-        .limit(10); // Last 10 messages
-
-      if (error) {
-        console.error("Failed to fetch history:", error);
-        return [];
-      }
-
-      // Reverse to get chronological order
-      const history = (data || []).reverse();
-      console.log(`📚 Loaded ${history.length} recent messages`);
-      setConversationHistory(history);
-      return history;
-    } catch (error) {
-      console.error("Error fetching history:", error);
-      return [];
+  // Store message wrapper
+  const storeMessage = (role: "user" | "assistant", message: string) => {
+    if (currentConversationIdRef.current) {
+      storeMessageUtil(role, message, currentConversationIdRef.current);
     }
   };
 
@@ -314,12 +196,11 @@ export const useVoiceAssistant = ({ userProfile, onProfileUpdate }: UseVoiceAssi
     setApertureState("thinking");
 
     try {
-      // Generate new conversation ID
-      currentConversationIdRef.current = crypto.randomUUID();
+      currentConversationIdRef.current = generateConversationId();
       console.log("🆔 Conversation ID:", currentConversationIdRef.current);
 
-      // Fetch recent conversation history
       const recentHistory = await fetchRecentHistory();
+      setConversationHistory(recentHistory);
 
       const agentId = "agent_0501kakwnx5rffaby5rx9y1pskkb";
       const signedUrl = await getSignedUrl(agentId);

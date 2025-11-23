@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Icon } from "@/components/ui/icon";
 import AppShell from "./layout/AppShell";
+import { checkAdminStatus } from "@/lib/authUtils";
+import { groupInventoryByCategory, getInventoryStatus } from "@/lib/inventoryUtils";
 import VoiceAssistant from "./voice/VoiceAssistant";
 import ConfigurationBanner from "./dashboard/ConfigurationBanner";
 import PulseHeader from "./dashboard/PulseHeader";
@@ -38,21 +40,9 @@ const Dashboard = ({ profile }: DashboardProps) => {
   const [spotlightOpen, setSpotlightOpen] = useState(false);
 
   useEffect(() => {
-    const checkAdminStatus = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
-
-        const { data } = await supabase.functions.invoke("check-admin", {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
-
-        if (data?.isAdmin) {
-          setIsAdmin(true);
-        }
-      } catch (error) {
-        console.error("Admin check error:", error);
-      }
+    const checkAdmin = async () => {
+      const isAdmin = await checkAdminStatus();
+      setIsAdmin(isAdmin);
     };
 
     const fetchInventory = async () => {
@@ -66,37 +56,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
           .eq('user_id', session.user.id);
 
         if (inventory && inventory.length > 0) {
-          // Group inventory by category
-          const grouped = {
-            fridge: inventory.filter(i => i.category === 'fridge').map(i => ({
-              name: i.name,
-              fillLevel: i.fill_level || 50,
-              unit: i.unit || '',
-              status: i.fill_level && i.fill_level <= 20 ? 'low' : i.fill_level && i.fill_level <= 50 ? 'medium' : 'good',
-              autoOrdering: i.auto_order_enabled
-            })),
-            pantry: inventory.filter(i => i.category === 'pantry').map(i => ({
-              name: i.name,
-              fillLevel: i.fill_level || 50,
-              unit: i.unit || '',
-              status: i.fill_level && i.fill_level <= 20 ? 'low' : i.fill_level && i.fill_level <= 50 ? 'medium' : 'good',
-              autoOrdering: i.auto_order_enabled
-            })),
-            beauty: inventory.filter(i => i.category === 'beauty').map(i => ({
-              name: i.name,
-              fillLevel: i.fill_level || 50,
-              unit: i.unit || '',
-              status: i.fill_level && i.fill_level <= 20 ? 'low' : i.fill_level && i.fill_level <= 50 ? 'medium' : 'good',
-              autoOrdering: i.auto_order_enabled
-            })),
-            pets: inventory.filter(i => i.category === 'pets').map(i => ({
-              name: i.name,
-              fillLevel: i.fill_level || 50,
-              unit: i.unit || '',
-              status: i.fill_level && i.fill_level <= 20 ? 'low' : i.fill_level && i.fill_level <= 50 ? 'medium' : 'good',
-              autoOrdering: i.auto_order_enabled
-            }))
-          };
+          const grouped = groupInventoryByCategory(inventory);
           setInventoryData(grouped);
         }
       } catch (error) {
@@ -106,7 +66,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
       }
     };
 
-    checkAdminStatus();
+    checkAdmin();
     fetchInventory();
   }, []);
 
@@ -120,14 +80,6 @@ const Dashboard = ({ profile }: DashboardProps) => {
     category => category.length === 0
   );
 
-  // Determine inventory status for cards
-  const getInventoryStatus = (items: any[]): 'good' | 'warning' | 'normal' => {
-    if (items.length === 0) return 'normal';
-    const avgFill = items.reduce((acc, item) => acc + item.fillLevel, 0) / items.length;
-    if (avgFill >= 60) return 'good';
-    if (avgFill <= 30) return 'warning';
-    return 'normal';
-  };
 
   return (
     <>
@@ -233,36 +185,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
                   .eq('user_id', session.user.id);
 
                 if (!error && data) {
-                  const categorized = {
-                    fridge: data.filter(i => i.category === 'fridge').map(i => ({
-                      name: i.name,
-                      fillLevel: i.fill_level || 50,
-                      unit: i.unit || '',
-                      status: i.status || 'sufficient',
-                      autoOrdering: i.auto_order_enabled
-                    })),
-                    pantry: data.filter(i => i.category === 'pantry').map(i => ({
-                      name: i.name,
-                      fillLevel: i.fill_level || 50,
-                      unit: i.unit || '',
-                      status: i.status || 'sufficient',
-                      autoOrdering: i.auto_order_enabled
-                    })),
-                    beauty: data.filter(i => i.category === 'beauty').map(i => ({
-                      name: i.name,
-                      fillLevel: i.fill_level || 50,
-                      unit: i.unit || '',
-                      status: i.status || 'sufficient',
-                      autoOrdering: i.auto_order_enabled
-                    })),
-                    pets: data.filter(i => i.category === 'pets').map(i => ({
-                      name: i.name,
-                      fillLevel: i.fill_level || 50,
-                      unit: i.unit || '',
-                      status: i.status || 'sufficient',
-                      autoOrdering: i.auto_order_enabled
-                    }))
-                  };
+                  const categorized = groupInventoryByCategory(data);
                   setInventoryData(categorized);
                 }
               }
