@@ -135,31 +135,29 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
   };
 
   const handleEnterKaeva = async () => {
-    const currentState = stateRef.current;
-    const success = await saveOnboardingData(currentState);
+    // Data already saved by completeConversation tool, just navigate
+    console.log("🎉 Entering Kaeva dashboard");
     
-    if (success) {
-      const transformedData = transformProfileData(currentState);
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const profile = {
-        id: session?.user?.id,
-        language: "English",
-        userName: transformedData.user_name,
-        dietaryRestrictions: transformedData.dietary_preferences,
-        allergies: transformedData.allergies,
-        beautyProfile: transformedData.beauty_profile,
-        household: currentState.household,
-        medicalGoals: transformedData.health_goals,
-        lifestyleGoals: transformedData.lifestyle_goals,
-        enableToxicFoodWarnings: (currentState.household?.dogs || 0) > 0 || 
-                                 (currentState.household?.cats || 0) > 0,
-        onboarding_completed: true
-      };
-      
-      console.log("🎉 Calling onComplete with profile");
-      onComplete(profile);
-    }
+    const currentState = stateRef.current;
+    const transformedData = transformProfileData(currentState);
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    const profile = {
+      id: session?.user?.id,
+      language: "English",
+      userName: transformedData.user_name,
+      dietaryRestrictions: transformedData.dietary_preferences,
+      allergies: transformedData.allergies,
+      beautyProfile: transformedData.beauty_profile,
+      household: currentState.household,
+      medicalGoals: transformedData.health_goals,
+      lifestyleGoals: transformedData.lifestyle_goals,
+      enableToxicFoodWarnings: (currentState.household?.dogs || 0) > 0 || 
+                               (currentState.household?.cats || 0) > 0,
+      onboarding_completed: true
+    };
+    
+    onComplete(profile);
   };
 
   const handleDismissTutorial = () => {

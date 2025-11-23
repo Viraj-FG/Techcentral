@@ -6,13 +6,13 @@ export const ELEVENLABS_CONFIG = {
     agentId: "agent_0501kakwnx5rffaby5px9y1pskkb",
     voiceId: "9BWtsMINqrJLrRacOk9x", // Aria - warm and friendly
     model: "eleven_turbo_v2_5",
-    promptVersion: "v3.0-structured-onboarding"
+    promptVersion: "v4.0-architect"
   },
   assistant: {
     agentId: "agent_2601kaqwv4ejfhets9fyyafzj2e6",
     voiceId: "9BWtsMINqrJLrRacOk9x", // Aria - warm and friendly
     model: "eleven_turbo_v2_5",
-    promptVersion: "v1.0-assistant"
+    promptVersion: "v2.0-operator"
   }
 } as const;
 
