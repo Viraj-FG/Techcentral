@@ -14,6 +14,8 @@ import { AgentStatus } from "@/components/admin/AgentStatus";
 import { AgentTestPanel } from "@/components/admin/AgentTestPanel";
 import { DeploymentChecklist } from "@/components/admin/DeploymentChecklist";
 import { AgentHealthDashboard } from "@/components/admin/AgentHealthDashboard";
+import ToolCallLogs from "@/components/admin/ToolCallLogs";
+import ContextPreview from "@/components/admin/ContextPreview";
 import { motion } from "framer-motion";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
 
@@ -48,13 +50,15 @@ const Admin = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="health" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7 glass-card">
+          <TabsList className="grid w-full grid-cols-9 glass-card">
             <TabsTrigger value="health" className="text-micro">Health</TabsTrigger>
-            <TabsTrigger value="agent" className="text-micro">Agent Config</TabsTrigger>
+            <TabsTrigger value="agent" className="text-micro">Agent</TabsTrigger>
             <TabsTrigger value="testing" className="text-micro">Testing</TabsTrigger>
             <TabsTrigger value="users" className="text-micro">Users</TabsTrigger>
             <TabsTrigger value="database" className="text-micro">Database</TabsTrigger>
             <TabsTrigger value="logs" className="text-micro">Logs</TabsTrigger>
+            <TabsTrigger value="tool-logs" className="text-micro">Tools</TabsTrigger>
+            <TabsTrigger value="context" className="text-micro">Context</TabsTrigger>
             <TabsTrigger value="analytics" className="text-micro">Analytics</TabsTrigger>
           </TabsList>
 
@@ -88,10 +92,18 @@ const Admin = () => {
             <SystemLogs />
           </TabsContent>
 
-          <TabsContent value="analytics">
-            <Analytics />
-          </TabsContent>
-        </Tabs>
+        <TabsContent value="tool-logs">
+          <ToolCallLogs />
+        </TabsContent>
+
+        <TabsContent value="context">
+          <ContextPreview />
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <Analytics />
+        </TabsContent>
+      </Tabs>
       </motion.div>
       </ScrollArea>
     </div>

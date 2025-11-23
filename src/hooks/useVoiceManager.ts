@@ -7,6 +7,13 @@ import { ELEVENLABS_CONFIG } from "@/config/agent";
 import { useNavigate } from "react-router-dom";
 import { storeMessage as storeMessageUtil, fetchRecentHistory, generateConversationId } from "@/lib/conversationUtils";
 import { createUpdateProfileTool, createCompleteConversationTool, createNavigateToTool } from "@/lib/voiceClientTools";
+import {
+  createCheckInventoryTool,
+  createAddToCartTool,
+  createLogMealTool,
+  createSearchRecipesTool,
+  createCheckAllergensTool,
+} from "@/lib/assistantClientTools";
 
 type VoiceState = "idle" | "active" | "speaking";
 type ApertureState = "idle" | "listening" | "thinking" | "speaking";
@@ -47,7 +54,42 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
     setAudioAmplitude(0);
   }, []);
 
-  // ElevenLabs conversation hook
+  // ElevenLabs conversation hook with dynamic client tools
+  const isOnboardingComplete = userProfile?.onboarding_completed;
+  
+  const clientTools = isOnboardingComplete ? {
+    // Assistant tools
+    check_inventory: createCheckInventoryTool(),
+    add_to_cart: createAddToCartTool(),
+    log_meal: createLogMealTool(),
+    search_recipes: createSearchRecipesTool(),
+    check_allergens: createCheckAllergensTool(),
+    navigateTo: createNavigateToTool(navigate),
+    end_conversation: async (parameters: { reason: string }) => {
+      console.log("🔚 End conversation called:", parameters.reason);
+      await endConversation();
+      return "SUCCESS: Conversation ended";
+    }
+  } : {
+    // Onboarding tools
+    updateProfile: createUpdateProfileTool(onProfileUpdate),
+    completeConversation: createCompleteConversationTool(
+      async () => {
+        if (conversation.status === "connected") {
+          await conversation.endSession();
+        }
+      },
+      {
+        setShowConversation,
+        setUserTranscript,
+        setAiTranscript,
+        setVoiceState,
+        setApertureState,
+      }
+    ),
+    navigateTo: createNavigateToTool(navigate)
+  };
+
   const conversation = useConversation({
     onConnect: () => console.log("🔌 Connected to ElevenLabs"),
     onDisconnect: () => {
@@ -75,60 +117,7 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
         storeMessage("assistant", message.message);
       }
     },
-    clientTools: {
-      updateProfile: createUpdateProfileTool(onProfileUpdate),
-      completeConversation: async (parameters: { reason: string }) => {
-        console.log("🎯 Complete conversation:", parameters.reason);
-        
-        try {
-          await conversation.endSession();
-          
-          setShowConversation(false);
-          setUserTranscript("");
-          setAiTranscript("");
-          setVoiceState("idle");
-          setApertureState("idle");
-          
-          if (parameters.reason === "onboarding_complete") {
-            toast({
-              title: "Onboarding Complete!",
-              description: "Welcome to your Kaeva dashboard",
-            });
-          }
-          
-          return "SUCCESS: Conversation ended";
-        } catch (error) {
-          console.error("completeConversation error:", error);
-          return `ERROR: ${error instanceof Error ? error.message : "Failed to complete"}`;
-        }
-      },
-      endConversation: async (parameters: { reason: string }) => {
-        console.log("🔚 End conversation called:", parameters.reason);
-        
-        try {
-          await conversation.endSession();
-          
-          setShowConversation(false);
-          setUserTranscript("");
-          setAiTranscript("");
-          setVoiceState("idle");
-          setApertureState("idle");
-          
-          if (parameters.reason === "user_exit") {
-            toast({
-              title: "Conversation Ended",
-              description: "You can continue onboarding anytime",
-            });
-          }
-          
-          return "SUCCESS: Conversation ended by user";
-        } catch (error) {
-          console.error("endConversation error:", error);
-          return `ERROR: ${error instanceof Error ? error.message : "Failed to end"}`;
-        }
-      },
-      navigateTo: createNavigateToTool(navigate)
-    }
+    clientTools
   });
 
   // Store message wrapper
@@ -165,28 +154,9 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
 
     try {
       currentConversationIdRef.current = generateConversationId();
-      const recentHistory = await fetchRecentHistory();
 
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) throw new Error("Not authenticated");
-
-      // Fetch context data
-      const { data: householdMembers } = await supabase
-        .from('household_members')
-        .select('*')
-        .eq('user_id', session.user.id);
-
-      const { data: pets } = await supabase
-        .from('pets')
-        .select('*')
-        .eq('user_id', session.user.id);
-
-      const { data: inventory } = await supabase
-        .from('inventory')
-        .select('name, category, quantity, unit, status, expiry_date')
-        .eq('user_id', session.user.id)
-        .order('last_activity_at', { ascending: false })
-        .limit(20);
 
       const isOnboardingComplete = userProfile?.onboarding_completed;
       const mode = isOnboardingComplete ? "assistant" : "onboarding";
@@ -196,32 +166,11 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
         : ELEVENLABS_CONFIG.onboarding.agentId;
       
       console.log('🔗 Connecting to agent:', agentId, 'Mode:', mode);
+
       const signedUrl = await getSignedUrl(agentId);
-      
       console.log(`🤖 Starting in ${mode} mode`);
 
-      // Build dynamic variables for assistant mode
-      const variables: Record<string, string> = {};
-      if (mode === "assistant") {
-        variables.user_name = userProfile.user_name || 'User';
-        variables.calculated_tdee = userProfile.calculated_tdee?.toString() || 'Not calculated';
-        variables.allergies = JSON.stringify(userProfile.allergies || []);
-        variables.household_summary = householdMembers?.map(m => 
-          `${m.name || m.member_type} (${m.age_group}): ${JSON.stringify(m.allergies || [])}`
-        ).join(', ') || 'None';
-        variables.pets_summary = pets?.map(p => 
-          `${p.name} (${p.species})`
-        ).join(', ') || 'None';
-        variables.recent_inventory = inventory?.slice(0, 10).map(i => 
-          `${i.name} (${i.quantity} ${i.unit || ''})`
-        ).join(', ') || 'No inventory';
-      }
-
-      await conversation.startSession({ 
-        signedUrl,
-        ...(mode === "assistant" ? { variables } : {})
-      });
-
+      await conversation.startSession({ signedUrl });
       setApertureState("listening");
     } catch (error) {
       console.error("❌ Failed to start conversation:", error);
@@ -232,7 +181,7 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
       });
       endConversation();
     }
-  }, [userProfile, onProfileUpdate, conversation, endConversation]);
+  }, [userProfile, onProfileUpdate, conversation, endConversation, navigate]);
 
   // Cleanup on unmount
   useEffect(() => {

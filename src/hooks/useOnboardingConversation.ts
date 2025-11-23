@@ -126,11 +126,51 @@ export const useOnboardingConversation = ({
         console.log("🎉 Completing onboarding:", parameters.reason);
         
         try {
+          // 1. Save onboarding data to database
+          console.log("💾 Saving onboarding data...");
+          const success = await saveOnboardingData(stateRef.current);
+          
+          if (!success) {
+            console.error("Failed to save onboarding data");
+            return "ERROR: Failed to save onboarding data";
+          }
+          
+          // 2. Mark onboarding as complete in database
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            console.log("✅ Marking onboarding as complete in database");
+            const { error } = await supabase
+              .from('profiles')
+              .update({ onboarding_completed: true })
+              .eq('id', session.user.id);
+              
+            if (error) {
+              console.error("Failed to mark onboarding complete:", error);
+              return "ERROR: Failed to mark onboarding complete";
+            }
+            
+            // 3. Log completion to conversation_history
+            await supabase.from('conversation_history').insert([{
+              conversation_id: crypto.randomUUID(),
+              role: 'system',
+              message: 'Onboarding completed successfully',
+              user_id: session.user.id,
+              metadata: { 
+                reason: parameters.reason,
+                timestamp: new Date().toISOString()
+              }
+            }]);
+            
+            console.log("✅ Onboarding completion logged");
+          }
+          
+          // 4. End ElevenLabs session
           if (conversation.status === "connected") {
             console.log("Ending ElevenLabs session");
             await conversation.endSession();
           }
           
+          // 5. Update UI states
           setApertureState("idle");
           setShowSubtitles(false);
           setUserTranscript("");
@@ -139,8 +179,9 @@ export const useOnboardingConversation = ({
           console.log("Showing summary screen");
           setShowSummary(true);
           
-          return "SUCCESS: Showing profile summary. User can now review and enter the dashboard.";
+          return "SUCCESS: Onboarding complete, showing summary";
         } catch (error) {
+          console.error("completeConversation error:", error);
           return `ERROR: ${error instanceof Error ? error.message : "Unknown error"}`;
         }
       },
