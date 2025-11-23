@@ -188,6 +188,7 @@ IMMEDIATELY call completeConversation(reason="onboarding_complete") without aski
     console.log('Agent name:', result.name);
     console.log('Voice ID configured:', result.conversation_config?.tts?.voice_id);
     console.log('Prompt version:', PROMPT_VERSION);
+    console.log('📋 Full ElevenLabs response structure:', JSON.stringify(result, null, 2));
 
     return new Response(
       JSON.stringify({ 
