@@ -1,28 +1,28 @@
 project_id = "btgmvuieishjiybgcmpj"
 
 [functions.analyze-vision]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-signed-url]
-verify_jwt = false
+verify_jwt = true
 
 [functions.configure-elevenlabs-agent]
-verify_jwt = false
+verify_jwt = true
 
 [functions.instacart-create-cart]
-verify_jwt = false
+verify_jwt = true
 
 [functions.check-admin]
-verify_jwt = false
+verify_jwt = true
 
 [functions.enrich-product]
-verify_jwt = false
+verify_jwt = true
 
 [functions.identify-product]
-verify_jwt = false
+verify_jwt = true
 
 [functions.cook-recipe]
-verify_jwt = false
+verify_jwt = true
 
 [functions.notify-spoilage]
-verify_jwt = false
+verify_jwt = true
