@@ -5,6 +5,8 @@ import { useToast } from "@/hooks/use-toast";
 import { getSignedUrl } from "@/lib/elevenLabsAudio";
 import { ELEVENLABS_CONFIG } from "@/config/agent";
 import { useNavigate } from "react-router-dom";
+import { storeMessage as storeMessageUtil, fetchRecentHistory, generateConversationId } from "@/lib/conversationUtils";
+import { createUpdateProfileTool, createCompleteConversationTool, createNavigateToTool } from "@/lib/voiceClientTools";
 
 type VoiceState = "idle" | "active" | "speaking";
 type ApertureState = "idle" | "listening" | "thinking" | "speaking";
@@ -28,6 +30,23 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
   
   const currentConversationIdRef = useRef<string>("");
 
+  // Define endConversation early for use in callbacks
+  const endConversation = useCallback(async () => {
+    console.log("🔚 Ending conversation");
+    
+    if (conversation.status === "connected") {
+      await conversation.endSession();
+    }
+
+    currentConversationIdRef.current = "";
+    setUserTranscript("");
+    setAiTranscript("");
+    setShowConversation(false);
+    setVoiceState("idle");
+    setApertureState("idle");
+    setAudioAmplitude(0);
+  }, []);
+
   // ElevenLabs conversation hook
   const conversation = useConversation({
     onConnect: () => console.log("🔌 Connected to ElevenLabs"),
@@ -48,7 +67,6 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
     onMessage: (message) => {
       console.log("📨 Message received:", message);
 
-      // Handle different message formats from ElevenLabs
       if (message.source === "user") {
         setUserTranscript(message.message);
         storeMessage("user", message.message);
@@ -58,190 +76,40 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
       }
     },
     clientTools: {
-      updateProfile: async (parameters: { field: string; value: any }) => {
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (!session?.user) return "Not authenticated";
-
-          console.log("💾 Updating profile:", parameters.field, parameters.value);
-
-          let updateData: any = {};
-
-          // Handle household members as structured data
-          if (parameters.field === "householdMembers" && Array.isArray(parameters.value)) {
-            // Store each household member in household_members table
-            for (const member of parameters.value) {
-              const { error } = await supabase.from('household_members').insert({
-                user_id: session.user.id,
-                member_type: member.type || 'other',
-                name: member.name || null,
-                age: member.age || null,
-                age_group: member.ageGroup || null,
-                allergies: member.allergies || [],
-                dietary_restrictions: member.dietaryRestrictions || [],
-                health_conditions: member.healthConditions || [],
-                gender: member.gender || null,
-                weight: member.weight || null,
-                height: member.height || null,
-                activity_level: member.activityLevel || null
-              });
-
-              if (error) console.error("Error storing household member:", error);
-            }
-            return "Household members saved";
-          }
-
-          // Handle pets
-          if (parameters.field === "household" && parameters.value.petDetails) {
-            for (const pet of parameters.value.petDetails) {
-              const { error } = await supabase.from('pets').insert({
-                user_id: session.user.id,
-                name: pet.name,
-                species: pet.type,
-                breed: pet.breed || null,
-                age: pet.age || null,
-                toxic_flags_enabled: true
-              });
-
-              if (error) console.error("Error storing pet:", error);
-            }
-          }
-
-          // Map fields to profile columns
-          switch (parameters.field) {
-            case "userName":
-              updateData.user_name = parameters.value;
-              break;
-            case "userBiometrics":
-              updateData = {
-                user_age: parameters.value.age,
-                user_weight: parameters.value.weight,
-                user_height: parameters.value.height,
-                user_gender: parameters.value.gender,
-                user_activity_level: parameters.value.activityLevel
-              };
-              break;
-            case "dietaryValues":
-              updateData.dietary_preferences = parameters.value;
-              break;
-            case "allergies":
-              updateData.allergies = parameters.value;
-              break;
-            case "beautyProfile":
-              updateData.beauty_profile = parameters.value;
-              break;
-            case "household":
-              updateData = {
-                household_adults: parameters.value.adults || 1,
-                household_kids: parameters.value.kids || 0
-              };
-              break;
-            case "healthGoals":
-              updateData.health_goals = parameters.value;
-              break;
-            case "lifestyleGoals":
-              updateData.lifestyle_goals = parameters.value;
-              break;
-            default:
-              console.warn("Unknown field:", parameters.field);
-              return "Unknown field";
-          }
-
-          const { error } = await supabase
-            .from('profiles')
-            .update(updateData)
-            .eq('id', session.user.id);
-
-          if (error) throw error;
-
-          if (onProfileUpdate) {
-            const { data: updatedProfile } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-            if (updatedProfile) onProfileUpdate(updatedProfile);
-          }
-
-          return `Updated ${parameters.field}`;
-        } catch (error) {
-          console.error("updateProfile error:", error);
-          return "Failed to update profile";
-        }
-      },
+      updateProfile: createUpdateProfileTool(onProfileUpdate),
       completeConversation: async (parameters: { reason: string }) => {
         console.log("🎯 Complete conversation:", parameters.reason);
         
         try {
-          // 1. Stop ElevenLabs session
           await conversation.endSession();
           
-          // 2. Reset all state
           setShowConversation(false);
           setUserTranscript("");
           setAiTranscript("");
           setVoiceState("idle");
           setApertureState("idle");
           
-          // 3. If onboarding complete, navigate to dashboard
           if (parameters.reason === "onboarding_complete") {
             toast({
               title: "Onboarding Complete!",
               description: "Welcome to your Kaeva dashboard",
             });
-            // Parent component handles navigation
           }
           
-          // 4. Return blocking response
-          return "SUCCESS: Conversation ended. Returning to dashboard.";
+          return "SUCCESS: Conversation ended";
         } catch (error) {
           console.error("completeConversation error:", error);
           return `ERROR: ${error instanceof Error ? error.message : "Failed to complete"}`;
         }
       },
-      navigateTo: (parameters: { page: string }) => {
-        console.log("🧭 Navigate to:", parameters.page);
-        navigate(`/${parameters.page}`);
-        return `Navigating to ${parameters.page}`;
-      }
+      navigateTo: createNavigateToTool(navigate)
     }
   });
 
-  // Store message in conversation history
-  const storeMessage = async (role: string, message: string) => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user || !currentConversationIdRef.current) return;
-
-      await supabase.from('conversation_history').insert({
-        user_id: session.user.id,
-        conversation_id: currentConversationIdRef.current,
-        role,
-        message
-      });
-    } catch (error) {
-      console.error("Error storing message:", error);
-    }
-  };
-
-  // Fetch recent conversation history
-  const fetchRecentHistory = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) return [];
-
-      const { data, error } = await supabase
-        .from('conversation_history')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      return data || [];
-    } catch (error) {
-      console.error("Error fetching history:", error);
-      return [];
+  // Store message wrapper
+  const storeMessage = (role: string, message: string) => {
+    if (currentConversationIdRef.current) {
+      storeMessageUtil(role, message, currentConversationIdRef.current);
     }
   };
 
@@ -262,6 +130,8 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
 
   // === CONVERSATION CONTROL ===
 
+  // Remove duplicate endConversation definition
+  
   const startConversation = useCallback(async () => {
     console.log("🚀 Starting conversation");
     setShowConversation(true);
@@ -269,7 +139,7 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
     setApertureState("thinking");
 
     try {
-      currentConversationIdRef.current = crypto.randomUUID();
+      currentConversationIdRef.current = generateConversationId();
       const recentHistory = await fetchRecentHistory();
 
       const { data: { session } } = await supabase.auth.getSession();
@@ -334,23 +204,7 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
       });
       endConversation();
     }
-  }, [userProfile, onProfileUpdate]);
-
-  const endConversation = useCallback(async () => {
-    console.log("🔚 Ending conversation");
-    
-    if (conversation.status === "connected") {
-      await conversation.endSession();
-    }
-
-    currentConversationIdRef.current = "";
-    setUserTranscript("");
-    setAiTranscript("");
-    setShowConversation(false);
-    setVoiceState("idle");
-    setApertureState("idle");
-    setAudioAmplitude(0);
-  }, [conversation]);
+  }, [userProfile, onProfileUpdate, conversation, endConversation]);
 
   // Cleanup on unmount
   useEffect(() => {
