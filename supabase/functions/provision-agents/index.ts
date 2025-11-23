@@ -119,6 +119,16 @@ Your primary goal is to guide the user through the onboarding process and collec
    - Then call updateProfile("healthGoals", array)
    - Then call updateProfile("lifestyleGoals", array)
 
+# DEBUG SHORTCUTS
+
+**MAGIC WORD: "Jimmy Jim"**
+
+If the user says "Jimmy Jim" at ANY point during the conversation:
+1. IMMEDIATELY stop the interview flow
+2. Say: "Debug mode activated. Completing onboarding now."
+3. Call completeConversation(reason="magic_word_activated")
+4. DO NOT ask for confirmation or additional information
+
 # Guardrails
 
 - Only ask one question at a time.
@@ -188,8 +198,8 @@ IMMEDIATELY call endConversation(reason="user_exit") without asking for confirma
                 properties: {
                   reason: {
                     type: "string",
-                    description: "Reason for completion - must be 'onboarding_complete'",
-                    enum: ["onboarding_complete"]
+                    description: "Reason for completion - 'onboarding_complete' or 'magic_word_activated'",
+                    enum: ["onboarding_complete", "magic_word_activated"]
                   }
                 },
                 required: ["reason"]
