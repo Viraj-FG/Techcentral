@@ -89,6 +89,29 @@ const Dashboard = ({ profile }: DashboardProps) => {
     // Recipe feed will auto-load with these ingredients
   };
 
+  // Fetch inventory data
+  const fetchInventory = async () => {
+    try {
+      setIsLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('inventory')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      const grouped = groupInventoryByCategory(data || []);
+      setInventoryData(grouped);
+    } catch (error) {
+      console.error('Error fetching inventory:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const checkAdmin = async () => {
       const isAdmin = await checkAdminStatus();
@@ -184,14 +207,16 @@ const Dashboard = ({ profile }: DashboardProps) => {
             </Button>
           </motion.div>
         ) : (
-          <div>
-            <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3">Inventory Command</h3>
-            <InventoryMatrix inventory={inventoryData} onRefill={handleAddToCart} onCookNow={handleCookNow} />
-          </div>
-          <section>
-            <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3">Recipe Engine</h3>
-            <RecipeFeed userInventory={inventoryData} userProfile={profile} />
-          </section>
+          <>
+            <div>
+              <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3">Inventory Command</h3>
+              <InventoryMatrix inventory={inventoryData} onRefill={handleAddToCart} onCookNow={handleCookNow} />
+            </div>
+            <section>
+              <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3">Recipe Engine</h3>
+              <RecipeFeed userInventory={inventoryData} userProfile={profile} />
+            </section>
+          </>
         )}
         
         {/* Recent Activity */}
