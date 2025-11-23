@@ -31,22 +31,46 @@ export const RealtimeProvider = ({ children }: Props) => {
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const [newNotifications, setNewNotifications] = useState(0);
   const [userId, setUserId] = useState<string | null>(null);
+  const [householdId, setHouseholdId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    // Get current user
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    // Get current user and household
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (user) {
         setUserId(user.id);
+        
+        // Fetch household_id from profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('current_household_id')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile?.current_household_id) {
+          setHouseholdId(profile.current_household_id);
+        }
       }
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         setUserId(session.user.id);
+        
+        // Fetch household_id from profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('current_household_id')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (profile?.current_household_id) {
+          setHouseholdId(profile.current_household_id);
+        }
       } else {
         setUserId(null);
+        setHouseholdId(null);
       }
     });
 
@@ -59,10 +83,11 @@ export const RealtimeProvider = ({ children }: Props) => {
     if (!userId) return;
 
     console.log('[Realtime] Setting up subscriptions for user:', userId);
+    console.log('[Realtime] Household ID:', householdId);
     setIsConnected(true);
 
-    // Inventory subscription
-    const inventoryChannel = supabase
+    // Inventory subscription (household-based)
+    const inventoryChannel = householdId ? supabase
       .channel('inventory-realtime')
       .on(
         'postgres_changes',
@@ -70,7 +95,7 @@ export const RealtimeProvider = ({ children }: Props) => {
           event: '*',
           schema: 'public',
           table: 'inventory',
-          filter: `user_id=eq.${userId}`
+          filter: `household_id=eq.${householdId}`
         },
         (payload) => {
           console.log('[Realtime] Inventory change:', payload);
@@ -79,10 +104,10 @@ export const RealtimeProvider = ({ children }: Props) => {
       )
       .subscribe((status) => {
         console.log('[Realtime] Inventory subscription status:', status);
-      });
+      }) : null;
 
-    // Shopping list subscription
-    const shoppingChannel = supabase
+    // Shopping list subscription (household-based)
+    const shoppingChannel = householdId ? supabase
       .channel('shopping-realtime')
       .on(
         'postgres_changes',
@@ -90,7 +115,7 @@ export const RealtimeProvider = ({ children }: Props) => {
           event: '*',
           schema: 'public',
           table: 'shopping_list',
-          filter: `user_id=eq.${userId}`
+          filter: `household_id=eq.${householdId}`
         },
         (payload) => {
           console.log('[Realtime] Shopping list change:', payload);
@@ -99,7 +124,7 @@ export const RealtimeProvider = ({ children }: Props) => {
       )
       .subscribe((status) => {
         console.log('[Realtime] Shopping subscription status:', status);
-      });
+      }) : null;
 
     // Notifications subscription
     const notificationsChannel = supabase
@@ -141,8 +166,8 @@ export const RealtimeProvider = ({ children }: Props) => {
         console.log('[Realtime] Meal logs subscription status:', status);
       });
 
-    // Recipes subscription
-    const recipesChannel = supabase
+    // Recipes subscription (household-based)
+    const recipesChannel = householdId ? supabase
       .channel('recipes-realtime')
       .on(
         'postgres_changes',
@@ -150,7 +175,7 @@ export const RealtimeProvider = ({ children }: Props) => {
           event: '*',
           schema: 'public',
           table: 'recipes',
-          filter: `user_id=eq.${userId}`
+          filter: `household_id=eq.${householdId}`
         },
         (payload) => {
           console.log('[Realtime] Recipe change:', payload);
@@ -159,18 +184,18 @@ export const RealtimeProvider = ({ children }: Props) => {
       )
       .subscribe((status) => {
         console.log('[Realtime] Recipes subscription status:', status);
-      });
+      }) : null;
 
     return () => {
       console.log('[Realtime] Cleaning up subscriptions');
-      supabase.removeChannel(inventoryChannel);
-      supabase.removeChannel(shoppingChannel);
+      if (inventoryChannel) supabase.removeChannel(inventoryChannel);
+      if (shoppingChannel) supabase.removeChannel(shoppingChannel);
       supabase.removeChannel(notificationsChannel);
       supabase.removeChannel(mealLogsChannel);
-      supabase.removeChannel(recipesChannel);
+      if (recipesChannel) supabase.removeChannel(recipesChannel);
       setIsConnected(false);
     };
-  }, [userId]);
+  }, [userId, householdId]);
 
   const handleInventoryChange = (payload: any) => {
     setIsSyncing(true);
