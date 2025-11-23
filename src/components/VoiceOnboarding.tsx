@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useConversation } from "@11labs/react";
 import { getSignedUrl } from "@/lib/elevenLabsAudio";
@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Mic, Brain, Volume2, Leaf, PawPrint, Sparkles } from "lucide-react";
 import HouseholdMemberCard from "./HouseholdMemberCard";
 import { ELEVENLABS_CONFIG } from "@/config/agent";
+import { calculateTDEE } from '@/lib/tdeeCalculator';
 
 export interface BiometricData {
   age: number;
@@ -91,6 +92,14 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
     isComplete: false
   });
 
+  // Ref to track latest state (fixes stale closure in clientTools)
+  const stateRef = useRef(conversationState);
+
+  // Sync ref with state updates
+  useEffect(() => {
+    stateRef.current = conversationState;
+  }, [conversationState]);
+
   // ElevenLabs Conversational AI
   const conversation = useConversation({
     onConnect: () => {
@@ -155,7 +164,6 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
         
         // Handle biometrics with TDEE calculation
         if (parameters.field === 'userBiometrics') {
-          const { calculateTDEE } = require('@/lib/tdeeCalculator');
           const tdee = calculateTDEE(parameters.value);
           setConversationState(prev => ({
             ...prev,
@@ -195,14 +203,18 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
           setUserTranscript("");
           setAiTranscript("");
           
-          // Save to database
-          const saveSuccess = await saveOnboardingData();
+          // Use REF to get latest state (fixes stale closure)
+          const currentState = stateRef.current;
+          console.log("📊 Current state at completion:", JSON.stringify(currentState, null, 2));
+          
+          // Save to database with current state
+          const saveSuccess = await saveOnboardingData(currentState);
           
           if (saveSuccess) {
             console.log("✅ Data saved, navigating to dashboard...");
             
-            // Build profile object
-            const transformedData = transformProfileData(conversationState);
+            // Build profile object using current state
+            const transformedData = transformProfileData(currentState);
             const { data: { session } } = await supabase.auth.getSession();
             
             const profile = {
@@ -212,11 +224,11 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
               dietaryRestrictions: transformedData.dietary_preferences,
               allergies: transformedData.allergies,
               beautyProfile: transformedData.beauty_profile,
-              household: conversationState.household,
+              household: currentState.household,
               medicalGoals: transformedData.health_goals,
               lifestyleGoals: transformedData.lifestyle_goals,
-              enableToxicFoodWarnings: (conversationState.household?.dogs || 0) > 0 || 
-                                       (conversationState.household?.cats || 0) > 0,
+              enableToxicFoodWarnings: (currentState.household?.dogs || 0) > 0 || 
+                                       (currentState.household?.cats || 0) > 0,
               onboarding_completed: true
             };
             
@@ -357,7 +369,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
   };
 
   const transformProfileData = (state: ConversationState) => {
-    const { calculateTDEE } = require('@/lib/tdeeCalculator');
+    // Use top-level import (no require)
     
     // Ensure dietary values is an array
     const dietaryPreferences = Array.isArray(state.dietaryValues) 
@@ -409,7 +421,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
     };
   };
 
-  const saveOnboardingData = async (): Promise<boolean> => {
+  const saveOnboardingData = async (state?: ConversationState): Promise<boolean> => {
     console.log("💾 Starting database save...");
     
     const { data: { session } } = await supabase.auth.getSession();
@@ -425,11 +437,14 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
     const userId = session.user.id;
 
     try {
+      // Use provided state OR fall back to ref (for manual retry)
+      const currentState = state || stateRef.current;
+      
       // Log raw state
-      console.log("📊 Raw conversationState:", JSON.stringify(conversationState, null, 2));
+      console.log("📊 Raw conversationState:", JSON.stringify(currentState, null, 2));
       
       // Transform data
-      const transformedData = transformProfileData(conversationState);
+      const transformedData = transformProfileData(currentState);
       console.log("✅ Transformed data:", JSON.stringify(transformedData, null, 2));
 
       // Update profile
@@ -451,8 +466,8 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
       console.log("✅ Profile saved successfully");
 
       // Save household members
-      if (conversationState.householdMembers && conversationState.householdMembers.length > 0) {
-        const membersToInsert = conversationState.householdMembers.map(member => ({
+      if (currentState.householdMembers && currentState.householdMembers.length > 0) {
+        const membersToInsert = currentState.householdMembers.map(member => ({
           user_id: userId,
           member_type: member.type,
           name: member.name || null,
@@ -479,10 +494,10 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
       }
 
       // Save pets (legacy support)
-      if (conversationState.household?.dogs || conversationState.household?.cats) {
+      if (currentState.household?.dogs || currentState.household?.cats) {
         const pets = [];
 
-        for (let i = 0; i < (conversationState.household.dogs || 0); i++) {
+        for (let i = 0; i < (currentState.household.dogs || 0); i++) {
           pets.push({
             user_id: userId,
             species: 'Dog',
@@ -491,7 +506,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
           });
         }
 
-        for (let i = 0; i < (conversationState.household.cats || 0); i++) {
+        for (let i = 0; i < (currentState.household.cats || 0); i++) {
           pets.push({
             user_id: userId,
             species: 'Cat',
@@ -524,10 +539,11 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
 
   const handleEnterKaeva = async () => {
     // This function is now for manual retry only
-    const success = await saveOnboardingData();
+    const currentState = stateRef.current;
+    const success = await saveOnboardingData(currentState);
     
     if (success) {
-      const transformedData = transformProfileData(conversationState);
+      const transformedData = transformProfileData(currentState);
       const { data: { session } } = await supabase.auth.getSession();
       
       const profile = {
@@ -537,11 +553,11 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
         dietaryRestrictions: transformedData.dietary_preferences,
         allergies: transformedData.allergies,
         beautyProfile: transformedData.beauty_profile,
-        household: conversationState.household,
+        household: currentState.household,
         medicalGoals: transformedData.health_goals,
         lifestyleGoals: transformedData.lifestyle_goals,
-        enableToxicFoodWarnings: (conversationState.household?.dogs || 0) > 0 || 
-                                 (conversationState.household?.cats || 0) > 0,
+        enableToxicFoodWarnings: (currentState.household?.dogs || 0) > 0 || 
+                                 (currentState.household?.cats || 0) > 0,
         onboarding_completed: true
       };
       
