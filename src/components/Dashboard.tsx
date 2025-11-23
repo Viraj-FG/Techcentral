@@ -12,7 +12,6 @@ import { checkAdminStatus } from "@/lib/authUtils";
 import { groupInventoryByCategory, getInventoryStatus } from "@/lib/inventoryUtils";
 import VoiceAssistant, { useVoiceAssistant } from "./voice/VoiceAssistant";
 import WelcomeBanner from "./dashboard/WelcomeBanner";
-import ConfigurationBanner from "./dashboard/ConfigurationBanner";
 import PulseHeader from "./dashboard/PulseHeader";
 import SmartCartWidget from "./dashboard/SmartCartWidget";
 import InventoryMatrix from "./dashboard/InventoryMatrix";
@@ -143,8 +142,6 @@ const Dashboard = ({ profile }: DashboardProps) => {
 
         {/* Welcome Banner for skipped onboarding */}
         <WelcomeBanner />
-
-        <ConfigurationBanner />
         
         {isAdmin && (
           <motion.div 
