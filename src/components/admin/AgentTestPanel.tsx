@@ -25,7 +25,7 @@ export const AgentTestPanel = () => {
     setConfigTest({ status: 'running' });
     try {
       const { data, error } = await supabase.functions.invoke('configure-elevenlabs-agent', {
-        body: { agentId: ELEVENLABS_CONFIG.agentId, testMode: true }
+        body: { agentId: ELEVENLABS_CONFIG.onboarding.agentId, testMode: true }
       });
 
       if (error) throw error;
@@ -74,7 +74,7 @@ export const AgentTestPanel = () => {
   const testConnection = async () => {
     setConnectionTest({ status: 'running' });
     try {
-      const signedUrl = await getSignedUrl(ELEVENLABS_CONFIG.agentId);
+      const signedUrl = await getSignedUrl(ELEVENLABS_CONFIG.onboarding.agentId);
       if (signedUrl) {
         setConnectionTest({
           status: 'success',

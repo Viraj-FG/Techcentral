@@ -166,7 +166,7 @@ export const useOnboardingConversation = ({
       try {
         setApertureState("thinking");
         
-        const agentId = ELEVENLABS_CONFIG.agentId;
+        const agentId = ELEVENLABS_CONFIG.onboarding.agentId;
         const signedUrl = await getSignedUrl(agentId);
         
         await conversation.startSession({ signedUrl });

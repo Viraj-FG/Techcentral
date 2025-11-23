@@ -188,12 +188,15 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
         .order('last_activity_at', { ascending: false })
         .limit(20);
 
-      const agentId = ELEVENLABS_CONFIG.agentId;
-      console.log('🔗 Connecting to agent:', agentId);
-      const signedUrl = await getSignedUrl(agentId);
-      
       const isOnboardingComplete = userProfile?.onboarding_completed;
       const mode = isOnboardingComplete ? "assistant" : "onboarding";
+      
+      const agentId = isOnboardingComplete 
+        ? ELEVENLABS_CONFIG.assistant.agentId 
+        : ELEVENLABS_CONFIG.onboarding.agentId;
+      
+      console.log('🔗 Connecting to agent:', agentId, 'Mode:', mode);
+      const signedUrl = await getSignedUrl(agentId);
       
       console.log(`🤖 Starting in ${mode} mode`);
 

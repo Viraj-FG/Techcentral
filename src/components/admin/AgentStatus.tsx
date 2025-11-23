@@ -54,7 +54,8 @@ export const AgentStatus = () => {
     fetchStatus();
   }, []);
 
-  const isUpToDate = status.promptVersion === ELEVENLABS_CONFIG.promptVersion;
+  const isUpToDate = status.promptVersion === ELEVENLABS_CONFIG.onboarding.promptVersion || 
+                     status.promptVersion === ELEVENLABS_CONFIG.assistant.promptVersion;
 
   return (
     <Card>
@@ -93,17 +94,36 @@ export const AgentStatus = () => {
           </Badge>
         </div>
 
-        {/* Agent ID */}
+        {/* Agent IDs */}
         <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-          <span className="text-sm font-medium">Agent ID</span>
+          <span className="text-sm font-medium">Onboarding Agent</span>
           <code className="text-xs bg-background px-2 py-1 rounded">
-            ...{ELEVENLABS_CONFIG.agentId.slice(-8)}
+            ...{ELEVENLABS_CONFIG.onboarding.agentId.slice(-8)}
+          </code>
+        </div>
+        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+          <span className="text-sm font-medium">Assistant Agent</span>
+          <code className="text-xs bg-background px-2 py-1 rounded">
+            ...{ELEVENLABS_CONFIG.assistant.agentId.slice(-8)}
           </code>
         </div>
 
         {/* Prompt Version */}
         <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-          <span className="text-sm font-medium">Prompt Version</span>
+          <span className="text-sm font-medium">Prompt Versions</span>
+          <div className="flex flex-col items-end gap-1">
+            <code className="text-xs bg-background px-2 py-1 rounded">
+              Onboarding: {ELEVENLABS_CONFIG.onboarding.promptVersion}
+            </code>
+            <code className="text-xs bg-background px-2 py-1 rounded">
+              Assistant: {ELEVENLABS_CONFIG.assistant.promptVersion}
+            </code>
+          </div>
+        </div>
+
+        {/* Current Deployed Version */}
+        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+          <span className="text-sm font-medium">Deployed Version</span>
           <div className="flex items-center gap-2">
             <code className="text-xs bg-background px-2 py-1 rounded">
               {status.promptVersion || 'Not set'}
@@ -127,19 +147,24 @@ export const AgentStatus = () => {
           </div>
         )}
 
-        {/* Expected Version */}
+        {/* Expected Versions */}
         <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-          <span className="text-sm font-medium">Expected Version</span>
-          <code className="text-xs bg-background px-2 py-1 rounded">
-            {ELEVENLABS_CONFIG.promptVersion}
-          </code>
+          <span className="text-sm font-medium">Expected Versions</span>
+          <div className="flex flex-col items-end gap-1">
+            <code className="text-xs bg-background px-2 py-1 rounded">
+              Onboarding: {ELEVENLABS_CONFIG.onboarding.promptVersion}
+            </code>
+            <code className="text-xs bg-background px-2 py-1 rounded">
+              Assistant: {ELEVENLABS_CONFIG.assistant.promptVersion}
+            </code>
+          </div>
         </div>
 
         {/* Warning if outdated */}
         {!isUpToDate && status.isConfigured && (
           <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
             <p className="text-sm text-yellow-600 dark:text-yellow-400">
-              ⚠️ Agent prompt version is outdated. Reconfigure to update to {ELEVENLABS_CONFIG.promptVersion}
+              ⚠️ Agent prompt version is outdated. Reconfigure to update to latest versions (Onboarding: {ELEVENLABS_CONFIG.onboarding.promptVersion}, Assistant: {ELEVENLABS_CONFIG.assistant.promptVersion})
             </p>
           </div>
         )}

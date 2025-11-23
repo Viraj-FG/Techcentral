@@ -17,7 +17,7 @@ export const AgentConfig = () => {
     setIsConfiguring(true);
     try {
       const { data, error } = await supabase.functions.invoke("configure-elevenlabs-agent", {
-        body: { agentId: ELEVENLABS_CONFIG.agentId },
+        body: { agentId: ELEVENLABS_CONFIG.onboarding.agentId },
       });
 
       if (error) throw error;
@@ -51,10 +51,17 @@ export const AgentConfig = () => {
         <CardContent className="space-y-4">
           <Alert>
             <AlertDescription className="space-y-2">
-              <div>Agent ID: <code className="bg-muted px-2 py-1 rounded">{ELEVENLABS_CONFIG.agentId}</code></div>
-              <div>Voice: <code className="bg-muted px-2 py-1 rounded">{ELEVENLABS_CONFIG.voiceId} (Aria)</code></div>
-              <div>Model: <code className="bg-muted px-2 py-1 rounded">{ELEVENLABS_CONFIG.model}</code></div>
-              <div>Prompt Version: <code className="bg-muted px-2 py-1 rounded">{ELEVENLABS_CONFIG.promptVersion}</code></div>
+              <div><strong>Onboarding Agent:</strong></div>
+              <div>Agent ID: <code className="bg-muted px-2 py-1 rounded">{ELEVENLABS_CONFIG.onboarding.agentId}</code></div>
+              <div>Voice: <code className="bg-muted px-2 py-1 rounded">{ELEVENLABS_CONFIG.onboarding.voiceId} (Aria)</code></div>
+              <div>Model: <code className="bg-muted px-2 py-1 rounded">{ELEVENLABS_CONFIG.onboarding.model}</code></div>
+              <div>Prompt Version: <code className="bg-muted px-2 py-1 rounded">{ELEVENLABS_CONFIG.onboarding.promptVersion}</code></div>
+              
+              <div className="mt-4"><strong>Assistant Agent:</strong></div>
+              <div>Agent ID: <code className="bg-muted px-2 py-1 rounded">{ELEVENLABS_CONFIG.assistant.agentId}</code></div>
+              <div>Voice: <code className="bg-muted px-2 py-1 rounded">{ELEVENLABS_CONFIG.assistant.voiceId} (Aria)</code></div>
+              <div>Model: <code className="bg-muted px-2 py-1 rounded">{ELEVENLABS_CONFIG.assistant.model}</code></div>
+              <div>Prompt Version: <code className="bg-muted px-2 py-1 rounded">{ELEVENLABS_CONFIG.assistant.promptVersion}</code></div>
             </AlertDescription>
           </Alert>
 

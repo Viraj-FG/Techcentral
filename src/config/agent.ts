@@ -2,10 +2,18 @@
 // Single source of truth for agent settings
 
 export const ELEVENLABS_CONFIG = {
-  agentId: "agent_0501kakwnx5rffaby5px9y1pskkb",
-  voiceId: "9BWtsMINqrJLrRacOk9x", // Aria - warm and friendly
-  model: "eleven_turbo_v2_5",
-  promptVersion: "v3.0-structured-onboarding"
+  onboarding: {
+    agentId: "agent_0501kakwnx5rffaby5px9y1pskkb",
+    voiceId: "9BWtsMINqrJLrRacOk9x", // Aria - warm and friendly
+    model: "eleven_turbo_v2_5",
+    promptVersion: "v3.0-structured-onboarding"
+  },
+  assistant: {
+    agentId: "agent_2601kaqwv4ejfhets9fyyafzj2e6",
+    voiceId: "9BWtsMINqrJLrRacOk9x", // Aria - warm and friendly
+    model: "eleven_turbo_v2_5",
+    promptVersion: "v1.0-assistant"
+  }
 } as const;
 
 export const AGENT_FEATURES = [

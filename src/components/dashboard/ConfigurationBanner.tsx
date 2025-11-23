@@ -38,7 +38,8 @@ const ConfigurationBanner = () => {
   if (isLoading) return null;
 
   const isConfigured = profile?.agent_configured;
-  const isUpToDate = profile?.agent_prompt_version === ELEVENLABS_CONFIG.promptVersion;
+  const isUpToDate = profile?.agent_prompt_version === ELEVENLABS_CONFIG.onboarding.promptVersion ||
+                     profile?.agent_prompt_version === ELEVENLABS_CONFIG.assistant.promptVersion;
 
   // Don't show if configured and up to date
   if (isConfigured && isUpToDate) {
@@ -65,7 +66,7 @@ const ConfigurationBanner = () => {
                 Agent Update Available
               </h3>
               <p className="text-white/70 text-sm">
-                Your agent is using prompt version {profile.agent_prompt_version}. Update to {ELEVENLABS_CONFIG.promptVersion} for the latest features.
+                Your agent is using prompt version {profile.agent_prompt_version}. Update to latest versions (Onboarding: {ELEVENLABS_CONFIG.onboarding.promptVersion}, Assistant: {ELEVENLABS_CONFIG.assistant.promptVersion}) for the latest features.
               </p>
             </div>
           </div>

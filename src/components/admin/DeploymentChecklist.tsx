@@ -60,7 +60,7 @@ export const DeploymentChecklist = () => {
     updateStep('edge-function', { status: 'checking' });
     try {
       const { error } = await supabase.functions.invoke('configure-elevenlabs-agent', {
-        body: { agentId: ELEVENLABS_CONFIG.agentId, testMode: true }
+        body: { agentId: ELEVENLABS_CONFIG.onboarding.agentId, testMode: true }
       });
 
       if (error) throw error;
@@ -94,7 +94,8 @@ export const DeploymentChecklist = () => {
           status: 'warning',
           message: 'Agent not configured yet - run configuration first'
         });
-      } else if (profile.agent_prompt_version !== ELEVENLABS_CONFIG.promptVersion) {
+      } else if (profile.agent_prompt_version === ELEVENLABS_CONFIG.onboarding.promptVersion || 
+                 profile.agent_prompt_version === ELEVENLABS_CONFIG.assistant.promptVersion) {
         updateStep('agent-configured', {
           status: 'warning',
           message: `Outdated prompt version (${profile.agent_prompt_version})`
@@ -117,11 +118,12 @@ export const DeploymentChecklist = () => {
     updateStep('agent-id-match', { status: 'checking' });
     try {
       // This is a sanity check - if we're using centralized config, this should always pass
-      const expectedId = ELEVENLABS_CONFIG.agentId;
+      const onboardingId = ELEVENLABS_CONFIG.onboarding.agentId;
+      const assistantId = ELEVENLABS_CONFIG.assistant.agentId;
       
       updateStep('agent-id-match', {
         status: 'passed',
-        message: `Using centralized config: ${expectedId.slice(-8)}`
+        message: `Using centralized config: Onboarding ${onboardingId.slice(-8)}, Assistant ${assistantId.slice(-8)}`
       });
     } catch (error) {
       updateStep('agent-id-match', {
@@ -145,7 +147,10 @@ export const DeploymentChecklist = () => {
 
       if (!profile) throw new Error('Profile not found');
 
-      const signedUrl = await getSignedUrl(ELEVENLABS_CONFIG.agentId);
+      const agentId = profile.onboarding_completed 
+        ? ELEVENLABS_CONFIG.assistant.agentId 
+        : ELEVENLABS_CONFIG.onboarding.agentId;
+      const signedUrl = await getSignedUrl(agentId);
       if (!signedUrl) throw new Error('Failed to get signed URL');
 
       updateStep('context-injection', {
@@ -164,7 +169,7 @@ export const DeploymentChecklist = () => {
     updateStep('client-tools', { status: 'checking' });
     try {
       const { data, error } = await supabase.functions.invoke('configure-elevenlabs-agent', {
-        body: { agentId: ELEVENLABS_CONFIG.agentId, testMode: true }
+        body: { agentId: ELEVENLABS_CONFIG.onboarding.agentId, testMode: true }
       });
 
       if (error) throw error;
