@@ -204,7 +204,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
           // Save to conversation_history for admin viewing
           const { error: logInsertError } = await supabase.from('conversation_history').insert({
             user_id: user?.id || 'unknown',
-            conversation_id: 'onboarding-error',
+            conversation_id: crypto.randomUUID(),
             role: 'system',
             message: `[${step}] ${errorLog.error}`,
             metadata: errorLog
@@ -472,7 +472,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
       
       const { error: logInsertError } = await supabase.from('conversation_history').insert({
         user_id: user?.id || 'unknown',
-        conversation_id: 'onboarding-error',
+        conversation_id: crypto.randomUUID(),
         role: 'system',
         message: `[${step}] ${errorLog.error}`,
         metadata: errorLog
