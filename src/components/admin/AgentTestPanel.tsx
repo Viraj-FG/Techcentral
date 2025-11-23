@@ -24,43 +24,30 @@ export const AgentTestPanel = () => {
   const testConfiguration = async () => {
     setConfigTest({ status: 'running' });
     try {
-      const { data, error } = await supabase.functions.invoke('configure-elevenlabs-agent', {
-        body: { agentId: ELEVENLABS_CONFIG.onboarding.agentId, testMode: true }
+      // Test that provision-agents endpoint exists
+      const { data, error } = await supabase.functions.invoke('provision-agents', {
+        body: { testMode: true }
       });
 
       if (error) throw error;
 
-      console.log('🔍 Debug - Full response:', JSON.stringify(data, null, 2));
+      const resultsArray = Array.isArray(data?.results) ? data.results : [];
+      const allSuccess = resultsArray.every((r: any) => r.status === 'created' || r.status === 'updated');
 
-      // Validate configuration (ElevenLabs doesn't return client_tools in response)
-      const hasCustomPrompt = data?.agent?.conversation_config?.agent?.prompt?.prompt?.length > 1000;
-      const voiceConfigured = !!data?.agent?.conversation_config?.tts?.voice_id;
-      const configSuccess = data?.success === true;
-
-      if (hasCustomPrompt && voiceConfigured && configSuccess) {
+      if (allSuccess && resultsArray.length === 2) {
         setConfigTest({
           status: 'success',
-          message: 'Agent properly configured with prompt, voice, and client tools',
+          message: 'Both agents properly configured via provision-agents',
           details: {
-            promptLength: data.agent.conversation_config.agent.prompt.prompt.length,
-            voice: data.agent.conversation_config.tts.voice_id,
-            promptVersion: data.prompt_version,
-            clientTools: '3 tools configured (updateProfile, completeConversation, navigateTo)',
-            note: 'Client tools are verified server-side and sent successfully to ElevenLabs'
+            onboarding: resultsArray.find((r: any) => r.type === 'onboarding'),
+            assistant: resultsArray.find((r: any) => r.type === 'assistant')
           }
         });
       } else {
         setConfigTest({
           status: 'error',
-          message: 'Configuration incomplete',
-          details: { 
-            hasCustomPrompt, 
-            voiceConfigured, 
-            configSuccess,
-            issue: !configSuccess ? 'Edge function reported failure' : 
-                   !hasCustomPrompt ? 'Prompt not configured' : 
-                   'Voice not configured'
-          }
+          message: 'Agent provisioning incomplete',
+          details: { results: resultsArray }
         });
       }
     } catch (error) {

@@ -3,8 +3,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Shield } from "lucide-react";
-import { OnboardingAgentConfig } from "@/components/admin/OnboardingAgentConfig";
-import { AssistantAgentConfig } from "@/components/admin/AssistantAgentConfig";
 import { TestingTools } from "@/components/admin/TestingTools";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { DatabaseInspector } from "@/components/admin/DatabaseInspector";
@@ -69,10 +67,6 @@ const Admin = () => {
 
           <TabsContent value="agent" className="space-y-6">
             <AgentProvisioning />
-            <div className="grid md:grid-cols-2 gap-6">
-              <OnboardingAgentConfig />
-              <AssistantAgentConfig />
-            </div>
             <AgentStatus />
             <AgentTestPanel />
             <DeploymentChecklist />

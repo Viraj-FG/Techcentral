@@ -19,7 +19,7 @@ export const DeploymentChecklist = () => {
     {
       id: 'edge-function',
       title: 'Edge function deployed',
-      description: 'configure-elevenlabs-agent function is accessible',
+      description: 'provision-agents function is accessible',
       status: 'idle'
     },
     {
@@ -59,8 +59,8 @@ export const DeploymentChecklist = () => {
   const checkEdgeFunction = async () => {
     updateStep('edge-function', { status: 'checking' });
     try {
-      const { error } = await supabase.functions.invoke('configure-elevenlabs-agent', {
-        body: { agentId: ELEVENLABS_CONFIG.onboarding.agentId, testMode: true }
+      const { error } = await supabase.functions.invoke('provision-agents', {
+        body: { testMode: true }
       });
 
       if (error) throw error;
@@ -168,24 +168,24 @@ export const DeploymentChecklist = () => {
   const checkClientTools = async () => {
     updateStep('client-tools', { status: 'checking' });
     try {
-      const { data, error } = await supabase.functions.invoke('configure-elevenlabs-agent', {
-        body: { agentId: ELEVENLABS_CONFIG.onboarding.agentId, testMode: true }
+      const { data, error } = await supabase.functions.invoke('provision-agents', {
+        body: { testMode: true }
       });
 
       if (error) throw error;
 
-      const toolCount = data?.agent?.client_tools?.length || 0;
-      const requiredTools = ['updateProfile', 'completeConversation', 'navigateTo'];
+      const results = data?.results || [];
+      const hasAllTools = results.every((r: any) => r.clientToolsCount >= 3);
       
-      if (toolCount >= requiredTools.length) {
+      if (hasAllTools) {
         updateStep('client-tools', {
           status: 'passed',
-          message: `${toolCount} client tools registered`
+          message: `Both agents have client tools configured`
         });
       } else {
         updateStep('client-tools', {
           status: 'warning',
-          message: `Only ${toolCount} tools found, expected ${requiredTools.length}`
+          message: `Some agents missing required tools`
         });
       }
     } catch (error) {
