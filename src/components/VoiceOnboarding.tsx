@@ -61,6 +61,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
     setShowSubtitles,
     setActiveVertical,
     setDetectedKeywords,
+    setShowSummary,
     onComplete,
     permissionsGranted
   });

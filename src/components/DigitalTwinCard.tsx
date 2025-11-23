@@ -280,7 +280,7 @@ const DigitalTwinCard = ({ profile, onUpdate, onComplete }: DigitalTwinCardProps
             onClick={onComplete}
             className="flex-1 min-h-[48px] text-base sm:text-sm bg-emerald-400 text-kaeva-void hover:bg-emerald-500"
           >
-            Enter KAEVA
+            Enter Command Center
           </Button>
         </motion.div>
       </div>

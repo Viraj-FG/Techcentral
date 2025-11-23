@@ -17,6 +17,7 @@ interface UseOnboardingConversationProps {
   setShowSubtitles: (show: boolean) => void;
   setActiveVertical: (vertical: "food" | "beauty" | "pets" | null) => void;
   setDetectedKeywords: (keywords: string[]) => void;
+  setShowSummary: (show: boolean) => void;
   onComplete: (profile: any) => void;
   permissionsGranted: boolean;
 }
@@ -30,6 +31,7 @@ export const useOnboardingConversation = ({
   setShowSubtitles,
   setActiveVertical,
   setDetectedKeywords,
+  setShowSummary,
   onComplete,
   permissionsGranted
 }: UseOnboardingConversationProps) => {
@@ -121,61 +123,23 @@ export const useOnboardingConversation = ({
         return "Profile updated";
       },
       completeConversation: async (parameters: { reason: string }) => {
-        console.log("🎉 Step 1: Completing onboarding:", parameters.reason);
+        console.log("🎉 Completing onboarding:", parameters.reason);
         
         try {
           if (conversation.status === "connected") {
-            console.log("💾 Step 2: Ending ElevenLabs session");
+            console.log("Ending ElevenLabs session");
             await conversation.endSession();
-            console.log("✅ Step 2: Session ended");
           }
           
-          console.log("💾 Step 3: Cleaning up UI state");
           setApertureState("idle");
           setShowSubtitles(false);
           setUserTranscript("");
           setAiTranscript("");
-          console.log("✅ Step 3: UI cleaned");
           
-          const currentState = stateRef.current;
-          console.log("💾 Step 4: Retrieved state from ref");
+          console.log("Showing summary screen");
+          setShowSummary(true);
           
-          console.log("💾 Step 5: Calling saveOnboardingData");
-          const saveSuccess = await saveOnboardingData(currentState);
-          console.log(`✅ Step 5: Save result: ${saveSuccess}`);
-          
-          if (saveSuccess) {
-            console.log("💾 Step 6: Building profile object");
-            
-            const transformedData = transformProfileData(currentState);
-            const { data: { session } } = await supabase.auth.getSession();
-            
-            const profile = {
-              id: session?.user?.id,
-              language: "English",
-              userName: transformedData.user_name,
-              dietaryRestrictions: transformedData.dietary_preferences,
-              allergies: transformedData.allergies,
-              beautyProfile: transformedData.beauty_profile,
-              household: currentState.household,
-              medicalGoals: transformedData.health_goals,
-              lifestyleGoals: transformedData.lifestyle_goals,
-              enableToxicFoodWarnings: (currentState.household?.dogs || 0) > 0 || 
-                                       (currentState.household?.cats || 0) > 0,
-              onboarding_completed: true
-            };
-            console.log("✅ Step 6: Profile built");
-            
-            console.log("💾 Step 7: Scheduling navigation");
-            setTimeout(() => {
-              onComplete(profile);
-            }, 1500);
-            
-            console.log("✅ ALL STEPS COMPLETED SUCCESSFULLY");
-            return "SUCCESS: Onboarding complete, navigating to dashboard";
-          } else {
-            return "ERROR: Failed to save profile, please review and try again";
-          }
+          return "SUCCESS: Showing profile summary. User can now review and enter the dashboard.";
         } catch (error) {
           return `ERROR: ${error instanceof Error ? error.message : "Unknown error"}`;
         }
