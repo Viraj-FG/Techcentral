@@ -297,7 +297,7 @@ const StoreSelector = ({ open, onClose, userId, onStoreSelected }: StoreSelector
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-slate-400">
-                            {retailer.distance_miles.toFixed(1)} mi
+                            {retailer.distance_miles?.toFixed(1) ?? 'N/A'} mi
                           </span>
                           {selecting ? (
                             <Loader2 className="animate-spin text-emerald-400" size={18} />
