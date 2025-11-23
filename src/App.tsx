@@ -23,7 +23,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/configure-agent" element={<ConfigureAgent />} />
+          <Route path="/configure-agent" element={<AdminRoute><ConfigureAgent /></AdminRoute>} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/household" element={<Household />} />
           <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
