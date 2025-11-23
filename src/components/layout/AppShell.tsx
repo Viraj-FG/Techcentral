@@ -1,11 +1,12 @@
 import { ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Scan, LogOut, Users, Mic } from 'lucide-react';
+import { Settings, Scan, LogOut, Users, Mic, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { kaevaTransition } from '@/hooks/useKaevaMotion';
 import KaevaAperture from '@/components/KaevaAperture';
+import { NotificationBell } from '@/components/ui/NotificationBell';
 interface AppShellProps {
   children: ReactNode;
   onScan: () => void;
@@ -71,6 +72,9 @@ const AppShell = ({
         ...kaevaTransition,
         delay: 0.5
       }}>
+          {/* Notification Bell */}
+          <NotificationBell />
+
           {/* Settings Button */}
           <motion.button onClick={() => navigate('/settings')} className="p-3 text-slate-400 hover:text-white transition-colors rounded-full hover:bg-white/10" whileHover={{
           scale: 1.1
