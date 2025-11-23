@@ -37,9 +37,12 @@ interface SmartScannerProps {
   userId: string;
   onClose: () => void;
   onItemsAdded?: () => void;
+  isOpen?: boolean;
+  onSocialImport?: () => void;
 }
 
-const SmartScanner = ({ userId, onClose, onItemsAdded }: SmartScannerProps) => {
+const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }: SmartScannerProps) => {
+  if (!isOpen) return null;
   const webcamRef = useRef<Webcam>(null);
   const recordingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 

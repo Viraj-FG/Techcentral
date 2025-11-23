@@ -13,14 +13,16 @@ interface InventoryItem {
 
 interface InventoryMatrixProps {
   inventory: {
-    fridge: (InventoryItem & { status?: string })[];
-    pantry: (InventoryItem & { status?: string })[];
-    beauty: (InventoryItem & { status?: string })[];
-    pets: (InventoryItem & { status?: string })[];
+    fridge: (InventoryItem & { status?: string; id?: string; expiry_date?: string | null })[];
+    pantry: (InventoryItem & { status?: string; id?: string; expiry_date?: string | null })[];
+    beauty: (InventoryItem & { status?: string; id?: string; expiry_date?: string | null })[];
+    pets: (InventoryItem & { status?: string; id?: string; expiry_date?: string | null })[];
   };
+  onRefill?: (item: any) => void;
+  onCookNow?: (ingredients: string[]) => void;
 }
 
-const InventoryMatrix = ({ inventory }: InventoryMatrixProps) => {
+const InventoryMatrix = ({ inventory, onRefill, onCookNow }: InventoryMatrixProps) => {
   const getStatus = (items: any[]): 'good' | 'warning' | 'normal' => {
     const avgFill = items.reduce((acc, item) => acc + item.fillLevel, 0) / items.length;
     if (avgFill >= 60) return 'good';
@@ -46,24 +48,30 @@ const InventoryMatrix = ({ inventory }: InventoryMatrixProps) => {
         icon={Refrigerator}
         items={inventory.fridge}
         status={getStatus(inventory.fridge)}
+        onRefill={onRefill}
+        onCookNow={onCookNow}
       />
       <InventoryCard
         title="Pantry"
         icon={Package}
         items={inventory.pantry}
         status={getStatus(inventory.pantry)}
+        onRefill={onRefill}
+        onCookNow={onCookNow}
       />
       <InventoryCard
         title="Beauty"
         icon={Sparkles}
         items={inventory.beauty}
         status={getStatus(inventory.beauty)}
+        onRefill={onRefill}
       />
       <InventoryCard
         title="Pets"
         icon={PawPrint}
         items={inventory.pets}
         status={getStatus(inventory.pets)}
+        onRefill={onRefill}
       />
     </motion.div>
   );

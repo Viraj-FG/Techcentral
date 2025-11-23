@@ -111,6 +111,7 @@ export type Database = {
           barcode: string | null
           brand_name: string | null
           category: Database["public"]["Enums"]["inventory_category"]
+          consumption_rate: number | null
           created_at: string
           dietary_flags: Json | null
           expiry_date: string | null
@@ -121,6 +122,7 @@ export type Database = {
           last_enriched_at: string | null
           name: string
           nutrition_data: Json | null
+          original_quantity: number | null
           product_image_url: string | null
           quantity: number | null
           reorder_threshold: number | null
@@ -135,6 +137,7 @@ export type Database = {
           barcode?: string | null
           brand_name?: string | null
           category: Database["public"]["Enums"]["inventory_category"]
+          consumption_rate?: number | null
           created_at?: string
           dietary_flags?: Json | null
           expiry_date?: string | null
@@ -145,6 +148,7 @@ export type Database = {
           last_enriched_at?: string | null
           name: string
           nutrition_data?: Json | null
+          original_quantity?: number | null
           product_image_url?: string | null
           quantity?: number | null
           reorder_threshold?: number | null
@@ -159,6 +163,7 @@ export type Database = {
           barcode?: string | null
           brand_name?: string | null
           category?: Database["public"]["Enums"]["inventory_category"]
+          consumption_rate?: number | null
           created_at?: string
           dietary_flags?: Json | null
           expiry_date?: string | null
@@ -169,6 +174,7 @@ export type Database = {
           last_enriched_at?: string | null
           name?: string
           nutrition_data?: Json | null
+          original_quantity?: number | null
           product_image_url?: string | null
           quantity?: number | null
           reorder_threshold?: number | null
@@ -262,6 +268,8 @@ export type Database = {
           age: number | null
           breed: string | null
           created_at: string
+          daily_serving_size: number | null
+          food_brand: string | null
           id: string
           name: string
           notes: string | null
@@ -273,6 +281,8 @@ export type Database = {
           age?: number | null
           breed?: string | null
           created_at?: string
+          daily_serving_size?: number | null
+          food_brand?: string | null
           id?: string
           name: string
           notes?: string | null
@@ -284,6 +294,8 @@ export type Database = {
           age?: number | null
           breed?: string | null
           created_at?: string
+          daily_serving_size?: number | null
+          food_brand?: string | null
           id?: string
           name?: string
           notes?: string | null
@@ -418,6 +430,62 @@ export type Database = {
           user_zip_code?: string | null
         }
         Relationships: []
+      }
+      recipes: {
+        Row: {
+          cached_at: string | null
+          cooking_time: number | null
+          created_at: string | null
+          difficulty: string | null
+          estimated_calories: number | null
+          id: string
+          ingredients: Json
+          instructions: Json
+          match_score: number | null
+          name: string
+          required_appliances: string[] | null
+          servings: number | null
+          user_id: string
+        }
+        Insert: {
+          cached_at?: string | null
+          cooking_time?: number | null
+          created_at?: string | null
+          difficulty?: string | null
+          estimated_calories?: number | null
+          id?: string
+          ingredients: Json
+          instructions: Json
+          match_score?: number | null
+          name: string
+          required_appliances?: string[] | null
+          servings?: number | null
+          user_id: string
+        }
+        Update: {
+          cached_at?: string | null
+          cooking_time?: number | null
+          created_at?: string | null
+          difficulty?: string | null
+          estimated_calories?: number | null
+          id?: string
+          ingredients?: Json
+          instructions?: Json
+          match_score?: number | null
+          name?: string
+          required_appliances?: string[] | null
+          servings?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       shopping_list: {
         Row: {

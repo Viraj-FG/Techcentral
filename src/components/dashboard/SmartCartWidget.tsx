@@ -26,13 +26,15 @@ interface InventoryItem {
   allergens?: string[] | null;
   dietary_flags?: string[] | null;
   brand_name?: string | null;
+  category?: 'fridge' | 'pantry' | 'beauty' | 'pets';
 }
 
 interface SmartCartWidgetProps {
   cartItems: InventoryItem[];
+  showDeliveryEstimate?: boolean;
 }
 
-const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
+const SmartCartWidget = ({ cartItems, showDeliveryEstimate = true }: SmartCartWidgetProps) => {
   const [loading, setLoading] = useState(false);
   const [enriching, setEnriching] = useState(false);
   const [enrichedItems, setEnrichedItems] = useState<InventoryItem[]>(cartItems);
@@ -157,12 +159,19 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const items = enrichedItems.map(item => ({
-        name: item.name,
-        brand: item.brand_name,
-        quantity: 1,
-        unit: item.unit
-      }));
+      // Brand lock for pets and beauty items
+      const items = enrichedItems.map(item => {
+        const isPetOrBeauty = item.category === 'pets' || item.category === 'beauty';
+        return {
+          name: isPetOrBeauty && item.brand_name 
+            ? `${item.brand_name} ${item.name}` // Brand lock: "Purina Pro Plan Dog Food"
+            : item.name,
+          brand: item.brand_name,
+          quantity: 1,
+          unit: item.unit,
+          brand_lock: isPetOrBeauty
+        };
+      });
 
       const { data, error } = await supabase.functions.invoke('instacart-service', {
         body: { 
@@ -303,7 +312,7 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
   };
 
   // Calculate dynamic delivery date based on urgency
-  const getNextDeliveryDate = () => {
+  const getNextDeliveryInfo = () => {
     if (enrichedItems.length === 0) return null;
     
     // Get most urgent item (lowest fill level)
@@ -318,12 +327,18 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
     const deliveryDate = new Date();
     deliveryDate.setDate(deliveryDate.getDate() + daysUntilDelivery);
     
-    return deliveryDate.toLocaleDateString('en-US', { 
-      weekday: 'short', 
-      month: 'short', 
-      day: 'numeric' 
-    });
+    return {
+      date: deliveryDate.toLocaleDateString('en-US', { 
+        weekday: 'short', 
+        month: 'short', 
+        day: 'numeric' 
+      }),
+      urgency: daysUntilDelivery <= 1 ? 'urgent' : 'normal',
+      daysUntil: daysUntilDelivery
+    };
   };
+
+  const nextDelivery = getNextDeliveryInfo();
 
   return (
     <>
@@ -363,11 +378,25 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
         
         {enrichedItems.length > 0 ? (
           <>
-            <p className="text-white/70 text-sm mb-4">
-              Next Delivery: <span className="text-white">
-                {getNextDeliveryDate() || "No delivery scheduled"}
-              </span>
-            </p>
+            {/* Delivery Status Board */}
+            {showDeliveryEstimate && nextDelivery && (
+              <div className="mb-4 p-4 rounded-lg bg-slate-800/50 border border-white/10">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-slate-400 mb-1">Next Delivery</p>
+                    <p className="text-2xl font-light text-white">
+                      {nextDelivery.date}
+                    </p>
+                    <p className="text-xs text-white/50">
+                      {nextDelivery.daysUntil} day{nextDelivery.daysUntil !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <div className={`text-4xl ${nextDelivery.urgency === 'urgent' ? 'animate-pulse' : ''}`}>
+                    🚚
+                  </div>
+                </div>
+              </div>
+            )}
             
             <div className="space-y-2 mb-4">
               {enrichedItems.map((item, idx) => (
@@ -416,6 +445,14 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
               ))}
             </div>
 
+            {/* Price Estimate */}
+            <div className="flex items-center justify-between mb-4 pt-4 border-t border-white/10">
+              <span className="text-sm text-slate-400">Estimated Total</span>
+              <span className="text-xl font-light text-white">
+                ${totalValue.toFixed(2)}
+              </span>
+            </div>
+
             <Button
               onClick={handleReviewCart}
               disabled={loading}
@@ -427,7 +464,7 @@ const SmartCartWidget = ({ cartItems }: SmartCartWidgetProps) => {
                   Generating...
                 </>
               ) : (
-                `Review Cart ($${totalValue.toFixed(2)})`
+                'Review Cart'
               )}
             </Button>
           </>
