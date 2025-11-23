@@ -189,29 +189,61 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
         return "Profile updated";
       },
       completeConversation: async (parameters: { reason: string }) => {
-        console.log("🎉 Completing onboarding:", parameters.reason);
+        const logError = async (step: string, error: any, data?: any) => {
+          const { data: { user } } = await supabase.auth.getUser();
+          const errorLog = {
+            timestamp: new Date().toISOString(),
+            step,
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+            data,
+            userId: user?.id
+          };
+          console.error(`❌ ONBOARDING ERROR [${step}]:`, errorLog);
+          
+          // Save to conversation_history for admin viewing
+          const { error: logInsertError } = await supabase.from('conversation_history').insert({
+            user_id: user?.id || 'unknown',
+            conversation_id: 'onboarding-error',
+            role: 'system',
+            message: `[${step}] ${errorLog.error}`,
+            metadata: errorLog
+          });
+          
+          if (logInsertError) {
+            console.error("Failed to log error to DB:", logInsertError);
+          }
+        };
+
+        console.log("🎉 Step 1: Completing onboarding:", parameters.reason);
         
         try {
           // Stop ElevenLabs session
           if (conversation.status === "connected") {
+            console.log("💾 Step 2: Ending ElevenLabs session");
             await conversation.endSession();
+            console.log("✅ Step 2: Session ended");
           }
           
           // Clean up UI state
+          console.log("💾 Step 3: Cleaning up UI state");
           setApertureState("idle");
           setShowSubtitles(false);
           setUserTranscript("");
           setAiTranscript("");
+          console.log("✅ Step 3: UI cleaned");
           
           // Use REF to get latest state (fixes stale closure)
           const currentState = stateRef.current;
-          console.log("📊 Current state at completion:", JSON.stringify(currentState, null, 2));
+          console.log("💾 Step 4: Retrieved state from ref:", JSON.stringify(currentState, null, 2));
           
           // Save to database with current state
+          console.log("💾 Step 5: Calling saveOnboardingData");
           const saveSuccess = await saveOnboardingData(currentState);
+          console.log(`✅ Step 5: Save result: ${saveSuccess}`);
           
           if (saveSuccess) {
-            console.log("✅ Data saved, navigating to dashboard...");
+            console.log("💾 Step 6: Building profile object");
             
             // Build profile object using current state
             const transformedData = transformProfileData(currentState);
@@ -231,19 +263,23 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
                                        (currentState.household?.cats || 0) > 0,
               onboarding_completed: true
             };
+            console.log("✅ Step 6: Profile built:", profile);
             
             // Auto-navigate after delay
+            console.log("💾 Step 7: Scheduling navigation");
             setTimeout(() => {
               onComplete(profile);
             }, 1500);
             
+            console.log("✅ ALL STEPS COMPLETED SUCCESSFULLY");
             return "SUCCESS: Onboarding complete, navigating to dashboard";
           } else {
+            await logError("save-failed", new Error("saveOnboardingData returned false"), currentState);
             setShowSummary(true);
             return "ERROR: Failed to save profile, please review and try again";
           }
         } catch (error) {
-          console.error("completeConversation error:", error);
+          await logError("completeConversation-catch", error, stateRef.current);
           return `ERROR: ${error instanceof Error ? error.message : "Unknown error"}`;
         }
       }
@@ -422,10 +458,36 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
   };
 
   const saveOnboardingData = async (state?: ConversationState): Promise<boolean> => {
-    console.log("💾 Starting database save...");
+    const logStep = async (step: string, error: any, data?: any) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const errorLog = {
+        timestamp: new Date().toISOString(),
+        step,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        data,
+        userId: user?.id
+      };
+      console.error(`❌ SAVE ERROR [${step}]:`, errorLog);
+      
+      const { error: logInsertError } = await supabase.from('conversation_history').insert({
+        user_id: user?.id || 'unknown',
+        conversation_id: 'onboarding-error',
+        role: 'system',
+        message: `[${step}] ${errorLog.error}`,
+        metadata: errorLog
+      });
+      
+      if (logInsertError) {
+        console.error("Failed to log error to DB:", logInsertError);
+      }
+    };
+
+    console.log("💾 SAVE Step 1: Starting database save...");
     
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) {
+      await logStep("auth-check", new Error("No authenticated user"), null);
       toast({
         title: "Error",
         description: "Not authenticated",
@@ -433,6 +495,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
       });
       return false;
     }
+    console.log("✅ SAVE Step 1: User authenticated:", session.user.id);
 
     const userId = session.user.id;
 
@@ -441,20 +504,22 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
       const currentState = state || stateRef.current;
       
       // Log raw state
-      console.log("📊 Raw conversationState:", JSON.stringify(currentState, null, 2));
+      console.log("💾 SAVE Step 2: Raw conversationState:", JSON.stringify(currentState, null, 2));
       
       // Transform data
+      console.log("💾 SAVE Step 3: Transforming profile data");
       const transformedData = transformProfileData(currentState);
-      console.log("✅ Transformed data:", JSON.stringify(transformedData, null, 2));
+      console.log("✅ SAVE Step 3: Transformed data:", JSON.stringify(transformedData, null, 2));
 
       // Update profile
+      console.log("💾 SAVE Step 4: Updating profile in database");
       const { error: profileError } = await supabase
         .from('profiles')
         .update(transformedData)
         .eq('id', userId);
 
       if (profileError) {
-        console.error("❌ Profile update error:", profileError);
+        await logStep("profile-update", profileError, { transformedData, userId });
         toast({
           title: "Error",
           description: `Failed to save profile: ${profileError.message}`,
@@ -463,10 +528,11 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
         return false;
       }
 
-      console.log("✅ Profile saved successfully");
+      console.log("✅ SAVE Step 4: Profile saved successfully");
 
       // Save household members
       if (currentState.householdMembers && currentState.householdMembers.length > 0) {
+        console.log(`💾 SAVE Step 5: Preparing ${currentState.householdMembers.length} household members`);
         const membersToInsert = currentState.householdMembers.map(member => ({
           user_id: userId,
           member_type: member.type,
@@ -481,16 +547,20 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
           allergies: member.allergies || [],
           health_conditions: member.healthConditions || []
         }));
+        console.log("✅ SAVE Step 5: Members prepared:", membersToInsert);
 
+        console.log("💾 SAVE Step 6: Inserting household members");
         const { error: membersError } = await supabase
           .from('household_members')
           .insert(membersToInsert);
 
         if (membersError) {
-          console.error("❌ Household members error:", membersError);
+          await logStep("household-insert", membersError, { membersToInsert, userId });
         } else {
-          console.log(`✅ Saved ${membersToInsert.length} household members`);
+          console.log(`✅ SAVE Step 6: Saved ${membersToInsert.length} household members`);
         }
+      } else {
+        console.log("ℹ️ SAVE Step 5-6: No household members to save");
       }
 
       // Save pets (legacy support)
