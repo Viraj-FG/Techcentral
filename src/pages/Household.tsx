@@ -239,23 +239,29 @@ const Household = () => {
   };
 
   const generateInviteLink = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) return;
-    
-    // Generate invite link with user's household ID
-    const baseUrl = window.location.origin;
-    const inviteCode = btoa(`${session.user.id}:${Date.now()}`); // Simple encoding, should use proper tokens in production
-    const inviteLink = `${baseUrl}/household/join?code=${inviteCode}`;
-    
-    navigator.clipboard.writeText(inviteLink);
-    setInviteLinkCopied(true);
-    
-    toast({
-      title: "Invite Link Copied",
-      description: "Share this link with household members to give them access",
-    });
+    try {
+      const { data, error } = await supabase.functions.invoke('create-invite-link');
+      
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+      
+      navigator.clipboard.writeText(data.inviteLink);
+      setInviteLinkCopied(true);
+      
+      toast({
+        title: "Invite Link Copied",
+        description: "Share this link with household members to give them access (valid for 24 hours)",
+      });
 
-    setTimeout(() => setInviteLinkCopied(false), 3000);
+      setTimeout(() => setInviteLinkCopied(false), 3000);
+    } catch (error) {
+      console.error('Error generating invite link:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate invite link",
+        variant: "destructive"
+      });
+    }
   };
 
   return (

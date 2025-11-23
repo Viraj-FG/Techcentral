@@ -60,13 +60,39 @@ serve(async (req) => {
     
     console.log('🚀 Instacart service request:', action);
 
-    // For get_nearby_retailers, we don't need user profile
+    // For get_nearby_retailers, we don't need user profile or authentication
     if (action === 'get_nearby_retailers') {
       const result = await getNearbyRetailers(zipCode);
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+
+    // Authentication verification for all other actions
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Authentication required');
+    }
+
+    // Create authenticated Supabase client
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    // Verify user session
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+    if (authError || !user) {
+      throw new Error('Invalid authentication token');
+    }
+
+    // Verify userId matches authenticated user
+    if (userId !== user.id) {
+      throw new Error('User ID mismatch - cannot create cart for another user');
+    }
+
+    console.log('✅ User authenticated:', user.id);
 
     // For all other actions, fetch user profile
     const supabase = createClient(

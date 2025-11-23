@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
 import Household from "./pages/Household";
+import Join from "./pages/Join";
 import Inventory from "./pages/Inventory";
 import RecipeBook from "./pages/RecipeBook";
 import Analytics from "./pages/Analytics";
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/household" element={<Household />} />
+            <Route path="/join" element={<Join />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/recipes" element={<RecipeBook />} />
             <Route path="/analytics" element={<Analytics />} />
