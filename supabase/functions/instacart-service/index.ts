@@ -325,5 +325,10 @@ async function getNearbyRetailers(zipCode: string) {
   const data = await response.json();
   console.log('✅ Found', data.retailers?.length || 0, 'retailers');
   
+  // Enhanced logging to see actual API response structure
+  if (data.retailers && data.retailers.length > 0) {
+    console.log('📊 Sample retailer data:', JSON.stringify(data.retailers[0], null, 2));
+  }
+  
   return { retailers: data.retailers || [] };
 }

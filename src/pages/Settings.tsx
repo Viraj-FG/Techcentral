@@ -580,7 +580,7 @@ const Settings = () => {
         userId={userId}
         onStoreSelected={(retailer) => {
           setSelectedStore({
-            retailer_id: retailer.retailer_id,
+            retailer_id: retailer.retailer_key,
             name: retailer.name
           });
         }}
