@@ -9,6 +9,9 @@ verify_jwt = true
 [functions.configure-elevenlabs-agent]
 verify_jwt = true
 
+[functions.provision-agents]
+verify_jwt = true
+
 [functions.instacart-create-cart]
 verify_jwt = true
 
