@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Shield } from "lucide-react";
 import { AgentConfig } from "@/components/admin/AgentConfig";
@@ -18,13 +19,14 @@ const Admin = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-kaeva-seattle-slate p-6 overflow-y-auto">
-      <motion.div 
-        className="max-w-7xl mx-auto space-y-6 pb-16"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={kaevaTransition}
-      >
+    <div className="h-screen bg-kaeva-seattle-slate flex flex-col">
+      <ScrollArea className="flex-1">
+        <motion.div 
+          className="max-w-7xl mx-auto space-y-6 p-6 pb-16"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={kaevaTransition}
+        >
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">
@@ -83,6 +85,7 @@ const Admin = () => {
           </TabsContent>
         </Tabs>
       </motion.div>
+      </ScrollArea>
     </div>
   );
 };
