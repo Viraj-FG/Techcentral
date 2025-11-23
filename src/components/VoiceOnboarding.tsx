@@ -282,6 +282,12 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
           await logError("completeConversation-catch", error, stateRef.current);
           return `ERROR: ${error instanceof Error ? error.message : "Unknown error"}`;
         }
+      },
+      navigateTo: (parameters: { page: string }) => {
+        console.log("📍 Navigation requested:", parameters.page);
+        // For now, just log it - this is for assistant mode (future feature)
+        // Could be used when Kaeva is in assistant mode on the dashboard
+        return `Navigation to ${parameters.page} noted`;
       }
     }
   });
