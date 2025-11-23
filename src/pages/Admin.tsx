@@ -12,6 +12,7 @@ import { Analytics } from "@/components/admin/Analytics";
 import { AgentStatus } from "@/components/admin/AgentStatus";
 import { AgentTestPanel } from "@/components/admin/AgentTestPanel";
 import { DeploymentChecklist } from "@/components/admin/DeploymentChecklist";
+import { AgentHealthDashboard } from "@/components/admin/AgentHealthDashboard";
 import { motion } from "framer-motion";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
 
@@ -45,8 +46,9 @@ const Admin = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="agent" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 glass-card">
+        <Tabs defaultValue="health" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-7 glass-card">
+            <TabsTrigger value="health" className="text-micro">Health</TabsTrigger>
             <TabsTrigger value="agent" className="text-micro">Agent Config</TabsTrigger>
             <TabsTrigger value="testing" className="text-micro">Testing</TabsTrigger>
             <TabsTrigger value="users" className="text-micro">Users</TabsTrigger>
@@ -54,6 +56,10 @@ const Admin = () => {
             <TabsTrigger value="logs" className="text-micro">Logs</TabsTrigger>
             <TabsTrigger value="analytics" className="text-micro">Analytics</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="health" className="space-y-6">
+            <AgentHealthDashboard />
+          </TabsContent>
 
           <TabsContent value="agent" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
