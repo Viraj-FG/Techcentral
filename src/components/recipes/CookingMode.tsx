@@ -125,9 +125,9 @@ export const CookingMode = ({ recipe, onComplete, onBack }: Props) => {
       if (!itemName || quantity <= 0) continue;
 
       // Find matching inventory item
-      const { data: inventoryItems } = await supabase
-        .from('inventory')
-        .select('*')
+      const inventoryTable = supabase.from('inventory') as any;
+      const { data: inventoryItems } = await inventoryTable
+        .select('id, name, quantity, unit, fill_level, household_id')
         .eq('user_id', user.id)
         .ilike('name', `%${itemName}%`);
 

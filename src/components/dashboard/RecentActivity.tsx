@@ -23,8 +23,8 @@ const RecentActivity = () => {
         const recentActivities: Activity[] = [];
 
         // Fetch recent inventory additions
-        const { data: inventoryData } = await supabase
-          .from('inventory')
+        const inventoryTable = supabase.from('inventory') as any;
+        const { data: inventoryData } = await inventoryTable
           .select('created_at, name')
           .eq('user_id', session.user.id)
           .order('created_at', { ascending: false })
@@ -42,8 +42,8 @@ const RecentActivity = () => {
         }
 
         // Check for auto-order items
-        const { data: autoOrderData } = await supabase
-          .from('inventory')
+        const autoOrderTable = supabase.from('inventory') as any;
+        const { data: autoOrderData } = await autoOrderTable
           .select('updated_at, name')
           .eq('user_id', session.user.id)
           .eq('auto_order_enabled', true)
