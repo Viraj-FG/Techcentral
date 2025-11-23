@@ -16,6 +16,7 @@ import { DeploymentChecklist } from "@/components/admin/DeploymentChecklist";
 import { AgentHealthDashboard } from "@/components/admin/AgentHealthDashboard";
 import ToolCallLogs from "@/components/admin/ToolCallLogs";
 import ContextPreview from "@/components/admin/ContextPreview";
+import { AgentProvisioning } from "@/components/admin/AgentProvisioning";
 import { motion } from "framer-motion";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
 
@@ -67,6 +68,7 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="agent" className="space-y-6">
+            <AgentProvisioning />
             <div className="grid md:grid-cols-2 gap-6">
               <OnboardingAgentConfig />
               <AssistantAgentConfig />
