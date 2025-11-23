@@ -100,9 +100,9 @@ export const AgentTestPanel = () => {
         .select('*')
         .eq('user_id', session.user.id);
 
-      const { data: inventory } = await supabase
-        .from('inventory')
-        .select('*')
+      const inventoryTable = supabase.from('inventory') as any;
+      const { data: inventory } = await inventoryTable
+        .select('id, name, category, quantity, unit, status')
         .eq('user_id', session.user.id)
         .limit(5);
 
