@@ -102,6 +102,31 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
           return `ERROR: ${error instanceof Error ? error.message : "Failed to complete"}`;
         }
       },
+      endConversation: async (parameters: { reason: string }) => {
+        console.log("🔚 End conversation called:", parameters.reason);
+        
+        try {
+          await conversation.endSession();
+          
+          setShowConversation(false);
+          setUserTranscript("");
+          setAiTranscript("");
+          setVoiceState("idle");
+          setApertureState("idle");
+          
+          if (parameters.reason === "user_exit") {
+            toast({
+              title: "Conversation Ended",
+              description: "You can continue onboarding anytime",
+            });
+          }
+          
+          return "SUCCESS: Conversation ended by user";
+        } catch (error) {
+          console.error("endConversation error:", error);
+          return `ERROR: ${error instanceof Error ? error.message : "Failed to end"}`;
+        }
+      },
       navigateTo: createNavigateToTool(navigate)
     }
   });

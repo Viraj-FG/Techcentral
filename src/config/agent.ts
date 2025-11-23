@@ -3,9 +3,9 @@
 
 export const ELEVENLABS_CONFIG = {
   agentId: "agent_0501kakwnx5rffaby5px9y1pskkb",
-  voiceId: "9BWtsMINqrJLrRacOk9x", // Aria
+  voiceId: "9BWtsMINqrJLrRacOk9x", // Aria - warm and friendly
   model: "eleven_turbo_v2_5",
-  promptVersion: "v2.0-master-brain"
+  promptVersion: "v3.0-structured-onboarding"
 } as const;
 
 export const AGENT_FEATURES = [
