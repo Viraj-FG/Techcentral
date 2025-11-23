@@ -6,9 +6,12 @@ const corsHeaders = {
 };
 
 interface RecipeRequest {
-  ingredients: string[];
+  ingredients?: string[];
   appliances: string[];
   dietary_preferences?: any;
+  inventory_match?: boolean;
+  user_id?: string;
+  health_goal?: string;
 }
 
 serve(async (req) => {
@@ -17,27 +20,71 @@ serve(async (req) => {
   }
 
   try {
-    const { ingredients, appliances, dietary_preferences }: RecipeRequest = await req.json();
-
-    if (!ingredients || ingredients.length === 0) {
-      return new Response(
-        JSON.stringify({ error: 'Ingredients are required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const { 
+      ingredients, 
+      appliances, 
+      dietary_preferences, 
+      inventory_match, 
+      user_id,
+      health_goal 
+    }: RecipeRequest = await req.json();
 
     const apiKey = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     if (!apiKey) {
       throw new Error('GOOGLE_GEMINI_API_KEY not configured');
     }
 
+    let availableIngredients = ingredients || [];
+    let inventoryContext = '';
+
+    // If inventory_match mode, fetch user's actual inventory
+    if (inventory_match && user_id) {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      
+      const inventoryResponse = await fetch(
+        `${supabaseUrl}/rest/v1/inventory?user_id=eq.${user_id}&quantity=gt.0&select=name,quantity,category`,
+        {
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`
+          }
+        }
+      );
+
+      if (inventoryResponse.ok) {
+        const inventory = await inventoryResponse.json();
+        availableIngredients = inventory.map((item: any) => item.name);
+        inventoryContext = `\nUser's available inventory: ${availableIngredients.join(', ')}`;
+      }
+    }
+
+    if (!availableIngredients || availableIngredients.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'No ingredients available' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const dietaryInfo = dietary_preferences 
       ? `Dietary preferences: ${JSON.stringify(dietary_preferences)}`
       : 'No specific dietary restrictions';
 
-    const prompt = `You are a helpful recipe assistant. Given these ingredients: ${ingredients.join(', ')}, 
-and these available appliances: ${appliances.join(', ')}, 
-suggest 3 recipes. ${dietaryInfo}.
+    const healthInfo = health_goal 
+      ? `Health goal: ${health_goal}. Prioritize recipes that support this goal.`
+      : '';
+
+    const matchRequirement = inventory_match 
+      ? `IMPORTANT: User should have at least 80% of ingredients. Mark any missing ingredients separately.`
+      : '';
+
+    const prompt = `You are a helpful recipe assistant. ${inventoryContext}
+Available appliances: ${appliances.join(', ')}
+${dietaryInfo}
+${healthInfo}
+${matchRequirement}
+
+Suggest 3 recipes that use PRIMARILY these ingredients: ${availableIngredients.join(', ')}.
 
 For each recipe provide:
 - name: Recipe name
@@ -47,6 +94,7 @@ For each recipe provide:
 - instructions: Array of 3-5 brief steps
 - estimated_calories: Calories per serving
 - servings: Number of servings
+${inventory_match ? '- missing_ingredients: Array of ingredients user doesn\'t have\n- match_score: Percentage (0-100) of ingredients user has' : ''}
 
 Return ONLY valid JSON array (no markdown):
 [
@@ -57,7 +105,7 @@ Return ONLY valid JSON array (no markdown):
     "required_appliances": ["Oven"],
     "instructions": ["Step 1", "Step 2", "Step 3"],
     "estimated_calories": 400,
-    "servings": 4
+    "servings": 4${inventory_match ? ',\n    "missing_ingredients": ["ingredient1"],\n    "match_score": 85' : ''}
   }
 ]`;
 

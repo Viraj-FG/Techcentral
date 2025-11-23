@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, AlertCircle, Package, Camera } from "lucide-react";
+import { Shield, AlertCircle, Package, Camera, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Icon } from "@/components/ui/icon";
+import { useToast } from "@/hooks/use-toast";
 import AppShell from "./layout/AppShell";
 import { checkAdminStatus } from "@/lib/authUtils";
 import { groupInventoryByCategory, getInventoryStatus } from "@/lib/inventoryUtils";
@@ -15,6 +16,8 @@ import ConfigurationBanner from "./dashboard/ConfigurationBanner";
 import PulseHeader from "./dashboard/PulseHeader";
 import SmartCartWidget from "./dashboard/SmartCartWidget";
 import InventoryMatrix from "./dashboard/InventoryMatrix";
+import RecipeFeed from "./dashboard/RecipeFeed";
+import SocialImport from "./dashboard/SocialImport";
 import SafetyShield from "./dashboard/SafetyShield";
 import HouseholdQuickAccess from "./dashboard/HouseholdQuickAccess";
 import RecentActivity from "./dashboard/RecentActivity";
@@ -30,6 +33,7 @@ interface DashboardProps {
 
 const Dashboard = ({ profile }: DashboardProps) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [inventoryData, setInventoryData] = useState({
     fridge: [],
     pantry: [],
@@ -39,6 +43,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [spotlightOpen, setSpotlightOpen] = useState(false);
+  const [socialImportOpen, setSocialImportOpen] = useState(false);
 
   // Voice assistant hook
   const { startConversation } = useVoiceAssistant({ 
@@ -46,33 +51,49 @@ const Dashboard = ({ profile }: DashboardProps) => {
     onProfileUpdate: setInventoryData 
   });
 
+  // Add to cart handler for refill buttons
+  const handleAddToCart = async (item: any) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase.from('shopping_list').insert({
+        item_name: item.name,
+        user_id: user.id,
+        source: 'auto_refill',
+        priority: 'high',
+        quantity: 1,
+        inventory_id: item.id
+      });
+
+      toast({
+        title: "Added to Cart",
+        description: `${item.name} added to your shopping list`,
+      });
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Cook now handler for expiring items
+  const handleCookNow = async (ingredients: string[]) => {
+    toast({
+      title: "Finding Recipes...",
+      description: `Looking for recipes using ${ingredients.join(', ')}`,
+    });
+    // Recipe feed will auto-load with these ingredients
+  };
+
   useEffect(() => {
     const checkAdmin = async () => {
       const isAdmin = await checkAdminStatus();
       setIsAdmin(isAdmin);
     };
-
-    const fetchInventory = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.user) return;
-
-        const { data: inventory } = await supabase
-          .from('inventory')
-          .select('*')
-          .eq('user_id', session.user.id);
-
-        if (inventory && inventory.length > 0) {
-          const grouped = groupInventoryByCategory(inventory);
-          setInventoryData(grouped);
-        }
-      } catch (error) {
-        console.error("Error fetching inventory:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     checkAdmin();
     fetchInventory();
   }, []);
@@ -164,11 +185,13 @@ const Dashboard = ({ profile }: DashboardProps) => {
           </motion.div>
         ) : (
           <div>
-            <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3 px-1">
-              Digital Twin
-            </h3>
-            <InventoryMatrix inventory={inventoryData} />
+            <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3">Inventory Command</h3>
+            <InventoryMatrix inventory={inventoryData} onRefill={handleAddToCart} onCookNow={handleCookNow} />
           </div>
+          <section>
+            <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3">Recipe Engine</h3>
+            <RecipeFeed userInventory={inventoryData} userProfile={profile} />
+          </section>
         )}
         
         {/* Recent Activity */}
@@ -182,32 +205,14 @@ const Dashboard = ({ profile }: DashboardProps) => {
       </AppShell>
 
       {/* Smart Scanner Overlay */}
-      {spotlightOpen && (
-        <SmartScanner
-          userId={profile.id}
-          onClose={() => setSpotlightOpen(false)}
-          onItemsAdded={() => {
-            setIsLoading(true);
-            // Refetch inventory after items added
-            const refetchInventory = async () => {
-              const { data: { session } } = await supabase.auth.getSession();
-              if (session?.user) {
-                const { data, error } = await supabase
-                  .from('inventory')
-                  .select('*')
-                  .eq('user_id', session.user.id);
-
-                if (!error && data) {
-                  const categorized = groupInventoryByCategory(data);
-                  setInventoryData(categorized);
-                }
-              }
-              setIsLoading(false);
-            };
-            refetchInventory();
-          }}
-        />
-      )}
+      <SmartScanner
+        userId={profile.id}
+        onClose={() => setSpotlightOpen(false)}
+        isOpen={spotlightOpen}
+        onItemsAdded={fetchInventory}
+        onSocialImport={() => { setSpotlightOpen(false); setSocialImportOpen(true); }}
+      />
+      <SocialImport open={socialImportOpen} onClose={() => setSocialImportOpen(false)} userId={profile.id} onItemsAdded={fetchInventory} />
     </>
   );
 };
