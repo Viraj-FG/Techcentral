@@ -172,7 +172,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
   }
 
   if (!permissionsGranted) {
-    return <PermissionRequest onPermissionsGranted={handlePermissionsGranted} />;
+    return <PermissionRequest onPermissionsGranted={handlePermissionsGranted} onSkip={onExit} />;
   }
 
   return (
@@ -182,20 +182,20 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-kaeva-void overflow-hidden"
     >
-      {isAdmin && onExit && (
+      {onExit && (
         <motion.button
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           onClick={() => {
             if (conversation.status === "connected") {
-              console.log("🔌 Admin exit: Disconnecting ElevenLabs");
+              console.log("🔌 Skipping onboarding: Disconnecting ElevenLabs");
               conversation.endSession();
             }
             onExit();
           }}
-          className="absolute top-4 right-4 z-50 px-4 py-2 bg-destructive/20 hover:bg-destructive/30 border border-destructive/50 rounded-lg text-destructive text-sm font-medium transition-colors backdrop-blur-sm"
+          className="absolute top-4 right-4 z-50 px-4 py-2 text-sm text-kaeva-slate-400 hover:text-kaeva-mint transition-colors underline-offset-4 hover:underline backdrop-blur-sm"
         >
-          Exit to Dashboard
+          Skip to Dashboard →
         </motion.button>
       )}
 
