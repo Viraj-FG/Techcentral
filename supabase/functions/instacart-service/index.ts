@@ -39,6 +39,15 @@ serve(async (req) => {
     
     console.log('🚀 Instacart service request:', action);
 
+    // For get_nearby_retailers, we don't need user profile
+    if (action === 'get_nearby_retailers') {
+      const result = await getNearbyRetailers(zipCode);
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // For all other actions, fetch user profile
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -72,9 +81,6 @@ serve(async (req) => {
         break;
       case 'swap_product':
         result = await swapProduct(swapData, filters, cachedRetailerId);
-        break;
-      case 'get_nearby_retailers':
-        result = await getNearbyRetailers(zipCode);
         break;
       default:
         throw new Error(`Unknown action: ${action}`);
