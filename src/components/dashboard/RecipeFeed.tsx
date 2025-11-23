@@ -88,9 +88,17 @@ const RecipeFeed = ({ userInventory, userProfile }: RecipeFeedProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('current_household_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.current_household_id) return;
+
       const items = ingredients.map(ing => ({
         item_name: ing,
-        user_id: user.id,
+        household_id: profile.current_household_id,
         source: 'recipe',
         priority: 'normal',
         quantity: 1

@@ -141,6 +141,19 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
       onConfirm: async () => {
         toast.loading(`Adding ${inventoryItems.length} items to inventory...`);
         
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('current_household_id')
+          .eq('id', userId)
+          .single();
+
+        if (!profile?.current_household_id) {
+          toast.error('No household found');
+          return;
+        }
+
+        const householdId = profile.current_household_id;
+        
         const enrichedItems = await Promise.all(
           inventoryItems.map(async (item) => {
             try {
@@ -160,7 +173,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
                 nutrition_data: data?.nutrition,
                 allergens: data?.allergens,
                 dietary_flags: data?.dietary_flags,
-                user_id: userId,
+                household_id: householdId,
                 quantity: 1,
                 status: 'sufficient' as const
               };
@@ -170,7 +183,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
                 name: item.name,
                 brand_name: item.brand,
                 category: item.category as 'fridge' | 'pantry' | 'beauty' | 'pets',
-                user_id: userId,
+                household_id: householdId,
                 quantity: 1,
                 status: 'sufficient' as const
               };
@@ -241,6 +254,17 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
       onConfirm: async () => {
         toast.loading(`Adding ${items.length} beauty products...`);
 
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('current_household_id')
+          .eq('id', userId)
+          .single();
+
+        if (!profile?.current_household_id) {
+          toast.error('No household found');
+          return;
+        }
+
         const beautyItems = items.map(item => {
           const paoMonths = item.metadata?.pao_symbol
             ? parseInt(item.metadata.pao_symbol.replace('M', ''))
@@ -254,7 +278,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
             brand_name: item.brand,
             category: 'beauty' as const,
             expiry_date: expiryDate.toISOString(),
-            user_id: userId,
+            household_id: profile.current_household_id,
             quantity: 1,
             status: 'sufficient' as const
           };
@@ -516,10 +540,18 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
       if (updateError) throw updateError;
 
       // Add to shopping list
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('current_household_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.current_household_id) return;
+
       await supabase
         .from('shopping_list')
         .insert({
-          user_id: user.id,
+          household_id: profile.current_household_id,
           item_name: inventory.name,
           quantity: 1,
           unit: inventory.unit,
