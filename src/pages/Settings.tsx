@@ -7,7 +7,7 @@ import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   User, Shield, Users, Heart, Clock, Sparkles, PawPrint, 
-  ArrowLeft, Save, Leaf, ShieldAlert, Home, Store 
+  ArrowLeft, Save, Leaf, ShieldAlert, Home, Store, BarChart3 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -528,9 +528,29 @@ const Settings = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-6"
+                  className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-6 space-y-6"
                 >
                   <ConversationHistory />
+                  
+                  <div className="border-t border-white/10 pt-6">
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        <BarChart3 className="text-kaeva-sage" size={24} strokeWidth={1.5} />
+                        <h3 className="text-white text-lg font-semibold">Meal Analytics</h3>
+                      </div>
+                      <p className="text-muted-foreground text-sm mb-4">
+                        View your nutrition trends, calendar insights, and export data
+                      </p>
+                      <Button 
+                        onClick={() => navigate('/analytics')}
+                        variant="default"
+                        className="gap-2"
+                      >
+                        <BarChart3 size={18} />
+                        View Analytics Dashboard
+                      </Button>
+                    </div>
+                  </div>
                 </motion.div>
               </TabsContent>
             </Tabs>
