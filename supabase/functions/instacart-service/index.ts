@@ -7,7 +7,15 @@ const corsHeaders = {
 };
 
 const INSTACART_API_KEY = Deno.env.get('INSTACART_API_KEY');
-const INSTACART_BASE_URL = 'https://connect.instacart.com/idp/v1';
+
+// Automatically determine environment based on API key prefix
+const isTestKey = INSTACART_API_KEY?.startsWith('test_');
+const INSTACART_BASE_URL = isTestKey 
+  ? 'https://connect.dev.instacart.tools/idp/v1'
+  : 'https://connect.instacart.com/idp/v1';
+
+console.log(`🔧 Using Instacart environment: ${isTestKey ? 'DEVELOPMENT' : 'PRODUCTION'}`);
+console.log(`🔧 Base URL: ${INSTACART_BASE_URL}`);
 
 interface CartItem {
   name: string;
@@ -277,22 +285,27 @@ async function swapProduct(swapData: SwapPayload, filters: string[], retailerId?
 // Action 4: Get Nearby Retailers
 async function getNearbyRetailers(zipCode: string) {
   console.log('📍 Fetching retailers for zip:', zipCode);
+  console.log('🔑 API Key present:', !!INSTACART_API_KEY);
+  console.log('🔑 API Key prefix:', INSTACART_API_KEY?.substring(0, 10) + '...');
 
   // Determine country code - default to US, but could be enhanced with validation
   const countryCode = 'US';
+  
+  const url = `${INSTACART_BASE_URL}/retailers?postal_code=${zipCode}&country_code=${countryCode}`;
+  console.log('📤 Request URL:', url);
 
-  const response = await fetch(
-    `${INSTACART_BASE_URL}/retailers?postal_code=${zipCode}&country_code=${countryCode}`,
-    {
-      headers: { 
-        'Authorization': `Bearer ${INSTACART_API_KEY}`,
-        'Accept': 'application/json'
-      }
+  const response = await fetch(url, {
+    headers: { 
+      'Authorization': `Bearer ${INSTACART_API_KEY}`,
+      'Accept': 'application/json'
     }
-  );
+  });
+  
+  console.log('📥 Response status:', response.status);
   
   if (!response.ok) {
     const errorText = await response.text();
+    console.error('❌ Instacart API error response:', errorText);
     throw new Error(`Instacart Retailers API error: ${response.status} - ${errorText}`);
   }
   
