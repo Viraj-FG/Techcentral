@@ -83,8 +83,16 @@ export const RecipeDetail = ({ recipe, open, onClose, onRecipeDeleted }: Props) 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('current_household_id')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile?.current_household_id) return;
+
     const cartItems = missingIngredients.map((ing: any) => ({
-      user_id: user.id,
+      household_id: profile.current_household_id,
       item_name: ing.item || ing.name || 'Unknown',
       quantity: parseFloat(ing.quantity) || 1,
       unit: ing.unit || '',

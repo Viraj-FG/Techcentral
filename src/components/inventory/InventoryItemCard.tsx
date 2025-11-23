@@ -106,11 +106,19 @@ export const InventoryItemCard = ({
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('current_household_id')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile?.current_household_id) return;
+
     const { error: cartError } = await supabase
       .from('shopping_list')
       .insert({
         item_name: item.name,
-        user_id: user.id,
+        household_id: profile.current_household_id,
         source: 'manual',
         priority: 'normal',
         quantity: 1,

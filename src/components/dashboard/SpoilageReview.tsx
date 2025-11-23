@@ -58,16 +58,24 @@ export const SpoilageReview = ({ items, onComplete }: SpoilageReviewProps) => {
       // Add to shopping list
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase
-          .from('shopping_list')
-          .insert({
-            user_id: user.id,
-            item_name: item.name,
-            quantity: 1,
-            source: 'spoilage',
-            priority: 'normal',
-            inventory_id: item.id
-          });
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('current_household_id')
+          .eq('id', user.id)
+          .single();
+
+        if (profile?.current_household_id) {
+          await supabase
+            .from('shopping_list')
+            .insert({
+              household_id: profile.current_household_id,
+              item_name: item.name,
+              quantity: 1,
+              source: 'spoilage',
+              priority: 'normal',
+              inventory_id: item.id
+            });
+        }
       }
 
       setReviewedItems(prev => new Set([...prev, item.id]));

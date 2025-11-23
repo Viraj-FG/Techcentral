@@ -13,6 +13,7 @@ type InventoryCategory = 'fridge' | 'pantry' | 'beauty' | 'pets';
 
 interface InventoryItem {
   id: string;
+  household_id: string;
   name: string;
   brand_name: string | null;
   category: InventoryCategory;
@@ -24,7 +25,6 @@ interface InventoryItem {
   auto_order_enabled: boolean;
   reorder_threshold: number | null;
   product_image_url: string | null;
-  user_id: string;
 }
 
 const Inventory = () => {
@@ -136,11 +136,19 @@ const Inventory = () => {
   const handleBulkAddToCart = async () => {
     if (!userId) return;
 
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('current_household_id')
+      .eq('id', userId)
+      .single();
+
+    if (!profile?.current_household_id) return;
+
     const itemsToAdd = items
       .filter(item => selectedItems.includes(item.id))
       .map(item => ({
         item_name: item.name,
-        user_id: userId,
+        household_id: profile.current_household_id,
         source: 'bulk_add',
         priority: 'normal',
         quantity: 1,

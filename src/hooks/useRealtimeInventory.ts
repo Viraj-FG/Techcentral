@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 interface InventoryItem {
   id: string;
-  user_id: string;
+  household_id: string;
   name: string;
   category: string;
   quantity: number | null;
