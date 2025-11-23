@@ -6,9 +6,11 @@ import KaevaAperture from "./KaevaAperture";
 import AuroraBackground from "./AuroraBackground";
 interface PermissionRequestProps {
   onPermissionsGranted: () => void;
+  onSkip?: () => void;
 }
 const PermissionRequest = ({
-  onPermissionsGranted
+  onPermissionsGranted,
+  onSkip
 }: PermissionRequestProps) => {
   const [isRequesting, setIsRequesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -233,6 +235,16 @@ const PermissionRequest = ({
              audioReady ? "Permissions Granted ✓" : 
              "Grant Permissions"}
           </Button>
+
+          {/* Skip to Dashboard */}
+          {onSkip && (
+            <button
+              onClick={onSkip}
+              className="text-sm text-kaeva-slate-400 hover:text-kaeva-mint transition-colors underline-offset-4 hover:underline"
+            >
+              Skip to Dashboard
+            </button>
+          )}
 
           {/* Developer Debug Button */}
           {import.meta.env.DEV && (
