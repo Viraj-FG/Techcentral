@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Scan, LogOut, Users } from 'lucide-react';
+import { Settings, Scan, LogOut, Users, Mic } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -101,6 +101,15 @@ const AppShell = ({
             <div className="w-16 h-16 rounded-full bg-kaeva-sage border-4 border-[#0F172A] flex items-center justify-center shadow-[0_0_20px_rgba(112,224,152,0.4)]">
               <Scan size={28} className="text-slate-900" strokeWidth={2} />
             </div>
+          </motion.button>
+
+          {/* Mic Button */}
+          <motion.button onClick={() => {/* TODO: Add voice functionality */}} className="p-3 text-slate-400 hover:text-kaeva-accent transition-colors rounded-full hover:bg-white/10" whileHover={{
+          scale: 1.1
+        }} whileTap={{
+          scale: 0.95
+        }} transition={kaevaTransition}>
+            <Mic size={22} strokeWidth={1.5} />
           </motion.button>
 
           {/* Logout Button */}
