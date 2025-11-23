@@ -9,7 +9,7 @@ import { Icon } from "@/components/ui/icon";
 import AppShell from "./layout/AppShell";
 import { checkAdminStatus } from "@/lib/authUtils";
 import { groupInventoryByCategory, getInventoryStatus } from "@/lib/inventoryUtils";
-import VoiceAssistant from "./voice/VoiceAssistant";
+import VoiceAssistant, { useVoiceAssistant } from "./voice/VoiceAssistant";
 import WelcomeBanner from "./dashboard/WelcomeBanner";
 import ConfigurationBanner from "./dashboard/ConfigurationBanner";
 import PulseHeader from "./dashboard/PulseHeader";
@@ -39,6 +39,12 @@ const Dashboard = ({ profile }: DashboardProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [spotlightOpen, setSpotlightOpen] = useState(false);
+
+  // Voice assistant hook
+  const { startConversation } = useVoiceAssistant({ 
+    userProfile: profile, 
+    onProfileUpdate: setInventoryData 
+  });
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -84,8 +90,11 @@ const Dashboard = ({ profile }: DashboardProps) => {
 
   return (
     <>
-      <AppShell onScan={() => setSpotlightOpen(true)}>
-        {/* Voice Assistant - always active */}
+      <AppShell 
+        onScan={() => setSpotlightOpen(true)} 
+        onVoiceActivate={startConversation}
+      >
+        {/* Voice Assistant Overlay */}
         <VoiceAssistant userProfile={profile} onProfileUpdate={setInventoryData} />
 
         {/* Welcome Banner for skipped onboarding */}
