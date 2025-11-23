@@ -21,7 +21,7 @@ const ConfigureAgent = () => {
       console.log("Configuring ElevenLabs agent with multi-vertical prompt...");
       
       const { data, error } = await supabase.functions.invoke('configure-elevenlabs-agent', {
-        body: { agentId: ELEVENLABS_CONFIG.agentId }
+        body: { agentId: ELEVENLABS_CONFIG.onboarding.agentId }
       });
 
       if (error) {
@@ -39,7 +39,7 @@ const ConfigureAgent = () => {
             agent_configured: true,
             agent_configured_at: new Date().toISOString(),
             agent_last_configured_at: data.configured_at || new Date().toISOString(),
-            agent_prompt_version: data.prompt_version || ELEVENLABS_CONFIG.promptVersion
+            agent_prompt_version: data.prompt_version || ELEVENLABS_CONFIG.onboarding.promptVersion
           })
           .eq('id', session.user.id);
       }

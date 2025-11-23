@@ -21,7 +21,7 @@ export const TestingTools = () => {
       if (!session) throw new Error("No session");
 
       const { error } = await supabase.functions.invoke("generate-signed-url", {
-        body: { agentId: ELEVENLABS_CONFIG.agentId },
+        body: { agentId: ELEVENLABS_CONFIG.onboarding.agentId },
       });
 
       if (error) throw error;
