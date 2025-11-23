@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const INSTACART_API_KEY = Deno.env.get('INSTACART_API_KEY');
-const INSTACART_BASE_URL = 'https://api.instacart.com/idp/v1';
+const INSTACART_BASE_URL = 'https://connect.instacart.com/idp/v1';
 
 interface CartItem {
   name: string;
@@ -278,10 +278,16 @@ async function swapProduct(swapData: SwapPayload, filters: string[], retailerId?
 async function getNearbyRetailers(zipCode: string) {
   console.log('📍 Fetching retailers for zip:', zipCode);
 
+  // Determine country code - default to US, but could be enhanced with validation
+  const countryCode = 'US';
+
   const response = await fetch(
-    `${INSTACART_BASE_URL}/retailers/nearby?zip_code=${zipCode}`,
+    `${INSTACART_BASE_URL}/retailers?postal_code=${zipCode}&country_code=${countryCode}`,
     {
-      headers: { 'Authorization': `Bearer ${INSTACART_API_KEY}` }
+      headers: { 
+        'Authorization': `Bearer ${INSTACART_API_KEY}`,
+        'Accept': 'application/json'
+      }
     }
   );
   
