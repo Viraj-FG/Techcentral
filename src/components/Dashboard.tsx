@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, AlertCircle, Package, Camera, Settings } from "lucide-react";
+import { Shield, AlertCircle, Package, Camera, Settings, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -205,10 +205,19 @@ const Dashboard = ({ profile }: DashboardProps) => {
           </motion.div>
         ) : (
           <>
-            <div>
-              <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3">Inventory Command</h3>
-              <InventoryMatrix inventory={inventoryData} onRefill={handleAddToCart} onCookNow={handleCookNow} />
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Inventory Command</h3>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/inventory')}
+                className="text-sm gap-2 text-muted-foreground hover:text-foreground"
+              >
+                View All Items
+                <ArrowRight className="w-4 h-4" />
+              </Button>
             </div>
+            <InventoryMatrix inventory={inventoryData} onRefill={handleAddToCart} onCookNow={handleCookNow} />
             <section>
               <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3">Recipe Engine</h3>
               <RecipeFeed userInventory={inventoryData} userProfile={profile} />
