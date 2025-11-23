@@ -9,10 +9,12 @@ import KaevaAperture from '@/components/KaevaAperture';
 interface AppShellProps {
   children: ReactNode;
   onScan: () => void;
+  onVoiceActivate?: () => void;
 }
 const AppShell = ({
   children,
-  onScan
+  onScan,
+  onVoiceActivate
 }: AppShellProps) => {
   const navigate = useNavigate();
   const {
@@ -104,11 +106,17 @@ const AppShell = ({
           </motion.button>
 
           {/* Mic Button */}
-          <motion.button onClick={() => {/* TODO: Add voice functionality */}} className="p-3 text-slate-400 hover:text-kaeva-accent transition-colors rounded-full hover:bg-white/10" whileHover={{
-          scale: 1.1
-        }} whileTap={{
-          scale: 0.95
-        }} transition={kaevaTransition}>
+          <motion.button 
+            onClick={onVoiceActivate} 
+            className="p-3 text-slate-400 hover:text-kaeva-accent transition-colors rounded-full hover:bg-white/10" 
+            whileHover={{
+              scale: 1.1
+            }} 
+            whileTap={{
+              scale: 0.95
+            }} 
+            transition={kaevaTransition}
+          >
             <Mic size={22} strokeWidth={1.5} />
           </motion.button>
 
