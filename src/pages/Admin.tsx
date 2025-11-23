@@ -15,6 +15,7 @@ import { AgentHealthDashboard } from "@/components/admin/AgentHealthDashboard";
 import ToolCallLogs from "@/components/admin/ToolCallLogs";
 import ContextPreview from "@/components/admin/ContextPreview";
 import { AgentProvisioning } from "@/components/admin/AgentProvisioning";
+import { ConversationMonitor } from "@/components/admin/ConversationMonitor";
 import { motion } from "framer-motion";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
 
@@ -49,9 +50,10 @@ const Admin = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="health" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9 glass-card">
+          <TabsList className="grid w-full grid-cols-10 glass-card">
             <TabsTrigger value="health" className="text-micro">Health</TabsTrigger>
             <TabsTrigger value="agent" className="text-micro">Agent</TabsTrigger>
+            <TabsTrigger value="monitor" className="text-micro">Monitor</TabsTrigger>
             <TabsTrigger value="testing" className="text-micro">Testing</TabsTrigger>
             <TabsTrigger value="users" className="text-micro">Users</TabsTrigger>
             <TabsTrigger value="database" className="text-micro">Database</TabsTrigger>
@@ -70,6 +72,10 @@ const Admin = () => {
             <AgentStatus />
             <AgentTestPanel />
             <DeploymentChecklist />
+          </TabsContent>
+
+          <TabsContent value="monitor">
+            <ConversationMonitor />
           </TabsContent>
 
           <TabsContent value="testing">
