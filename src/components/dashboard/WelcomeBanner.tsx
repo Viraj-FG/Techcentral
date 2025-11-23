@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Sparkles, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
 const WelcomeBanner = () => {
+  const navigate = useNavigate();
   const [showBanner, setShowBanner] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isDismissed, setIsDismissed] = useState(false);
@@ -49,13 +51,9 @@ const WelcomeBanner = () => {
     setShowBanner(false);
   };
 
-  const handleCompleteProfile = async () => {
-    // Navigate user to settings or trigger a profile completion flow
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) return;
-
-    // For now, just dismiss - in future this could open a modal or navigate
-    handleDismiss();
+  const handleCompleteProfile = () => {
+    // Navigate to Settings page for manual profile editing
+    navigate('/settings');
   };
 
   if (isLoading || isDismissed || !showBanner) return null;
