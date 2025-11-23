@@ -9,6 +9,7 @@ import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
 import Household from "./pages/Household";
 import Inventory from "./pages/Inventory";
+import RecipeBook from "./pages/RecipeBook";
 import NotFound from "./pages/NotFound";
 import { AdminRoute } from "./components/AdminRoute";
 
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/settings" element={<Settings />} />
           <Route path="/household" element={<Household />} />
           <Route path="/inventory" element={<Inventory />} />
+          <Route path="/recipes" element={<RecipeBook />} />
           <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
