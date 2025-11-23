@@ -8,10 +8,18 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Retailer {
-  retailer_id: string;
+  retailer_key: string;
   name: string;
-  address: string;
-  distance_miles: number;
+  retailer_logo_url?: string;
+  banner_name?: string;
+  location?: {
+    address?: string;
+    address_extended?: string;
+    city?: string;
+    state?: string;
+    zip_code?: string;
+  };
+  store_number?: string;
 }
 
 interface StoreSelectorProps {
@@ -175,7 +183,7 @@ const StoreSelector = ({ open, onClose, userId, onStoreSelected }: StoreSelector
       const { error } = await supabase
         .from('profiles')
         .update({
-          preferred_retailer_id: retailer.retailer_id,
+          preferred_retailer_id: retailer.retailer_key,
           preferred_retailer_name: retailer.name,
           user_zip_code: zipCode,
           last_retailer_refresh: new Date().toISOString()
@@ -281,29 +289,59 @@ const StoreSelector = ({ open, onClose, userId, onStoreSelected }: StoreSelector
                 >
                   {retailers.map((retailer, index) => (
                     <motion.div
-                      key={retailer.retailer_id}
+                      key={retailer.retailer_key}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}
                       className="group p-4 bg-slate-800/60 hover:bg-slate-800 border border-slate-700 hover:border-emerald-500/50 rounded-lg transition-all cursor-pointer"
                       onClick={() => handleSelectStore(retailer)}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">
+                      <div className="flex items-center gap-3">
+                        {/* Retailer Logo */}
+                        {retailer.retailer_logo_url ? (
+                          <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center p-1.5 flex-shrink-0">
+                            <img 
+                              src={retailer.retailer_logo_url} 
+                              alt={retailer.name}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                            <Store className="text-slate-400" size={24} />
+                          </div>
+                        )}
+
+                        {/* Store Information */}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-white group-hover:text-emerald-400 transition-colors truncate">
                             {retailer.name}
                           </h4>
-                          <p className="text-sm text-slate-400 mt-0.5">{retailer.address}</p>
+                          {retailer.banner_name && retailer.banner_name !== retailer.name && (
+                            <p className="text-xs text-emerald-400/70 mt-0.5">{retailer.banner_name}</p>
+                          )}
+                          {retailer.location && (
+                            <p className="text-sm text-slate-400 mt-1 truncate">
+                              {[
+                                retailer.location.address,
+                                retailer.location.city,
+                                retailer.location.state,
+                                retailer.location.zip_code
+                              ].filter(Boolean).join(', ')}
+                            </p>
+                          )}
+                          {retailer.store_number && (
+                            <p className="text-xs text-slate-500 mt-0.5">Store #{retailer.store_number}</p>
+                          )}
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-slate-400">
-                            {retailer.distance_miles?.toFixed(1) ?? 'N/A'} mi
-                          </span>
+
+                        {/* Action Indicator */}
+                        <div className="flex-shrink-0">
                           {selecting ? (
-                            <Loader2 className="animate-spin text-emerald-400" size={18} />
+                            <Loader2 className="animate-spin text-emerald-400" size={20} />
                           ) : (
-                            <div className="w-8 h-8 rounded-full bg-emerald-500/10 group-hover:bg-emerald-500/20 flex items-center justify-center transition-colors">
-                              <Store className="text-emerald-400" size={16} />
+                            <div className="w-10 h-10 rounded-full bg-emerald-500/10 group-hover:bg-emerald-500/20 flex items-center justify-center transition-colors">
+                              <Store className="text-emerald-400" size={18} />
                             </div>
                           )}
                         </div>
