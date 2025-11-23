@@ -28,6 +28,7 @@ import { cn } from '@/lib/utils';
 
 interface InventoryItem {
   id: string;
+  household_id: string;
   name: string;
   brand_name: string | null;
   category: 'fridge' | 'pantry' | 'beauty' | 'pets';
@@ -39,7 +40,6 @@ interface InventoryItem {
   auto_order_enabled: boolean;
   reorder_threshold: number | null;
   product_image_url: string | null;
-  user_id: string;
 }
 
 interface Props {
