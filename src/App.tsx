@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { RealtimeProvider } from "@/contexts/RealtimeContext";
 import { SyncIndicator } from "@/components/ui/SyncIndicator";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Settings from "./pages/Settings";
@@ -30,18 +31,22 @@ const App = () => (
             <Toaster />
             <Sonner />
             <SyncIndicator />
-            <BrowserRouter>
+            <BrowserRouter
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true,
+              }}
+            >
               <Routes>
-                <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
                 <Route path="/auth" element={<ErrorBoundary><Auth /></ErrorBoundary>} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/household" element={<Household />} />
-                <Route path="/join" element={<Join />} />
-                <Route path="/inventory" element={<Inventory />} />
-                <Route path="/recipes" element={<RecipeBook />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/admin" element={<AdminRoute><ErrorBoundary><Admin /></ErrorBoundary></AdminRoute>} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="/" element={<ProtectedRoute><ErrorBoundary><Index /></ErrorBoundary></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                <Route path="/household" element={<ProtectedRoute><Household /></ProtectedRoute>} />
+                <Route path="/join" element={<ProtectedRoute><Join /></ProtectedRoute>} />
+                <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
+                <Route path="/recipes" element={<ProtectedRoute><RecipeBook /></ProtectedRoute>} />
+                <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute><AdminRoute><ErrorBoundary><Admin /></ErrorBoundary></AdminRoute></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

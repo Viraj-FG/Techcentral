@@ -1,66 +1,45 @@
 import { useState, useEffect } from "react";
-import { AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import Splash from "@/components/Splash";
 import VoiceOnboarding from "@/components/VoiceOnboarding";
 import Dashboard from "@/components/Dashboard";
 import LoadingState from "@/components/LoadingState";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 const Index = () => {
+  const { user, profile, isReady, isAuthenticated, refreshProfile } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const { isAuthenticated, profile, isLoading: authLoading, refreshProfile, user } = useAuth();
-  const [appState, setAppState] = useState<"splash" | "onboarding" | "dashboard" | null>(null);
-  const [userProfile, setUserProfile] = useState(profile);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
-  // Sync profile from auth context
+  // Redirect to auth if not logged in
   useEffect(() => {
-    if (profile) {
-      setUserProfile(profile);
+    if (isReady && !isAuthenticated) {
+      navigate("/auth", { replace: true });
     }
-  }, [profile]);
+  }, [isReady, isAuthenticated, navigate]);
 
-  // Handle authentication and routing
+  // Determine view based on onboarding status
   useEffect(() => {
-    if (authLoading) return;
-
-    if (!isAuthenticated) {
-      navigate('/auth');
-      return;
-    }
-
-    // Show splash first
-    if (!appState) {
-      setAppState("splash");
-      return;
-    }
-
-    // After splash, check onboarding status and household
-    if (appState === "splash" && profile) {
+    if (isReady && isAuthenticated && profile) {
       if (profile.onboarding_completed) {
-        // Check if household exists
-        ensureHousehold().then(() => {
-          setAppState("dashboard");
-        });
+        setShowOnboarding(false);
       } else {
-        setAppState("onboarding");
+        setShowOnboarding(true);
       }
     }
-  }, [authLoading, isAuthenticated, appState, profile, navigate]);
+  }, [isReady, isAuthenticated, profile]);
 
   const ensureHousehold = async () => {
     if (!user || !profile) return;
 
     if (profile.current_household_id) {
-      console.log('✅ User already has household:', profile.current_household_id);
+      console.log('✅ User already has household');
       return;
     }
 
     try {
-      // Check if user already owns a household
       const { data: existingHouseholds } = await supabase
         .from('households')
         .select('id')
@@ -68,8 +47,6 @@ const Index = () => {
         .limit(1);
 
       if (existingHouseholds && existingHouseholds.length > 0) {
-        // Link existing household
-        console.log('✅ Found existing household, linking:', existingHouseholds[0].id);
         await supabase
           .from('profiles')
           .update({ current_household_id: existingHouseholds[0].id })
@@ -77,7 +54,6 @@ const Index = () => {
         
         await refreshProfile();
       } else {
-        // Create new household
         const { data: household, error } = await supabase
           .from('households')
           .insert({
@@ -89,124 +65,60 @@ const Index = () => {
 
         if (error) throw error;
 
-        // Update profile with new household
         await supabase
           .from('profiles')
           .update({ current_household_id: household.id })
           .eq('id', user.id);
 
         await refreshProfile();
-        console.log('✅ Auto-created household:', household.id);
       }
     } catch (error) {
       console.error('Failed to ensure household:', error);
-      toast({
-        title: "Setup Error",
-        description: "Failed to set up household. Redirecting...",
-        variant: "destructive",
-      });
-      navigate('/household');
+      toast.error("Failed to set up household");
     }
   };
 
-  const handleOnboardingComplete = async (completedProfile?: any) => {
-    console.log("🎉 Onboarding complete");
-    
-    try {
-      // Ensure household is created
-      await ensureHousehold();
-      
-      // Refresh profile from database
-      await refreshProfile();
-      
-      setAppState("dashboard");
-    } catch (error) {
-      console.error("Error completing onboarding:", error);
-      toast({
-        title: "Error",
-        description: "Failed to complete setup. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const handleOnboardingComplete = async () => {
+    await ensureHousehold();
+    await refreshProfile();
+    setShowOnboarding(false);
   };
 
   const handleOnboardingSkip = async () => {
-    if (!user) return;
-
-    try {
-      // Mark onboarding as complete
-      await supabase
-        .from('profiles')
-        .update({ onboarding_completed: true })
-        .eq('id', user.id);
-
-      // Ensure household exists
-      await ensureHousehold();
-      // Refresh profile from backend
-      await refreshProfile();
-      setAppState("dashboard");
-    } catch (error) {
-      console.error("Error skipping onboarding:", error);
-      toast({
-        title: "Error",
-        description: "Failed to skip onboarding. Please try again.",
-        variant: "destructive",
-      });
+    if (user) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({ onboarding_completed: true })
+          .eq('id', user.id);
+        
+        await ensureHousehold();
+        await refreshProfile();
+        setShowOnboarding(false);
+      } catch (error) {
+        console.error("Error skipping onboarding:", error);
+      }
     }
   };
 
-  // Loading state
-  if (authLoading || appState === null) {
-    return (
-      <div className="fixed inset-0 bg-kaeva-void flex items-center justify-center">
-        <LoadingState
-          message="Loading Kaeva..."
-          timeout={15000}
-          showProgress
-          onTimeout={() => {
-            console.warn("⏱️ Loading timeout - redirecting to login");
-            toast({
-              title: "Loading Timeout",
-              description: "Redirecting to login...",
-              variant: "destructive",
-            });
-            navigate("/auth");
-          }}
-        />
-      </div>
-    );
+  if (!isReady || !isAuthenticated) {
+    return <LoadingState />;
   }
 
   return (
-    <AnimatePresence mode="wait">
-      {appState === "splash" && (
-        <Splash
-          key="splash"
-          onComplete={() => {
-            if (profile?.onboarding_completed) {
-              ensureHousehold().then(() => setAppState("dashboard"));
-            } else {
-              setAppState("onboarding");
-            }
-          }}
-        />
-      )}
-
-      {appState === "onboarding" && (
-        <VoiceOnboarding 
-          key="voice-onboarding"
-          onComplete={handleOnboardingComplete}
-          onExit={handleOnboardingSkip}
-        />
-      )}
-
-      {appState === "dashboard" && userProfile && (
-        <Dashboard 
-          key="dashboard"
-          profile={userProfile}
-        />
-      )}
-    </AnimatePresence>
+    <div className="h-screen w-screen overflow-hidden bg-kaeva-void">
+      <AnimatePresence mode="wait">
+        {showOnboarding ? (
+          <VoiceOnboarding
+            key="onboarding"
+            onComplete={handleOnboardingComplete}
+            onExit={handleOnboardingSkip}
+          />
+        ) : (
+          <Dashboard key="dashboard" profile={profile} />
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 
