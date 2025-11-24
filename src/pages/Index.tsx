@@ -161,7 +161,8 @@ const Index = () => {
       <div className="fixed inset-0 bg-kaeva-void flex items-center justify-center">
         <LoadingState
           message="Loading Kaeva..."
-          timeout={30000}
+          timeout={15000}
+          showProgress
           onTimeout={() => {
             console.warn("⏱️ Loading timeout - redirecting to login");
             toast({
