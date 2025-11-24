@@ -135,7 +135,7 @@ export const useOnboardingConversation = ({
       });
     },
     clientTools: {
-      updateProfile: (parameters: { field: string; value: any }) => {
+      updateProfile: async (parameters: { field: string; value: any }) => {
         console.log("✅ Profile field update:", parameters.field, parameters.value);
         
         // Log tool call
@@ -150,42 +150,145 @@ export const useOnboardingConversation = ({
           role: 'assistant'
         });
         
-        let result = "";
-        
-        if (parameters.field === 'userBiometrics') {
-          const tdee = calculateTDEE(parameters.value);
-          setConversationState(prev => ({
-            ...prev,
-            userBiometrics: { ...parameters.value, calculatedTDEE: tdee }
-          }));
-          result = `Biometrics saved. Your baseline is ${tdee} calories per day.`;
-        } else if (parameters.field === 'householdMembers') {
-          setConversationState(prev => ({
-            ...prev,
-            householdMembers: parameters.value
-          }));
-          result = `Household roster updated. ${parameters.value.length} members registered.`;
-        } else {
-          setConversationState(prev => ({
-            ...prev,
-            [parameters.field]: parameters.value
-          }));
-          result = "Profile updated";
+        try {
+          let result = "";
+          
+          // 1. Update local state first (for UI feedback)
+          if (parameters.field === 'userBiometrics') {
+            const tdee = calculateTDEE(parameters.value);
+            setConversationState(prev => ({
+              ...prev,
+              userBiometrics: { ...parameters.value, calculatedTDEE: tdee }
+            }));
+            result = `Biometrics saved. Your baseline is ${tdee} calories per day.`;
+          } else if (parameters.field === 'householdMembers') {
+            setConversationState(prev => ({
+              ...prev,
+              householdMembers: parameters.value
+            }));
+            result = `Household roster updated. ${parameters.value.length} members registered.`;
+          } else {
+            setConversationState(prev => ({
+              ...prev,
+              [parameters.field]: parameters.value
+            }));
+            result = "Profile updated";
+          }
+          
+          // 2. Persist to database immediately
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session?.user) {
+            console.warn("No session found, skipping DB save");
+            return result;
+          }
+          
+          let updateData: any = {};
+          
+          switch (parameters.field) {
+            case "userName":
+              updateData.user_name = parameters.value;
+              break;
+            case "userBiometrics":
+              const tdee = calculateTDEE(parameters.value);
+              updateData = {
+                user_age: parameters.value.age,
+                user_weight: parameters.value.weight,
+                user_height: parameters.value.height,
+                user_gender: parameters.value.gender,
+                user_activity_level: parameters.value.activityLevel,
+                calculated_tdee: tdee
+              };
+              break;
+            case "dietaryValues":
+              updateData.dietary_preferences = parameters.value;
+              break;
+            case "allergies":
+              updateData.allergies = parameters.value;
+              break;
+            case "beautyProfile":
+              updateData.beauty_profile = parameters.value;
+              break;
+            case "householdMembers":
+              // Use batch insert RPC for household members
+              const { error: batchError } = await supabase.rpc('insert_household_batch', {
+                p_user_id: session.user.id,
+                p_members: parameters.value,
+                p_pets: []
+              });
+              
+              if (batchError) {
+                console.error("Batch insert error:", batchError);
+                throw batchError;
+              }
+              
+              result = `Household members saved (${parameters.value.length} members)`;
+              
+              // Log tool response
+              logConversationEvent({
+                conversationId: conversationIdRef.current,
+                agentType: 'onboarding',
+                eventType: 'tool_response',
+                eventData: { 
+                  tool_name: 'updateProfile',
+                  result 
+                },
+                role: 'system'
+              });
+              
+              return result;
+            case "healthGoals":
+              updateData.health_goals = parameters.value;
+              break;
+            case "lifestyleGoals":
+              updateData.lifestyle_goals = parameters.value;
+              break;
+          }
+          
+          if (Object.keys(updateData).length > 0) {
+            const { error } = await supabase
+              .from('profiles')
+              .update(updateData)
+              .eq('id', session.user.id);
+            
+            if (error) {
+              console.error("Profile update error:", error);
+              throw error;
+            }
+            
+            console.log(`💾 Saved ${parameters.field} to database`);
+          }
+          
+          // Log tool response
+          logConversationEvent({
+            conversationId: conversationIdRef.current,
+            agentType: 'onboarding',
+            eventType: 'tool_response',
+            eventData: { 
+              tool_name: 'updateProfile',
+              result 
+            },
+            role: 'system'
+          });
+          
+          return result;
+        } catch (error) {
+          console.error("updateProfile error:", error);
+          const errorResult = `ERROR: ${error instanceof Error ? error.message : "Failed to update"}`;
+          
+          logConversationEvent({
+            conversationId: conversationIdRef.current,
+            agentType: 'onboarding',
+            eventType: 'tool_response',
+            eventData: { 
+              tool_name: 'updateProfile',
+              result: errorResult,
+              error: true
+            },
+            role: 'system'
+          });
+          
+          return errorResult;
         }
-        
-        // Log tool response
-        logConversationEvent({
-          conversationId: conversationIdRef.current,
-          agentType: 'onboarding',
-          eventType: 'tool_response',
-          eventData: { 
-            tool_name: 'updateProfile',
-            result 
-          },
-          role: 'system'
-        });
-        
-        return result;
       },
       completeConversation: async (parameters: { reason: string }) => {
         console.log("🎉 Completing onboarding:", parameters.reason);
@@ -203,51 +306,42 @@ export const useOnboardingConversation = ({
         });
         
         try {
-          // 1. Save onboarding data to database
-          console.log("💾 Saving onboarding data...");
-          const success = await saveOnboardingData(stateRef.current);
-          
-          if (!success) {
-            console.error("Failed to save onboarding data");
-            return "ERROR: Failed to save onboarding data";
-          }
-          
-          // 2. Mark onboarding as complete in database
           const { data: { session } } = await supabase.auth.getSession();
-          if (session?.user) {
-            console.log("✅ Marking onboarding as complete in database");
-            const { error } = await supabase
-              .from('profiles')
-              .update({ onboarding_completed: true })
-              .eq('id', session.user.id);
-              
-            if (error) {
-              console.error("Failed to mark onboarding complete:", error);
-              return "ERROR: Failed to mark onboarding complete";
-            }
-            
-            // 3. Log completion to conversation_history
-            await supabase.from('conversation_history').insert([{
-              conversation_id: crypto.randomUUID(),
-              role: 'system',
-              message: 'Onboarding completed successfully',
-              user_id: session.user.id,
-              metadata: { 
-                reason: parameters.reason,
-                timestamp: new Date().toISOString()
-              }
-            }]);
-            
-            console.log("✅ Onboarding completion logged");
+          if (!session?.user) {
+            return "ERROR: Not authenticated";
           }
           
-          // 4. End ElevenLabs session
+          // 1. Mark onboarding as complete (data already saved incrementally)
+          console.log("✅ Marking onboarding as complete");
+          const { error } = await supabase
+            .from('profiles')
+            .update({ onboarding_completed: true })
+            .eq('id', session.user.id);
+            
+          if (error) {
+            console.error("Failed to mark onboarding complete:", error);
+            throw error;
+          }
+          
+          // 2. Log completion to conversation_history
+          await supabase.from('conversation_history').insert([{
+            conversation_id: conversationIdRef.current,
+            role: 'system',
+            message: 'Onboarding completed successfully',
+            user_id: session.user.id,
+            metadata: { 
+              reason: parameters.reason,
+              timestamp: new Date().toISOString()
+            }
+          }]);
+          
+          // 3. End ElevenLabs session
           if (conversation.status === "connected") {
             console.log("Ending ElevenLabs session");
             await conversation.endSession();
           }
           
-          // 5. Update UI states
+          // 4. Update UI states
           setApertureState("idle");
           setShowSubtitles(false);
           setUserTranscript("");
@@ -282,6 +376,65 @@ export const useOnboardingConversation = ({
             eventType: 'tool_response',
             eventData: { 
               tool_name: 'completeConversation',
+              result: errorResult,
+              error: true
+            },
+            role: 'system'
+          });
+          
+          return errorResult;
+        }
+      },
+      endConversation: async (parameters: { reason: string }) => {
+        console.log("🚪 Ending conversation early:", parameters.reason);
+        
+        // Log tool call
+        logConversationEvent({
+          conversationId: conversationIdRef.current,
+          agentType: 'onboarding',
+          eventType: 'tool_call',
+          eventData: { 
+            tool_name: 'endConversation',
+            parameters 
+          },
+          role: 'assistant'
+        });
+        
+        try {
+          if (conversation.status === "connected") {
+            await conversation.endSession();
+          }
+          
+          setApertureState("idle");
+          setShowSubtitles(false);
+          setUserTranscript("");
+          setAiTranscript("");
+          
+          const successResult = "SUCCESS: Conversation ended";
+          
+          // Log tool response
+          logConversationEvent({
+            conversationId: conversationIdRef.current,
+            agentType: 'onboarding',
+            eventType: 'tool_response',
+            eventData: { 
+              tool_name: 'endConversation',
+              result: successResult 
+            },
+            role: 'system'
+          });
+          
+          return successResult;
+        } catch (error) {
+          console.error("endConversation error:", error);
+          const errorResult = `ERROR: ${error instanceof Error ? error.message : "Failed to end conversation"}`;
+          
+          logConversationEvent({
+            conversationId: conversationIdRef.current,
+            agentType: 'onboarding',
+            eventType: 'tool_response',
+            eventData: { 
+              tool_name: 'endConversation',
               result: errorResult,
               error: true
             },
