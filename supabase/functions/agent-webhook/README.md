@@ -157,10 +157,40 @@ ORDER BY created_at DESC;
 
 ## Security
 
-- Webhook does NOT require JWT authentication (set `verify_jwt = false`)
-- User identification is done via conversation_id lookup
-- All database operations use service role key
-- Consider adding ElevenLabs signature validation for production
+This webhook validates all incoming requests using HMAC-SHA256 signature verification to ensure only legitimate requests from ElevenLabs are processed.
+
+### Required Secret
+
+**Secret Name**: `ELEVENLABS_WEBHOOK_SECRET`
+- Get this from ElevenLabs Dashboard → Conversational AI → Webhooks
+- Store in Supabase secrets (already configured)
+
+### Signature Validation Process
+
+1. Extract signature from `xi-signature` header sent by ElevenLabs
+2. Compute HMAC-SHA256 of request body using stored webhook secret
+3. Compare signatures using constant-time comparison
+4. Reject requests with invalid or missing signatures (401 Unauthorized)
+
+### Headers Sent by ElevenLabs
+
+- `xi-signature`: HMAC-SHA256 signature of request body
+- `Content-Type`: application/json
+
+### Security Features
+
+✅ **Implemented**:
+- HMAC-SHA256 signature validation
+- Detailed security event logging
+- Constant-time signature comparison
+- Rejection of unsigned requests
+- No JWT required (uses conversation_id for user lookup)
+- Service role key for database operations
+
+⚠️ **Important Notes**:
+- If you regenerate the webhook secret in ElevenLabs dashboard, update the Supabase secret immediately
+- All failed validation attempts are logged for security auditing
+- The webhook uses the exact header name `xi-signature` as specified by ElevenLabs
 
 ## Error Handling
 

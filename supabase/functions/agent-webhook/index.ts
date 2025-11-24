@@ -4,8 +4,55 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, xi-signature',
 };
+
+// Validate webhook signature from ElevenLabs
+async function validateWebhookSignature(
+  req: Request, 
+  body: string
+): Promise<boolean> {
+  const signature = req.headers.get('xi-signature');
+  const webhookSecret = Deno.env.get('ELEVENLABS_WEBHOOK_SECRET');
+  
+  if (!signature || !webhookSecret) {
+    console.warn('⚠️ Missing signature or webhook secret');
+    return false;
+  }
+
+  // ElevenLabs uses HMAC-SHA256
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(webhookSecret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  const signatureBytes = await crypto.subtle.sign(
+    'HMAC',
+    key,
+    encoder.encode(body)
+  );
+
+  // Convert to hex string
+  const computedSignature = Array.from(new Uint8Array(signatureBytes))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+
+  // Compare signatures
+  const isValid = signature === computedSignature;
+  
+  if (!isValid) {
+    console.error('❌ Signature mismatch:', {
+      received: signature,
+      computed: computedSignature
+    });
+  }
+  
+  return isValid;
+}
 
 interface WebhookPayload {
   tool: string;
@@ -208,14 +255,38 @@ async function handleCompleteConversation(userId: string, conversationId: string
 }
 
 serve(async (req) => {
-  // Handle CORS
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const payload: WebhookPayload = await req.json();
-    console.log('🔔 Webhook received:', {
+    console.log('📥 Webhook received');
+    
+    // Read body as text first for signature validation
+    const bodyText = await req.text();
+    
+    // Validate webhook signature
+    const isValid = await validateWebhookSignature(req, bodyText);
+    if (!isValid) {
+      console.error('❌ Invalid webhook signature');
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Invalid webhook signature' 
+        }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    console.log('✅ Webhook signature validated');
+    
+    // Parse the validated body
+    const payload: WebhookPayload = JSON.parse(bodyText);
+    console.log('🔔 Processing tool call:', {
       tool: payload.tool,
       conversation_id: payload.conversation_id,
       agent_id: payload.agent_id
