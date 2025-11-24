@@ -1,5 +1,9 @@
 import { logger } from "./logger";
 
+type AdminCheckResult = 
+  | { success: true; isAdmin: boolean }
+  | { success: false; error: string };
+
 /**
  * Check if the current user has admin role
  * Non-blocking with timeout and graceful error handling
@@ -16,31 +20,42 @@ export const checkAdminStatus = async (): Promise<boolean> => {
     }
 
     // Add 5-second timeout to prevent blocking
-    const timeoutPromise = new Promise<{ data: null; error: Error }>((_, reject) => 
-      setTimeout(() => reject(new Error('Admin check timeout after 5 seconds')), 5000)
+    const timeoutPromise = new Promise<AdminCheckResult>((resolve) => 
+      setTimeout(() => {
+        logger.warn('Admin check timed out');
+        resolve({ success: false, error: 'Timeout after 5 seconds' });
+      }, 5000)
     );
 
-    const checkPromise = supabase.functions.invoke("check-admin", {
-      headers: { Authorization: `Bearer ${session.access_token}` },
-    });
-
-    const result = await Promise.race([checkPromise, timeoutPromise])
-      .catch((error) => {
-        logger.warn('Admin check timed out or failed', { error: error.message });
-        return { data: null, error };
+    const checkPromise = supabase.functions
+      .invoke("check-admin", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      .then((response): AdminCheckResult => {
+        if (response.error) {
+          return { success: false, error: response.error.message };
+        }
+        return { 
+          success: true, 
+          isAdmin: response.data?.isAdmin || false 
+        };
       });
 
-    if (result.error) {
+    const result = await Promise.race([checkPromise, timeoutPromise]);
+
+    if (result.success === false) {
       logger.warn('Admin check failed - defaulting to non-admin', { 
-        error: result.error.message || result.error,
+        error: result.error,
         userId: session.user.id 
       });
       return false;
     }
 
-    const isAdmin = (result.data as any)?.isAdmin || false;
-    logger.info('Admin status checked', { isAdmin, userId: session.user.id });
-    return isAdmin;
+    logger.info('Admin status checked', { 
+      isAdmin: result.isAdmin, 
+      userId: session.user.id 
+    });
+    return result.isAdmin;
   } catch (error) {
     logger.warn('Error checking admin status - defaulting to non-admin', { 
       error: (error as Error).message 
