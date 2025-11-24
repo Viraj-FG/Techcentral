@@ -14,23 +14,34 @@ const Index = () => {
 
   useEffect(() => {
     const checkAuthAndProfile = async () => {
+      console.log('🔍 [Index] Starting auth check...');
       try {
         // Check authentication
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('🔍 [Index] Session:', session?.user?.email || 'No session');
         
         if (!session) {
+          console.log('🔍 [Index] No session - redirecting to /auth');
           navigate('/auth');
           return;
         }
 
         // Check if profile exists and onboarding is complete
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
           .single();
 
+        console.log('🔍 [Index] Profile data:', {
+          exists: !!profile,
+          onboarding_completed: profile?.onboarding_completed,
+          current_household_id: profile?.current_household_id,
+          error: profileError
+        });
+
         if (profile?.onboarding_completed) {
+          console.log('🔍 [Index] User completed onboarding - checking household...');
           // Ensure user has a household before loading dashboard
           if (!profile.current_household_id) {
             console.warn('User has no household assigned - attempting auto-creation');
@@ -63,9 +74,11 @@ const Index = () => {
               return;
             }
           }
+          console.log('🔍 [Index] Setting up dashboard with profile:', profile.id);
           setUserProfile(profile);
           setAppState("dashboard"); // Returning user → Dashboard with voice assistant
         } else {
+          console.log('🔍 [Index] Onboarding not completed - showing onboarding flow');
           setAppState("onboarding"); // New user → Onboarding (which includes splash internally)
         }
       } catch (error) {
@@ -87,6 +100,8 @@ const Index = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  console.log('🔍 [Index] Render state:', { isCheckingAuth, appState, hasProfile: !!userProfile });
 
   if (isCheckingAuth || appState === null) {
     return (
