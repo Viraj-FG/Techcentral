@@ -16,43 +16,42 @@ export const createUpdateProfileTool = (
 
       let updateData: any = {};
 
-      // Handle household members as structured data
+      // Handle household members using transactional RPC
       if (parameters.field === "householdMembers" && Array.isArray(parameters.value)) {
-        for (const member of parameters.value) {
-          const { error } = await supabase.from('household_members').insert({
-            user_id: session.user.id,
-            member_type: member.type || 'other',
-            name: member.name || null,
-            age: member.age || null,
-            age_group: member.ageGroup || null,
-            allergies: member.allergies || [],
-            dietary_restrictions: member.dietaryRestrictions || [],
-            health_conditions: member.healthConditions || [],
-            gender: member.gender || null,
-            weight: member.weight || null,
-            height: member.height || null,
-            activity_level: member.activityLevel || null
-          });
+        console.log("Storing household members via batch insert:", parameters.value);
+        
+        const { data, error } = await supabase.rpc('insert_household_batch', {
+          p_user_id: session.user.id,
+          p_members: parameters.value,
+          p_pets: []
+        });
 
-          if (error) console.error("Error storing household member:", error);
+        if (error) {
+          console.error("Error storing household data:", error);
+          return `ERROR: ${error.message}`;
         }
-        return "Household members saved";
+
+        console.log("✅ Batch insert successful:", data);
+        const result = data as { members_count: number; pets_count: number };
+        return `Household members saved (${result.members_count} members)`;
       }
 
-      // Handle pets
+      // Handle pets using transactional RPC
       if (parameters.field === "household" && parameters.value.petDetails) {
-        for (const pet of parameters.value.petDetails) {
-          const { error } = await supabase.from('pets').insert({
-            user_id: session.user.id,
-            name: pet.name,
-            species: pet.type,
-            breed: pet.breed || null,
-            age: pet.age || null,
-            toxic_flags_enabled: true
-          });
+        console.log("Storing pets via batch insert:", parameters.value.petDetails);
+        
+        const { data, error } = await supabase.rpc('insert_household_batch', {
+          p_user_id: session.user.id,
+          p_members: [],
+          p_pets: parameters.value.petDetails
+        });
 
-          if (error) console.error("Error storing pet:", error);
+        if (error) {
+          console.error("Error storing pets:", error);
+          return `ERROR: ${error.message}`;
         }
+
+        console.log("✅ Pets batch insert successful:", data);
       }
 
       // Map fields to profile columns
@@ -83,27 +82,29 @@ export const createUpdateProfileTool = (
             household_adults: parameters.value.adults || 1,
             household_kids: parameters.value.kids || 0
           };
-          // Handle dogs/cats
+          // Handle dogs/cats using transactional RPC
           if (parameters.value.dogs || parameters.value.cats) {
             const pets = [];
             for (let i = 0; i < (parameters.value.dogs || 0); i++) {
               pets.push({
-                user_id: session.user.id,
-                species: 'Dog',
                 name: `Dog ${i + 1}`,
-                toxic_flags_enabled: true
+                type: 'Dog',
+                toxicFlagsEnabled: true
               });
             }
             for (let i = 0; i < (parameters.value.cats || 0); i++) {
               pets.push({
-                user_id: session.user.id,
-                species: 'Cat',
                 name: `Cat ${i + 1}`,
-                toxic_flags_enabled: true
+                type: 'Cat',
+                toxicFlagsEnabled: true
               });
             }
             if (pets.length > 0) {
-              await supabase.from('pets').insert(pets);
+              await supabase.rpc('insert_household_batch', {
+                p_user_id: session.user.id,
+                p_members: [],
+                p_pets: pets
+              });
             }
           }
           break;
