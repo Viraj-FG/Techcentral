@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import VoiceAssistant from '../VoiceAssistant';
-import { useVoiceManager } from '@/hooks/useVoiceManager';
+import { useVoiceConversation } from '@/hooks/useVoiceConversation';
 
-// Mock useVoiceManager
-vi.mock('@/hooks/useVoiceManager', () => ({
-  useVoiceManager: vi.fn(),
+// Mock useVoiceConversation
+vi.mock('@/hooks/useVoiceConversation', () => ({
+  useVoiceConversation: vi.fn(),
 }));
 
 // Mock ConversationOverlay
@@ -29,7 +29,7 @@ describe('VoiceAssistant', () => {
   });
 
   it('renders nothing when conversation is hidden', () => {
-    vi.mocked(useVoiceManager).mockReturnValue({
+    vi.mocked(useVoiceConversation).mockReturnValue({
       showConversation: false,
       startConversation: mockStartConversation,
       endConversation: mockEndConversation,
@@ -44,7 +44,7 @@ describe('VoiceAssistant', () => {
   });
 
   it('renders overlay when conversation is shown', () => {
-    vi.mocked(useVoiceManager).mockReturnValue({
+    vi.mocked(useVoiceConversation).mockReturnValue({
       showConversation: true,
       startConversation: mockStartConversation,
       endConversation: mockEndConversation,
@@ -59,7 +59,7 @@ describe('VoiceAssistant', () => {
   });
 
   it('closes conversation on ESC key', () => {
-    vi.mocked(useVoiceManager).mockReturnValue({
+    vi.mocked(useVoiceConversation).mockReturnValue({
       showConversation: true,
       startConversation: mockStartConversation,
       endConversation: mockEndConversation,
