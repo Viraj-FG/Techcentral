@@ -1,14 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, useNavigate } from 'react-router-dom';
 import Auth from '../Auth';
 import { mockSupabase } from '../../test/mocks/supabase';
+import { mockAdminUser } from '../../test/mocks/adminData';
 import { Toaster } from '@/components/ui/toaster';
 
 // Mock components that might cause issues
 vi.mock('@/components/AuroraBackground', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
 }));
+
+// Mock react-router-dom
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: vi.fn(),
+  };
+});
 
 const renderAuth = () => {
   return render(
@@ -127,5 +137,51 @@ describe('Auth Page', () => {
       const errorMessages = screen.getAllByText(/invalid email or password|invalid login credentials/i);
       expect(errorMessages.length).toBeGreaterThan(0);
     });
+  });
+
+  it('signs in admin user and navigates to index page', async () => {
+    const mockNavigate = vi.fn();
+    vi.mocked(useNavigate).mockReturnValue(mockNavigate);
+
+    renderAuth();
+    
+    // Fill in admin credentials
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/^password$/i);
+    
+    fireEvent.change(emailInput, { target: { value: 'admin@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'Test1234' } });
+    
+    // Mock successful admin login
+    mockSupabase.auth.signInWithPassword.mockResolvedValueOnce({
+      data: { 
+        session: { 
+          user: mockAdminUser,
+          access_token: 'mock-admin-token',
+          refresh_token: 'mock-admin-refresh',
+        } as any
+      },
+      error: null
+    });
+
+    // Click sign in
+    const submitButton = screen.getByRole('button', { name: /sign in$/i });
+    fireEvent.click(submitButton);
+
+    // Wait for async operations
+    await waitFor(() => {
+      expect(mockSupabase.auth.signInWithPassword).toHaveBeenCalledWith({
+        email: 'admin@example.com',
+        password: 'Test1234'
+      });
+    });
+    
+    // Verify navigation to index
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/');
+    });
+    
+    // Verify no error messages
+    expect(screen.queryByText(/invalid|error|failed/i)).not.toBeInTheDocument();
   });
 });
