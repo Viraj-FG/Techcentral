@@ -37,6 +37,12 @@ const Index = () => {
     const checkAuthAndProfile = async () => {
       console.log('🔍 [Index] Starting auth check...');
       
+      // Clear any existing timeout before starting new check
+      if (authTimeoutRef.current) {
+        clearTimeout(authTimeoutRef.current);
+        authTimeoutRef.current = null;
+      }
+      
       try {
         // Check authentication
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -146,8 +152,8 @@ const Index = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('🔍 [Index] Auth state change:', event);
       
-      // Skip INITIAL_SESSION since we already check on mount
-      if (event === 'INITIAL_SESSION') {
+      // Skip INITIAL_SESSION and SIGNED_IN when already authenticated
+      if (event === 'INITIAL_SESSION' || (event === 'SIGNED_IN' && appState === 'dashboard')) {
         return;
       }
       
