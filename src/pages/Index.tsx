@@ -19,6 +19,16 @@ const Index = () => {
   const isCheckingRef = useRef(false);
   const hasCompletedInitialCheck = useRef(false);
 
+  // Helper to prevent indefinite hangs
+  const withTimeout = <T,>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
+    return Promise.race([
+      promise,
+      new Promise<T>((_, reject) => 
+        setTimeout(() => reject(new Error(`Timeout: ${label}`)), ms)
+      )
+    ]);
+  };
+
   useEffect(() => {
     mountedRef.current = true;
     let mounted = true;
@@ -34,8 +44,12 @@ const Index = () => {
       console.log('🔍 [Index] Starting auth check...');
       
       try {
-        // Check authentication
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        // Check authentication with timeout
+        const { data: { session }, error: sessionError } = await withTimeout(
+          supabase.auth.getSession(),
+          10000,
+          "Auth Session Check"
+        );
         
         if (sessionError) {
           console.error('🔍 [Index] Session error:', sessionError);
@@ -50,12 +64,16 @@ const Index = () => {
           return;
         }
 
-        // Check if profile exists and onboarding is complete
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .maybeSingle();
+        // Check if profile exists and onboarding is complete with timeout
+        const { data: profile, error: profileError } = await withTimeout(
+          supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .maybeSingle(),
+          10000,
+          "Profile Check"
+        );
 
         console.log('🔍 [Index] Profile data:', {
           exists: !!profile,
@@ -150,7 +168,16 @@ const Index = () => {
         hasCompletedInitialCheck.current = true;
       } catch (error) {
         console.error("❌ [Index] Error checking auth:", error);
-        if (mounted) navigate('/auth');
+        if (mounted) {
+          toast({
+            title: "Connection Error",
+            description: "Failed to verify session. Please sign in again.",
+            variant: "destructive",
+          });
+          // Sign out to clear potentially stale session causing loops
+          await supabase.auth.signOut();
+          navigate('/auth');
+        }
       } finally {
         console.log('🔍 [Index] Auth check complete, setting isCheckingAuth to false');
         isCheckingRef.current = false;
@@ -198,7 +225,7 @@ const Index = () => {
       <div className="fixed inset-0 bg-kaeva-void flex items-center justify-center">
         <LoadingState
           message="Loading Kaeva..."
-          timeout={10000}
+          timeout={30000}
           onTimeout={() => {
             console.warn("⏱️ Loading timeout - redirecting to login");
             toast({

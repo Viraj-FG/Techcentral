@@ -5,7 +5,12 @@ import AppShell from '@/components/layout/AppShell';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { InventoryItemCard } from '@/components/inventory/InventoryItemCard';
-import { Package, Trash2, ShoppingCart, X } from 'lucide-react';
+import SwipeableCard from '@/components/ui/SwipeableCard';
+import EmptyState from '@/components/ui/EmptyState';
+import FilterBottomSheet from '@/components/inventory/FilterBottomSheet';
+import { useOptimisticUpdate } from '@/hooks/useOptimisticUpdate';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
+import { Package, Trash2, ShoppingCart, X, Edit, PackagePlus, SlidersHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -35,6 +40,10 @@ const Inventory = () => {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<any>(null);
+  const { performUpdate } = useOptimisticUpdate();
+  const { trigger: triggerHaptic } = useHapticFeedback();
 
   useEffect(() => {
     fetchInventory();
@@ -130,18 +139,32 @@ const Inventory = () => {
     const count = selectedItems.length;
     if (!confirm(`Delete ${count} item${count > 1 ? 's' : ''}?`)) return;
 
-    const { error } = await supabase
-      .from('inventory')
-      .delete()
-      .in('id', selectedItems);
+    await triggerHaptic('medium');
 
-    if (!error) {
-      toast.success(`${count} item${count > 1 ? 's' : ''} deleted`);
-      setSelectedItems([]);
-      setIsSelectionMode(false);
-    } else {
-      toast.error('Failed to delete items');
-    }
+    // Optimistic update
+    const optimisticItems = items.filter(item => !selectedItems.includes(item.id));
+    
+    await performUpdate(
+      optimisticItems,
+      async () => {
+        const { error } = await supabase
+          .from('inventory')
+          .delete()
+          .in('id', selectedItems);
+
+        if (error) throw error;
+        return optimisticItems;
+      },
+      {
+        onSuccess: (data) => setItems(data),
+        successMessage: `${count} item${count > 1 ? 's' : ''} deleted`,
+        errorMessage: 'Failed to delete items'
+      }
+    );
+
+    await triggerHaptic('success');
+    setSelectedItems([]);
+    setIsSelectionMode(false);
   };
 
   const handleBulkAddToCart = async () => {
@@ -190,9 +213,23 @@ const Inventory = () => {
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-foreground mb-2">Inventory Manager</h1>
-            <p className="text-muted-foreground">Manage all your household items</p>
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-foreground mb-2">Inventory Manager</h1>
+              <p className="text-muted-foreground">Manage all your household items</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                triggerHaptic('light');
+                setFilterOpen(true);
+              }}
+              className="gap-2"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              Filter
+            </Button>
           </div>
 
           {/* Tabs */}
@@ -214,19 +251,20 @@ const Inventory = () => {
             ) : (
               <TabsContent value={selectedTab} className="mt-6">
                 {filteredItems.length === 0 ? (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center py-16"
-                  >
-                    <Package className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-lg text-muted-foreground mb-4">
-                      No items in {selectedTab === 'all' ? 'your inventory' : selectedTab}
-                    </p>
-                    <Button onClick={() => navigate('/')} variant="default">
-                      Scan Items
-                    </Button>
-                  </motion.div>
+                  <EmptyState
+                    icon={selectedTab === 'all' ? Package : PackagePlus}
+                    title={`No items in ${selectedTab === 'all' ? 'your inventory' : selectedTab}`}
+                    description="Start scanning items to build your digital inventory and get personalized recommendations."
+                    actionLabel="Scan Items"
+                    onAction={() => {
+                      triggerHaptic('medium');
+                      navigate('/');
+                    }}
+                    secondaryAction={{
+                      label: 'Learn More',
+                      onClick: () => navigate('/settings')
+                    }}
+                  />
                 ) : (
                   <motion.div 
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
@@ -241,15 +279,49 @@ const Inventory = () => {
                     }}
                   >
                     {filteredItems.map((item) => (
-                      <InventoryItemCard
+                      <SwipeableCard
                         key={item.id}
-                        item={item}
-                        isSelectionMode={isSelectionMode}
-                        isSelected={selectedItems.includes(item.id)}
-                        onToggleSelection={() => handleToggleSelection(item.id)}
-                        onLongPress={() => handleLongPress(item.id)}
-                        onRefresh={fetchInventory}
-                      />
+                        leftAction={{
+                          icon: Trash2,
+                          label: 'Delete',
+                          color: 'text-red-400',
+                          bgColor: 'bg-red-500/20',
+                          onAction: async () => {
+                            await triggerHaptic('medium');
+                            const { error } = await supabase
+                              .from('inventory')
+                              .delete()
+                              .eq('id', item.id);
+                            
+                            if (!error) {
+                              toast.success(`${item.name} deleted`);
+                              setItems(items.filter(i => i.id !== item.id));
+                            } else {
+                              toast.error('Failed to delete item');
+                            }
+                          }
+                        }}
+                        rightAction={{
+                          icon: ShoppingCart,
+                          label: 'Cart',
+                          color: 'text-kaeva-sage',
+                          bgColor: 'bg-kaeva-sage/20',
+                          onAction: async () => {
+                            await triggerHaptic('light');
+                            // Add to cart logic here
+                            toast.success(`${item.name} added to cart`);
+                          }
+                        }}
+                      >
+                        <InventoryItemCard
+                          item={item}
+                          isSelectionMode={isSelectionMode}
+                          isSelected={selectedItems.includes(item.id)}
+                          onToggleSelection={() => handleToggleSelection(item.id)}
+                          onLongPress={() => handleLongPress(item.id)}
+                          onRefresh={fetchInventory}
+                        />
+                      </SwipeableCard>
                     ))}
                   </motion.div>
                 )}
@@ -304,6 +376,17 @@ const Inventory = () => {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Filter Bottom Sheet */}
+      <FilterBottomSheet
+        isOpen={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        onApplyFilters={(filters) => {
+          setActiveFilters(filters);
+          triggerHaptic('success');
+          toast.success('Filters applied');
+        }}
+      />
     </AppShell>
   );
 };
