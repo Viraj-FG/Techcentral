@@ -161,9 +161,13 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
   };
 
   const handleDismissTutorial = () => {
+    console.log("🎓 Tutorial dismissed");
     setShowTutorial(false);
     localStorage.setItem("kaeva_tutorial_seen", "true");
+    console.log("➡️ Should now show permission request. permissionsGranted:", permissionsGranted);
   };
+
+  console.log("🔍 VoiceOnboarding render - showTutorial:", showTutorial, "permissionsGranted:", permissionsGranted);
 
   if (showTutorial) {
     return <TutorialOverlay isOpen={showTutorial} onDismiss={handleDismissTutorial} />;
