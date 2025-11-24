@@ -6,18 +6,24 @@ import { logger } from './logger';
  * Adds verbose logging to all Supabase operations
  */
 
-// Auth state change logging
-baseSupabase.auth.onAuthStateChange((event, session) => {
-  logger.info('Auth state changed', {
-    event,
-    userId: session?.user?.id,
-    email: session?.user?.email,
-    hasSession: !!session,
-  });
-});
-
-// Export the base client with logging already attached
+// Export the base client with logging
 export const supabase = baseSupabase;
+
+/**
+ * Initialize auth state logging
+ * Call this explicitly after app initialization to avoid conflicts
+ */
+export const initializeAuthLogging = () => {
+  logger.info('Initializing auth state logging');
+  baseSupabase.auth.onAuthStateChange((event, session) => {
+    logger.info('Auth state changed', {
+      event,
+      userId: session?.user?.id,
+      email: session?.user?.email,
+      hasSession: !!session,
+    });
+  });
+};
 
 // Helper to log database operations
 export const logDatabaseOperation = (

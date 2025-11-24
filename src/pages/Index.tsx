@@ -74,11 +74,25 @@ const Index = () => {
     };
 
     const checkAuthAndProfile = async () => {
+      logger.info('🚀 checkAuthAndProfile called - ENTRY POINT');
+      
       try {
         logger.info('🔐 Checking authentication session');
+        logger.debug('About to call supabase.auth.getSession()');
         
-        // Check authentication
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        // Add 5-second timeout for getSession to detect hangs
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('getSession timeout after 5 seconds')), 5000)
+        );
+
+        const { data: { session }, error: sessionError } = await Promise.race([
+          sessionPromise,
+          timeoutPromise
+        ]).catch((error) => {
+          logger.error('❌ getSession failed or timed out', error);
+          throw error;
+        }) as Awaited<ReturnType<typeof supabase.auth.getSession>>;
         
         if (sessionError) {
           logger.error('❌ Error getting session', sessionError);
