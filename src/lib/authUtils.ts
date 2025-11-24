@@ -1,20 +1,33 @@
-import { supabase } from "@/integrations/supabase/client";
+import { logger } from "./logger";
 
 /**
  * Check if the current user has admin role
  */
 export const checkAdminStatus = async (): Promise<boolean> => {
   try {
+    logger.debug('Checking admin status');
+    
+    const { supabase } = await import('@/lib/supabaseLogger');
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return false;
+    if (!session) {
+      logger.debug('No active session - not admin');
+      return false;
+    }
 
-    const { data } = await supabase.functions.invoke("check-admin", {
+    const { data, error } = await supabase.functions.invoke("check-admin", {
       headers: { Authorization: `Bearer ${session.access_token}` },
     });
 
-    return data?.isAdmin || false;
+    if (error) {
+      logger.error('Admin check failed', error, { userId: session.user.id });
+      return false;
+    }
+
+    const isAdmin = data?.isAdmin || false;
+    logger.info('Admin status checked', { isAdmin, userId: session.user.id });
+    return isAdmin;
   } catch (error) {
-    console.error("Admin check error:", error);
+    logger.error('Error checking admin status', error as Error);
     return false;
   }
 };
@@ -23,7 +36,9 @@ export const checkAdminStatus = async (): Promise<boolean> => {
  * Get current user session
  */
 export const getCurrentSession = async () => {
+  const { supabase } = await import('@/lib/supabaseLogger');
   const { data: { session } } = await supabase.auth.getSession();
+  logger.debug('Retrieved current session', { hasSession: !!session, userId: session?.user?.id });
   return session;
 };
 

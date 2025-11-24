@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { logger } from "./logger";
 
 export type ConversationEventType = 
   | 'session_start'
@@ -28,9 +28,12 @@ export const logConversationEvent = async ({
   role
 }: LogEventParams): Promise<boolean> => {
   try {
+    logger.debug('Logging conversation event', { conversationId, agentType, eventType, role });
+    
+    const { supabase } = await import('@/lib/supabaseLogger');
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) {
-      // Silent fail - user might not be logged in yet
+      logger.warn('Cannot log conversation event - no active session', { conversationId, eventType });
       return false;
     }
 
@@ -46,15 +49,23 @@ export const logConversationEvent = async ({
       });
 
     if (error) {
-      // Log error but don't throw - prevents crashing the conversation
-      console.warn('[ConversationLogger] Failed to log event:', error.message);
+      logger.error('Failed to log conversation event', error, {
+        conversationId,
+        agentType,
+        eventType,
+        userId: session.user.id,
+      });
       return false;
     }
 
+    logger.debug('Conversation event logged successfully', { conversationId, eventType });
     return true;
   } catch (error) {
-    // Catch all errors to prevent conversation crashes
-    console.warn('[ConversationLogger] Error logging event:', error instanceof Error ? error.message : 'Unknown error');
+    logger.error('Error logging conversation event', error as Error, {
+      conversationId,
+      agentType,
+      eventType,
+    });
     return false;
   }
 };
