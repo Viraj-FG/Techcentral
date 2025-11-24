@@ -37,29 +37,37 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
+  console.log('[Auth] Component mounted at', new Date().toISOString());
+
   const { register, handleSubmit, formState: { errors }, reset } = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),
   });
 
   // Check if user is already authenticated
   useEffect(() => {
+    console.log('[Auth] useEffect: Starting auth check');
     const checkAuth = async () => {
       logger.info('🔐 Auth page: Checking existing session');
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('[Auth] getSession result:', { hasSession: !!session, userId: session?.user?.id });
       if (session) {
         logger.info('✅ Auth page: Session found, navigating to home', { userId: session.user.id });
+        console.log('[Auth] Navigating to / with session:', session.user.id);
         navigate('/');
       } else {
         logger.info('⚠️ Auth page: No session found');
+        console.log('[Auth] No session found, staying on auth page');
       }
     };
     checkAuth();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('[Auth] Auth state changed:', { event, hasSession: !!session });
       logger.info('🔄 Auth page: Auth state changed', { event, hasSession: !!session });
       if (session) {
         logger.info('✅ Auth page: Session detected, navigating to home', { userId: session.user.id });
+        console.log('[Auth] Session detected in state change, navigating to /');
         navigate('/');
       }
     });
