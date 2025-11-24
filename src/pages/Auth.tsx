@@ -72,6 +72,26 @@ const Auth = () => {
     };
   }, [isAuthenticated, authLoading, navigate, toast]);
 
+  // Handle OAuth callback
+  useEffect(() => {
+    const hash = window.location.hash;
+    const params = new URLSearchParams(hash.substring(1));
+    
+    if (params.get('error')) {
+      const errorDescription = params.get('error_description');
+      toast({
+        title: "Google Sign-In Failed",
+        description: errorDescription || 'Google sign-in was cancelled or failed',
+        variant: "destructive"
+      });
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    if (params.get('access_token')) {
+      setIsLoading(true);
+    }
+  }, [toast]);
+
   const handleGoogleSignIn = async () => {
     if (isOffline) {
       toast({
@@ -86,7 +106,6 @@ const Auth = () => {
     
     try {
       const redirectUrl = `${window.location.origin}/`;
-      const { data: { session } } = await supabase.auth.getSession();
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -97,13 +116,23 @@ const Auth = () => {
 
       if (error) throw error;
     } catch (error: any) {
+      setIsLoading(false);
+      
+      let errorMessage = "Could not connect to Google";
+      
+      if (error.message?.includes('popup')) {
+        errorMessage = "Pop-up was blocked. Please allow pop-ups for this site.";
+      } else if (error.message?.includes('configuration')) {
+        errorMessage = "Google sign-in is not properly configured. Please contact support.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: "Authentication Error",
-        description: error.message || "Failed to sign in with Google",
+        title: "Google Sign-In Failed",
+        description: errorMessage,
         variant: "destructive"
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 

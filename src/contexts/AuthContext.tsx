@@ -177,12 +177,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
             console.log('🔐 Auth event:', event, { hasSession: !!session });
 
-            if (event === 'SIGNED_IN' && session) {
-              console.log('🔐 SIGNED_IN event - loading profile');
-              setSession(session);
-              setUser(session.user);
-              await loadProfile(session.user.id);
-            }
+      if (event === 'SIGNED_IN' && session) {
+        console.log('🔐 SIGNED_IN event - Provider:', session.user.app_metadata?.provider);
+        console.log('🔐 SIGNED_IN event - loading profile');
+        setSession(session);
+        setUser(session.user);
+        await loadProfile(session.user.id);
+      }
 
             if (event === 'SIGNED_OUT') {
               console.log('🔐 SIGNED_OUT event');
