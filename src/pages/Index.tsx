@@ -14,7 +14,10 @@ const Index = () => {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [authCheckTimeout, setAuthCheckTimeout] = useState(false);
 
+  console.log('[Index] Component mounted at', new Date().toISOString());
+  
   useEffect(() => {
+    console.log('[Index] useEffect started');
     logger.info('🚀 Index.tsx mounted - Starting auth check');
     
     // Timeout detection - if auth check takes more than 10 seconds
@@ -78,21 +81,10 @@ const Index = () => {
       
       try {
         logger.info('🔐 Checking authentication session');
-        logger.debug('About to call supabase.auth.getSession()');
         
-        // Add 5-second timeout for getSession to detect hangs
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error('getSession timeout after 5 seconds')), 5000)
-        );
-
-        const { data: { session }, error: sessionError } = await Promise.race([
-          sessionPromise,
-          timeoutPromise
-        ]).catch((error) => {
-          logger.error('❌ getSession failed or timed out', error);
-          throw error;
-        }) as Awaited<ReturnType<typeof supabase.auth.getSession>>;
+        // Simple getSession call without timeout wrapper
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        logger.debug('✅ getSession completed', { hasSession: !!session, error: sessionError });
         
         if (sessionError) {
           logger.error('❌ Error getting session', sessionError);
