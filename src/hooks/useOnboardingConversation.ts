@@ -49,14 +49,14 @@ export const useOnboardingConversation = ({
       console.log("ElevenLabs connected");
       setApertureState("listening");
       
-      // Log session start
+      // Log session start (non-blocking)
       logConversationEvent({
         conversationId: conversationIdRef.current,
         agentType: 'onboarding',
         eventType: 'session_start',
         eventData: { timestamp: new Date().toISOString() },
         role: 'system'
-      });
+      }).catch(err => console.warn('[Onboarding] Failed to log session start:', err));
       
       toast({
         title: "Connected",
@@ -67,14 +67,14 @@ export const useOnboardingConversation = ({
       console.log("ElevenLabs disconnected");
       setApertureState("idle");
       
-      // Log session end
+      // Log session end (non-blocking)
       logConversationEvent({
         conversationId: conversationIdRef.current,
         agentType: 'onboarding',
         eventType: 'session_end',
         eventData: { timestamp: new Date().toISOString() },
         role: 'system'
-      });
+      }).catch(err => console.warn('[Onboarding] Failed to log session end:', err));
     },
     onMessage: (message) => {
       console.log("ElevenLabs message:", message);
@@ -84,14 +84,14 @@ export const useOnboardingConversation = ({
         setShowSubtitles(true);
         setApertureState("thinking");
         
-        // Log user transcript
+        // Log user transcript (non-blocking)
         logConversationEvent({
           conversationId: conversationIdRef.current,
           agentType: 'onboarding',
           eventType: 'user_transcript',
           eventData: { text: message.message },
           role: 'user'
-        });
+        }).catch(err => console.warn('[Onboarding] Failed to log user transcript:', err));
       }
       
       if (message.source === "ai") {
@@ -116,14 +116,14 @@ export const useOnboardingConversation = ({
         setAiTranscript(message.message || "");
         setShowSubtitles(true);
         
-        // Log agent transcript
+        // Log agent transcript (non-blocking)
         logConversationEvent({
           conversationId: conversationIdRef.current,
           agentType: 'onboarding',
           eventType: 'agent_transcript',
           eventData: { text: message.message },
           role: 'assistant'
-        });
+        }).catch(err => console.warn('[Onboarding] Failed to log agent transcript:', err));
       }
     },
     onError: (error) => {
@@ -138,7 +138,7 @@ export const useOnboardingConversation = ({
       updateProfile: (parameters: { field: string; value: any }) => {
         console.log("✅ Profile field update:", parameters.field, parameters.value);
         
-        // Log tool call
+        // Log tool call (non-blocking)
         logConversationEvent({
           conversationId: conversationIdRef.current,
           agentType: 'onboarding',
@@ -148,7 +148,7 @@ export const useOnboardingConversation = ({
             parameters 
           },
           role: 'assistant'
-        });
+        }).catch(err => console.warn('[Onboarding] Failed to log tool call:', err));
         
         let result = "";
         
@@ -173,7 +173,7 @@ export const useOnboardingConversation = ({
           result = "Profile updated";
         }
         
-        // Log tool response
+        // Log tool response (non-blocking)
         logConversationEvent({
           conversationId: conversationIdRef.current,
           agentType: 'onboarding',
@@ -183,14 +183,14 @@ export const useOnboardingConversation = ({
             result 
           },
           role: 'system'
-        });
+        }).catch(err => console.warn('[Onboarding] Failed to log tool response:', err));
         
         return result;
       },
       completeConversation: async (parameters: { reason: string }) => {
         console.log("🎉 Completing onboarding:", parameters.reason);
         
-        // Log tool call
+        // Log tool call (non-blocking)
         logConversationEvent({
           conversationId: conversationIdRef.current,
           agentType: 'onboarding',
@@ -200,7 +200,7 @@ export const useOnboardingConversation = ({
             parameters 
           },
           role: 'assistant'
-        });
+        }).catch(err => console.warn('[Onboarding] Failed to log tool call:', err));
         
         try {
           // 1. Save onboarding data to database
@@ -258,7 +258,7 @@ export const useOnboardingConversation = ({
           
           const successResult = "SUCCESS: Onboarding complete, showing summary";
           
-          // Log tool response
+          // Log tool response (non-blocking)
           logConversationEvent({
             conversationId: conversationIdRef.current,
             agentType: 'onboarding',
@@ -268,14 +268,14 @@ export const useOnboardingConversation = ({
               result: successResult 
             },
             role: 'system'
-          });
+          }).catch(err => console.warn('[Onboarding] Failed to log tool response:', err));
           
           return successResult;
         } catch (error) {
           console.error("completeConversation error:", error);
           const errorResult = `ERROR: ${error instanceof Error ? error.message : "Unknown error"}`;
           
-          // Log error response
+          // Log error response (non-blocking)
           logConversationEvent({
             conversationId: conversationIdRef.current,
             agentType: 'onboarding',
@@ -286,7 +286,7 @@ export const useOnboardingConversation = ({
               error: true
             },
             role: 'system'
-          });
+          }).catch(err => console.warn('[Onboarding] Failed to log error response:', err));
           
           return errorResult;
         }
