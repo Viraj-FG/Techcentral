@@ -136,29 +136,38 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
   };
 
   const handleEnterKaeva = async () => {
-    // Data already saved by completeConversation tool, just navigate
-    console.log("🎉 Entering Kaeva dashboard");
+    console.log("🎉 Entering Kaeva dashboard - fetching complete profile");
     
-    const currentState = stateRef.current;
-    const transformedData = transformProfileData(currentState);
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    const profile = {
-      id: session?.user?.id,
-      language: "English",
-      userName: transformedData.user_name,
-      dietaryRestrictions: transformedData.dietary_preferences,
-      allergies: transformedData.allergies,
-      beautyProfile: transformedData.beauty_profile,
-      household: currentState.household,
-      medicalGoals: transformedData.health_goals,
-      lifestyleGoals: transformedData.lifestyle_goals,
-      enableToxicFoodWarnings: (currentState.household?.dogs || 0) > 0 || 
-                               (currentState.household?.cats || 0) > 0,
-      onboarding_completed: true
-    };
-    
-    onComplete(profile);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
+        console.error("No session found");
+        return;
+      }
+      
+      // Fetch the complete profile with current_household_id from database
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+      
+      if (error) {
+        console.error("Failed to fetch profile:", error);
+        return;
+      }
+      
+      if (!profile) {
+        console.error("Profile not found");
+        return;
+      }
+      
+      console.log("✅ Profile loaded with household_id:", profile.current_household_id);
+      onComplete(profile);
+    } catch (error) {
+      console.error("Error in handleEnterKaeva:", error);
+    }
   };
 
   const handleDismissTutorial = () => {
