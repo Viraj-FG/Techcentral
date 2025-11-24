@@ -108,7 +108,10 @@ const Auth = () => {
   };
 
   const onSubmit = async (data: AuthFormData) => {
+    console.log('📝 Form submitted:', { email: data.email, isSignUp });
+    
     if (isOffline) {
+      console.log('❌ Offline - cannot submit');
       toast({
         title: "No Internet Connection",
         description: "Please check your connection and try again",
@@ -118,16 +121,20 @@ const Auth = () => {
     }
 
     setIsLoading(true);
+    console.log('⏳ Loading state set to true');
 
     try {
       if (isSignUp) {
+        console.log('📝 Attempting sign up...');
         await signUp(data.email, data.password);
         toast({
           title: "Account Created!",
           description: "Welcome to Kaeva. Let's build your digital twin.",
         });
       } else {
+        console.log('📝 Attempting sign in...');
         await signIn(data.email, data.password);
+        console.log('✅ Sign in successful');
         toast({
           title: "Welcome Back!",
           description: "Signed in successfully",
@@ -135,13 +142,15 @@ const Auth = () => {
         navigate('/');
       }
     } catch (error: any) {
+      console.error('❌ Auth error in onSubmit:', error);
       toast({
         title: "Authentication Error",
-        description: error.message,
+        description: error.message || "An unexpected error occurred",
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
+      console.log('⏳ Loading state set to false');
     }
   };
 

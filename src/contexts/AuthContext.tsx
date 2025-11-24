@@ -84,21 +84,27 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const signIn = async (email: string, password: string) => {
+    console.log('🔐 signIn called with email:', email);
     setError(null);
     try {
+      console.log('🔐 Calling supabase.auth.signInWithPassword...');
       const { data: { session }, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
+      console.log('🔐 Sign in response:', { session: !!session, error });
+
       if (error) throw error;
 
+      // Don't load profile here - let onAuthStateChange handle it to avoid race condition
       if (session) {
+        console.log('🔐 Session received, setting state');
         setSession(session);
         setUser(session.user);
-        await loadProfile(session.user.id);
       }
     } catch (error: any) {
+      console.error('🔐 Sign in error:', error);
       const categorizedError = logError(error, {
         component: "AuthContext",
         action: "signIn",
@@ -162,48 +168,58 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     const initAuth = async () => {
       try {
+        console.log('🔐 Initializing auth...');
+        
         // Set up auth listener FIRST
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
             if (!mounted) return;
 
-            console.log('🔐 Auth event:', event);
+            console.log('🔐 Auth event:', event, { hasSession: !!session });
 
             if (event === 'SIGNED_IN' && session) {
+              console.log('🔐 SIGNED_IN event - loading profile');
               setSession(session);
               setUser(session.user);
               await loadProfile(session.user.id);
             }
 
             if (event === 'SIGNED_OUT') {
+              console.log('🔐 SIGNED_OUT event');
               setSession(null);
               setUser(null);
               setProfile(null);
             }
 
             if (event === 'TOKEN_REFRESHED' && session) {
+              console.log('🔐 TOKEN_REFRESHED event');
               setSession(session);
             }
           }
         );
 
         // THEN check for existing session
+        console.log('🔐 Checking for existing session...');
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session && mounted) {
+          console.log('🔐 Existing session found');
           setSession(session);
           setUser(session.user);
           await loadProfile(session.user.id);
+        } else {
+          console.log('🔐 No existing session');
         }
 
         setIsLoading(false);
+        console.log('🔐 Auth initialization complete');
 
         return () => {
           mounted = false;
           subscription.unsubscribe();
         };
       } catch (error) {
-        console.error("Auth initialization error:", error);
+        console.error("🔐 Auth initialization error:", error);
         setIsLoading(false);
       }
     };
