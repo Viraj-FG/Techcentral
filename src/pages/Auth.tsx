@@ -46,37 +46,22 @@ const Auth = () => {
     resolver: zodResolver(authSchema),
   });
 
-  // Redirect if already authenticated
+  // Listen for online/offline status
   useEffect(() => {
-    if (isAuthenticated && !authLoading) {
-      navigate('/');
-    }
-
-    // Listen for online/offline status
     const handleOnline = () => setIsOffline(false);
-    const handleOffline = () => {
-      setIsOffline(true);
-      toast({
-        title: "No Internet Connection",
-        description: "Please check your connection and try again",
-        variant: "destructive",
-      });
-    };
+    const handleOffline = () => setIsOffline(true);
 
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
     return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
-  }, [isAuthenticated, authLoading, navigate, toast]);
+  }, []);
 
   const onSubmit = async (data: AuthFormData) => {
-    console.log('📝 Form submitted:', { email: data.email, isSignUp });
-    
     if (isOffline) {
-      console.log('❌ Offline - cannot submit');
       toast({
         title: "No Internet Connection",
         description: "Please check your connection and try again",
@@ -86,27 +71,22 @@ const Auth = () => {
     }
 
     setIsLoading(true);
-    console.log('⏳ Loading state set to true');
 
     try {
       if (isSignUp) {
-        console.log('📝 Attempting sign up...');
         await signUp(data.email, data.password);
         toast({
           title: "Account Created!",
           description: "Welcome to Kaeva. Let's build your digital twin.",
         });
       } else {
-        console.log('📝 Attempting sign in...');
         await signIn(data.email, data.password);
-        console.log('✅ Sign in successful');
         toast({
           title: "Welcome Back!",
           description: "Signed in successfully",
         });
       }
     } catch (error: any) {
-      console.error('❌ Auth error in onSubmit:', error);
       toast({
         title: "Authentication Error",
         description: error.message || "An unexpected error occurred",
@@ -114,7 +94,6 @@ const Auth = () => {
       });
     } finally {
       setIsLoading(false);
-      console.log('⏳ Loading state set to false');
     }
   };
 
