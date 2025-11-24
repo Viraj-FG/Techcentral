@@ -164,9 +164,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session && mounted) {
-          setSession(session);
-          setUser(session.user);
-          await loadProfile(session.user.id);
+          // Let onAuthStateChange handle all state updates for consistency
           setIsReady(true);
         } else {
           setIsReady(true);
