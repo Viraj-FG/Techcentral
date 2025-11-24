@@ -26,6 +26,7 @@ describe('ScanResults', () => {
   const defaultProps = {
     isOpen: true,
     onClose: vi.fn(),
+    onConfirm: vi.fn(),
     confidence: 0.9,
     items: [],
     suggestion: 'Test suggestion',

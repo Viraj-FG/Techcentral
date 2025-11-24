@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getSignedUrl } from "@/lib/elevenLabsAudio";
 import { ELEVENLABS_CONFIG } from "@/config/agent";
 import { useNavigate } from "react-router-dom";
-import { storeMessage as storeMessageUtil, fetchRecentHistory, generateConversationId } from "@/lib/conversationUtils";
+import { storeMessage as storeMessageUtil, generateConversationId } from "@/lib/conversationUtils";
 import { createUpdateProfileTool, createCompleteConversationTool, createNavigateToTool } from "@/lib/voiceClientTools";
 import {
   createCheckInventoryTool,
@@ -15,22 +15,29 @@ import {
   createCheckAllergensTool,
 } from "@/lib/assistantClientTools";
 
+type VoiceMode = "onboarding" | "assistant";
 type VoiceState = "idle" | "active" | "speaking";
 type ApertureState = "idle" | "listening" | "thinking" | "speaking";
 
-interface UseVoiceManagerProps {
-  userProfile: any;
+interface UseVoiceConversationProps {
+  mode: VoiceMode;
+  userProfile?: any;
   onProfileUpdate?: (profile: any) => void;
+  onComplete?: (profile?: any) => void;
 }
 
-export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManagerProps) => {
+export const useVoiceConversation = ({
+  mode,
+  userProfile,
+  onProfileUpdate,
+  onComplete
+}: UseVoiceConversationProps) => {
   const [voiceState, setVoiceState] = useState<VoiceState>("idle");
   const [apertureState, setApertureState] = useState<ApertureState>("idle");
   const [userTranscript, setUserTranscript] = useState("");
   const [aiTranscript, setAiTranscript] = useState("");
   const [showConversation, setShowConversation] = useState(false);
   const [audioAmplitude, setAudioAmplitude] = useState(0);
-  const [conversationHistory, setConversationHistory] = useState<any[]>([]);
 
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -42,56 +49,84 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
   const endConversation = useCallback(async () => {
     console.log("🔚 Ending conversation");
     
-    if (conversationRef.current?.status === "connected") {
-      await conversationRef.current.endSession();
-    }
+    try {
+      if (conversationRef.current?.status === "connected") {
+        await conversationRef.current.endSession();
+      }
 
-    currentConversationIdRef.current = "";
-    setUserTranscript("");
-    setAiTranscript("");
-    setShowConversation(false);
-    setVoiceState("idle");
-    setApertureState("idle");
-    setAudioAmplitude(0);
+      currentConversationIdRef.current = "";
+      setUserTranscript("");
+      setAiTranscript("");
+      setShowConversation(false);
+      setVoiceState("idle");
+      setApertureState("idle");
+      setAudioAmplitude(0);
+    } catch (error) {
+      console.error("Error ending conversation:", error);
+    }
   }, []);
 
   // Memoize clientTools to prevent recreation on every render
   const clientTools = useMemo(() => {
-    const isOnboardingComplete = userProfile?.onboarding_completed;
+    const isOnboarding = mode === "onboarding";
     
-    return isOnboardingComplete ? {
-      // Assistant tools
-      check_inventory: createCheckInventoryTool(),
-      add_to_cart: createAddToCartTool(),
-      log_meal: createLogMealTool(),
-      search_recipes: createSearchRecipesTool(),
-      check_allergens: createCheckAllergensTool(),
-      navigateTo: createNavigateToTool(navigate),
-      end_conversation: async (parameters: { reason: string }) => {
-        console.log("🔚 End conversation called:", parameters.reason);
-        await endConversation();
-        return "SUCCESS: Conversation ended";
-      }
-    } : {
-      // Onboarding tools
-      updateProfile: createUpdateProfileTool(onProfileUpdate),
-      completeConversation: createCompleteConversationTool(
-        async () => {
-          if (conversationRef.current?.status === "connected") {
-            await conversationRef.current.endSession();
+    if (isOnboarding) {
+      return {
+        // Onboarding tools with immediate persistence
+        updateProfile: createUpdateProfileTool(onProfileUpdate),
+        completeConversation: createCompleteConversationTool(
+          async () => {
+            if (conversationRef.current?.status === "connected") {
+              await conversationRef.current.endSession();
+            }
+          },
+          {
+            setShowConversation,
+            setUserTranscript,
+            setAiTranscript,
+            setVoiceState,
+            setApertureState,
+          },
+          (reason: string) => {
+            console.log("✅ Onboarding complete:", reason);
+            // Mark onboarding as complete in database
+            supabase.auth.getSession().then(({ data: { session } }) => {
+              if (session?.user) {
+                supabase
+                  .from('profiles')
+                  .update({ onboarding_completed: true })
+                  .eq('id', session.user.id)
+                  .then(() => {
+                    if (onComplete) onComplete();
+                  });
+              }
+            });
           }
+        ),
+        endConversation: async (parameters: { reason: string }) => {
+          console.log("🔚 End conversation called:", parameters.reason);
+          await endConversation();
+          return "SUCCESS: Conversation ended";
         },
-        {
-          setShowConversation,
-          setUserTranscript,
-          setAiTranscript,
-          setVoiceState,
-          setApertureState,
+        navigateTo: createNavigateToTool(navigate)
+      };
+    } else {
+      return {
+        // Assistant tools
+        check_inventory: createCheckInventoryTool(),
+        add_to_cart: createAddToCartTool(),
+        log_meal: createLogMealTool(),
+        search_recipes: createSearchRecipesTool(),
+        check_allergens: createCheckAllergensTool(),
+        navigateTo: createNavigateToTool(navigate),
+        end_conversation: async (parameters: { reason: string }) => {
+          console.log("🔚 End conversation called:", parameters.reason);
+          await endConversation();
+          return "SUCCESS: Conversation ended";
         }
-      ),
-      navigateTo: createNavigateToTool(navigate)
-    };
-  }, [userProfile?.onboarding_completed, endConversation, navigate, onProfileUpdate]);
+      };
+    }
+  }, [mode, endConversation, navigate, onProfileUpdate, onComplete]);
 
   const conversation = useConversation({
     onConnect: () => console.log("🔌 Connected to ElevenLabs"),
@@ -135,14 +170,12 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
     }
   };
 
-  // === CONVERSATION STATE MANAGEMENT ===
-
   // Monitor conversation speaking state
   useEffect(() => {
     if (conversation.isSpeaking) {
       setVoiceState("speaking");
       setApertureState("speaking");
-      setAudioAmplitude(0.8); // Visual feedback during speech
+      setAudioAmplitude(0.8);
     } else if (conversation.status === "connected") {
       setVoiceState("active");
       setApertureState("listening");
@@ -150,12 +183,8 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
     }
   }, [conversation.isSpeaking, conversation.status]);
 
-  // === CONVERSATION CONTROL ===
-
-  // Remove duplicate endConversation definition
-  
   const startConversation = useCallback(async () => {
-    console.log("🚀 Starting conversation");
+    console.log("🚀 Starting conversation in", mode, "mode");
     setShowConversation(true);
     setVoiceState("active");
     setApertureState("thinking");
@@ -166,19 +195,15 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) throw new Error("Not authenticated");
 
-      const isOnboardingComplete = userProfile?.onboarding_completed;
-      const mode = isOnboardingComplete ? "assistant" : "onboarding";
-      
-      const agentId = isOnboardingComplete 
-        ? ELEVENLABS_CONFIG.assistant.agentId 
-        : ELEVENLABS_CONFIG.onboarding.agentId;
+      const agentId = mode === "onboarding"
+        ? ELEVENLABS_CONFIG.onboarding.agentId 
+        : ELEVENLABS_CONFIG.assistant.agentId;
       
       console.log('🔗 Connecting to agent:', agentId, 'Mode:', mode);
 
       const signedUrl = await getSignedUrl(agentId);
-      console.log(`🤖 Starting in ${mode} mode`);
 
-      // Log conversation start for webhook user lookup
+      // Log conversation start
       await supabase.from('conversation_events').insert({
         conversation_id: currentConversationIdRef.current,
         user_id: session.user.id,
@@ -199,7 +224,7 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
       });
       endConversation();
     }
-  }, [userProfile?.onboarding_completed, endConversation, toast]);
+  }, [mode, endConversation, toast]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -211,13 +236,13 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
   }, []);
 
   return {
+    conversation,
     voiceState,
     apertureState,
     audioAmplitude,
     userTranscript,
     aiTranscript,
     showConversation,
-    conversationHistory,
     startConversation,
     endConversation
   };
