@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { RealtimeProvider } from "@/contexts/RealtimeContext";
 import { SyncIndicator } from "@/components/ui/SyncIndicator";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Settings from "./pages/Settings";
@@ -20,30 +21,32 @@ import { AdminRoute } from "./components/AdminRoute";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <RealtimeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <SyncIndicator />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/household" element={<Household />} />
-            <Route path="/join" element={<Join />} />
-            <Route path="/inventory" element={<Inventory />} />
-            <Route path="/recipes" element={<RecipeBook />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </RealtimeProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <RealtimeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <SyncIndicator />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
+              <Route path="/auth" element={<ErrorBoundary><Auth /></ErrorBoundary>} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/household" element={<Household />} />
+              <Route path="/join" element={<Join />} />
+              <Route path="/inventory" element={<Inventory />} />
+              <Route path="/recipes" element={<RecipeBook />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/admin" element={<AdminRoute><ErrorBoundary><Admin /></ErrorBoundary></AdminRoute>} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </RealtimeProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

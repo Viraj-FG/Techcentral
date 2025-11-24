@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import AuroraBackground from "@/components/AuroraBackground";
-import { Mail, Lock, Loader2 } from "lucide-react";
+import { Mail, Lock, Loader2, WifiOff, AlertCircle } from "lucide-react";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
+import { logError, isNetworkError, isAuthError } from "@/lib/errorHandler";
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -35,6 +36,8 @@ const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),
@@ -57,11 +60,40 @@ const Auth = () => {
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    // Listen for online/offline status
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => {
+      setIsOffline(true);
+      toast({
+        title: "No Internet Connection",
+        description: "Please check your connection and try again",
+        variant: "destructive",
+      });
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [navigate, toast]);
 
   const handleGoogleSignIn = async () => {
+    if (isOffline) {
+      toast({
+        title: "No Internet Connection",
+        description: "Please check your connection and try again",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGoogleLoading(true);
+    setAuthError(null);
+    
     try {
       const redirectUrl = `${window.location.origin}/`;
       const { error } = await supabase.auth.signInWithOAuth({
@@ -73,9 +105,15 @@ const Auth = () => {
 
       if (error) throw error;
     } catch (error: any) {
+      const categorizedError = logError(error, {
+        component: "Auth",
+        action: "google_signin",
+      });
+      
+      setAuthError(categorizedError.userMessage);
       toast({
         title: "Authentication Error",
-        description: error.message || "Failed to sign in with Google",
+        description: categorizedError.userMessage,
         variant: "destructive"
       });
       setIsGoogleLoading(false);
@@ -83,7 +121,17 @@ const Auth = () => {
   };
 
   const onSubmit = async (data: AuthFormData) => {
+    if (isOffline) {
+      toast({
+        title: "No Internet Connection",
+        description: "Please check your connection and try again",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
+    setAuthError(null);
 
     try {
       if (isSignUp) {
@@ -118,9 +166,26 @@ const Auth = () => {
         });
       }
     } catch (error: any) {
+      const categorizedError = logError(error, {
+        component: "Auth",
+        action: isSignUp ? "signup" : "signin",
+      });
+
+      // Provide specific error messages
+      let errorMessage = categorizedError.userMessage;
+      
+      if (isAuthError(error)) {
+        errorMessage = isSignUp 
+          ? "Unable to create account. Please check your email and password."
+          : "Invalid email or password. Please try again.";
+      } else if (isNetworkError(error)) {
+        errorMessage = "Network error. Please check your internet connection.";
+      }
+
+      setAuthError(errorMessage);
       toast({
         title: "Authentication Error",
-        description: error.message || `Failed to ${isSignUp ? 'sign up' : 'sign in'}`,
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -195,6 +260,32 @@ const Auth = () => {
               Your Multi-Vertical Digital Twin
             </p>
           </motion.div>
+
+          {/* Offline Indicator */}
+          {isOffline && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-3"
+            >
+              <WifiOff className="w-5 h-5 text-red-400" />
+              <p className="text-red-400 text-sm">
+                No internet connection. Please check your network.
+              </p>
+            </motion.div>
+          )}
+
+          {/* Auth Error Display */}
+          {authError && !isOffline && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-3"
+            >
+              <AlertCircle className="w-5 h-5 text-red-400" />
+              <p className="text-red-400 text-sm">{authError}</p>
+            </motion.div>
+          )}
 
           {/* Glass Card */}
           <motion.div

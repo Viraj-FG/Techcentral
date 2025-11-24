@@ -1,19 +1,38 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Splash from "@/components/Splash";
 import VoiceOnboarding from "@/components/VoiceOnboarding";
 import Dashboard from "@/components/Dashboard";
+import LoadingState from "@/components/LoadingState";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [appState, setAppState] = useState<"splash" | "onboarding" | "dashboard" | null>(null);
   const [userProfile, setUserProfile] = useState(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const authTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     let mounted = true;
+
+    // Set up timeout for stuck auth check (10 seconds)
+    authTimeoutRef.current = setTimeout(() => {
+      if (isCheckingAuth && mounted) {
+        console.warn("⏱️ Auth check timeout - redirecting to login");
+        toast({
+          title: "Loading Timeout",
+          description: "Authentication is taking too long. Redirecting to login...",
+          variant: "destructive",
+        });
+        navigate("/auth");
+      }
+    }, 10000);
 
     const checkAuthAndProfile = async () => {
       console.log('🔍 [Index] Starting auth check...');
@@ -136,16 +155,34 @@ const Index = () => {
 
     return () => {
       mounted = false;
+      mountedRef.current = false;
       subscription.unsubscribe();
+      
+      // Clear timeout on unmount
+      if (authTimeoutRef.current) {
+        clearTimeout(authTimeoutRef.current);
+      }
     };
-  }, [navigate]);
+  }, [navigate, toast]);
 
   console.log('🔍 [Index] Render state:', { isCheckingAuth, appState, hasProfile: !!userProfile });
 
   if (isCheckingAuth || appState === null) {
     return (
       <div className="fixed inset-0 bg-kaeva-void flex items-center justify-center">
-        <div className="text-kaeva-sage text-lg animate-pulse">Loading Kaeva...</div>
+        <LoadingState
+          message="Loading Kaeva..."
+          timeout={10000}
+          onTimeout={() => {
+            console.warn("⏱️ Loading timeout - redirecting to login");
+            toast({
+              title: "Loading Timeout",
+              description: "Redirecting to login...",
+              variant: "destructive",
+            });
+            navigate("/auth");
+          }}
+        />
       </div>
     );
   }
