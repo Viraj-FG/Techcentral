@@ -31,6 +31,12 @@ const Index = () => {
           .single();
 
         if (profile?.onboarding_completed) {
+          // Ensure user has a household before loading dashboard
+          if (!profile.current_household_id) {
+            console.warn('User has no household assigned');
+            navigate('/household');
+            return;
+          }
           setUserProfile(profile);
           setAppState("dashboard"); // Returning user → Dashboard with voice assistant
         } else {

@@ -45,6 +45,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
   const [spotlightOpen, setSpotlightOpen] = useState(false);
   const [socialImportOpen, setSocialImportOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   // Voice assistant hook
   const { startConversation } = useVoiceAssistant({ 
@@ -102,16 +103,30 @@ const Dashboard = ({ profile }: DashboardProps) => {
   const fetchInventory = async () => {
     try {
       setIsLoading(true);
+      setFetchError(null);
+      
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
 
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('current_household_id')
         .eq('id', user.id)
         .single();
 
-      if (!profile?.current_household_id) return;
+      if (profileError) throw profileError;
+      
+      if (!profile?.current_household_id) {
+        setFetchError('No household assigned. Please set up your household.');
+        toast({
+          title: "Household Setup Required",
+          description: "Please create or join a household to continue",
+          variant: "destructive"
+        });
+        return;
+      }
 
       const { data, error } = await supabase
         .from('inventory')
@@ -122,8 +137,14 @@ const Dashboard = ({ profile }: DashboardProps) => {
 
       const grouped = groupInventoryByCategory(data || []);
       setInventoryData(grouped);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching inventory:', error);
+      setFetchError(error.message || 'Failed to load inventory');
+      toast({
+        title: "Error Loading Dashboard",
+        description: "Please refresh the page or contact support",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
