@@ -208,8 +208,18 @@ export const useOnboardingConversation = ({
           const success = await saveOnboardingData(stateRef.current);
           
           if (!success) {
-            console.error("Failed to save onboarding data");
-            return "ERROR: Failed to save onboarding data";
+            console.error("❌ Failed to save onboarding data");
+            
+            // CRITICAL: Ensure onboarding_completed stays false on failure
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+              await supabase
+                .from('profiles')
+                .update({ onboarding_completed: false })
+                .eq('id', session.user.id);
+            }
+            
+            return "ERROR: Failed to save onboarding data - let's try that again";
           }
           
           // 2. Mark onboarding as complete in database
@@ -272,7 +282,17 @@ export const useOnboardingConversation = ({
           
           return successResult;
         } catch (error) {
-          console.error("completeConversation error:", error);
+          console.error("❌ completeConversation error:", error);
+          
+          // CRITICAL: Rollback on error
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            await supabase
+              .from('profiles')
+              .update({ onboarding_completed: false })
+              .eq('id', session.user.id);
+          }
+          
           const errorResult = `ERROR: ${error instanceof Error ? error.message : "Unknown error"}`;
           
           // Log error response (non-blocking)
