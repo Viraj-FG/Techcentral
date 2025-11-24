@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import Index from '../Index';
 import { supabase } from '@/integrations/supabase/client';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 // Mock Supabase client
 vi.mock('@/integrations/supabase/client', () => ({
@@ -72,12 +73,14 @@ describe('Index Page', () => {
     });
 
     render(
-      <MemoryRouter initialEntries={['/']}>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<div>Auth Page</div>} />
-        </Routes>
-      </MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter initialEntries={['/']}>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<div>Auth Page</div>} />
+          </Routes>
+        </MemoryRouter>
+      </AuthProvider>
     );
 
     await waitFor(() => {
@@ -111,11 +114,13 @@ describe('Index Page', () => {
     });
 
     render(
-      <MemoryRouter initialEntries={['/']}>
-        <Routes>
-          <Route path="/" element={<Index />} />
-        </Routes>
-      </MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter initialEntries={['/']}>
+          <Routes>
+            <Route path="/" element={<Index />} />
+          </Routes>
+        </MemoryRouter>
+      </AuthProvider>
     );
 
     await waitFor(() => {
@@ -148,11 +153,13 @@ describe('Index Page', () => {
     });
 
     render(
-      <MemoryRouter initialEntries={['/']}>
-        <Routes>
-          <Route path="/" element={<Index />} />
-        </Routes>
-      </MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter initialEntries={['/']}>
+          <Routes>
+            <Route path="/" element={<Index />} />
+          </Routes>
+        </MemoryRouter>
+      </AuthProvider>
     );
 
     // Should show onboarding directly

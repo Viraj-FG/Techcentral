@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter, useNavigate } from 'react-router-dom';
 import Auth from '../Auth';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { mockSupabase } from '../../test/mocks/supabase';
 import { mockAdminUser } from '../../test/mocks/adminData';
 import { Toaster } from '@/components/ui/toaster';
@@ -23,8 +24,10 @@ vi.mock('react-router-dom', async () => {
 const renderAuth = () => {
   return render(
     <BrowserRouter>
-      <Auth />
-      <Toaster />
+      <AuthProvider>
+        <Auth />
+        <Toaster />
+      </AuthProvider>
     </BrowserRouter>
   );
 };
@@ -32,6 +35,9 @@ const renderAuth = () => {
 describe('Auth Page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Ensure navigate is a callable mock for tests that don't override it
+    const navMock = vi.fn();
+    (useNavigate as unknown as any).mockReturnValue(navMock);
   });
 
   it('renders sign in form by default', () => {

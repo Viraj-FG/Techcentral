@@ -9,6 +9,7 @@ export const mockSupabase = {
     signInWithOAuth: vi.fn().mockResolvedValue({ data: { url: 'http://test.com' }, error: null }),
     signOut: vi.fn().mockResolvedValue({ error: null }),
     onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+    refreshSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
   },
   from: vi.fn().mockReturnThis(),
   select: vi.fn().mockReturnThis(),
