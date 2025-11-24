@@ -51,23 +51,59 @@ export const saveOnboardingData = async (state: ConversationState): Promise<bool
     const transformedData = transformProfileData(state);
     console.log("✅ SAVE Step 3: Transformed data:", JSON.stringify(transformedData, null, 2));
 
-    // Update profile
-    console.log("💾 SAVE Step 4: Updating profile in database");
+    // Create household first (CRITICAL: Must exist before profile update)
+    console.log("💾 SAVE Step 4: Creating household for user");
+    const { data: existingHousehold } = await supabase
+      .from('households')
+      .select('id')
+      .eq('owner_id', userId)
+      .single();
+
+    let householdId: string;
+
+    if (existingHousehold) {
+      console.log("✅ SAVE Step 4: Using existing household:", existingHousehold.id);
+      householdId = existingHousehold.id;
+    } else {
+      const userName = state.userName || session.user.email?.split('@')[0] || 'User';
+      const { data: newHousehold, error: householdError } = await supabase
+        .from('households')
+        .insert({
+          name: `${userName}'s Household`,
+          owner_id: userId
+        })
+        .select('id')
+        .single();
+
+      if (householdError || !newHousehold) {
+        await logError("household-create", householdError, { userId, userName });
+        return false;
+      }
+
+      console.log("✅ SAVE Step 4: Created new household:", newHousehold.id);
+      householdId = newHousehold.id;
+    }
+
+    // Update profile with household reference
+    console.log("💾 SAVE Step 5: Updating profile in database with household link");
     const { error: profileError } = await supabase
       .from('profiles')
-      .update(transformedData)
+      .update({
+        ...transformedData,
+        current_household_id: householdId
+      })
       .eq('id', userId);
 
     if (profileError) {
-      await logError("profile-update", profileError, { transformedData, userId });
+      await logError("profile-update", profileError, { transformedData, userId, householdId });
       return false;
     }
 
-    console.log("✅ SAVE Step 4: Profile saved successfully");
+    console.log("✅ SAVE Step 5: Profile saved successfully with household link");
 
     // Save household members
     if (state.householdMembers && state.householdMembers.length > 0) {
-      console.log(`💾 SAVE Step 5: Preparing ${state.householdMembers.length} household members`);
+      console.log(`💾 SAVE Step 6: Preparing ${state.householdMembers.length} household members`);
       const membersToInsert = state.householdMembers.map(member => ({
         user_id: userId,
         member_type: member.type,
@@ -82,9 +118,9 @@ export const saveOnboardingData = async (state: ConversationState): Promise<bool
         allergies: member.allergies || [],
         health_conditions: member.healthConditions || []
       }));
-      console.log("✅ SAVE Step 5: Members prepared:", membersToInsert);
+      console.log("✅ SAVE Step 6: Members prepared:", membersToInsert);
 
-      console.log("💾 SAVE Step 6: Inserting household members");
+      console.log("💾 SAVE Step 7: Inserting household members");
       const { error: membersError } = await supabase
         .from('household_members')
         .insert(membersToInsert);
@@ -92,10 +128,10 @@ export const saveOnboardingData = async (state: ConversationState): Promise<bool
       if (membersError) {
         await logError("household-insert", membersError, { membersToInsert, userId });
       } else {
-        console.log(`✅ SAVE Step 6: Saved ${membersToInsert.length} household members`);
+        console.log(`✅ SAVE Step 7: Saved ${membersToInsert.length} household members`);
       }
     } else {
-      console.log("ℹ️ SAVE Step 5-6: No household members to save");
+      console.log("ℹ️ SAVE Step 6-7: No household members to save");
     }
 
     // Save pets (legacy support)
