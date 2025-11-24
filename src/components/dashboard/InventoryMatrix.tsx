@@ -36,43 +36,106 @@ const InventoryMatrix = ({ inventory, onRefill, onCookNow }: InventoryMatrixProp
       variants={{
         show: {
           transition: {
-            staggerChildren: 0.15
+            staggerChildren: 0.1
           }
         }
       }}
       initial="hidden"
       animate="show"
     >
-      <InventoryCard
-        title="Fridge"
-        icon={Refrigerator}
-        items={inventory.fridge}
-        status={getStatus(inventory.fridge)}
-        onRefill={onRefill}
-        onCookNow={onCookNow}
-      />
-      <InventoryCard
-        title="Pantry"
-        icon={Package}
-        items={inventory.pantry}
-        status={getStatus(inventory.pantry)}
-        onRefill={onRefill}
-        onCookNow={onCookNow}
-      />
-      <InventoryCard
-        title="Beauty"
-        icon={Sparkles}
-        items={inventory.beauty}
-        status={getStatus(inventory.beauty)}
-        onRefill={onRefill}
-      />
-      <InventoryCard
-        title="Pets"
-        icon={PawPrint}
-        items={inventory.pets}
-        status={getStatus(inventory.pets)}
-        onRefill={onRefill}
-      />
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 20, scale: 0.95 },
+          show: { 
+            opacity: 1, 
+            y: 0, 
+            scale: 1,
+            transition: { 
+              duration: 0.4,
+              ease: [0.2, 0.8, 0.2, 1]
+            }
+          }
+        }}
+      >
+        <InventoryCard
+          title="Fridge"
+          icon={Refrigerator}
+          items={inventory.fridge}
+          status={getStatus(inventory.fridge)}
+          onRefill={onRefill}
+          onCookNow={onCookNow}
+        />
+      </motion.div>
+      
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 20, scale: 0.95 },
+          show: { 
+            opacity: 1, 
+            y: 0, 
+            scale: 1,
+            transition: { 
+              duration: 0.4,
+              ease: [0.2, 0.8, 0.2, 1]
+            }
+          }
+        }}
+      >
+        <InventoryCard
+          title="Pantry"
+          icon={Package}
+          items={inventory.pantry}
+          status={getStatus(inventory.pantry)}
+          onRefill={onRefill}
+          onCookNow={onCookNow}
+        />
+      </motion.div>
+      
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 20, scale: 0.95 },
+          show: { 
+            opacity: 1, 
+            y: 0, 
+            scale: 1,
+            transition: { 
+              duration: 0.4,
+              ease: [0.2, 0.8, 0.2, 1]
+            }
+          }
+        }}
+      >
+        <InventoryCard
+          title="Beauty"
+          icon={Sparkles}
+          items={inventory.beauty}
+          status={getStatus(inventory.beauty)}
+          onRefill={onRefill}
+        />
+      </motion.div>
+      
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 20, scale: 0.95 },
+          show: { 
+            opacity: 1, 
+            y: 0, 
+            scale: 1,
+            transition: { 
+              duration: 0.4,
+              ease: [0.2, 0.8, 0.2, 1]
+            }
+          }
+        }}
+      >
+        <InventoryCard
+          title="Pets"
+          icon={PawPrint}
+          items={inventory.pets}
+          status={getStatus(inventory.pets)}
+          onRefill={onRefill}
+        />
+      </motion.div>
     </motion.div>
   );
 };

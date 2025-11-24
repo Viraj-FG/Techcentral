@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { RefreshCw, LucideIcon, ChefHat } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import { differenceInDays } from "date-fns";
 
 interface InventoryItem {
@@ -26,6 +27,7 @@ interface InventoryCardProps {
 
 const InventoryCard = ({ title, icon: Icon, items, status = 'normal', onRefill, onCookNow }: InventoryCardProps) => {
   const [shouldFlash, setShouldFlash] = useState(false);
+  const { trigger: triggerHaptic } = useHapticFeedback();
 
   // Flash animation when items change
   useEffect(() => {
@@ -122,7 +124,10 @@ const InventoryCard = ({ title, icon: Icon, items, status = 'normal', onRefill, 
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => onCookNow(expiringItems.map(i => i.name))}
+              onClick={() => {
+                triggerHaptic('medium');
+                onCookNow(expiringItems.map(i => i.name));
+              }}
               className="w-full mt-2 h-7 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 text-xs"
             >
               <ChefHat className="w-3 h-3 mr-1" />
@@ -155,7 +160,10 @@ const InventoryCard = ({ title, icon: Icon, items, status = 'normal', onRefill, 
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => onRefill(item)}
+                  onClick={() => {
+                    triggerHaptic('light');
+                    onRefill(item);
+                  }}
                   className="absolute -top-1 right-0 h-6 px-2 bg-red-500/20 hover:bg-red-500/40 text-red-400 text-xs"
                 >
                   <RefreshCw className="w-3 h-3 mr-1" />
