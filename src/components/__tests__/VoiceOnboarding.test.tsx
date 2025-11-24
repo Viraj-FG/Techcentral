@@ -23,13 +23,17 @@ vi.mock('@/integrations/supabase/client', () => ({
 }));
 
 // Mock hooks
-vi.mock('@/hooks/useOnboardingConversation', () => ({
-  useOnboardingConversation: () => ({
+vi.mock('@/hooks/useVoiceConversation', () => ({
+  useVoiceConversation: () => ({
     conversation: { status: 'disconnected' },
+    voiceState: 'idle',
+    apertureState: 'idle',
+    audioAmplitude: 0,
+    userTranscript: '',
+    aiTranscript: '',
+    showConversation: false,
     startConversation: vi.fn(),
-    stopConversation: vi.fn(),
-    processUserMessage: vi.fn(),
-    isProcessing: false,
+    endConversation: vi.fn(),
   }),
 }));
 

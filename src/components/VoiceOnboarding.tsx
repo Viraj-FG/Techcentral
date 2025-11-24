@@ -10,7 +10,7 @@ import TutorialOverlay from "./TutorialOverlay";
 import HouseholdMemberCard from "./HouseholdMemberCard";
 import OnboardingStatus from "./voice/OnboardingStatus";
 import KeywordFeedback from "./voice/KeywordFeedback";
-import { useOnboardingConversation } from "@/hooks/useOnboardingConversation";
+import { useVoiceConversation } from "@/hooks/useVoiceConversation";
 import { supabase } from "@/integrations/supabase/client";
 import { saveOnboardingData } from "@/lib/onboardingSave";
 import { transformProfileData, ConversationState } from "@/lib/onboardingTransforms";
@@ -58,19 +58,20 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
     stateRef.current = conversationState;
   }, [conversationState]);
 
-  const { conversation } = useOnboardingConversation({
-    conversationState,
-    setConversationState,
-    setApertureState,
-    setUserTranscript,
-    setAiTranscript,
-    setShowSubtitles,
-    setActiveVertical,
-    setDetectedKeywords,
-    setShowSummary,
+  const { conversation, startConversation, endConversation: endVoiceConversation } = useVoiceConversation({
+    mode: "onboarding",
     onComplete,
-    permissionsGranted
+    onProfileUpdate: (profile) => {
+      console.log("Profile updated:", profile);
+    }
   });
+
+  // Start conversation when permissions granted
+  useEffect(() => {
+    if (permissionsGranted && conversation.status === "disconnected") {
+      startConversation();
+    }
+  }, [permissionsGranted, conversation.status, startConversation]);
 
   // Handle voice connection errors
   useEffect(() => {

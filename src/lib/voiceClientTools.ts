@@ -182,6 +182,39 @@ export const createCompleteConversationTool = (
 };
 
 /**
+ * End conversation tool for onboarding
+ */
+export const createEndConversationTool = (
+  conversationEndSession: () => Promise<void>,
+  setters: {
+    setShowConversation: (show: boolean) => void;
+    setUserTranscript: (text: string) => void;
+    setAiTranscript: (text: string) => void;
+    setVoiceState: (state: any) => void;
+    setApertureState: (state: any) => void;
+  }
+) => {
+  return async (parameters: { reason: string }) => {
+    console.log("🔚 End conversation called:", parameters.reason);
+    
+    try {
+      await conversationEndSession();
+      
+      setters.setShowConversation(false);
+      setters.setUserTranscript("");
+      setters.setAiTranscript("");
+      setters.setVoiceState("idle");
+      setters.setApertureState("idle");
+      
+      return "SUCCESS: Conversation ended";
+    } catch (error) {
+      console.error("endConversation error:", error);
+      return `ERROR: ${error instanceof Error ? error.message : "Failed to end conversation"}`;
+    }
+  };
+};
+
+/**
  * Navigate to a different page
  */
 export const createNavigateToTool = (navigate: NavigateFunction) => {

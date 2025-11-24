@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,16 +13,14 @@ import { useToast } from "@/hooks/use-toast";
 import AuroraBackground from "@/components/AuroraBackground";
 import { Mail, Lock, Loader2, WifiOff, AlertCircle } from "lucide-react";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
-import { logError, isNetworkError, isAuthError } from "@/lib/errorHandler";
 
 const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signIn, signUp, isAuthenticated, isLoading: authLoading, error: authError } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const [authError, setAuthError] = useState<string | null>(null);
 
   const authSchema = z.object({
     email: z.string().email("Please enter a valid email address"),
@@ -47,22 +46,11 @@ const Auth = () => {
     resolver: zodResolver(authSchema),
   });
 
-  // Check if user is already authenticated
+  // Redirect if already authenticated
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/');
-      }
-    };
-    checkAuth();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        navigate('/');
-      }
-    });
+    if (isAuthenticated && !authLoading) {
+      navigate('/');
+    }
 
     // Listen for online/offline status
     const handleOnline = () => setIsOffline(false);
@@ -79,11 +67,10 @@ const Auth = () => {
     window.addEventListener("offline", handleOffline);
 
     return () => {
-      subscription.unsubscribe();
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, [navigate, toast]);
+  }, [isAuthenticated, authLoading, navigate, toast]);
 
   const handleGoogleSignIn = async () => {
     if (isOffline) {
@@ -95,11 +82,12 @@ const Auth = () => {
       return;
     }
 
-    setIsGoogleLoading(true);
-    setAuthError(null);
+    setIsLoading(true);
     
     try {
       const redirectUrl = `${window.location.origin}/`;
+      const { data: { session } } = await supabase.auth.getSession();
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -109,23 +97,21 @@ const Auth = () => {
 
       if (error) throw error;
     } catch (error: any) {
-      const categorizedError = logError(error, {
-        component: "Auth",
-        action: "google_signin",
-      });
-      
-      setAuthError(categorizedError.userMessage);
       toast({
         title: "Authentication Error",
-        description: categorizedError.userMessage,
+        description: error.message || "Failed to sign in with Google",
         variant: "destructive"
       });
-      setIsGoogleLoading(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const onSubmit = async (data: AuthFormData) => {
+    console.log('📝 Form submitted:', { email: data.email, isSignUp });
+    
     if (isOffline) {
+      console.log('❌ Offline - cannot submit');
       toast({
         title: "No Internet Connection",
         description: "Please check your connection and try again",
@@ -135,68 +121,36 @@ const Auth = () => {
     }
 
     setIsLoading(true);
-    setAuthError(null);
+    console.log('⏳ Loading state set to true');
 
     try {
       if (isSignUp) {
-        // Sign up
-        const redirectUrl = `${window.location.origin}/`;
-        const { error } = await supabase.auth.signUp({
-          email: data.email,
-          password: data.password,
-          options: {
-            emailRedirectTo: redirectUrl
-          }
-        });
-
-        if (error) throw error;
-
+        console.log('📝 Attempting sign up...');
+        await signUp(data.email, data.password);
         toast({
           title: "Account Created!",
           description: "Welcome to Kaeva. Let's build your digital twin.",
         });
       } else {
-        // Sign in
-        const { data: { session }, error } = await supabase.auth.signInWithPassword({
-          email: data.email,
-          password: data.password,
+        console.log('📝 Attempting sign in...');
+        await signIn(data.email, data.password);
+        console.log('✅ Sign in successful');
+        toast({
+          title: "Welcome Back!",
+          description: "Signed in successfully",
         });
-
-        if (error) throw error;
-
-        if (session) {
-          toast({
-            title: "Welcome Back!",
-            description: "Signed in successfully",
-          });
-          navigate('/');
-        }
+        navigate('/');
       }
     } catch (error: any) {
-      const categorizedError = logError(error, {
-        component: "Auth",
-        action: isSignUp ? "signup" : "signin",
-      });
-
-      // Provide specific error messages
-      let errorMessage = categorizedError.userMessage;
-      
-      if (isAuthError(error)) {
-        errorMessage = isSignUp 
-          ? "Unable to create account. Please check your email and password."
-          : "Invalid email or password. Please try again.";
-      } else if (isNetworkError(error)) {
-        errorMessage = "Network error. Please check your internet connection.";
-      }
-
-      setAuthError(errorMessage);
+      console.error('❌ Auth error in onSubmit:', error);
       toast({
         title: "Authentication Error",
-        description: errorMessage,
+        description: error.message || "An unexpected error occurred",
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
+      console.log('⏳ Loading state set to false');
     }
   };
 
@@ -304,11 +258,11 @@ const Auth = () => {
             {/* Google Sign In */}
             <Button
               onClick={handleGoogleSignIn}
-              disabled={isGoogleLoading}
+              disabled={isLoading}
               variant="primary"
               className="w-full py-6 mb-6 bg-white hover:bg-white/90 text-kaeva-void"
             >
-              {isGoogleLoading ? (
+              {isLoading ? (
                 <>
                   <Loader2 className="animate-spin mr-2" size={20} strokeWidth={1.5} />
                   <span className="text-micro">Connecting...</span>
