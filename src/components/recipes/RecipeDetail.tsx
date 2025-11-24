@@ -58,10 +58,19 @@ export const RecipeDetail = ({ recipe, open, onClose, onRecipeDeleted }: Props) 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data } = await supabase
-      .from('inventory')
+    // Fetch user's household_id
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('current_household_id')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile?.current_household_id) return;
+
+    const inventoryTable = supabase.from('inventory') as any;
+    const { data } = await inventoryTable
       .select('*')
-      .eq('user_id', user.id);
+      .eq('household_id', profile.current_household_id);
 
     if (data) setInventory(data);
   };
