@@ -16,32 +16,22 @@ const Index = () => {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const authTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
+  const isCheckingRef = useRef(false);
+  const hasCompletedInitialCheck = useRef(false);
 
   useEffect(() => {
     mountedRef.current = true;
     let mounted = true;
 
-    // Set up timeout for stuck auth check (10 seconds)
-    authTimeoutRef.current = setTimeout(() => {
-      if (isCheckingAuth && mounted) {
-        console.warn("⏱️ Auth check timeout - redirecting to login");
-        toast({
-          title: "Loading Timeout",
-          description: "Authentication is taking too long. Redirecting to login...",
-          variant: "destructive",
-        });
-        navigate("/auth");
-      }
-    }, 10000);
-
     const checkAuthAndProfile = async () => {
-      console.log('🔍 [Index] Starting auth check...');
-      
-      // Clear any existing timeout before starting new check
-      if (authTimeoutRef.current) {
-        clearTimeout(authTimeoutRef.current);
-        authTimeoutRef.current = null;
+      // Prevent parallel auth checks
+      if (isCheckingRef.current) {
+        console.log('🔍 [Index] Auth check already in progress, skipping...');
+        return;
       }
+      
+      isCheckingRef.current = true;
+      console.log('🔍 [Index] Starting auth check...');
       
       try {
         // Check authentication
@@ -137,11 +127,15 @@ const Index = () => {
           console.log('🔍 [Index] Onboarding not completed - showing onboarding flow');
           if (mounted) setAppState("onboarding");
         }
+        
+        // Mark initial check as complete
+        hasCompletedInitialCheck.current = true;
       } catch (error) {
         console.error("❌ [Index] Error checking auth:", error);
         if (mounted) navigate('/auth');
       } finally {
         console.log('🔍 [Index] Auth check complete, setting isCheckingAuth to false');
+        isCheckingRef.current = false;
         if (mounted) setIsCheckingAuth(false);
       }
     };
@@ -152,15 +146,17 @@ const Index = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('🔍 [Index] Auth state change:', event);
       
-      // Skip INITIAL_SESSION and SIGNED_IN when already authenticated
-      if (event === 'INITIAL_SESSION' || (event === 'SIGNED_IN' && appState === 'dashboard')) {
+      // Skip events during initial check
+      if (!hasCompletedInitialCheck.current) {
+        console.log('🔍 [Index] Skipping event during initial check:', event);
         return;
       }
       
-      if (!session && mounted) {
-        navigate('/auth');
-      } else if (session && mounted) {
-        // Re-check profile when auth state changes
+      // Only handle sign out or subsequent sign ins
+      if (event === 'SIGNED_OUT') {
+        if (mounted) navigate('/auth');
+      } else if (event === 'SIGNED_IN') {
+        // Re-authenticate on sign in (e.g., from another tab)
         checkAuthAndProfile();
       }
     });
