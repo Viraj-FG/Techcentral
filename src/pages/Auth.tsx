@@ -60,6 +60,13 @@ const Auth = () => {
     };
   }, []);
 
+  // Redirect to home when authenticated
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, authLoading, navigate]);
+
   const onSubmit = async (data: AuthFormData) => {
     if (isOffline) {
       toast({
