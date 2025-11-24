@@ -33,9 +33,35 @@ const Index = () => {
         if (profile?.onboarding_completed) {
           // Ensure user has a household before loading dashboard
           if (!profile.current_household_id) {
-            console.warn('User has no household assigned');
-            navigate('/household');
-            return;
+            console.warn('User has no household assigned - attempting auto-creation');
+            
+            // Try to create household automatically
+            try {
+              const { data: household, error } = await supabase
+                .from('households')
+                .insert({
+                  name: `${profile.user_name || 'User'}'s Household`,
+                  owner_id: session.user.id
+                })
+                .select()
+                .single();
+
+              if (error) throw error;
+
+              // Update profile with new household
+              await supabase
+                .from('profiles')
+                .update({ current_household_id: household.id })
+                .eq('id', session.user.id);
+
+              profile.current_household_id = household.id;
+              console.log('✅ Auto-created household:', household.id);
+            } catch (createError) {
+              console.error('Failed to auto-create household:', createError);
+              // Only redirect if auto-creation fails
+              navigate('/household');
+              return;
+            }
           }
           setUserProfile(profile);
           setAppState("dashboard"); // Returning user → Dashboard with voice assistant

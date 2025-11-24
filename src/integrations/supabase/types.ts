@@ -672,6 +672,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      insert_household_batch: {
+        Args: { p_members: Json; p_pets: Json; p_user_id: string }
+        Returns: Json
+      }
       mark_spoilage: { Args: { _inventory_id: string }; Returns: undefined }
     }
     Enums: {

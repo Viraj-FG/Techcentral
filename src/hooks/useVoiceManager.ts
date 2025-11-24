@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useConversation } from "@11labs/react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -36,13 +36,14 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
   const navigate = useNavigate();
   
   const currentConversationIdRef = useRef<string>("");
+  const conversationRef = useRef<any>(null);
 
-  // Define endConversation early for use in callbacks
+  // Stable endConversation that accesses latest conversation via ref
   const endConversation = useCallback(async () => {
     console.log("🔚 Ending conversation");
     
-    if (conversation.status === "connected") {
-      await conversation.endSession();
+    if (conversationRef.current?.status === "connected") {
+      await conversationRef.current.endSession();
     }
 
     currentConversationIdRef.current = "";
@@ -54,41 +55,43 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
     setAudioAmplitude(0);
   }, []);
 
-  // ElevenLabs conversation hook with dynamic client tools
-  const isOnboardingComplete = userProfile?.onboarding_completed;
-  
-  const clientTools = isOnboardingComplete ? {
-    // Assistant tools
-    check_inventory: createCheckInventoryTool(),
-    add_to_cart: createAddToCartTool(),
-    log_meal: createLogMealTool(),
-    search_recipes: createSearchRecipesTool(),
-    check_allergens: createCheckAllergensTool(),
-    navigateTo: createNavigateToTool(navigate),
-    end_conversation: async (parameters: { reason: string }) => {
-      console.log("🔚 End conversation called:", parameters.reason);
-      await endConversation();
-      return "SUCCESS: Conversation ended";
-    }
-  } : {
-    // Onboarding tools
-    updateProfile: createUpdateProfileTool(onProfileUpdate),
-    completeConversation: createCompleteConversationTool(
-      async () => {
-        if (conversation.status === "connected") {
-          await conversation.endSession();
-        }
-      },
-      {
-        setShowConversation,
-        setUserTranscript,
-        setAiTranscript,
-        setVoiceState,
-        setApertureState,
+  // Memoize clientTools to prevent recreation on every render
+  const clientTools = useMemo(() => {
+    const isOnboardingComplete = userProfile?.onboarding_completed;
+    
+    return isOnboardingComplete ? {
+      // Assistant tools
+      check_inventory: createCheckInventoryTool(),
+      add_to_cart: createAddToCartTool(),
+      log_meal: createLogMealTool(),
+      search_recipes: createSearchRecipesTool(),
+      check_allergens: createCheckAllergensTool(),
+      navigateTo: createNavigateToTool(navigate),
+      end_conversation: async (parameters: { reason: string }) => {
+        console.log("🔚 End conversation called:", parameters.reason);
+        await endConversation();
+        return "SUCCESS: Conversation ended";
       }
-    ),
-    navigateTo: createNavigateToTool(navigate)
-  };
+    } : {
+      // Onboarding tools
+      updateProfile: createUpdateProfileTool(onProfileUpdate),
+      completeConversation: createCompleteConversationTool(
+        async () => {
+          if (conversationRef.current?.status === "connected") {
+            await conversationRef.current.endSession();
+          }
+        },
+        {
+          setShowConversation,
+          setUserTranscript,
+          setAiTranscript,
+          setVoiceState,
+          setApertureState,
+        }
+      ),
+      navigateTo: createNavigateToTool(navigate)
+    };
+  }, [userProfile?.onboarding_completed, endConversation, navigate, onProfileUpdate]);
 
   const conversation = useConversation({
     onConnect: () => console.log("🔌 Connected to ElevenLabs"),
@@ -119,6 +122,11 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
     },
     clientTools
   });
+
+  // Keep ref in sync with conversation
+  useEffect(() => {
+    conversationRef.current = conversation;
+  }, [conversation]);
 
   // Store message wrapper
   const storeMessage = (role: string, message: string) => {
@@ -170,7 +178,7 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
       const signedUrl = await getSignedUrl(agentId);
       console.log(`🤖 Starting in ${mode} mode`);
 
-      await conversation.startSession({ signedUrl });
+      await conversationRef.current.startSession({ signedUrl });
       setApertureState("listening");
     } catch (error) {
       console.error("❌ Failed to start conversation:", error);
@@ -181,13 +189,13 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
       });
       endConversation();
     }
-  }, [userProfile, onProfileUpdate, conversation, endConversation, navigate]);
+  }, [userProfile?.onboarding_completed, endConversation, toast]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (conversation.status === "connected") {
-        conversation.endSession();
+      if (conversationRef.current?.status === "connected") {
+        conversationRef.current.endSession();
       }
     };
   }, []);
