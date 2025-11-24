@@ -177,13 +177,35 @@ const Dashboard = ({ profile }: DashboardProps) => {
 
   useEffect(() => {
     logger.info('🔄 Dashboard useEffect triggered');
+    
+    // Non-blocking admin check with timeout
     const checkAdmin = async () => {
-      logger.debug('🔐 Checking admin status');
-      const isAdmin = await checkAdminStatus();
-      setIsAdmin(isAdmin);
-      logger.info('✅ Admin check complete', { isAdmin });
+      try {
+        logger.debug('🔐 Checking admin status (non-blocking)');
+        
+        // Add 3-second timeout for admin check
+        const timeoutPromise = new Promise<boolean>((resolve) => 
+          setTimeout(() => {
+            logger.warn('⏱️ Admin check timed out - defaulting to non-admin');
+            resolve(false);
+          }, 3000)
+        );
+
+        const adminPromise = checkAdminStatus();
+        const isAdmin = await Promise.race([adminPromise, timeoutPromise]);
+        
+        setIsAdmin(isAdmin);
+        logger.info('✅ Admin check complete', { isAdmin });
+      } catch (error) {
+        logger.error('❌ Admin check failed - defaulting to non-admin', error);
+        setIsAdmin(false);
+      }
     };
+    
+    // Run admin check without blocking dashboard load
     checkAdmin();
+    
+    // Fetch inventory immediately (don't wait for admin check)
     fetchInventory();
   }, []);
 
