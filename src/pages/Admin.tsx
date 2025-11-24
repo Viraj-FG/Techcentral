@@ -16,6 +16,7 @@ import ToolCallLogs from "@/components/admin/ToolCallLogs";
 import ContextPreview from "@/components/admin/ContextPreview";
 import { AgentProvisioning } from "@/components/admin/AgentProvisioning";
 import { ConversationMonitor } from "@/components/admin/ConversationMonitor";
+import { OnboardingResetTool } from "@/components/admin/OnboardingResetTool";
 import { motion } from "framer-motion";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
 
@@ -82,8 +83,9 @@ const Admin = () => {
             <TestingTools />
           </TabsContent>
 
-          <TabsContent value="users">
+          <TabsContent value="users" className="space-y-6">
             <UserManagement />
+            <OnboardingResetTool />
           </TabsContent>
 
           <TabsContent value="database">

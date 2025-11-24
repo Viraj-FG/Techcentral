@@ -13,6 +13,29 @@ const Index = () => {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
+    const validateOnboardingComplete = async (userId: string, householdId: string | null): Promise<boolean> => {
+      // Check 1: Has household assigned
+      if (!householdId) return false;
+      
+      // Check 2: Household exists in database
+      const { data: household } = await supabase
+        .from('households')
+        .select('id')
+        .eq('id', householdId)
+        .single();
+      if (!household) return false;
+      
+      // Check 3: Has at least basic profile data
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('user_name, language')
+        .eq('id', userId)
+        .single();
+      if (!profile?.user_name) return false;
+      
+      return true; // All checks passed
+    };
+
     const checkAuthAndProfile = async () => {
       try {
         // Check authentication
@@ -31,42 +54,26 @@ const Index = () => {
           .single();
 
         if (profile?.onboarding_completed) {
-          // Ensure user has a household before loading dashboard
-          if (!profile.current_household_id) {
-            console.warn('User has no household assigned - attempting auto-creation');
+          // Validate that onboarding is truly complete
+          const isValid = await validateOnboardingComplete(session.user.id, profile.current_household_id);
+          
+          if (!isValid) {
+            console.warn('❌ Incomplete onboarding detected - resetting to restart');
+            // Reset onboarding_completed flag
+            await supabase
+              .from('profiles')
+              .update({ onboarding_completed: false })
+              .eq('id', session.user.id);
             
-            // Try to create household automatically
-            try {
-              const { data: household, error } = await supabase
-                .from('households')
-                .insert({
-                  name: `${profile.user_name || 'User'}'s Household`,
-                  owner_id: session.user.id
-                })
-                .select()
-                .single();
-
-              if (error) throw error;
-
-              // Update profile with new household
-              await supabase
-                .from('profiles')
-                .update({ current_household_id: household.id })
-                .eq('id', session.user.id);
-
-              profile.current_household_id = household.id;
-              console.log('✅ Auto-created household:', household.id);
-            } catch (createError) {
-              console.error('Failed to auto-create household:', createError);
-              // Only redirect if auto-creation fails
-              navigate('/household');
-              return;
-            }
+            setAppState("onboarding");
+            return;
           }
+
+          // Onboarding is valid, proceed to dashboard
           setUserProfile(profile);
-          setAppState("dashboard"); // Returning user → Dashboard with voice assistant
+          setAppState("dashboard");
         } else {
-          setAppState("onboarding"); // New user → Onboarding (which includes splash internally)
+          setAppState("onboarding");
         }
       } catch (error) {
         console.error("Error checking auth:", error);
@@ -106,23 +113,19 @@ const Index = () => {
             setAppState("dashboard");
           }}
           onExit={async () => {
-            // For admin testing: mark onboarding as complete to prevent loop
+            // Skip to dashboard WITHOUT marking onboarding complete
+            // This allows users to come back and finish later
             const { data: { session } } = await supabase.auth.getSession();
             if (session?.user) {
-              // Update profile to mark onboarding as complete
-              await supabase
-                .from('profiles')
-                .update({ onboarding_completed: true })
-                .eq('id', session.user.id);
-              
-              // Fetch updated profile
               const { data: profile } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', session.user.id)
                 .single();
               
-              setUserProfile(profile);
+              if (profile) {
+                setUserProfile(profile);
+              }
             }
             setAppState("dashboard");
           }}

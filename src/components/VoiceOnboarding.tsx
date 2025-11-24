@@ -12,6 +12,7 @@ import { useOnboardingConversation } from "@/hooks/useOnboardingConversation";
 import { supabase } from "@/integrations/supabase/client";
 import { saveOnboardingData } from "@/lib/onboardingSave";
 import { transformProfileData, ConversationState } from "@/lib/onboardingTransforms";
+import { Check, Circle } from "lucide-react";
 
 interface VoiceOnboardingProps {
   onComplete: (profile: any) => void;
@@ -200,6 +201,42 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
       <AuroraBackground vertical={activeVertical} />
 
       <div className="relative z-10 h-full flex flex-col items-center justify-center">
+        {/* Onboarding Progress Indicator */}
+        {!showSummary && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="absolute top-8 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-kaeva-void/80 backdrop-blur-sm px-6 py-3 rounded-full border border-kaeva-sage/20"
+          >
+            <div className="flex items-center gap-2">
+              {permissionsGranted ? (
+                <Check className="h-4 w-4 text-kaeva-mint" />
+              ) : (
+                <Circle className="h-4 w-4 text-kaeva-slate-400" />
+              )}
+              <span className="text-xs text-white/70">Permissions</span>
+            </div>
+            <div className="h-4 w-px bg-kaeva-sage/20" />
+            <div className="flex items-center gap-2">
+              {conversationState.userName ? (
+                <Check className="h-4 w-4 text-kaeva-mint" />
+              ) : (
+                <Circle className="h-4 w-4 text-kaeva-slate-400" />
+              )}
+              <span className="text-xs text-white/70">Profile</span>
+            </div>
+            <div className="h-4 w-px bg-kaeva-sage/20" />
+            <div className="flex items-center gap-2">
+              {conversationState.householdMembers.length > 0 ? (
+                <Check className="h-4 w-4 text-kaeva-mint" />
+              ) : (
+                <Circle className="h-4 w-4 text-kaeva-slate-400" />
+              )}
+              <span className="text-xs text-white/70">Household</span>
+            </div>
+          </motion.div>
+        )}
+
         <AnimatePresence mode="wait">
           {!showSummary ? (
             <motion.div
