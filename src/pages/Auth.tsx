@@ -21,6 +21,7 @@ const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [isOAuthCallback, setIsOAuthCallback] = useState(false);
 
   const authSchema = z.object({
     email: z.string().email("Please enter a valid email address"),
@@ -46,9 +47,24 @@ const Auth = () => {
     resolver: zodResolver(authSchema),
   });
 
-  // Redirect if already authenticated
+  // Detect OAuth callback on mount
   useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.includes('access_token') || hash.includes('error')) {
+      console.log('🔐 OAuth callback detected');
+      setIsOAuthCallback(true);
+    }
+  }, []);
+
+  // Redirect if already authenticated (but not during OAuth callback)
+  useEffect(() => {
+    if (isOAuthCallback) {
+      console.log('🔐 OAuth callback active - waiting for auth to complete');
+      return;
+    }
+
     if (isAuthenticated && !authLoading) {
+      console.log('🔐 Already authenticated, redirecting to home');
       navigate('/');
     }
 
@@ -70,9 +86,9 @@ const Auth = () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, [isAuthenticated, authLoading, navigate, toast]);
+  }, [isAuthenticated, authLoading, navigate, toast, isOAuthCallback]);
 
-  // Handle OAuth callback
+  // Handle OAuth callback errors and show loading
   useEffect(() => {
     const hash = window.location.hash;
     const params = new URLSearchParams(hash.substring(1));
@@ -85,12 +101,24 @@ const Auth = () => {
         variant: "destructive"
       });
       window.history.replaceState({}, document.title, window.location.pathname);
+      setIsOAuthCallback(false);
     }
     
     if (params.get('access_token')) {
+      console.log('🔐 OAuth tokens detected - waiting for auth to process');
       setIsLoading(true);
     }
   }, [toast]);
+
+  // Navigate after OAuth completes successfully
+  useEffect(() => {
+    if (isOAuthCallback && isAuthenticated && !authLoading) {
+      console.log('🔐 OAuth completed successfully - navigating to home');
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setIsOAuthCallback(false);
+      navigate('/');
+    }
+  }, [isOAuthCallback, isAuthenticated, authLoading, navigate]);
 
   const handleGoogleSignIn = async () => {
     if (isOffline) {
