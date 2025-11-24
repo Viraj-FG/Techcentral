@@ -80,11 +80,18 @@ export const RealtimeProvider = ({ children }: Props) => {
   }, []);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      setIsConnected(false);
+      return;
+    }
 
     console.log('[Realtime] Setting up subscriptions for user:', userId);
     console.log('[Realtime] Household ID:', householdId);
-    setIsConnected(true);
+    
+    // Only mark as connected when we have household data (or when subscriptions are ready)
+    if (householdId) {
+      setIsConnected(true);
+    }
 
     // Inventory subscription (household-based)
     const inventoryChannel = householdId ? supabase
