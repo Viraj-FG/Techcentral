@@ -104,7 +104,6 @@ const Auth = () => {
           title: "Welcome Back!",
           description: "Signed in successfully",
         });
-        navigate('/');
       }
     } catch (error: any) {
       console.error('❌ Auth error in onSubmit:', error);
