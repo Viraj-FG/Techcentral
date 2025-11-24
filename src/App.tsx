@@ -31,7 +31,12 @@ const App = () => (
             <Toaster />
             <Sonner />
             <SyncIndicator />
-            <BrowserRouter>
+            <BrowserRouter
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true,
+              }}
+            >
               <Routes>
                 <Route path="/auth" element={<ErrorBoundary><Auth /></ErrorBoundary>} />
                 <Route path="/" element={<ProtectedRoute><ErrorBoundary><Index /></ErrorBoundary></ProtectedRoute>} />
