@@ -70,7 +70,7 @@ export const RealtimeProvider = ({ children }: Props) => {
         }
 
         if (!profile?.current_household_id || !mounted) {
-          console.warn('[Realtime] No household assigned to user');
+          // Silent during onboarding - household is created after onboarding completes
           setIsConnected(false);
           return;
         }

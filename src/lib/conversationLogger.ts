@@ -18,6 +18,7 @@ interface LogEventParams {
 
 /**
  * Log a conversation event to the database for real-time monitoring
+ * Now with proper error handling and UUID generation
  */
 export const logConversationEvent = async ({
   conversationId,
@@ -29,7 +30,7 @@ export const logConversationEvent = async ({
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) {
-      console.warn('No user session, skipping conversation log');
+      // Silent fail - user might not be logged in yet
       return false;
     }
 
@@ -45,20 +46,22 @@ export const logConversationEvent = async ({
       });
 
     if (error) {
-      console.error('Failed to log conversation event:', error);
+      // Log error but don't throw - prevents crashing the conversation
+      console.warn('[ConversationLogger] Failed to log event:', error.message);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Error logging conversation event:', error);
+    // Catch all errors to prevent conversation crashes
+    console.warn('[ConversationLogger] Error logging event:', error instanceof Error ? error.message : 'Unknown error');
     return false;
   }
 };
 
 /**
- * Generate a unique conversation ID
+ * Generate a unique conversation ID using proper UUID format
  */
 export const generateConversationId = (): string => {
-  return `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return crypto.randomUUID();
 };
