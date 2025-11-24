@@ -14,22 +14,6 @@ import { Mail, Lock, Loader2, WifiOff, AlertCircle } from "lucide-react";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
 import { logError, isNetworkError, isAuthError } from "@/lib/errorHandler";
 
-const authSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string().optional(),
-}).refine((data) => {
-  if (data.confirmPassword !== undefined) {
-    return data.password === data.confirmPassword;
-  }
-  return true;
-}, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
-
-type AuthFormData = z.infer<typeof authSchema>;
-
 const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -38,6 +22,26 @@ const Auth = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [authError, setAuthError] = useState<string | null>(null);
+
+  const authSchema = z.object({
+    email: z.string().email("Please enter a valid email address"),
+    password: isSignUp 
+      ? z.string().min(8, "Password must be at least 8 characters")
+      : z.string().min(1, "Password is required"),
+    confirmPassword: isSignUp 
+      ? z.string().min(1, "Please confirm your password")
+      : z.string().optional(),
+  }).refine((data) => {
+    if (isSignUp) {
+      return data.password === data.confirmPassword;
+    }
+    return true;
+  }, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+  type AuthFormData = z.infer<typeof authSchema>;
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),
@@ -153,17 +157,20 @@ const Auth = () => {
         });
       } else {
         // Sign in
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: { session }, error } = await supabase.auth.signInWithPassword({
           email: data.email,
           password: data.password,
         });
 
         if (error) throw error;
 
-        toast({
-          title: "Welcome Back!",
-          description: "Signed in successfully",
-        });
+        if (session) {
+          toast({
+            title: "Welcome Back!",
+            description: "Signed in successfully",
+          });
+          navigate('/');
+        }
       }
     } catch (error: any) {
       const categorizedError = logError(error, {
