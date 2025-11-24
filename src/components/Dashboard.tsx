@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Shield, AlertCircle, Package, Camera, Settings, ArrowRight, Search } from "lucide-react";
-import { supabase } from "@/lib/supabaseLogger";
-import { logger } from "@/lib/logger";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Icon } from "@/components/ui/icon";
@@ -33,12 +32,6 @@ interface DashboardProps {
 }
 
 const Dashboard = ({ profile }: DashboardProps) => {
-  logger.info('🏠 Dashboard component mounted', { 
-    userId: profile?.id, 
-    userName: profile?.user_name,
-    hasHousehold: !!profile?.current_household_id 
-  });
-  
   const navigate = useNavigate();
   const { toast } = useToast();
   const [inventoryData, setInventoryData] = useState({
@@ -109,35 +102,23 @@ const Dashboard = ({ profile }: DashboardProps) => {
   // Fetch inventory data
   const fetchInventory = async () => {
     try {
-      logger.debug('📦 Fetching inventory data');
       setIsLoading(true);
       setFetchError(null);
       
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError) {
-        logger.error('❌ Error getting user', userError);
-        throw userError;
-      }
-      
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        logger.error('❌ No authenticated user found');
         throw new Error('User not authenticated');
       }
 
-      logger.debug('📋 Fetching profile for household_id', { userId: user.id });
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('current_household_id')
         .eq('id', user.id)
         .single();
 
-      if (profileError) {
-        logger.error('❌ Error fetching profile', profileError);
-        throw profileError;
-      }
+      if (profileError) throw profileError;
       
       if (!profile?.current_household_id) {
-        logger.warn('⚠️ No household assigned to user');
         setFetchError('No household assigned. Please set up your household.');
         toast({
           title: "Household Setup Required",
@@ -147,22 +128,17 @@ const Dashboard = ({ profile }: DashboardProps) => {
         return;
       }
 
-      logger.debug('📦 Fetching inventory items', { householdId: profile.current_household_id });
       const { data, error } = await supabase
         .from('inventory')
         .select('*')
         .eq('household_id', profile.current_household_id);
 
-      if (error) {
-        logger.error('❌ Error fetching inventory', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      logger.info('✅ Inventory fetched successfully', { itemCount: data?.length || 0 });
       const grouped = groupInventoryByCategory(data || []);
       setInventoryData(grouped);
     } catch (error: any) {
-      logger.error('❌ Error in fetchInventory', error);
+      console.error('Error fetching inventory:', error);
       setFetchError(error.message || 'Failed to load inventory');
       toast({
         title: "Error Loading Dashboard",
@@ -170,42 +146,16 @@ const Dashboard = ({ profile }: DashboardProps) => {
         variant: "destructive"
       });
     } finally {
-      logger.debug('🏁 Inventory fetch complete');
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    logger.info('🔄 Dashboard useEffect triggered');
-    
-    // Non-blocking admin check with timeout
     const checkAdmin = async () => {
-      try {
-        logger.debug('🔐 Checking admin status (non-blocking)');
-        
-        // Add 3-second timeout for admin check
-        const timeoutPromise = new Promise<boolean>((resolve) => 
-          setTimeout(() => {
-            logger.warn('⏱️ Admin check timed out - defaulting to non-admin');
-            resolve(false);
-          }, 3000)
-        );
-
-        const adminPromise = checkAdminStatus();
-        const isAdmin = await Promise.race([adminPromise, timeoutPromise]);
-        
-        setIsAdmin(isAdmin);
-        logger.info('✅ Admin check complete', { isAdmin });
-      } catch (error) {
-        logger.error('❌ Admin check failed - defaulting to non-admin', error);
-        setIsAdmin(false);
-      }
+      const isAdmin = await checkAdminStatus();
+      setIsAdmin(isAdmin);
     };
-    
-    // Run admin check without blocking dashboard load
     checkAdmin();
-    
-    // Fetch inventory immediately (don't wait for admin check)
     fetchInventory();
   }, []);
 

@@ -4,8 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { supabase } from "@/lib/supabaseLogger";
-import { logger } from "@/lib/logger";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   User, Shield, Users, Heart, Clock, Sparkles, PawPrint, 
   ArrowLeft, Save, Leaf, ShieldAlert, Home, Store, BarChart3 

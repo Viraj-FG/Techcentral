@@ -1,4 +1,4 @@
-import { logger } from "./logger";
+import { supabase } from "@/integrations/supabase/client";
 
 export type ConversationEventType = 
   | 'session_start'
@@ -18,7 +18,6 @@ interface LogEventParams {
 
 /**
  * Log a conversation event to the database for real-time monitoring
- * Now with proper error handling and UUID generation
  */
 export const logConversationEvent = async ({
   conversationId,
@@ -28,12 +27,9 @@ export const logConversationEvent = async ({
   role
 }: LogEventParams): Promise<boolean> => {
   try {
-    logger.debug('Logging conversation event', { conversationId, agentType, eventType, role });
-    
-    const { supabase } = await import('@/lib/supabaseLogger');
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) {
-      logger.warn('Cannot log conversation event - no active session', { conversationId, eventType });
+      console.warn('No user session, skipping conversation log');
       return false;
     }
 
@@ -49,30 +45,20 @@ export const logConversationEvent = async ({
       });
 
     if (error) {
-      logger.error('Failed to log conversation event', error, {
-        conversationId,
-        agentType,
-        eventType,
-        userId: session.user.id,
-      });
+      console.error('Failed to log conversation event:', error);
       return false;
     }
 
-    logger.debug('Conversation event logged successfully', { conversationId, eventType });
     return true;
   } catch (error) {
-    logger.error('Error logging conversation event', error as Error, {
-      conversationId,
-      agentType,
-      eventType,
-    });
+    console.error('Error logging conversation event:', error);
     return false;
   }
 };
 
 /**
- * Generate a unique conversation ID using proper UUID format
+ * Generate a unique conversation ID
  */
 export const generateConversationId = (): string => {
-  return crypto.randomUUID();
+  return `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };

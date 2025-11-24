@@ -1,4 +1,4 @@
-import { logger } from "./logger";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Store a message in the conversation history
@@ -9,35 +9,19 @@ export const storeMessage = async (
   conversationId: string
 ) => {
   try {
-    logger.debug('Storing conversation message', { role, conversationId, messageLength: message.length });
-    
-    // Use the logged wrapper
-    const { supabase } = await import('@/lib/supabaseLogger');
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user || !conversationId || !message.trim()) {
-      logger.warn('Cannot store message - missing required data', {
-        hasSession: !!session,
-        hasConversationId: !!conversationId,
-        hasMessage: !!message.trim(),
-      });
-      return;
-    }
+    if (!session?.user || !conversationId || !message.trim()) return;
 
-    const { error } = await supabase.from('conversation_history').insert({
+    await supabase.from('conversation_history').insert({
       user_id: session.user.id,
       conversation_id: conversationId,
       role,
       message: message.trim()
     });
 
-    if (error) {
-      logger.error('Failed to store conversation message', error, { role, conversationId });
-      throw error;
-    }
-
-    logger.info('Stored conversation message', { role, conversationId });
+    console.log(`✅ Stored ${role} message`);
   } catch (error) {
-    logger.error('Error storing message', error as Error, { role, conversationId });
+    console.error("Error storing message:", error);
   }
 };
 
@@ -46,14 +30,8 @@ export const storeMessage = async (
  */
 export const fetchRecentHistory = async (limit: number = 10) => {
   try {
-    logger.debug('Fetching recent conversation history', { limit });
-    
-    const { supabase } = await import('@/lib/supabaseLogger');
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) {
-      logger.warn('Cannot fetch history - no active session');
-      return [];
-    }
+    if (!session?.user) return [];
 
     const { data, error } = await supabase
       .from('conversation_history')
@@ -62,16 +40,13 @@ export const fetchRecentHistory = async (limit: number = 10) => {
       .order('created_at', { ascending: false })
       .limit(limit);
 
-    if (error) {
-      logger.error('Failed to fetch conversation history', error, { limit, userId: session.user.id });
-      throw error;
-    }
+    if (error) throw error;
 
     const history = (data || []).reverse();
-    logger.info('Loaded conversation history', { count: history.length, limit });
+    console.log(`📚 Loaded ${history.length} recent messages`);
     return history;
   } catch (error) {
-    logger.error('Error fetching history', error as Error, { limit });
+    console.error("Error fetching history:", error);
     return [];
   }
 };

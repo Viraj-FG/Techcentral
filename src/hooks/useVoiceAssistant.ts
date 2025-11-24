@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useConversation } from "@11labs/react";
 import { getSignedUrl } from "@/lib/elevenLabsAudio";
-import { supabase } from "@/lib/supabaseLogger";
-import { logger } from "@/lib/logger";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { storeMessage as storeMessageUtil, fetchRecentHistory, generateConversationId } from "@/lib/conversationUtils";
 import { createUpdateProfileTool } from "@/lib/voiceClientTools";

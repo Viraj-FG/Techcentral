@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabaseLogger";
-import { logger } from "@/lib/logger";
+import { supabase } from "@/integrations/supabase/client";
 import Splash from "@/components/Splash";
 import VoiceOnboarding from "@/components/VoiceOnboarding";
 import Dashboard from "@/components/Dashboard";
@@ -12,162 +11,80 @@ const Index = () => {
   const [appState, setAppState] = useState<"splash" | "onboarding" | "dashboard" | null>(null);
   const [userProfile, setUserProfile] = useState(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [authCheckTimeout, setAuthCheckTimeout] = useState(false);
 
-  console.log('[Index] Component mounted at', new Date().toISOString());
-  
   useEffect(() => {
-    console.log('[Index] useEffect started');
-    logger.info('🚀 Index.tsx mounted - Starting auth check');
-    
-    // Timeout detection - if auth check takes more than 10 seconds
-    const timeoutId = setTimeout(() => {
-      logger.error('⏱️ Auth check timeout - taking longer than 10 seconds');
-      setAuthCheckTimeout(true);
-    }, 10000);
-
-    const validateOnboardingComplete = async (userId: string, householdId: string | null): Promise<boolean> => {
-      logger.debug('🔍 Validating onboarding completion', { userId, householdId });
-      
-      // Check 1: Has household assigned
-      if (!householdId) {
-        logger.warn('❌ Validation failed: No household ID');
-        return false;
-      }
-      
-      // Check 2: Household exists in database
-      logger.debug('🔍 Checking household existence in database', { householdId });
-      const { data: household, error: householdError } = await supabase
-        .from('households')
-        .select('id')
-        .eq('id', householdId)
-        .single();
-      
-      if (householdError) {
-        logger.error('❌ Error fetching household', householdError, { householdId });
-        return false;
-      }
-      
-      if (!household) {
-        logger.warn('❌ Validation failed: Household not found in database');
-        return false;
-      }
-      logger.debug('✅ Household found in database');
-      
-      // Check 3: Has at least basic profile data
-      logger.debug('🔍 Checking profile data completeness', { userId });
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('user_name, language')
-        .eq('id', userId)
-        .single();
-      
-      if (profileError) {
-        logger.error('❌ Error fetching profile for validation', profileError, { userId });
-        return false;
-      }
-      
-      if (!profile?.user_name) {
-        logger.warn('❌ Validation failed: Missing user_name');
-        return false;
-      }
-      
-      logger.info('✅ Onboarding validation passed');
-      return true; // All checks passed
-    };
-
     const checkAuthAndProfile = async () => {
-      logger.info('🚀 checkAuthAndProfile called - ENTRY POINT');
-      
+      console.log('🔍 [Index] Starting auth check...');
       try {
-        logger.info('🔐 Checking authentication session');
-        
-        // Simple getSession call without timeout wrapper
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        logger.debug('✅ getSession completed', { hasSession: !!session, error: sessionError });
-        
-        if (sessionError) {
-          logger.error('❌ Error getting session', sessionError);
-          navigate('/auth');
-          return;
-        }
+        // Check authentication
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('🔍 [Index] Session:', session?.user?.email || 'No session');
         
         if (!session) {
-          logger.warn('⚠️ No active session - redirecting to auth');
+          console.log('🔍 [Index] No session - redirecting to /auth');
           navigate('/auth');
           return;
         }
 
-        logger.info('✅ Active session found', { userId: session.user.id, email: session.user.email });
-
         // Check if profile exists and onboarding is complete
-        logger.debug('📋 Fetching user profile', { userId: session.user.id });
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
           .single();
 
-        if (profileError) {
-          logger.error('❌ Error fetching profile', profileError, { userId: session.user.id });
-          throw profileError;
-        }
-
-        if (!profile) {
-          logger.warn('⚠️ No profile found - redirecting to auth');
-          navigate('/auth');
-          return;
-        }
-
-        logger.info('📋 Profile loaded', { 
-          userId: profile.id, 
-          userName: profile.user_name,
-          onboardingCompleted: profile.onboarding_completed,
-          hasHousehold: !!profile.current_household_id
+        console.log('🔍 [Index] Profile data:', {
+          exists: !!profile,
+          onboarding_completed: profile?.onboarding_completed,
+          current_household_id: profile?.current_household_id,
+          error: profileError
         });
 
         if (profile?.onboarding_completed) {
-          logger.info('🔍 Profile marked as onboarding complete - validating...');
-          
-          // Validate that onboarding is truly complete
-          const isValid = await validateOnboardingComplete(session.user.id, profile.current_household_id);
-          
-          if (!isValid) {
-            logger.warn('❌ Incomplete onboarding detected - resetting to restart');
+          console.log('🔍 [Index] User completed onboarding - checking household...');
+          // Ensure user has a household before loading dashboard
+          if (!profile.current_household_id) {
+            console.warn('User has no household assigned - attempting auto-creation');
             
-            // Reset onboarding_completed flag
-            const { error: updateError } = await supabase
-              .from('profiles')
-              .update({ onboarding_completed: false })
-              .eq('id', session.user.id);
-            
-            if (updateError) {
-              logger.error('❌ Error resetting onboarding flag', updateError);
-            } else {
-              logger.info('✅ Onboarding flag reset successfully');
-            }
-            
-            logger.info('🎯 Setting app state to: onboarding');
-            setAppState("onboarding");
-            return;
-          }
+            // Try to create household automatically
+            try {
+              const { data: household, error } = await supabase
+                .from('households')
+                .insert({
+                  name: `${profile.user_name || 'User'}'s Household`,
+                  owner_id: session.user.id
+                })
+                .select()
+                .single();
 
-          // Onboarding is valid, proceed to dashboard
-          logger.info('✅ Onboarding validation successful - proceeding to dashboard');
+              if (error) throw error;
+
+              // Update profile with new household
+              await supabase
+                .from('profiles')
+                .update({ current_household_id: household.id })
+                .eq('id', session.user.id);
+
+              profile.current_household_id = household.id;
+              console.log('✅ Auto-created household:', household.id);
+            } catch (createError) {
+              console.error('Failed to auto-create household:', createError);
+              // Only redirect if auto-creation fails
+              navigate('/household');
+              return;
+            }
+          }
+          console.log('🔍 [Index] Setting up dashboard with profile:', profile.id);
           setUserProfile(profile);
-          logger.info('🎯 Setting app state to: dashboard');
-          setAppState("dashboard");
+          setAppState("dashboard"); // Returning user → Dashboard with voice assistant
         } else {
-          logger.info('📝 Onboarding not completed - showing onboarding flow');
-          logger.info('🎯 Setting app state to: onboarding');
-          setAppState("onboarding");
+          console.log('🔍 [Index] Onboarding not completed - showing onboarding flow');
+          setAppState("onboarding"); // New user → Onboarding (which includes splash internally)
         }
       } catch (error) {
-        logger.error('❌ Error in checkAuthAndProfile', error as Error);
+        console.error("Error checking auth:", error);
         navigate('/auth');
       } finally {
-        clearTimeout(timeoutId);
-        logger.info('🏁 Auth check complete - setting isCheckingAuth to false');
         setIsCheckingAuth(false);
       }
     };
@@ -184,22 +101,15 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  console.log('🔍 [Index] Render state:', { isCheckingAuth, appState, hasProfile: !!userProfile });
+
   if (isCheckingAuth || appState === null) {
     return (
       <div className="fixed inset-0 bg-kaeva-void flex items-center justify-center">
-        <div className="text-kaeva-sage text-lg animate-pulse">
-          {authCheckTimeout ? 'Connection taking longer than expected...' : 'Loading Kaeva...'}
-        </div>
-        {authCheckTimeout && (
-          <div className="absolute bottom-8 text-center">
-            <p className="text-white/60 text-sm mb-2">Check the browser console for details</p>
-          </div>
-        )}
+        <div className="text-kaeva-sage text-lg animate-pulse">Loading Kaeva...</div>
       </div>
     );
   }
-
-  logger.debug('🎨 Rendering Index with state', { appState, hasProfile: !!userProfile });
 
   return (
     <AnimatePresence mode="wait">
@@ -211,19 +121,23 @@ const Index = () => {
             setAppState("dashboard");
           }}
           onExit={async () => {
-            // Skip to dashboard WITHOUT marking onboarding complete
-            // This allows users to come back and finish later
+            // For admin testing: mark onboarding as complete to prevent loop
             const { data: { session } } = await supabase.auth.getSession();
             if (session?.user) {
+              // Update profile to mark onboarding as complete
+              await supabase
+                .from('profiles')
+                .update({ onboarding_completed: true })
+                .eq('id', session.user.id);
+              
+              // Fetch updated profile
               const { data: profile } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', session.user.id)
                 .single();
               
-              if (profile) {
-                setUserProfile(profile);
-              }
+              setUserProfile(profile);
             }
             setAppState("dashboard");
           }}
