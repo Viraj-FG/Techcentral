@@ -75,47 +75,65 @@ const Index = () => {
           console.log('🔍 [Index] User completed onboarding - checking household...');
           // Ensure user has a household before loading dashboard
           if (!profile.current_household_id) {
-            console.warn('User has no household assigned - attempting auto-creation');
+            console.warn('User has no household assigned - checking for existing households');
             
-            // Try to create household automatically
-            try {
-              const { data: household, error } = await supabase
-                .from('households')
-                .insert({
-                  name: `${profile.user_name || 'User'}'s Household`,
-                  owner_id: session.user.id
-                })
-                .select()
-                .single();
-
-              if (error) throw error;
-
-              // Update profile with new household
+            // Check if user already owns a household before creating
+            const { data: existingHouseholds } = await supabase
+              .from('households')
+              .select('id')
+              .eq('owner_id', session.user.id)
+              .limit(1);
+            
+            if (existingHouseholds && existingHouseholds.length > 0) {
+              // Link existing household
+              console.log('✅ Found existing household, linking:', existingHouseholds[0].id);
               await supabase
                 .from('profiles')
-                .update({ current_household_id: household.id })
+                .update({ current_household_id: existingHouseholds[0].id })
                 .eq('id', session.user.id);
+              
+              profile.current_household_id = existingHouseholds[0].id;
+            } else {
+              // Create new household only if none exist
+              try {
+                const { data: household, error } = await supabase
+                  .from('households')
+                  .insert({
+                    name: `${profile.user_name || 'User'}'s Household`,
+                    owner_id: session.user.id
+                  })
+                  .select()
+                  .single();
 
-              // Fetch updated profile instead of mutating
-              const { data: updatedProfile } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
+                if (error) throw error;
 
-              if (updatedProfile) {
-                profile.current_household_id = updatedProfile.current_household_id;
-                console.log('✅ Auto-created household:', household.id);
-              } else {
-                console.error('Failed to fetch updated profile');
+                // Update profile with new household
+                await supabase
+                  .from('profiles')
+                  .update({ current_household_id: household.id })
+                  .eq('id', session.user.id);
+
+                // Fetch updated profile instead of mutating
+                const { data: updatedProfile } = await supabase
+                  .from('profiles')
+                  .select('*')
+                  .eq('id', session.user.id)
+                  .single();
+
+                if (updatedProfile) {
+                  profile.current_household_id = updatedProfile.current_household_id;
+                  console.log('✅ Auto-created household:', household.id);
+                } else {
+                  console.error('Failed to fetch updated profile');
+                  if (mounted) navigate('/household');
+                  return;
+                }
+              } catch (createError) {
+                console.error('Failed to auto-create household:', createError);
+                // Only redirect if auto-creation fails
                 if (mounted) navigate('/household');
                 return;
               }
-            } catch (createError) {
-              console.error('Failed to auto-create household:', createError);
-              // Only redirect if auto-creation fails
-              if (mounted) navigate('/household');
-              return;
             }
           }
           console.log('🔍 [Index] Setting up dashboard with profile:', profile.id);
@@ -209,43 +227,65 @@ const Index = () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (session?.user) {
               try {
-                // Create a default household first
-                const { data: household, error: householdError } = await supabase
+                // Check for existing household first
+                const { data: existingHouseholds } = await supabase
                   .from('households')
-                  .insert({
-                    name: `Default Household`,
-                    owner_id: session.user.id
-                  })
-                  .select()
-                  .single();
+                  .select('id')
+                  .eq('owner_id', session.user.id)
+                  .limit(1);
+                
+                let householdId: string;
+                
+                if (existingHouseholds && existingHouseholds.length > 0) {
+                  householdId = existingHouseholds[0].id;
+                  console.log('✅ Using existing household:', householdId);
+                } else {
+                  // Create a default household only if none exist
+                  const { data: household, error: householdError } = await supabase
+                    .from('households')
+                    .insert({
+                      name: `Default Household`,
+                      owner_id: session.user.id
+                    })
+                    .select()
+                    .single();
 
-                if (householdError) throw householdError;
+                  if (householdError) throw householdError;
+                  
+                  householdId = household.id;
+                  console.log('✅ Household created on skip:', householdId);
+                }
 
                 // Update profile with household and mark onboarding complete
                 await supabase
                   .from('profiles')
                   .update({ 
                     onboarding_completed: true,
-                    current_household_id: household.id 
+                    current_household_id: householdId 
                   })
                   .eq('id', session.user.id);
                 
                 // Fetch updated profile
-                const { data: profile } = await supabase
+                const { data: profile, error: profileError } = await supabase
                   .from('profiles')
                   .select('*')
                   .eq('id', session.user.id)
                   .single();
                 
-                if (profile) {
+                if (profile && !profileError) {
                   setUserProfile(profile);
-                  console.log('✅ Household created on skip:', household.id);
+                  setAppState("dashboard");
+                } else {
+                  // Fallback if fetch fails: Reload page to retry full auth check
+                  console.error('❌ Failed to fetch profile after skip:', profileError);
+                  window.location.reload();
                 }
               } catch (error) {
                 console.error('❌ Failed to create household on skip:', error);
+                // Fallback: Reload page to retry
+                window.location.reload();
               }
             }
-            setAppState("dashboard");
           }}
         />
       )}
