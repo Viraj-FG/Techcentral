@@ -7,6 +7,7 @@ import VoiceOnboarding from "@/components/VoiceOnboarding";
 import Dashboard from "@/components/Dashboard";
 import LoadingState from "@/components/LoadingState";
 import { useToast } from "@/hooks/use-toast";
+import { isAuthError, isNetworkError } from "@/lib/errorHandler";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -166,17 +167,34 @@ const Index = () => {
         
         // Mark initial check as complete
         hasCompletedInitialCheck.current = true;
-      } catch (error) {
+      } catch (error: any) {
         console.error("❌ [Index] Error checking auth:", error);
         if (mounted) {
-          toast({
-            title: "Connection Error",
-            description: "Failed to verify session. Please sign in again.",
-            variant: "destructive",
-          });
-          // Sign out to clear potentially stale session causing loops
-          await supabase.auth.signOut();
-          navigate('/auth');
+          // Only force sign out if it's an actual auth error (invalid/expired session)
+          if (isAuthError(error)) {
+            toast({
+              title: "Session Expired",
+              description: "Please sign in again.",
+              variant: "destructive",
+            });
+            await supabase.auth.signOut();
+            navigate('/auth');
+          } else {
+            // For network/database timeouts, do NOT sign the user out prematurely
+            toast({
+              title: isNetworkError(error) ? "Network Issue" : "Loading Issue",
+              description: isNetworkError(error)
+                ? "Trouble reaching the server. Retrying..."
+                : "Temporary issue loading your profile. Retrying...",
+              variant: "destructive",
+            });
+            // Schedule a silent retry after short delay if still mounted
+            setTimeout(() => {
+              if (mountedRef.current) {
+                checkAuthAndProfile();
+              }
+            }, 2500);
+          }
         }
       } finally {
         console.log('🔍 [Index] Auth check complete, setting isCheckingAuth to false');
