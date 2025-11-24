@@ -85,13 +85,17 @@ export const RealtimeProvider = ({ children }: Props) => {
       return;
     }
 
+    // Wait for householdId to be fetched before proceeding
+    if (!householdId) {
+      console.log('[Realtime] Waiting for household data...');
+      setIsConnected(false);
+      return; // Exit early until householdId is set
+    }
+
     console.log('[Realtime] Setting up subscriptions for user:', userId);
     console.log('[Realtime] Household ID:', householdId);
     
-    // Only mark as connected when we have household data (or when subscriptions are ready)
-    if (householdId) {
-      setIsConnected(true);
-    }
+    setIsConnected(true); // Only set connected when we have household data
 
     // Inventory subscription (household-based)
     const inventoryChannel = householdId ? supabase
