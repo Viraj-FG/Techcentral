@@ -178,6 +178,16 @@ export const useVoiceManager = ({ userProfile, onProfileUpdate }: UseVoiceManage
       const signedUrl = await getSignedUrl(agentId);
       console.log(`🤖 Starting in ${mode} mode`);
 
+      // Log conversation start for webhook user lookup
+      await supabase.from('conversation_events').insert({
+        conversation_id: currentConversationIdRef.current,
+        user_id: session.user.id,
+        agent_type: mode,
+        event_type: 'session_start',
+        role: 'system',
+        event_data: { agent_id: agentId, mode }
+      });
+
       await conversationRef.current.startSession({ signedUrl });
       setApertureState("listening");
     } catch (error) {
