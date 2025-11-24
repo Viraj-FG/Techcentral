@@ -145,6 +145,12 @@ const Index = () => {
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('🔍 [Index] Auth state change:', event);
+      
+      // Skip INITIAL_SESSION since we already check on mount
+      if (event === 'INITIAL_SESSION') {
+        return;
+      }
+      
       if (!session && mounted) {
         navigate('/auth');
       } else if (session && mounted) {
