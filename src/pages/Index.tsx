@@ -13,16 +13,25 @@ const Index = () => {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     const checkAuthAndProfile = async () => {
       console.log('🔍 [Index] Starting auth check...');
+      
       try {
         // Check authentication
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('🔍 [Index] Session error:', sessionError);
+          throw sessionError;
+        }
+
         console.log('🔍 [Index] Session:', session?.user?.email || 'No session');
         
-        if (!session) {
+        if (!session || !mounted) {
           console.log('🔍 [Index] No session - redirecting to /auth');
-          navigate('/auth');
+          if (mounted) navigate('/auth');
           return;
         }
 
@@ -31,7 +40,7 @@ const Index = () => {
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
-          .single();
+          .maybeSingle();
 
         console.log('🔍 [Index] Profile data:', {
           exists: !!profile,
@@ -39,6 +48,13 @@ const Index = () => {
           current_household_id: profile?.current_household_id,
           error: profileError
         });
+
+        if (profileError) {
+          console.error('🔍 [Index] Profile error:', profileError);
+          throw profileError;
+        }
+
+        if (!mounted) return;
 
         if (profile?.onboarding_completed) {
           console.log('🔍 [Index] User completed onboarding - checking household...');
@@ -70,22 +86,25 @@ const Index = () => {
             } catch (createError) {
               console.error('Failed to auto-create household:', createError);
               // Only redirect if auto-creation fails
-              navigate('/household');
+              if (mounted) navigate('/household');
               return;
             }
           }
           console.log('🔍 [Index] Setting up dashboard with profile:', profile.id);
-          setUserProfile(profile);
-          setAppState("dashboard"); // Returning user → Dashboard with voice assistant
+          if (mounted) {
+            setUserProfile(profile);
+            setAppState("dashboard");
+          }
         } else {
           console.log('🔍 [Index] Onboarding not completed - showing onboarding flow');
-          setAppState("onboarding"); // New user → Onboarding (which includes splash internally)
+          if (mounted) setAppState("onboarding");
         }
       } catch (error) {
-        console.error("Error checking auth:", error);
-        navigate('/auth');
+        console.error("❌ [Index] Error checking auth:", error);
+        if (mounted) navigate('/auth');
       } finally {
-        setIsCheckingAuth(false);
+        console.log('🔍 [Index] Auth check complete, setting isCheckingAuth to false');
+        if (mounted) setIsCheckingAuth(false);
       }
     };
 
@@ -93,12 +112,19 @@ const Index = () => {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!session) {
+      console.log('🔍 [Index] Auth state change:', event);
+      if (!session && mounted) {
         navigate('/auth');
+      } else if (session && mounted) {
+        // Re-check profile when auth state changes
+        checkAuthAndProfile();
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   console.log('🔍 [Index] Render state:', { isCheckingAuth, appState, hasProfile: !!userProfile });
