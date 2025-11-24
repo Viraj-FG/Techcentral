@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import KaevaAperture from "./KaevaAperture";
 import DigitalTwinCard from "./DigitalTwinCard";
 import AuroraBackground from "./AuroraBackground";
@@ -12,6 +14,8 @@ import { useOnboardingConversation } from "@/hooks/useOnboardingConversation";
 import { supabase } from "@/integrations/supabase/client";
 import { saveOnboardingData } from "@/lib/onboardingSave";
 import { transformProfileData, ConversationState } from "@/lib/onboardingTransforms";
+import { useToast } from "@/hooks/use-toast";
+import { logError } from "@/lib/errorHandler";
 
 interface VoiceOnboardingProps {
   onComplete: (profile: any) => void;
@@ -21,6 +25,7 @@ interface VoiceOnboardingProps {
 type ApertureState = "idle" | "wakeword" | "listening" | "thinking" | "speaking";
 
 const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
+  const { toast } = useToast();
   const [showTutorial, setShowTutorial] = useState(() => {
     return !localStorage.getItem("kaeva_tutorial_seen");
   });
@@ -33,6 +38,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
   const [showSummary, setShowSummary] = useState(false);
   const [activeVertical, setActiveVertical] = useState<"food" | "beauty" | "pets" | null>(null);
   const [detectedKeywords, setDetectedKeywords] = useState<string[]>([]);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
   const [conversationState, setConversationState] = useState<ConversationState>({
     userName: null,
     userBiometrics: null,
@@ -65,6 +71,35 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
     onComplete,
     permissionsGranted
   });
+
+  // Handle voice connection errors
+  useEffect(() => {
+    // Check if conversation failed to connect
+    const handleVoiceError = () => {
+      try {
+        // Monitor for connection issues
+        if (conversation.status === "disconnected" && permissionsGranted && !voiceError) {
+          const errorMessage = "Voice connection failed. Please check your microphone permissions.";
+          setVoiceError(errorMessage);
+          
+          logError(new Error("ElevenLabs connection error"), {
+            component: "VoiceOnboarding",
+            action: "voice_connection",
+          });
+
+          toast({
+            title: "Voice Connection Failed",
+            description: errorMessage,
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Error in voice error handler:", error);
+      }
+    };
+
+    handleVoiceError();
+  }, [conversation.status, permissionsGranted, voiceError, toast]);
 
   useEffect(() => {
     const fetchPermissionStatus = async () => {
@@ -204,6 +239,43 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
       <AuroraBackground vertical={activeVertical} />
 
       <div className="relative z-10 h-full flex flex-col items-center justify-center">
+        {voiceError && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="absolute top-20 left-1/2 transform -translate-x-1/2 max-w-md"
+          >
+            <div className="glass-card p-6 border-red-500/20">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-400 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="text-white font-medium mb-2">Voice Connection Issue</h3>
+                  <p className="text-white/70 text-sm mb-4">{voiceError}</p>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => window.location.reload()}
+                      className="text-white/80"
+                    >
+                      Retry
+                    </Button>
+                    {onExit && (
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={onExit}
+                      >
+                        Skip to Dashboard
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+        
         <AnimatePresence mode="wait">
           {!showSummary ? (
             <motion.div

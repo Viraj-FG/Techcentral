@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, AlertCircle, Package, Camera, Settings, ArrowRight, Search } from "lucide-react";
+import { Shield, AlertCircle, Package, Camera, Settings, ArrowRight, Search, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Icon } from "@/components/ui/icon";
 import { useToast } from "@/hooks/use-toast";
+import { logError, retryWithBackoff } from "@/lib/errorHandler";
 import AppShell from "./layout/AppShell";
 import { checkAdminStatus } from "@/lib/authUtils";
 import { groupInventoryByCategory, getInventoryStatus } from "@/lib/inventoryUtils";
@@ -46,6 +47,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
   const [socialImportOpen, setSocialImportOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Voice assistant hook
   const { startConversation } = useVoiceAssistant({ 
@@ -99,54 +101,82 @@ const Dashboard = ({ profile }: DashboardProps) => {
     // Recipe feed will auto-load with these ingredients
   };
 
-  // Fetch inventory data
-  const fetchInventory = async () => {
+  // Fetch inventory data with timeout and retry
+  const fetchInventory = async (isRetry = false) => {
     try {
       setIsLoading(true);
       setFetchError(null);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
 
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('current_household_id')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError) throw profileError;
-      
-      if (!profile?.current_household_id) {
-        setFetchError('No household assigned. Please set up your household.');
+      // Set up 15-second timeout for fetch
+      fetchTimeoutRef.current = setTimeout(() => {
+        setFetchError("Loading is taking too long");
         toast({
-          title: "Household Setup Required",
-          description: "Please create or join a household to continue",
-          variant: "destructive"
+          title: "Slow Connection",
+          description: "The dashboard is taking longer than expected to load",
+          variant: "destructive",
         });
-        return;
+      }, 15000);
+
+      // Use retry logic for better resilience
+      await retryWithBackoff(async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error('User not authenticated');
+        }
+
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('current_household_id')
+          .eq('id', user.id)
+          .single();
+
+        if (profileError) throw profileError;
+        
+        if (!profile?.current_household_id) {
+          setFetchError('No household assigned. Please set up your household.');
+          toast({
+            title: "Household Setup Required",
+            description: "Please create or join a household to continue",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('inventory')
+          .select('*')
+          .eq('household_id', profile.current_household_id);
+
+        if (error) throw error;
+
+        const grouped = groupInventoryByCategory(data || []);
+        setInventoryData(grouped);
+      }, isRetry ? 1 : 3); // Only retry once if user manually retries
+
+      // Clear timeout if successful
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
       }
-
-      const { data, error } = await supabase
-        .from('inventory')
-        .select('*')
-        .eq('household_id', profile.current_household_id);
-
-      if (error) throw error;
-
-      const grouped = groupInventoryByCategory(data || []);
-      setInventoryData(grouped);
     } catch (error: any) {
-      console.error('Error fetching inventory:', error);
-      setFetchError(error.message || 'Failed to load inventory');
+      const categorizedError = logError(error, {
+        component: "Dashboard",
+        action: "fetchInventory",
+        userId: profile?.id,
+      });
+      
+      setFetchError(categorizedError.userMessage);
       toast({
         title: "Error Loading Dashboard",
-        description: "Please refresh the page or contact support",
+        description: categorizedError.userMessage,
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
+      
+      // Clear timeout
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
     }
   };
 
@@ -237,7 +267,27 @@ const Dashboard = ({ profile }: DashboardProps) => {
         <NutritionWidget userId={profile.id} />
         
         {/* Inventory Matrix with Status */}
-        {isLoading ? (
+        {fetchError ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="backdrop-blur-xl bg-red-500/5 border border-red-500/20 rounded-xl p-8 text-center"
+          >
+            <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+            <h3 className="text-xl font-light text-white mb-2">
+              Unable to Load Dashboard
+            </h3>
+            <p className="text-white/60 mb-6">{fetchError}</p>
+            <Button
+              onClick={() => fetchInventory(true)}
+              variant="primary"
+              className="gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Retry
+            </Button>
+          </motion.div>
+        ) : isLoading ? (
           <InventoryMatrixSkeleton />
         ) : isInventoryEmpty ? (
           <motion.div
