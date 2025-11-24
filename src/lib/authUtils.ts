@@ -2,6 +2,7 @@ import { logger } from "./logger";
 
 /**
  * Check if the current user has admin role
+ * Non-blocking with timeout and graceful error handling
  */
 export const checkAdminStatus = async (): Promise<boolean> => {
   try {
@@ -14,20 +15,36 @@ export const checkAdminStatus = async (): Promise<boolean> => {
       return false;
     }
 
-    const { data, error } = await supabase.functions.invoke("check-admin", {
+    // Add 5-second timeout to prevent blocking
+    const timeoutPromise = new Promise<{ data: null; error: Error }>((_, reject) => 
+      setTimeout(() => reject(new Error('Admin check timeout after 5 seconds')), 5000)
+    );
+
+    const checkPromise = supabase.functions.invoke("check-admin", {
       headers: { Authorization: `Bearer ${session.access_token}` },
     });
 
-    if (error) {
-      logger.error('Admin check failed', error, { userId: session.user.id });
+    const result = await Promise.race([checkPromise, timeoutPromise])
+      .catch((error) => {
+        logger.warn('Admin check timed out or failed', { error: error.message });
+        return { data: null, error };
+      });
+
+    if (result.error) {
+      logger.warn('Admin check failed - defaulting to non-admin', { 
+        error: result.error.message || result.error,
+        userId: session.user.id 
+      });
       return false;
     }
 
-    const isAdmin = data?.isAdmin || false;
+    const isAdmin = (result.data as any)?.isAdmin || false;
     logger.info('Admin status checked', { isAdmin, userId: session.user.id });
     return isAdmin;
   } catch (error) {
-    logger.error('Error checking admin status', error as Error);
+    logger.warn('Error checking admin status - defaulting to non-admin', { 
+      error: (error as Error).message 
+    });
     return false;
   }
 };
