@@ -802,26 +802,26 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
         {/* Mode Selector - Top Left */}
         <ModeSelector mode={captureMode} onChange={setCaptureMode} />
 
-        {/* Intent Preset Picker (shows in Auto mode) */}
-        <IntentPresetPicker
-          preset={intentPreset}
-          onChange={setIntentPreset}
-          isVisible={captureMode === 'auto'}
-        />
-
         {/* Bottom Controls */}
-        <div className="absolute bottom-0 left-0 right-0 z-10">
-          {/* Capture Button Area */}
-          <div className="flex items-center justify-center pt-4 pb-4 mb-4">
-          <CaptureButton
-            mode={captureMode}
-            intentPreset={intentPreset}
-            isRecording={isRecording}
-            isScanning={isScanning}
-            onPress={handleCapture}
-            onLongPressStart={handleRecordingStart}
-            onLongPressEnd={handleRecordingEnd}
-          />
+        <div className="absolute bottom-0 left-0 right-0 z-10 pb-8">
+          <div className="flex flex-col items-center gap-3">
+            {/* Intent Carousel (shows in Auto mode) */}
+            <IntentPresetPicker
+              preset={intentPreset}
+              onChange={setIntentPreset}
+              isVisible={captureMode === 'auto'}
+            />
+            
+            {/* Capture Button */}
+            <CaptureButton
+              mode={captureMode}
+              intentPreset={intentPreset}
+              isRecording={isRecording}
+              isScanning={isScanning}
+              onPress={handleCapture}
+              onLongPressStart={handleRecordingStart}
+              onLongPressEnd={handleRecordingEnd}
+            />
           </div>
         </div>
 
