@@ -143,6 +143,17 @@ graph TD
 - **Version Control**: Git
 - **Hosting**: Lovable Cloud
 
+### Mobile Web App Meta Tags
+
+The following meta tags in `index.html` improve mobile browser behavior:
+
+```html
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+```
+
+These enable the app to run in full-screen mode when added to home screen on iOS and Android.
+
 ---
 
 ## Database Schema
@@ -1225,13 +1236,24 @@ Guided voice-first onboarding experience.
 - Language preference
 
 ##### `PermissionRequest.tsx`
-Requests camera and microphone permissions.
+Robust cross-platform camera and microphone permission handling.
 
 **Features:**
+- **Feature Detection:** Checks for `navigator.mediaDevices` API and secure context (HTTPS)
+- **In-App Browser Detection:** Detects Instagram, Facebook, LinkedIn WebViews and shows appropriate message
+- **Progressive Permission Fallback:**
+  1. First tries audio + video together
+  2. Falls back to audio-only if combined fails (audio is critical for voice)
+  3. Provides detailed error messages for each failure scenario
+- **iOS Audio Unlock:** Creates and resumes AudioContext, plays silent audio to unlock iOS audio system
+- **Mobile-Specific Error Messages:**
+  - iOS: "Open Settings → Safari → Camera/Microphone → Allow for this site"
+  - Android: "Tap the lock icon in the address bar → Site Settings → Allow"
+- **Delayed Track Cleanup:** Waits 3 seconds before stopping tracks to prevent permission re-prompts on iOS
 - Clear explanation of why permissions needed
-- Grant button
+- Grant button with loading states
 - Skip button (with limitations explained)
-- Permission status indicators
+- Developer bypass in DEV mode
 
 ##### `SleepingKaeva.tsx`
 Animated "sleeping" state before conversation starts.
@@ -1451,9 +1473,33 @@ Pre-launch checklist.
 - Auto-cleanup on unmount
 
 **Client Tools Provided to ElevenLabs:**
-1. `updateProfile(field, value)` - Update user profile field
-2. `completeConversation(reason)` - End conversation with reason
-3. `navigateTo(page)` - Navigate to app page
+
+1. **`updateProfile`** - Update user profile fields using named parameters:
+   ```typescript
+   updateProfile({
+     userName?: string;
+     userAge?: number;
+     userWeight?: number;
+     userHeight?: number;
+     userGender?: string;
+     userActivityLevel?: string;
+     dietaryPreferences?: string[];
+     allergies?: string[];
+     skinType?: string;
+     hairType?: string;
+     householdAdults?: number;
+     householdKids?: number;
+     healthGoals?: string[];
+     lifestyleGoals?: string[];
+   })
+   ```
+
+2. **`completeConversation`** - End conversation with summary:
+   ```typescript
+   completeConversation({ summary: string })
+   ```
+
+3. **`navigateTo`** - Navigate to app page (logged only during onboarding)
 
 **Events Handled:**
 - `onConnect` - Session started
@@ -2428,6 +2474,78 @@ Always prioritize safety and be aware of household allergies and dietary restric
 
 **AI Model:** OpenAI GPT-4
 
+#### `provision-agents`
+**Path:** `/supabase/functions/provision-agents/index.ts`
+
+**Purpose:** Provisions and configures ElevenLabs conversational agents for both onboarding and assistant modes.
+
+**Authentication:** Requires admin role.
+
+**Agents Provisioned:**
+1. **Onboarding Agent** (`agent_0501kakwnx5rffaby5px9y1pskkb`)
+   - Guides new users through profile setup
+   - Collects biometrics, dietary preferences, household info
+
+2. **Assistant Agent** (`agent_2601kaqwv4ejfhets9fyyafzj2e6`)
+   - Post-onboarding voice assistant
+   - Handles inventory, recipes, shopping, nutrition queries
+
+**Client Tools (Onboarding Agent):**
+```typescript
+{
+  updateProfile: {
+    // Uses named parameters for ElevenLabs API compatibility
+    userName?: string;
+    userAge?: number;
+    userWeight?: number;
+    userHeight?: number;
+    userGender?: string;
+    userActivityLevel?: string;
+    dietaryPreferences?: string[];  // items require description field
+    allergies?: string[];           // items require description field
+    skinType?: string;
+    hairType?: string;
+    householdAdults?: number;
+    householdKids?: number;
+    healthGoals?: string[];         // items require description field
+    lifestyleGoals?: string[];      // items require description field
+  };
+  completeConversation: { summary: string };
+}
+```
+
+**Client Tools (Assistant Agent):**
+```typescript
+{
+  check_inventory: { category?: string };
+  addToShoppingList: { items: { name: string; reason?: string }[] };
+  suggestRecipes: { constraints?: { use_inventory: boolean; max_cook_time?: number; cuisine_type?: string } };
+  updateInventory: { action: string; item_data: object };
+  logMeal: { meal_type: string; items: object[]; notes?: string };
+}
+```
+
+**API Behavior:**
+- Uses PATCH to update existing agents (known IDs)
+- Falls back to POST (create) only if PATCH returns 404
+- All tool definitions require `type: "client"` field
+- Array item schemas require `description` field (ElevenLabs API validation)
+
+**Output:**
+```typescript
+{
+  success: boolean;
+  message: string;
+  results: {
+    type: string;
+    agentId: string;
+    status: string;
+    tools: string[];
+    error?: string;
+  }[];
+}
+```
+
 #### `enrich-product`
 **Path:** `/supabase/functions/enrich-product/index.ts`
 
@@ -3343,6 +3461,26 @@ conversation.onError((error) => {
 - 30s no speech → prompt user
 - 60s no speech → end conversation
 - Reconnect on network recovery
+
+#### Tool Definition Requirements
+
+When defining client tools for ElevenLabs agents, the following requirements must be met:
+
+1. **`type` field required:** Every tool must include `type: "client"`
+2. **`description` field required:** All properties (including nested ones) must have descriptions
+3. **Array items need descriptions:** For array properties, the `items` schema must include a description:
+   ```typescript
+   allergies: {
+     type: "array",
+     items: { 
+       type: "string", 
+       description: "A food allergy (e.g., Nuts, Gluten, Dairy)"  // Required!
+     },
+     description: "Array of food allergies"
+   }
+   ```
+4. **Named parameters preferred:** Use specific named parameters instead of generic `(field, value)` patterns for better agent understanding
+5. **`wait_for_response` for blocking tools:** Set to `true` for tools that should pause conversation until complete
 
 #### Wake Word Detection
 
@@ -5337,6 +5475,6 @@ This document provides a comprehensive overview of the Kaeva application archite
 - **ElevenLabs Documentation:** https://elevenlabs.io/docs
 - **Project Repository:** [GitHub URL]
 
-**Last Updated:** 2025-01-20
-**Version:** 1.0.0
+**Last Updated:** 2025-11-25
+**Version:** 1.1.0
 **Maintained By:** Kaeva Development Team
