@@ -9,6 +9,7 @@ import { generateConversationId, storeMessage } from "@/lib/conversationUtils";
 import { logConversationEvent } from "@/lib/conversationLogger";
 import { calculateTDEE } from "@/lib/tdeeCalculator";
 import { fetchHouseholdContext, buildInitialContext } from "@/lib/contextBuilder";
+import { voiceLog } from "@/lib/voiceLogger";
 
 type ApertureState = "idle" | "listening" | "thinking" | "speaking";
 
@@ -32,12 +33,21 @@ export const useOnboardingVoice = ({ onProfileUpdate, onComplete }: UseOnboardin
   // Define clientTools INLINE to avoid stale closures
   const conversation = useConversation({
     onConnect: async () => {
+      const timer = voiceLog.startTimer();
+      voiceLog.info('connection', 'Onboarding agent connected');
+      
       console.log("🔌 Onboarding agent connected");
       logConversationEvent({
         conversationId: conversationIdRef.current,
         agentType: 'onboarding',
         eventType: 'session_start',
         eventData: { timestamp: new Date().toISOString() }
+      });
+
+      voiceLog.info('connection', 'Connection established', {
+        conversationId: conversationIdRef.current,
+        connectionTime: timer.elapsed(),
+        agentId: ELEVENLABS_CONFIG.onboarding.agentId
       });
 
       // Inject basic profile context if resuming onboarding
@@ -48,16 +58,30 @@ export const useOnboardingVoice = ({ onProfileUpdate, onComplete }: UseOnboardin
             const context = await fetchHouseholdContext(session.user.id);
             if (context && (context.members.length > 0 || context.pets.length > 0)) {
               const contextString = `RESUMING ONBOARDING:\n${buildInitialContext(context)}`;
+              
+              voiceLog.info('context', 'Injecting resume context', {
+                membersCount: context.members.length,
+                petsCount: context.pets.length,
+                contextLength: contextString.length
+              });
+              
               console.log("🧠 Injecting resume context:", contextString);
               await conversation.sendContextualUpdate(contextString);
+              
+              voiceLog.debug('context', 'Resume context injected successfully');
+            } else {
+              voiceLog.debug('context', 'No resume context to inject (fresh onboarding)');
             }
           }
         } catch (error) {
           console.error("❌ Failed to inject resume context:", error);
+          voiceLog.logError('context', 'Failed to inject resume context', error);
         }
       }
     },
     onDisconnect: () => {
+      voiceLog.info('connection', 'Onboarding agent disconnected');
+      
       console.log("🔌 Onboarding agent disconnected");
       setApertureState("idle");
       logConversationEvent({
@@ -68,6 +92,8 @@ export const useOnboardingVoice = ({ onProfileUpdate, onComplete }: UseOnboardin
       });
     },
     onError: (error) => {
+      voiceLog.logError('connection', 'Onboarding agent connection error', error);
+      
       console.error("❌ Onboarding agent error:", error);
       toast({
         title: "Connection Error",
@@ -77,6 +103,11 @@ export const useOnboardingVoice = ({ onProfileUpdate, onComplete }: UseOnboardin
       endConversation();
     },
     onMessage: (message) => {
+      voiceLog.debug('message', `${message.source} transcript received`, {
+        source: message.source,
+        messageLength: message.message?.length
+      });
+      
       console.log("📨 Onboarding message:", message);
       
       if (message.source === "user") {
@@ -120,6 +151,9 @@ export const useOnboardingVoice = ({ onProfileUpdate, onComplete }: UseOnboardin
         healthGoals?: string[];
         lifestyleGoals?: string[];
       }) => {
+        const timer = voiceLog.startTimer();
+        voiceLog.debug('tool', 'updateProfile called', { parameters });
+        
         console.log("🔧 updateProfile called:", parameters);
         
         try {
@@ -175,9 +209,19 @@ export const useOnboardingVoice = ({ onProfileUpdate, onComplete }: UseOnboardin
             .eq('id', session.user.id);
 
           if (error) {
+            voiceLog.error('tool', 'updateProfile database error', {
+              error: error.message,
+              duration: timer.elapsed()
+            });
             console.error("❌ updateProfile error:", error);
             return `ERROR: ${error.message}`;
           }
+
+          voiceLog.info('tool', 'updateProfile completed successfully', {
+            duration: timer.elapsed(),
+            fieldsUpdated: Object.keys(updateData),
+            hasTDEE: !!calculatedTdee
+          });
 
           console.log("✅ Profile updated in database:", updateData);
           
@@ -196,12 +240,16 @@ export const useOnboardingVoice = ({ onProfileUpdate, onComplete }: UseOnboardin
 
           return "SUCCESS: Profile updated";
         } catch (error) {
+          voiceLog.logError('tool', 'updateProfile exception', error);
           console.error("❌ updateProfile exception:", error);
           return `ERROR: ${error instanceof Error ? error.message : 'Unknown error'}`;
         }
       },
 
       completeConversation: async (parameters: { summary: string }) => {
+        const timer = voiceLog.startTimer();
+        voiceLog.info('tool', 'completeConversation called', { summary: parameters.summary });
+        
         console.log("🎉 completeConversation called:", parameters);
         
         try {
@@ -249,9 +297,18 @@ export const useOnboardingVoice = ({ onProfileUpdate, onComplete }: UseOnboardin
             .eq('id', session.user.id);
 
           if (error) {
+            voiceLog.error('tool', 'completeConversation database error', {
+              error: error.message,
+              duration: timer.elapsed()
+            });
             console.error("❌ completeConversation error:", error);
             return `ERROR: ${error.message}`;
           }
+
+          voiceLog.info('tool', 'completeConversation finished successfully', {
+            duration: timer.elapsed(),
+            householdCreated: !profile?.current_household_id
+          });
 
           console.log("✅ Onboarding marked complete");
 
@@ -275,6 +332,7 @@ export const useOnboardingVoice = ({ onProfileUpdate, onComplete }: UseOnboardin
 
           return "SUCCESS: Onboarding completed";
         } catch (error) {
+          voiceLog.logError('tool', 'completeConversation exception', error);
           console.error("❌ completeConversation exception:", error);
           return `ERROR: ${error instanceof Error ? error.message : 'Unknown error'}`;
         }
@@ -319,32 +377,66 @@ export const useOnboardingVoice = ({ onProfileUpdate, onComplete }: UseOnboardin
 
   // Update aperture state based on conversation status
   useEffect(() => {
+    const previousState = apertureState;
+    let newState: ApertureState;
+    
     if (conversation.isSpeaking) {
-      setApertureState("speaking");
+      newState = "speaking";
     } else if (conversation.status === "connected") {
-      setApertureState("listening");
+      newState = "listening";
     } else {
-      setApertureState("idle");
+      newState = "idle";
     }
-  }, [conversation.isSpeaking, conversation.status]);
+
+    if (previousState !== newState) {
+      voiceLog.debug('state', 'Aperture state changed', {
+        from: previousState,
+        to: newState,
+        reason: conversation.isSpeaking ? 'agent_speaking' : conversation.status,
+        audioAmplitude
+      });
+      setApertureState(newState);
+    }
+  }, [conversation.isSpeaking, conversation.status, audioAmplitude]);
 
   const startConversation = useCallback(async () => {
+    const timer = voiceLog.startTimer();
+    conversationIdRef.current = generateConversationId();
+    
+    voiceLog.setContext(conversationIdRef.current, 'onboarding');
+    voiceLog.info('session', 'Starting onboarding conversation', {
+      conversationId: conversationIdRef.current,
+      agentId: ELEVENLABS_CONFIG.onboarding.agentId
+    });
+    
     console.log("🚀 Starting onboarding conversation");
     setShowConversation(true);
     setApertureState("thinking");
 
     try {
-      conversationIdRef.current = generateConversationId();
-
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) throw new Error("Not authenticated");
+      if (!session?.user) {
+        voiceLog.error('session', 'Authentication required');
+        throw new Error("Not authenticated");
+      }
+
+      voiceLog.debug('session', 'User authenticated', { userId: session.user.id });
 
       const signedUrl = await getSignedUrl(ELEVENLABS_CONFIG.onboarding.agentId);
+      
+      voiceLog.debug('session', 'Starting ElevenLabs session');
       console.log("🤖 Starting onboarding agent");
 
       await conversation.startSession({ signedUrl });
+      
+      voiceLog.info('session', 'Onboarding session started successfully', {
+        duration: timer.elapsed()
+      });
+      
       setApertureState("listening");
     } catch (error) {
+      voiceLog.logError('session', 'Failed to start onboarding conversation', error);
+      
       console.error("❌ Failed to start onboarding:", error);
       toast({
         title: "Connection Failed",
@@ -356,12 +448,15 @@ export const useOnboardingVoice = ({ onProfileUpdate, onComplete }: UseOnboardin
   }, [conversation, toast]);
 
   const endConversation = useCallback(async () => {
+    voiceLog.info('session', 'Ending onboarding conversation');
+    
     console.log("🔚 Ending onboarding conversation");
     
     if (conversation.status === "connected") {
       await conversation.endSession();
     }
 
+    voiceLog.clearContext();
     conversationIdRef.current = "";
     setUserTranscript("");
     setAiTranscript("");

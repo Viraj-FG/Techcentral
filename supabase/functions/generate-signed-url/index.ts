@@ -8,15 +8,22 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  const requestStartTime = Date.now();
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  console.log('🎤 [SignedURL] Request received', {
+    method: req.method,
+    timestamp: new Date().toISOString()
+  });
 
   try {
     // 🔒 Security: Verify authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      console.error('❌ No authorization header provided');
+      console.error('❌ [SignedURL] No authorization header provided');
       return new Response(
         JSON.stringify({ error: 'Authentication required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -25,6 +32,8 @@ serve(async (req) => {
 
     // Extract JWT token from Authorization header
     const token = authHeader.replace('Bearer ', '');
+    
+    console.log('🔐 [SignedURL] Verifying JWT token');
     
     // Create admin client with service role key to verify the JWT
     const supabaseAdmin = createClient(
@@ -41,28 +50,33 @@ serve(async (req) => {
     // Verify the JWT token
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !user) {
-      console.error('❌ Authentication failed:', authError?.message || 'No user found');
+      console.error('❌ [SignedURL] Authentication failed:', authError?.message || 'No user found');
       return new Response(
         JSON.stringify({ error: 'Invalid authentication' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('✅ Authenticated user:', user.id);
+    console.log('✅ [SignedURL] Authenticated user:', user.id);
     
     // Original function logic continues...
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
     if (!ELEVENLABS_API_KEY) {
+      console.error('❌ [SignedURL] ELEVENLABS_API_KEY not configured');
       throw new Error('ELEVENLABS_API_KEY is not set');
     }
 
     const { agentId } = await req.json();
     if (!agentId) {
+      console.error('❌ [SignedURL] Missing agentId in request body');
       throw new Error('agentId is required');
     }
 
-    console.log('Generating signed URL for agent:', agentId);
+    console.log('🤖 [SignedURL] Generating signed URL for agent:', agentId, {
+      userId: user.id
+    });
 
+    const elevenLabsStartTime = Date.now();
     const response = await fetch(
       `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${agentId}`,
       {
@@ -73,20 +87,46 @@ serve(async (req) => {
       }
     );
 
+    const elevenLabsDuration = Date.now() - elevenLabsStartTime;
+
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("ElevenLabs API error:", response.status, errorText);
+      console.error("❌ [SignedURL] ElevenLabs API error:", {
+        status: response.status,
+        statusText: response.statusText,
+        errorText,
+        duration: elevenLabsDuration
+      });
       throw new Error(`ElevenLabs API error: ${response.status} ${errorText}`);
     }
 
     const data = await response.json();
-    console.log("Signed URL generated successfully");
+    
+    const totalDuration = Date.now() - requestStartTime;
+    
+    console.log("✅ [SignedURL] Signed URL generated successfully", {
+      agentId,
+      userId: user.id,
+      elevenLabsDuration,
+      totalDuration,
+      urlLength: data.signed_url?.length
+    });
 
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error("Error generating signed URL:", error);
+    const totalDuration = Date.now() - requestStartTime;
+    
+    console.error("❌ [SignedURL] Error generating signed URL:", {
+      error: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      } : error,
+      duration: totalDuration
+    });
+    
     return new Response(JSON.stringify({ 
       error: error instanceof Error ? error.message : 'Unknown error' 
     }), {
