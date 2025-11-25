@@ -135,12 +135,12 @@ const Auth = () => {
       } else {
         console.log('📝 Attempting sign in...');
         await signIn(data.email, data.password);
-        console.log('✅ Sign in successful');
+        console.log('✅ Sign in successful - auth state will trigger redirect');
         toast({
           title: "Welcome Back!",
           description: "Signed in successfully",
         });
-        navigate('/');
+        // Don't navigate here - let the auth state change in Index.tsx handle routing
       }
     } catch (error: any) {
       console.error('❌ Auth error in onSubmit:', error);
