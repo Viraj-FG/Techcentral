@@ -18,6 +18,7 @@ import RecipeBook from "./pages/RecipeBook";
 import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 import { AdminRoute } from "./components/AdminRoute";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -34,12 +35,12 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
                 <Route path="/auth" element={<ErrorBoundary><Auth /></ErrorBoundary>} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/household" element={<Household />} />
+                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                <Route path="/household" element={<ProtectedRoute><Household /></ProtectedRoute>} />
                 <Route path="/join" element={<Join />} />
-                <Route path="/inventory" element={<Inventory />} />
-                <Route path="/recipes" element={<RecipeBook />} />
-                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
+                <Route path="/recipes" element={<ProtectedRoute><RecipeBook /></ProtectedRoute>} />
+                <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
                 <Route path="/admin" element={<AdminRoute><ErrorBoundary><Admin /></ErrorBoundary></AdminRoute>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

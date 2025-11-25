@@ -10,17 +10,53 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import AuroraBackground from "@/components/AuroraBackground";
 import { Mail, Lock, Loader2, WifiOff, AlertCircle } from "lucide-react";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
 
+import { consoleRecorder } from "@/lib/consoleRecorder";
+
 const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { signIn, signUp, isAuthenticated, isLoading: authLoading, error: authError } = useAuth();
+  const { signIn, signUp, resetPassword, isAuthenticated, isLoading: authLoading, error: authError } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [resetEmail, setResetEmail] = useState("");
+  const [isResetting, setIsResetting] = useState(false);
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail) return;
+    
+    setIsResetting(true);
+    try {
+      await resetPassword(resetEmail);
+      toast({
+        title: "Check your email",
+        description: "We've sent you a password reset link.",
+      });
+      setIsResetDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   const authSchema = z.object({
     email: z.string().email("Please enter a valid email address"),
@@ -94,7 +130,7 @@ const Auth = () => {
         await signUp(data.email, data.password);
         toast({
           title: "Account Created!",
-          description: "Welcome to Kaeva. Let's build your digital twin.",
+          description: "Please check your email to verify your account before signing in.",
         });
       } else {
         console.log('📝 Attempting sign in...');
@@ -254,6 +290,17 @@ const Auth = () => {
                 {errors.password && (
                   <p className="text-red-400 text-sm mt-1">{errors.password.message}</p>
                 )}
+                {!isSignUp && (
+                  <div className="flex justify-end mt-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsResetDialogOpen(true)}
+                      className="text-xs text-white/60 hover:text-white hover:underline transition-colors"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                )}
               </div>
 
               {isSignUp && (
@@ -314,16 +361,82 @@ const Auth = () => {
           </motion.div>
 
           {/* Footer */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={kaevaTransition}
-            className="text-center text-white/40 text-body mt-6"
-          >
-            By continuing, you agree to Kaeva's Terms of Service and Privacy Policy
-          </motion.p>
+          <div className="text-center mt-6 space-y-4">
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={kaevaTransition}
+              className="text-white/40 text-body"
+            >
+              By continuing, you agree to Kaeva's Terms of Service and Privacy Policy
+            </motion.p>
+            
+            <button
+              onClick={() => consoleRecorder.downloadLogs()}
+              className="text-xs text-white/20 hover:text-white/40 transition-colors"
+            >
+              Download Debug Logs
+            </button>
+          </div>
         </motion.div>
       </div>
+
+      {/* Password Reset Dialog */}
+      <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+        <DialogContent className="max-w-sm mx-auto p-6 glass-card">
+          <DialogHeader>
+            <DialogTitle className="text-center text-display text-2xl">
+              Reset Password
+            </DialogTitle>
+            <DialogDescription className="text-center text-body text-white/70 mb-4">
+              Enter your email to receive a password reset link.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handlePasswordReset} className="space-y-4">
+            <div>
+              <Label htmlFor="resetEmail" className="text-white/90 flex items-center gap-2 mb-2">
+                <Mail size={20} strokeWidth={1.5} />
+                <span className="text-micro">Email</span>
+              </Label>
+              <Input
+                id="resetEmail"
+                type="email"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-kaeva-sage"
+                placeholder="you@example.com"
+                required
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isResetting}
+              variant="primary"
+              className="w-full py-6 shadow-lg shadow-kaeva-sage/20"
+            >
+              {isResetting ? (
+                <>
+                  <Loader2 className="animate-spin mr-2" size={20} strokeWidth={1.5} />
+                  <span className="text-micro">Sending Link...</span>
+                </>
+              ) : (
+                <span className="text-micro">Send Reset Link</span>
+              )}
+            </Button>
+          </form>
+
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => setIsResetDialogOpen(false)}
+              className="text-body text-white/60 hover:text-white transition-kaeva"
+            >
+              Back to Sign In
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

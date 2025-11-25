@@ -25,6 +25,7 @@ interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   refreshSession: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -43,7 +44,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const loadProfile = async (userId: string) => {
+  const loadProfile = async (userId: string, retries = 3) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -52,10 +53,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         .maybeSingle();
 
       if (error) throw error;
+      
+      if (!data && retries > 0) {
+        console.log(`⚠️ Profile not found, retrying... (${retries} attempts left)`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return loadProfile(userId, retries - 1);
+      }
+
       setProfile(data);
       return data;
     } catch (error: any) {
       console.error("Failed to load profile:", error);
+      if (retries > 0) {
+        console.log(`⚠️ Error loading profile, retrying... (${retries} attempts left)`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return loadProfile(userId, retries - 1);
+      }
       logError(error, { component: "AuthContext", action: "loadProfile" });
       return null;
     }
@@ -88,23 +101,41 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setError(null);
     try {
       console.log('🔐 Calling supabase.auth.signInWithPassword...');
-      const { data: { session }, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      
+      // Add timeout for sign in
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Sign in timed out')), 10000)
+      );
+
+      const { data, error } = await Promise.race([
+        supabase.auth.signInWithPassword({
+          email,
+          password,
+        }),
+        timeoutPromise
+      ]) as any;
+
+      const session = data?.session;
 
       console.log('🔐 Sign in response:', { session: !!session, error });
 
       if (error) throw error;
 
       // Don't load profile here - let onAuthStateChange handle it to avoid race condition
-      if (session) {
-        console.log('🔐 Session received, setting state');
-        setSession(session);
-        setUser(session.user);
-      }
+      // We do NOT set session/user here manually anymore.
+      // The onAuthStateChange listener will pick up the SIGNED_IN event.
     } catch (error: any) {
       console.error('🔐 Sign in error:', error);
+
+      // Check if we actually have a session despite the timeout/error
+      if (error.message === 'Sign in timed out') {
+        const { data } = await supabase.auth.getSession();
+        if (data?.session) {
+          console.log('🔐 Sign in timed out but session was established. Treating as success.');
+          return;
+        }
+      }
+
       const categorizedError = logError(error, {
         component: "AuthContext",
         action: "signIn",
@@ -151,6 +182,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const resetPassword = async (email: string) => {
+    setError(null);
+    try {
+      const redirectUrl = `${window.location.origin}/auth?type=recovery`;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl,
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      const categorizedError = logError(error, {
+        component: "AuthContext",
+        action: "resetPassword",
+      });
+      setError(categorizedError.userMessage);
+      throw new Error(categorizedError.userMessage);
+    }
+  };
+
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -170,6 +219,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       try {
         console.log('🔐 Initializing auth...');
         
+        // Set a timeout to prevent infinite loading
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Auth initialization timeout')), 5000)
+        );
+
         // Set up auth listener FIRST
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
@@ -177,13 +231,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
             console.log('🔐 Auth event:', event, { hasSession: !!session });
 
-      if (event === 'SIGNED_IN' && session) {
-        console.log('🔐 SIGNED_IN event - Provider:', session.user.app_metadata?.provider);
-        console.log('🔐 SIGNED_IN event - loading profile');
-        setSession(session);
-        setUser(session.user);
-        await loadProfile(session.user.id);
-      }
+            if (event === 'SIGNED_IN' && session) {
+              console.log('🔐 SIGNED_IN event - Provider:', session.user.app_metadata?.provider);
+              console.log('🔐 SIGNED_IN event - loading profile');
+              setSession(session);
+              setUser(session.user);
+              await loadProfile(session.user.id);
+            }
 
             if (event === 'SIGNED_OUT') {
               console.log('🔐 SIGNED_OUT event');
@@ -199,20 +253,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           }
         );
 
-        // THEN check for existing session
+        // THEN check for existing session with timeout
         console.log('🔐 Checking for existing session...');
-        const { data: { session } } = await supabase.auth.getSession();
         
-        if (session && mounted) {
-          console.log('🔐 Existing session found');
-          setSession(session);
-          setUser(session.user);
-          await loadProfile(session.user.id);
-        } else {
-          console.log('🔐 No existing session');
+        try {
+          const { data } = await Promise.race([
+            supabase.auth.getSession(),
+            timeoutPromise
+          ]) as any;
+          
+          const session = data?.session;
+          
+          if (session && mounted) {
+            console.log('🔐 Existing session found');
+            setSession(session);
+            setUser(session.user);
+            await loadProfile(session.user.id);
+          } else {
+            console.log('🔐 No existing session');
+          }
+        } catch (err) {
+          console.warn('⚠️ Auth initialization timed out or failed, proceeding as logged out', err);
         }
 
-        setIsLoading(false);
+        if (mounted) setIsLoading(false);
         console.log('🔐 Auth initialization complete');
 
         return () => {
@@ -221,7 +285,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         };
       } catch (error) {
         console.error("🔐 Auth initialization error:", error);
-        setIsLoading(false);
+        if (mounted) setIsLoading(false);
       }
     };
 
@@ -238,6 +302,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     signIn,
     signUp,
     signOut,
+    resetPassword,
     refreshSession,
     refreshProfile,
   };

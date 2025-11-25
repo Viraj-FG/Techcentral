@@ -2,17 +2,20 @@ import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { useHouseholdInit } from "@/hooks/useHouseholdInit";
 import Splash from "@/components/Splash";
 import VoiceOnboarding from "@/components/VoiceOnboarding";
 import Dashboard from "@/components/Dashboard";
 import LoadingState from "@/components/LoadingState";
 import { useToast } from "@/hooks/use-toast";
 
+import { checkSupabaseConnection } from "@/lib/utils";
+
 const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { isAuthenticated, profile, isLoading: authLoading, refreshProfile, user } = useAuth();
+  const { ensureHousehold, completeOnboarding, isInitializing: isHouseholdInitializing } = useHouseholdInit();
   const [appState, setAppState] = useState<"splash" | "onboarding" | "dashboard" | null>(null);
   const [userProfile, setUserProfile] = useState(profile);
 
@@ -49,65 +52,7 @@ const Index = () => {
         setAppState("onboarding");
       }
     }
-  }, [authLoading, isAuthenticated, appState, profile, navigate]);
-
-  const ensureHousehold = async () => {
-    if (!user || !profile) return;
-
-    if (profile.current_household_id) {
-      console.log('✅ User already has household:', profile.current_household_id);
-      return;
-    }
-
-    try {
-      // Check if user already owns a household
-      const { data: existingHouseholds } = await supabase
-        .from('households')
-        .select('id')
-        .eq('owner_id', user.id)
-        .limit(1);
-
-      if (existingHouseholds && existingHouseholds.length > 0) {
-        // Link existing household
-        console.log('✅ Found existing household, linking:', existingHouseholds[0].id);
-        await supabase
-          .from('profiles')
-          .update({ current_household_id: existingHouseholds[0].id })
-          .eq('id', user.id);
-        
-        await refreshProfile();
-      } else {
-        // Create new household
-        const { data: household, error } = await supabase
-          .from('households')
-          .insert({
-            name: `${profile.user_name || 'User'}'s Household`,
-            owner_id: user.id
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        // Update profile with new household
-        await supabase
-          .from('profiles')
-          .update({ current_household_id: household.id })
-          .eq('id', user.id);
-
-        await refreshProfile();
-        console.log('✅ Auto-created household:', household.id);
-      }
-    } catch (error) {
-      console.error('Failed to ensure household:', error);
-      toast({
-        title: "Setup Error",
-        description: "Failed to set up household. Redirecting...",
-        variant: "destructive",
-      });
-      navigate('/household');
-    }
-  };
+  }, [authLoading, isAuthenticated, appState, profile, navigate, ensureHousehold]);
 
   const handleOnboardingComplete = async (completedProfile?: any) => {
     console.log("🎉 Onboarding complete");
@@ -131,36 +76,58 @@ const Index = () => {
   };
 
   const handleOnboardingSkip = async () => {
-    if (!user) return;
+    console.log("⏭️ Skipping onboarding requested");
+    if (!user) {
+      console.error("❌ Cannot skip onboarding: No user found");
+      return;
+    }
 
     try {
-      // Mark onboarding as complete
-      await supabase
-        .from('profiles')
-        .update({ onboarding_completed: true })
-        .eq('id', user.id);
-
-      // Ensure household exists
-      await ensureHousehold();
-      // Refresh profile from backend
-      await refreshProfile();
+      console.log("⏳ Calling completeOnboarding...");
+      await completeOnboarding();
+      console.log("✅ Onboarding skipped, setting dashboard state");
       setAppState("dashboard");
-    } catch (error) {
-      console.error("Error skipping onboarding:", error);
+    } catch (error: any) {
+      console.error("❌ Error skipping onboarding:", error);
+      
+      const isTimeout = error.message?.includes('timed out') || error.message?.includes('timeout');
+      
+      if (isTimeout) {
+        // Check connection to be sure
+        const isConnected = await checkSupabaseConnection();
+        if (!isConnected) {
+          // Force dashboard anyway if we are in dev mode or if user insists
+          console.log("⚠️ Connection lost but forcing dashboard for debugging/offline access");
+          setAppState("dashboard");
+          toast({
+            title: "Offline Mode",
+            description: "Connection lost. Entering offline mode.",
+            duration: 4000,
+          });
+          return;
+        }
+      }
+
+      const title = isTimeout ? "Server Timeout" : "Setup Failed";
+      const description = isTimeout 
+        ? "The server is taking too long to respond. Please try again." 
+        : "Failed to skip onboarding. Please try again.";
+
       toast({
-        title: "Error",
-        description: "Failed to skip onboarding. Please try again.",
+        title,
+        description,
         variant: "destructive",
+        duration: 6000,
       });
     }
   };
 
   // Loading state
-  if (authLoading || appState === null) {
+  if (authLoading || appState === null || isHouseholdInitializing) {
     return (
       <div className="fixed inset-0 bg-kaeva-void flex items-center justify-center">
         <LoadingState
-          message="Loading Kaeva..."
+          message={isHouseholdInitializing ? "Setting up your space..." : "Loading Kaeva..."}
           timeout={30000}
           onTimeout={() => {
             console.warn("⏱️ Loading timeout - redirecting to login");
@@ -188,6 +155,7 @@ const Index = () => {
               setAppState("onboarding");
             }
           }}
+          autoAdvance={!!profile?.onboarding_completed}
         />
       )}
 
