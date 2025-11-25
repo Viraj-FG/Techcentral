@@ -115,6 +115,15 @@ export const CookingMode = ({ recipe, onComplete, onBack }: Props) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    // Get user's household_id
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('current_household_id')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile?.current_household_id) return;
+
     // Deduct ingredients from inventory
     const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
     
@@ -128,7 +137,7 @@ export const CookingMode = ({ recipe, onComplete, onBack }: Props) => {
       const { data: inventoryItems } = await supabase
         .from('inventory')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('household_id', profile.current_household_id)
         .ilike('name', `%${itemName}%`);
 
       if (inventoryItems && inventoryItems.length > 0) {

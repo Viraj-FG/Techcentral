@@ -20,13 +20,22 @@ const RecentActivity = () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.user) return;
 
+        // Get user's household_id
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('current_household_id')
+          .eq('id', session.user.id)
+          .single();
+
+        if (!profile?.current_household_id) return;
+
         const recentActivities: Activity[] = [];
 
         // Fetch recent inventory additions
         const { data: inventoryData } = await supabase
           .from('inventory')
           .select('created_at, name')
-          .eq('user_id', session.user.id)
+          .eq('household_id', profile.current_household_id)
           .order('created_at', { ascending: false })
           .limit(2);
 
@@ -45,7 +54,7 @@ const RecentActivity = () => {
         const { data: autoOrderData } = await supabase
           .from('inventory')
           .select('updated_at, name')
-          .eq('user_id', session.user.id)
+          .eq('household_id', profile.current_household_id)
           .eq('auto_order_enabled', true)
           .order('updated_at', { ascending: false })
           .limit(1);
