@@ -56,7 +56,7 @@ const ToolCallLogs = () => {
         </Button>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[600px]">
+        <ScrollArea className="h-[calc(100vh-300px)] max-h-[600px] min-h-[300px]">
             <div className="space-y-4">
             {logs.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">

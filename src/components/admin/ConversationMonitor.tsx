@@ -194,7 +194,7 @@ export const ConversationMonitor = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[600px] pr-4">
+          <ScrollArea className="h-[calc(100vh-300px)] max-h-[600px] min-h-[300px] pr-4">
             <div className="space-y-2">
               <AnimatePresence>
                 {activeConversations.map((conv) => (
@@ -266,7 +266,7 @@ export const ConversationMonitor = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[600px]" ref={scrollRef}>
+          <ScrollArea className="h-[calc(100vh-300px)] max-h-[600px] min-h-[300px]" ref={scrollRef}>
             <div className="space-y-3">
               <AnimatePresence>
                 {filteredEvents.map((event) => (
