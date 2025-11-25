@@ -7,6 +7,7 @@ import { ELEVENLABS_CONFIG } from "@/config/agent";
 import { useNavigate } from "react-router-dom";
 import { generateConversationId, storeMessage } from "@/lib/conversationUtils";
 import { logConversationEvent } from "@/lib/conversationLogger";
+import { fetchHouseholdContext, buildInitialContext, buildInventoryUpdate, buildCartUpdate } from "@/lib/contextBuilder";
 
 type ApertureState = "idle" | "listening" | "thinking" | "speaking";
 
@@ -25,10 +26,12 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
   const navigate = useNavigate();
   const conversationIdRef = useRef<string>("");
   const audioIntervalRef = useRef<NodeJS.Timeout>();
+  const realtimeChannelRef = useRef<any>(null);
+  const lastContextUpdateRef = useRef<number>(0);
 
   // Define clientTools INLINE to avoid stale closures
   const conversation = useConversation({
-    onConnect: () => {
+    onConnect: async () => {
       console.log("🔌 Assistant agent connected");
       logConversationEvent({
         conversationId: conversationIdRef.current,
@@ -36,6 +39,23 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
         eventType: 'session_start',
         eventData: { timestamp: new Date().toISOString() }
       });
+
+      // Inject initial household context
+      if (userProfile?.id && conversation.sendContextualUpdate) {
+        try {
+          const context = await fetchHouseholdContext(userProfile.id);
+          if (context) {
+            const contextString = buildInitialContext(context);
+            console.log("🧠 Injecting initial context:", contextString);
+            await conversation.sendContextualUpdate(contextString);
+          }
+        } catch (error) {
+          console.error("❌ Failed to inject initial context:", error);
+        }
+      }
+
+      // Set up realtime subscriptions
+      setupRealtimeSubscriptions();
     },
     onDisconnect: () => {
       console.log("🔌 Assistant agent disconnected");
@@ -396,6 +416,85 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
     }
   });
 
+  // Setup realtime subscriptions for contextual updates
+  const setupRealtimeSubscriptions = useCallback(() => {
+    if (!userProfile?.current_household_id || !conversation.sendContextualUpdate) return;
+
+    // Clean up existing channel
+    if (realtimeChannelRef.current) {
+      supabase.removeChannel(realtimeChannelRef.current);
+    }
+
+    const channel = supabase
+      .channel('assistant-context-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'inventory',
+          filter: `household_id=eq.${userProfile.current_household_id}`
+        },
+        async (payload) => {
+          // Throttle updates (max 1 per 5 seconds)
+          const now = Date.now();
+          if (now - lastContextUpdateRef.current < 5000) {
+            console.log("⏱️ Throttling context update");
+            return;
+          }
+          lastContextUpdateRef.current = now;
+
+          if (conversation.status !== 'connected') return;
+
+          try {
+            const updateString = buildInventoryUpdate({
+              type: payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE',
+              item: payload.new || payload.old
+            });
+            console.log("📦 Sending inventory update:", updateString);
+            await conversation.sendContextualUpdate(updateString);
+          } catch (error) {
+            console.error("❌ Failed to send inventory update:", error);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'shopping_list',
+          filter: `household_id=eq.${userProfile.current_household_id}`
+        },
+        async () => {
+          // Throttle updates
+          const now = Date.now();
+          if (now - lastContextUpdateRef.current < 5000) return;
+          lastContextUpdateRef.current = now;
+
+          if (conversation.status !== 'connected') return;
+
+          try {
+            // Re-fetch shopping list
+            const { data } = await supabase
+              .from('shopping_list')
+              .select('*')
+              .eq('household_id', userProfile.current_household_id)
+              .eq('status', 'pending');
+
+            const updateString = buildCartUpdate(data || []);
+            console.log("🛒 Sending cart update:", updateString);
+            await conversation.sendContextualUpdate(updateString);
+          } catch (error) {
+            console.error("❌ Failed to send cart update:", error);
+          }
+        }
+      )
+      .subscribe();
+
+    realtimeChannelRef.current = channel;
+  }, [userProfile, conversation]);
+
   // Real-time audio visualization from SDK
   useEffect(() => {
     if (conversation.status === "connected") {
@@ -480,6 +579,9 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
       }
       if (audioIntervalRef.current) {
         clearInterval(audioIntervalRef.current);
+      }
+      if (realtimeChannelRef.current) {
+        supabase.removeChannel(realtimeChannelRef.current);
       }
     };
   }, []);

@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { generateConversationId, storeMessage } from "@/lib/conversationUtils";
 import { logConversationEvent } from "@/lib/conversationLogger";
 import { calculateTDEE } from "@/lib/tdeeCalculator";
+import { fetchHouseholdContext, buildInitialContext } from "@/lib/contextBuilder";
 
 type ApertureState = "idle" | "listening" | "thinking" | "speaking";
 
@@ -30,7 +31,7 @@ export const useOnboardingVoice = ({ onProfileUpdate, onComplete }: UseOnboardin
 
   // Define clientTools INLINE to avoid stale closures
   const conversation = useConversation({
-    onConnect: () => {
+    onConnect: async () => {
       console.log("🔌 Onboarding agent connected");
       logConversationEvent({
         conversationId: conversationIdRef.current,
@@ -38,6 +39,23 @@ export const useOnboardingVoice = ({ onProfileUpdate, onComplete }: UseOnboardin
         eventType: 'session_start',
         eventData: { timestamp: new Date().toISOString() }
       });
+
+      // Inject basic profile context if resuming onboarding
+      if (conversation.sendContextualUpdate) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            const context = await fetchHouseholdContext(session.user.id);
+            if (context && (context.members.length > 0 || context.pets.length > 0)) {
+              const contextString = `RESUMING ONBOARDING:\n${buildInitialContext(context)}`;
+              console.log("🧠 Injecting resume context:", contextString);
+              await conversation.sendContextualUpdate(contextString);
+            }
+          }
+        } catch (error) {
+          console.error("❌ Failed to inject resume context:", error);
+        }
+      }
     },
     onDisconnect: () => {
       console.log("🔌 Onboarding agent disconnected");
