@@ -69,8 +69,7 @@ const RecipeBook = () => {
 
   return (
     <AppShell onScan={() => navigate('/')}>
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-4 py-8 max-w-7xl pb-16">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -150,18 +149,17 @@ const RecipeBook = () => {
               </TabsContent>
             )}
           </Tabs>
-        </div>
-      </div>
 
-      {/* Recipe Detail Modal */}
-      {selectedRecipe && (
-        <RecipeDetail
-          recipe={selectedRecipe}
-          open={!!selectedRecipe}
-          onClose={() => setSelectedRecipe(null)}
-          onRecipeDeleted={handleRecipeDeleted}
-        />
-      )}
+          {/* Recipe Detail Modal */}
+          {selectedRecipe && (
+            <RecipeDetail
+              recipe={selectedRecipe}
+              open={!!selectedRecipe}
+              onClose={() => setSelectedRecipe(null)}
+              onRecipeDeleted={handleRecipeDeleted}
+            />
+          )}
+        </div>
     </AppShell>
   );
 };

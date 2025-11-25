@@ -18,6 +18,7 @@ import AuroraBackground from "@/components/AuroraBackground";
 import ConversationHistory from "@/components/ConversationHistory";
 import StoreSelector from "@/components/dashboard/StoreSelector";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
+import UniversalShell from "@/components/layout/UniversalShell";
 
 const profileSchema = z.object({
   userName: z.string().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
@@ -185,10 +186,10 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-kaeva-seattle-slate overflow-y-auto">
+    <>
       <AuroraBackground vertical="food" />
       
-      <div className="relative z-10 p-4 sm:p-8">
+      <UniversalShell className="p-4 sm:p-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -591,7 +592,7 @@ const Settings = () => {
             </motion.div>
           </form>
         </motion.div>
-      </div>
+      </UniversalShell>
 
       {/* Store Selector Dialog */}
       <StoreSelector
@@ -605,7 +606,7 @@ const Settings = () => {
           });
         }}
       />
-    </div>
+    </>
   );
 };
 
