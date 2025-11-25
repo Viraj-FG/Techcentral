@@ -1,0 +1,58 @@
+graph TB
+    subgraph "Vision Processing"
+        A1[analyze-vision]
+        A2[identify-product]
+        A3[enrich-product]
+    end
+    
+    subgraph "Nutrition Tracking"
+        B1[analyze-meal]
+    end
+    
+    subgraph "Household Management"
+        C1[create-household-invite]
+        C2[accept-household-invite]
+    end
+    
+    subgraph "Shopping Integration"
+        D1[instacart-create-cart]
+        D2[instacart-service]
+        D3[get-place-hours]
+    end
+    
+    subgraph "Recipe & Cooking"
+        E1[suggest-recipes]
+        E2[cook-recipe]
+        E3[extract-social-recipe]
+    end
+    
+    subgraph "AI & Voice"
+        F1[provision-agents]
+        F2[detect-intent]
+    end
+    
+    subgraph "Utilities"
+        G1[notify-spoilage]
+        G2[generate-signed-url]
+        G3[check-admin]
+    end
+    
+    subgraph "External APIs"
+        H1[Google Gemini]
+        H2[FatSecret]
+        H3[ElevenLabs]
+        H4[Instacart]
+        H5[Google Places]
+    end
+    
+    A1 --> H1
+    A2 --> H1
+    A3 --> H2
+    B1 --> H1
+    B1 --> H2
+    E1 --> H1
+    E3 --> H1
+    F1 --> H3
+    D1 --> H4
+    D2 --> H4
+    D3 --> H5

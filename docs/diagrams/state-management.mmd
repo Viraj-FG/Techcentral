@@ -1,0 +1,46 @@
+stateDiagram-v2
+    [*] --> Landing
+    Landing --> Auth: Click Login
+    
+    Auth --> Index: Login Success
+    
+    state Index {
+        [*] --> CheckOnboarding
+        CheckOnboarding --> Onboarding: Not Complete
+        CheckOnboarding --> CheckHousehold: Complete
+        
+        state Onboarding {
+            [*] --> VoiceOnboarding
+            VoiceOnboarding --> Mission: Profile
+            Mission --> Biometrics: Health
+            Biometrics --> Language: Preferences
+            Language --> Household: Family
+            Household --> Beauty: Personal
+            Beauty --> Safety: Pets
+            Safety --> [*]: Complete
+        }
+        
+        CheckHousehold --> HouseholdSetup: No Household
+        CheckHousehold --> Dashboard: Has Household
+        HouseholdSetup --> Dashboard: Setup Complete
+    }
+    
+    state Dashboard {
+        [*] --> DashboardHome
+        DashboardHome --> Inventory
+        DashboardHome --> Recipes
+        DashboardHome --> Analytics
+        DashboardHome --> Household
+        DashboardHome --> Settings
+        DashboardHome --> Admin: If Admin Role
+        
+        Inventory --> DashboardHome
+        Recipes --> DashboardHome
+        Analytics --> DashboardHome
+        Household --> DashboardHome
+        Settings --> DashboardHome
+        Admin --> DashboardHome
+    }
+    
+    Dashboard --> Auth: Logout
+    Auth --> [*]
