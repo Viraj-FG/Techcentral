@@ -22,8 +22,6 @@ import AuroraBackground from "@/components/AuroraBackground";
 import { Mail, Lock, Loader2, WifiOff, AlertCircle } from "lucide-react";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
 
-import { consoleRecorder } from "@/lib/consoleRecorder";
-
 const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -370,13 +368,6 @@ const Auth = () => {
             >
               By continuing, you agree to Kaeva's Terms of Service and Privacy Policy
             </motion.p>
-            
-            <button
-              onClick={() => consoleRecorder.downloadLogs()}
-              className="text-xs text-white/20 hover:text-white/40 transition-colors"
-            >
-              Download Debug Logs
-            </button>
           </div>
         </motion.div>
       </div>
