@@ -20,9 +20,10 @@
     "noFallthroughCasesInSwitch": true,
 
     /* Path aliases (mirrors root/app config so referenced project resolves) */
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["vite.config.ts", "src/**/*.ts", "src/**/*.tsx"]
+  "include": ["vite.config.ts"]
 }
