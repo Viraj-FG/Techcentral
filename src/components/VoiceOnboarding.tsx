@@ -8,7 +8,7 @@ import TutorialOverlay from "./TutorialOverlay";
 import HouseholdMemberCard from "./HouseholdMemberCard";
 import OnboardingStatus from "./voice/OnboardingStatus";
 import KeywordFeedback from "./voice/KeywordFeedback";
-import { useOnboardingConversation } from "@/hooks/useOnboardingConversation";
+import { useOnboardingVoice } from "@/hooks/useOnboardingVoice";
 import { supabase } from "@/integrations/supabase/client";
 import { saveOnboardingData } from "@/lib/onboardingSave";
 import { transformProfileData, ConversationState } from "@/lib/onboardingTransforms";
@@ -52,19 +52,39 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
     stateRef.current = conversationState;
   }, [conversationState]);
 
-  const { conversation } = useOnboardingConversation({
-    conversationState,
-    setConversationState,
-    setApertureState,
-    setUserTranscript,
-    setAiTranscript,
-    setShowSubtitles,
-    setActiveVertical,
-    setDetectedKeywords,
-    setShowSummary,
-    onComplete,
-    permissionsGranted
+  const {
+    apertureState: voiceApertureState,
+    audioAmplitude: voiceAudioAmplitude,
+    userTranscript: voiceUserTranscript,
+    aiTranscript: voiceAiTranscript,
+    showConversation: voiceShowConversation,
+    status,
+    startConversation,
+    endConversation
+  } = useOnboardingVoice({
+    onProfileUpdate: (profile) => {
+      console.log("Profile updated:", profile);
+    },
+    onComplete: () => {
+      console.log("Onboarding complete");
+      setShowSummary(true);
+    }
   });
+
+  // Sync voice state to local state
+  useEffect(() => {
+    setApertureState(voiceApertureState);
+    setUserTranscript(voiceUserTranscript);
+    setAiTranscript(voiceAiTranscript);
+  }, [voiceApertureState, voiceUserTranscript, voiceAiTranscript]);
+
+  // Auto-start conversation when permissions granted
+  useEffect(() => {
+    if (permissionsGranted && status === 'disconnected') {
+      console.log("🎬 Auto-starting onboarding conversation");
+      startConversation();
+    }
+  }, [permissionsGranted, status]);
 
   useEffect(() => {
     const fetchPermissionStatus = async () => {
@@ -185,11 +205,11 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           onClick={() => {
-            if (conversation.status === "connected") {
+            if (status === "connected") {
               console.log("🔌 Skipping onboarding: Disconnecting ElevenLabs");
-              conversation.endSession();
+              endConversation();
             }
-            onExit();
+            onExit?.();
           }}
           className="absolute top-4 right-4 z-50 px-4 py-2 text-sm text-kaeva-slate-400 hover:text-kaeva-mint transition-colors underline-offset-4 hover:underline backdrop-blur-sm"
         >
@@ -214,6 +234,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
                 size="lg" 
                 audioElement={null}
                 isDetectingSound={false}
+                audioAmplitude={voiceAudioAmplitude}
               />
 
               <AnimatePresence>

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
-import { useVoiceManager } from "@/hooks/useVoiceManager";
+import { useAssistantVoice } from "@/hooks/useAssistantVoice";
 import ConversationOverlay from "./ConversationOverlay";
 
 interface VoiceAssistantProps {
@@ -17,7 +17,7 @@ const VoiceAssistant = ({ userProfile, onProfileUpdate }: VoiceAssistantProps) =
     showConversation,
     startConversation,
     endConversation
-  } = useVoiceManager({ userProfile, onProfileUpdate });
+  } = useAssistantVoice({ userProfile });
 
   // Handle ESC key to close conversation
   useEffect(() => {
@@ -51,8 +51,8 @@ const VoiceAssistant = ({ userProfile, onProfileUpdate }: VoiceAssistantProps) =
 };
 
 // Export hook for external components to trigger voice
-export const useVoiceAssistant = ({ userProfile, onProfileUpdate }: VoiceAssistantProps) => {
-  return useVoiceManager({ userProfile, onProfileUpdate });
+export const useVoiceAssistant = ({ userProfile }: VoiceAssistantProps) => {
+  return useAssistantVoice({ userProfile });
 };
 
 export default VoiceAssistant;
