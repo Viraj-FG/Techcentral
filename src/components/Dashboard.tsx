@@ -58,9 +58,25 @@ const Dashboard = ({ profile }: DashboardProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Get household_id from profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('current_household_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profileData?.current_household_id) {
+        toast({
+          title: "Error",
+          description: "No household found",
+          variant: "destructive"
+        });
+        return;
+      }
+
       await supabase.from('shopping_list').insert({
         item_name: item.name,
-        user_id: user.id,
+        household_id: profileData.current_household_id,
         source: 'auto_refill',
         priority: 'high',
         quantity: 1,

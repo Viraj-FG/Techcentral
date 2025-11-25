@@ -83,8 +83,20 @@ export const RecipeDetail = ({ recipe, open, onClose, onRecipeDeleted }: Props) 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    // Get household_id from profile
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('current_household_id')
+      .eq('id', user.id)
+      .single();
+
+    if (!profileData?.current_household_id) {
+      toast.error('No household found');
+      return;
+    }
+
     const cartItems = missingIngredients.map((ing: any) => ({
-      user_id: user.id,
+      household_id: profileData.current_household_id,
       item_name: ing.item || ing.name || 'Unknown',
       quantity: parseFloat(ing.quantity) || 1,
       unit: ing.unit || '',
