@@ -77,6 +77,47 @@ export type Database = {
         }
         Relationships: []
       }
+      household_invites: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          expires_at: string
+          household_id: string
+          id: string
+          invite_code: string
+          max_uses: number | null
+          times_used: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          expires_at: string
+          household_id: string
+          id?: string
+          invite_code: string
+          max_uses?: number | null
+          times_used?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          expires_at?: string
+          household_id?: string
+          id?: string
+          invite_code?: string
+          max_uses?: number | null
+          times_used?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "household_invites_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       household_members: {
         Row: {
           activity_level: string | null
@@ -136,6 +177,38 @@ export type Database = {
           weight?: number | null
         }
         Relationships: []
+      }
+      household_memberships: {
+        Row: {
+          household_id: string
+          id: string
+          joined_at: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          household_id: string
+          id?: string
+          joined_at?: string | null
+          role?: string
+          user_id: string
+        }
+        Update: {
+          household_id?: string
+          id?: string
+          joined_at?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "household_memberships_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       households: {
         Row: {

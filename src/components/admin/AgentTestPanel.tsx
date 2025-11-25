@@ -100,11 +100,11 @@ export const AgentTestPanel = () => {
         .select('*')
         .eq('user_id', session.user.id);
 
-      const { data: inventory } = await supabase
+      const { data: inventory } = profile?.current_household_id ? await supabase
         .from('inventory')
         .select('*')
-        .eq('user_id', session.user.id)
-        .limit(5);
+        .eq('household_id', profile.current_household_id)
+        .limit(5) : { data: [] };
 
       setContextTest({
         status: 'success',
