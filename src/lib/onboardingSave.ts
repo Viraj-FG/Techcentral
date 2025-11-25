@@ -51,105 +51,51 @@ export const saveOnboardingData = async (state: ConversationState): Promise<bool
     const transformedData = transformProfileData(state);
     console.log("✅ SAVE Step 3: Transformed data:", JSON.stringify(transformedData, null, 2));
 
-    // Create household first (CRITICAL: Must exist before profile update)
-    console.log("💾 SAVE Step 4: Creating household for user");
-    const { data: existingHousehold } = await supabase
-      .from('households')
-      .select('id')
-      .eq('owner_id', userId)
-      .single();
-
-    let householdId: string;
-
-    if (existingHousehold) {
-      console.log("✅ SAVE Step 4: Using existing household:", existingHousehold.id);
-      householdId = existingHousehold.id;
-    } else {
-      const userName = state.userName || session.user.email?.split('@')[0] || 'User';
-      const { data: newHousehold, error: householdError } = await supabase
-        .from('households')
-        .insert({
-          name: `${userName}'s Household`,
-          owner_id: userId
-        })
-        .select('id')
-        .single();
-
-      if (householdError || !newHousehold) {
-        await logError("household-create", householdError, { userId, userName });
-        return false;
-      }
-
-      console.log("✅ SAVE Step 4: Created new household:", newHousehold.id);
-      householdId = newHousehold.id;
-    }
-
-    // Update profile with household reference
-    console.log("💾 SAVE Step 5: Updating profile in database with household link");
+    // Update profile
+    console.log("💾 SAVE Step 4: Updating profile in database");
     const { error: profileError } = await supabase
       .from('profiles')
-      .update({
-        ...transformedData,
-        current_household_id: householdId
-      })
+      .update(transformedData)
       .eq('id', userId);
 
     if (profileError) {
-      await logError("profile-update", profileError, { transformedData, userId, householdId });
+      await logError("profile-update", profileError, { transformedData, userId });
       return false;
     }
 
-    console.log("✅ SAVE Step 5: Profile saved successfully with household link");
+    console.log("✅ SAVE Step 4: Profile saved successfully");
 
-    // Save household members with robust validation
-    if (Array.isArray(state.householdMembers) && state.householdMembers.length > 0) {
-      console.log(`💾 SAVE Step 6: Preparing ${state.householdMembers.length} household members`);
-      
-      // Filter out invalid members and validate required fields
-      const validMembers = state.householdMembers.filter(member => {
-        if (!member || typeof member !== 'object') {
-          console.warn('⚠️ Skipping invalid member (not an object):', member);
-          return false;
-        }
-        if (!member.type) {
-          console.warn('⚠️ Skipping member without type:', member);
-          return false;
-        }
-        return true;
-      });
-      
-      if (validMembers.length === 0) {
-        console.log("ℹ️ SAVE Step 6-7: No valid household members to save");
+    // Save household members
+    if (state.householdMembers && state.householdMembers.length > 0) {
+      console.log(`💾 SAVE Step 5: Preparing ${state.householdMembers.length} household members`);
+      const membersToInsert = state.householdMembers.map(member => ({
+        user_id: userId,
+        member_type: member.type,
+        name: member.name || null,
+        age: member.age || null,
+        age_group: member.ageGroup || null,
+        weight: member.biometrics?.weight || null,
+        height: member.biometrics?.height || null,
+        gender: member.biometrics?.gender || null,
+        activity_level: member.biometrics?.activityLevel || null,
+        dietary_restrictions: member.dietaryRestrictions || [],
+        allergies: member.allergies || [],
+        health_conditions: member.healthConditions || []
+      }));
+      console.log("✅ SAVE Step 5: Members prepared:", membersToInsert);
+
+      console.log("💾 SAVE Step 6: Inserting household members");
+      const { error: membersError } = await supabase
+        .from('household_members')
+        .insert(membersToInsert);
+
+      if (membersError) {
+        await logError("household-insert", membersError, { membersToInsert, userId });
       } else {
-        const membersToInsert = validMembers.map(member => ({
-          user_id: userId,
-          member_type: member.type,
-          name: member.name || null,
-          age: member.age || null,
-          age_group: member.ageGroup || null,
-          weight: member.biometrics?.weight || null,
-          height: member.biometrics?.height || null,
-          gender: member.biometrics?.gender || null,
-          activity_level: member.biometrics?.activityLevel || null,
-          dietary_restrictions: member.dietaryRestrictions || [],
-          allergies: member.allergies || [],
-          health_conditions: member.healthConditions || []
-        }));
-        console.log("✅ SAVE Step 6: Members prepared:", membersToInsert);
-
-        console.log("💾 SAVE Step 7: Inserting household members");
-        const { error: membersError } = await supabase
-          .from('household_members')
-          .insert(membersToInsert);
-
-        if (membersError) {
-          await logError("household-insert", membersError, { membersToInsert, userId });
-        } else {
-          console.log(`✅ SAVE Step 7: Saved ${membersToInsert.length} household members`);
-        }
+        console.log(`✅ SAVE Step 6: Saved ${membersToInsert.length} household members`);
       }
     } else {
-      console.log("ℹ️ SAVE Step 6-7: No household members to save (empty or undefined)");
+      console.log("ℹ️ SAVE Step 5-6: No household members to save");
     }
 
     // Save pets (legacy support)

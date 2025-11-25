@@ -137,30 +137,6 @@ export type Database = {
         }
         Relationships: []
       }
-      households: {
-        Row: {
-          created_at: string | null
-          id: string
-          name: string
-          owner_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          name: string
-          owner_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          name?: string
-          owner_id?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       inventory: {
         Row: {
           allergens: Json | null
@@ -174,7 +150,6 @@ export type Database = {
           expiry_date: string | null
           fatsecret_id: string | null
           fill_level: number | null
-          household_id: string
           id: string
           last_activity_at: string | null
           last_enriched_at: string | null
@@ -187,6 +162,7 @@ export type Database = {
           status: Database["public"]["Enums"]["inventory_status"] | null
           unit: string | null
           updated_at: string
+          user_id: string
         }
         Insert: {
           allergens?: Json | null
@@ -200,7 +176,6 @@ export type Database = {
           expiry_date?: string | null
           fatsecret_id?: string | null
           fill_level?: number | null
-          household_id: string
           id?: string
           last_activity_at?: string | null
           last_enriched_at?: string | null
@@ -213,6 +188,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["inventory_status"] | null
           unit?: string | null
           updated_at?: string
+          user_id: string
         }
         Update: {
           allergens?: Json | null
@@ -226,7 +202,6 @@ export type Database = {
           expiry_date?: string | null
           fatsecret_id?: string | null
           fill_level?: number | null
-          household_id?: string
           id?: string
           last_activity_at?: string | null
           last_enriched_at?: string | null
@@ -239,16 +214,9 @@ export type Database = {
           status?: Database["public"]["Enums"]["inventory_status"] | null
           unit?: string | null
           updated_at?: string
+          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "inventory_household_id_fkey"
-            columns: ["household_id"]
-            isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       meal_logs: {
         Row: {
@@ -413,7 +381,6 @@ export type Database = {
           beauty_profile: Json | null
           calculated_tdee: number | null
           created_at: string
-          current_household_id: string | null
           dietary_preferences: Json | null
           health_goals: Json | null
           household_adults: number | null
@@ -444,7 +411,6 @@ export type Database = {
           beauty_profile?: Json | null
           calculated_tdee?: number | null
           created_at?: string
-          current_household_id?: string | null
           dietary_preferences?: Json | null
           health_goals?: Json | null
           household_adults?: number | null
@@ -475,7 +441,6 @@ export type Database = {
           beauty_profile?: Json | null
           calculated_tdee?: number | null
           created_at?: string
-          current_household_id?: string | null
           dietary_preferences?: Json | null
           health_goals?: Json | null
           household_adults?: number | null
@@ -497,15 +462,7 @@ export type Database = {
           user_weight?: number | null
           user_zip_code?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_current_household_id_fkey"
-            columns: ["current_household_id"]
-            isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       recipes: {
         Row: {
@@ -514,7 +471,6 @@ export type Database = {
           created_at: string | null
           difficulty: string | null
           estimated_calories: number | null
-          household_id: string
           id: string
           ingredients: Json
           instructions: Json
@@ -530,7 +486,6 @@ export type Database = {
           created_at?: string | null
           difficulty?: string | null
           estimated_calories?: number | null
-          household_id: string
           id?: string
           ingredients: Json
           instructions: Json
@@ -546,7 +501,6 @@ export type Database = {
           created_at?: string | null
           difficulty?: string | null
           estimated_calories?: number | null
-          household_id?: string
           id?: string
           ingredients?: Json
           instructions?: Json
@@ -557,13 +511,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "recipes_household_id_fkey"
-            columns: ["household_id"]
-            isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "recipes_user_id_fkey"
             columns: ["user_id"]
@@ -576,7 +523,6 @@ export type Database = {
       shopping_list: {
         Row: {
           created_at: string
-          household_id: string
           id: string
           inventory_id: string | null
           item_name: string
@@ -586,10 +532,10 @@ export type Database = {
           status: string | null
           unit: string | null
           updated_at: string
+          user_id: string
         }
         Insert: {
           created_at?: string
-          household_id: string
           id?: string
           inventory_id?: string | null
           item_name: string
@@ -599,10 +545,10 @@ export type Database = {
           status?: string | null
           unit?: string | null
           updated_at?: string
+          user_id: string
         }
         Update: {
           created_at?: string
-          household_id?: string
           id?: string
           inventory_id?: string | null
           item_name?: string
@@ -612,15 +558,9 @@ export type Database = {
           status?: string | null
           unit?: string | null
           updated_at?: string
+          user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "shopping_list_household_id_fkey"
-            columns: ["household_id"]
-            isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "shopping_list_inventory_id_fkey"
             columns: ["inventory_id"]
@@ -671,10 +611,6 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
-      }
-      insert_household_batch: {
-        Args: { p_members: Json; p_pets: Json; p_user_id: string }
-        Returns: Json
       }
       mark_spoilage: { Args: { _inventory_id: string }; Returns: undefined }
     }

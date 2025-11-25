@@ -1,29 +1,24 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { Shield, AlertCircle, Package, Camera, Settings, ArrowRight, Search, RefreshCw, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { Shield, AlertCircle, Package, Camera, Settings, ArrowRight, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Icon } from "@/components/ui/icon";
 import { useToast } from "@/hooks/use-toast";
-import { useTimeBasedGreeting } from "@/hooks/useTimeBasedGreeting";
-import { usePullToRefresh } from "@/hooks/usePullToRefresh";
-import { useHapticFeedback } from "@/hooks/useHapticFeedback";
-import { DashboardSkeleton } from "@/components/ui/SkeletonLoader";
-import { logError, retryWithBackoff } from "@/lib/errorHandler";
 import AppShell from "./layout/AppShell";
 import { checkAdminStatus } from "@/lib/authUtils";
 import { groupInventoryByCategory, getInventoryStatus } from "@/lib/inventoryUtils";
 import VoiceAssistant, { useVoiceAssistant } from "./voice/VoiceAssistant";
-
+import WelcomeBanner from "./dashboard/WelcomeBanner";
 import PulseHeader from "./dashboard/PulseHeader";
 import SmartCartWidget from "./dashboard/SmartCartWidget";
 import InventoryMatrix from "./dashboard/InventoryMatrix";
 import RecipeFeed from "./dashboard/RecipeFeed";
 import SocialImport from "./dashboard/SocialImport";
 import SafetyShield from "./dashboard/SafetyShield";
-
+import HouseholdQuickAccess from "./dashboard/HouseholdQuickAccess";
 import RecentActivity from "./dashboard/RecentActivity";
 import SmartScanner from "./scanner/SmartScanner";
 import InventoryMatrixSkeleton from "./dashboard/InventoryMatrixSkeleton";
@@ -31,7 +26,6 @@ import NutritionWidget from "./dashboard/NutritionWidget";
 import { kaevaEntranceVariants } from "@/hooks/useKaevaMotion";
 import { ELEVENLABS_CONFIG } from "@/config/agent";
 import GlobalSearch from "./search/GlobalSearch";
-import QuickActions from "./dashboard/QuickActions";
 
 interface DashboardProps {
   profile: any;
@@ -51,23 +45,6 @@ const Dashboard = ({ profile }: DashboardProps) => {
   const [spotlightOpen, setSpotlightOpen] = useState(false);
   const [socialImportOpen, setSocialImportOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-  const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
-  // Phase 1 enhancements
-  const greetingData = useTimeBasedGreeting(profile?.user_name);
-  const { trigger: triggerHaptic } = useHapticFeedback();
-  
-  // Simplified pull to refresh - disabled for now to prevent issues
-  // const { containerRef, isPulling, pullPercentage, isRefreshing } = usePullToRefresh({
-  //   onRefresh: async () => {
-  //     await triggerHaptic('light');
-  //     await fetchInventory(true);
-  //     await triggerHaptic('success');
-  //   },
-  //   threshold: 80,
-  //   enabled: !isLoading
-  // });
 
   // Voice assistant hook
   const { startConversation } = useVoiceAssistant({ 
@@ -81,17 +58,9 @@ const Dashboard = ({ profile }: DashboardProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('current_household_id')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile?.current_household_id) return;
-
       await supabase.from('shopping_list').insert({
         item_name: item.name,
-        household_id: profile.current_household_id,
+        user_id: user.id,
         source: 'auto_refill',
         priority: 'high',
         quantity: 1,
@@ -121,82 +90,26 @@ const Dashboard = ({ profile }: DashboardProps) => {
     // Recipe feed will auto-load with these ingredients
   };
 
-  // Fetch inventory data with timeout and retry
-  const fetchInventory = async (isRetry = false) => {
+  // Fetch inventory data
+  const fetchInventory = async () => {
     try {
       setIsLoading(true);
-      setFetchError(null);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-      // Set up 15-second timeout for fetch
-      fetchTimeoutRef.current = setTimeout(() => {
-        setFetchError("Loading is taking too long");
-        toast({
-          title: "Slow Connection",
-          description: "The dashboard is taking longer than expected to load",
-          variant: "destructive",
-        });
-      }, 15000);
+      const { data, error } = await supabase
+        .from('inventory')
+        .select('*')
+        .eq('user_id', user.id);
 
-      // Use retry logic for better resilience
-      await retryWithBackoff(async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          throw new Error('User not authenticated');
-        }
+      if (error) throw error;
 
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('current_household_id')
-          .eq('id', user.id)
-          .single();
-
-        if (profileError) throw profileError;
-        
-        if (!profile?.current_household_id) {
-          setFetchError('No household assigned. Please set up your household.');
-          toast({
-            title: "Household Setup Required",
-            description: "Please create or join a household to continue",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        const { data, error } = await supabase
-          .from('inventory')
-          .select('*')
-          .eq('household_id', profile.current_household_id);
-
-        if (error) throw error;
-
-        const grouped = groupInventoryByCategory(data || []);
-        setInventoryData(grouped);
-      }, isRetry ? 1 : 3); // Only retry once if user manually retries
-
-      // Clear timeout if successful
-      if (fetchTimeoutRef.current) {
-        clearTimeout(fetchTimeoutRef.current);
-      }
-    } catch (error: any) {
-      const categorizedError = logError(error, {
-        component: "Dashboard",
-        action: "fetchInventory",
-        userId: profile?.id,
-      });
-      
-      setFetchError(categorizedError.userMessage);
-      toast({
-        title: "Error Loading Dashboard",
-        description: categorizedError.userMessage,
-        variant: "destructive"
-      });
+      const grouped = groupInventoryByCategory(data || []);
+      setInventoryData(grouped);
+    } catch (error) {
+      console.error('Error fetching inventory:', error);
     } finally {
       setIsLoading(false);
-      
-      // Clear timeout
-      if (fetchTimeoutRef.current) {
-        clearTimeout(fetchTimeoutRef.current);
-      }
     }
   };
 
@@ -223,144 +136,125 @@ const Dashboard = ({ profile }: DashboardProps) => {
   return (
     <>
       <AppShell 
-        onScan={() => {
-          triggerHaptic('medium');
-          setSpotlightOpen(true);
-        }} 
-        onVoiceActivate={() => {
-          triggerHaptic('light');
-          startConversation();
-        }}
+        onScan={() => setSpotlightOpen(true)} 
+        onVoiceActivate={startConversation}
       >
         {/* Voice Assistant Overlay */}
         <VoiceAssistant userProfile={profile} onProfileUpdate={setInventoryData} />
 
-        <div className="space-y-6 pb-24">
-          {/* Header Section */}
-          <div className="space-y-4">
-            <PulseHeader profile={profile} />
-            
-            {/* Search Trigger */}
-             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 cursor-pointer hover:bg-slate-900/60 transition-all mx-1"
-                onClick={() => {
-                  triggerHaptic('selection');
-                  setSearchOpen(true);
-                }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+        {/* Welcome Banner for skipped onboarding */}
+        <WelcomeBanner />
+
+        {/* Search Trigger Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 cursor-pointer hover:bg-slate-900/60 transition-all"
+          onClick={() => setSearchOpen(true)}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <div className="flex items-center gap-3">
+            <Search className="w-5 h-5 text-slate-400" />
+            <span className="text-slate-400 text-sm flex-1">
+              Search inventory, recipes, pets...
+            </span>
+            <kbd className="px-2 py-1 bg-slate-800/50 border border-white/10 rounded text-xs text-slate-400">
+              ⌘K
+            </kbd>
+          </div>
+        </motion.div>
+        
+        {isAdmin && (
+          <motion.div 
+            variants={kaevaEntranceVariants}
+            initial="hidden"
+            animate="visible"
+            className="flex justify-end"
+          >
+            <Button
+              variant="glass"
+              onClick={() => navigate("/admin")}
+              className="gap-2"
+            >
+              <Icon icon={Shield} size="sm" />
+              <span className="text-micro">Admin Dashboard</span>
+            </Button>
+          </motion.div>
+        )}
+
+        {/* Header */}
+        <PulseHeader profile={profile} />
+        
+        {/* Safety Shield */}
+        <SafetyShield profile={profile} />
+        
+        {/* Household Quick Access */}
+        <HouseholdQuickAccess />
+        
+        {/* Smart Cart */}
+        <SmartCartWidget cartItems={lowStockItems} />
+        
+        {/* Nutrition Tracking */}
+        <NutritionWidget userId={profile.id} />
+        
+        {/* Inventory Matrix with Status */}
+        {isLoading ? (
+          <InventoryMatrixSkeleton />
+        ) : isInventoryEmpty ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-12 text-center"
+          >
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-kaeva-sage/10 flex items-center justify-center">
+              <Package className="text-kaeva-sage" size={40} strokeWidth={1.5} />
+            </div>
+            <h3 className="text-2xl font-light text-white mb-3">
+              Your Pantry is Empty
+            </h3>
+            <p className="text-white/60 mb-6 max-w-md mx-auto">
+              Start building your digital twin by scanning your first item
+            </p>
+            <Button
+              size="lg"
+              onClick={() => setSpotlightOpen(true)}
+              className="gap-2 bg-kaeva-sage text-kaeva-seattle-slate hover:bg-kaeva-sage/90"
+            >
+              <Camera size={20} strokeWidth={1.5} />
+              Scan Your First Item
+            </Button>
+          </motion.div>
+        ) : (
+          <>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Inventory Command</h3>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/inventory')}
+                className="text-sm gap-2 text-muted-foreground hover:text-foreground"
               >
-              <div className="flex items-center gap-3">
-                <Search className="w-5 h-5 text-slate-400" />
-                <span className="text-slate-400 text-sm flex-1">
-                  Search inventory, recipes, pets...
-                </span>
-                <kbd className="px-2 py-1 bg-slate-800/50 border border-white/10 rounded text-xs text-slate-400">
-                  ⌘K
-                </kbd>
-              </div>
-            </motion.div>
-
-            <QuickActions />
-          </div>
-
-          {/* Main Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-1">
-             <SmartCartWidget cartItems={lowStockItems} />
-             <NutritionWidget userId={profile.id} />
-          </div>
-
-          {/* Status & Safety */}
-          <SafetyShield profile={profile} />
-
-          {/* Inventory Section */}
-          <div className="space-y-4">
-             <div className="flex justify-between items-center px-1">
-                <h3 className="text-lg font-semibold text-white">My Kitchen</h3>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => navigate('/inventory')}
-                  className="text-slate-400 hover:text-white"
-                >
-                  View All <ArrowRight className="w-4 h-4 ml-1" />
-                </Button>
-             </div>
-             
-             {isLoading ? (
-                <DashboardSkeleton />
-             ) : fetchError ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="backdrop-blur-xl bg-red-500/5 border border-red-500/20 rounded-xl p-8 text-center"
-                >
-                  <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-light text-white mb-2">
-                    Unable to Load Dashboard
-                  </h3>
-                  <p className="text-white/60 mb-6">{fetchError}</p>
-                  <Button
-                    onClick={() => {
-                      triggerHaptic('medium');
-                      fetchInventory(true);
-                    }}
-                    variant="primary"
-                    className="gap-2"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    Retry
-                  </Button>
-                </motion.div>
-             ) : isInventoryEmpty ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-12 text-center"
-                >
-                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-kaeva-sage/10 flex items-center justify-center">
-                    <Package className="text-kaeva-sage" size={40} strokeWidth={1.5} />
-                  </div>
-                  <h3 className="text-2xl font-light text-white mb-3">
-                    Your Pantry is Empty
-                  </h3>
-                  <p className="text-white/60 mb-6 max-w-md mx-auto">
-                    Start building your digital twin by scanning your first item. Get personalized recommendations and smart reminders.
-                  </p>
-                  <Button
-                    size="lg"
-                    onClick={() => {
-                      triggerHaptic('medium');
-                      setSpotlightOpen(true);
-                    }}
-                    className="gap-2 bg-kaeva-sage text-kaeva-seattle-slate hover:bg-kaeva-sage/90"
-                  >
-                    <Camera size={20} strokeWidth={1.5} />
-                    Scan Your First Item
-                  </Button>
-                </motion.div>
-             ) : (
-                <InventoryMatrix inventory={inventoryData} onRefill={handleAddToCart} onCookNow={handleCookNow} />
-             )}
-          </div>
-
-          {/* Featured / Recipes */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white px-1">Featured Recipes</h3>
-            <RecipeFeed userInventory={inventoryData} userProfile={profile} />
-          </div>
-
-          {/* Recent Activity */}
-          <RecentActivity />
-          
-          {/* End Marker */}
-          <div className="w-full p-6 text-center opacity-30">
-            <div className="w-2 h-2 rounded-full bg-slate-600 mx-auto mb-2"></div>
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest">End of Stream</p>
-          </div>
+                View All Items
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
+            <InventoryMatrix inventory={inventoryData} onRefill={handleAddToCart} onCookNow={handleCookNow} />
+            <section>
+              <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3">Recipe Engine</h3>
+              <RecipeFeed userInventory={inventoryData} userProfile={profile} />
+            </section>
+          </>
+        )}
+        
+        {/* Recent Activity */}
+        <RecentActivity />
+        
+        {/* End of Stream Marker */}
+        <div className="w-full p-6 text-center opacity-30">
+          <div className="w-2 h-2 rounded-full bg-slate-600 mx-auto mb-2"></div>
+          <p className="text-[10px] text-slate-500 uppercase tracking-widest">End of Stream</p>
         </div>
       </AppShell>
 

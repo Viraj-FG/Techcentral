@@ -19,8 +19,6 @@ import ConversationHistory from "@/components/ConversationHistory";
 import StoreSelector from "@/components/dashboard/StoreSelector";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
 
-import { consoleRecorder } from "@/lib/consoleRecorder";
-
 const profileSchema = z.object({
   userName: z.string().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
   dietaryValues: z.string().max(500, "Dietary values must be less than 500 characters"),
@@ -591,27 +589,6 @@ const Settings = () => {
                 <span className="text-micro">Cancel</span>
               </Button>
             </motion.div>
-
-            {/* Debug Section */}
-            <div className="mt-12 pt-8 border-t border-white/10 text-center">
-              <p className="text-white/40 text-xs mb-4 uppercase tracking-widest">Advanced</p>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  consoleRecorder.downloadLogs();
-                  toast({
-                    title: "Logs Downloaded",
-                    description: "Share this file with support for debugging.",
-                  });
-                }}
-                className="text-xs text-white/40 hover:text-white hover:bg-white/5"
-              >
-                <ShieldAlert className="w-3 h-3 mr-2" />
-                Download Debug Logs
-              </Button>
-            </div>
           </form>
         </motion.div>
       </div>

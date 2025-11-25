@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import KaevaAperture from "./KaevaAperture";
 import DigitalTwinCard from "./DigitalTwinCard";
 import AuroraBackground from "./AuroraBackground";
@@ -10,13 +8,10 @@ import TutorialOverlay from "./TutorialOverlay";
 import HouseholdMemberCard from "./HouseholdMemberCard";
 import OnboardingStatus from "./voice/OnboardingStatus";
 import KeywordFeedback from "./voice/KeywordFeedback";
-import { useVoiceConversation } from "@/hooks/useVoiceConversation";
+import { useOnboardingConversation } from "@/hooks/useOnboardingConversation";
 import { supabase } from "@/integrations/supabase/client";
 import { saveOnboardingData } from "@/lib/onboardingSave";
 import { transformProfileData, ConversationState } from "@/lib/onboardingTransforms";
-import { useToast } from "@/hooks/use-toast";
-import { logError } from "@/lib/errorHandler";
-import { consoleRecorder } from "@/lib/consoleRecorder";
 
 interface VoiceOnboardingProps {
   onComplete: (profile: any) => void;
@@ -26,11 +21,11 @@ interface VoiceOnboardingProps {
 type ApertureState = "idle" | "wakeword" | "listening" | "thinking" | "speaking";
 
 const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
-  const { toast } = useToast();
   const [showTutorial, setShowTutorial] = useState(() => {
     return !localStorage.getItem("kaeva_tutorial_seen");
   });
   const [permissionsGranted, setPermissionsGranted] = useState(false);
+  const [apertureState, setApertureState] = useState<ApertureState>("idle");
   const [isAdmin, setIsAdmin] = useState(false);
   const [userTranscript, setUserTranscript] = useState("");
   const [aiTranscript, setAiTranscript] = useState("");
@@ -38,7 +33,6 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
   const [showSummary, setShowSummary] = useState(false);
   const [activeVertical, setActiveVertical] = useState<"food" | "beauty" | "pets" | null>(null);
   const [detectedKeywords, setDetectedKeywords] = useState<string[]>([]);
-  const [voiceError, setVoiceError] = useState<string | null>(null);
   const [conversationState, setConversationState] = useState<ConversationState>({
     userName: null,
     userBiometrics: null,
@@ -58,20 +52,19 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
     stateRef.current = conversationState;
   }, [conversationState]);
 
-  const { conversation, startConversation, endConversation: endVoiceConversation, apertureState } = useVoiceConversation({
-    mode: "onboarding",
+  const { conversation } = useOnboardingConversation({
+    conversationState,
+    setConversationState,
+    setApertureState,
+    setUserTranscript,
+    setAiTranscript,
+    setShowSubtitles,
+    setActiveVertical,
+    setDetectedKeywords,
+    setShowSummary,
     onComplete,
-    onProfileUpdate: (profile) => {
-      console.log("Profile updated:", profile);
-    }
+    permissionsGranted
   });
-
-  // Start conversation when permissions granted
-  useEffect(() => {
-    if (permissionsGranted && conversation.status === "disconnected") {
-      startConversation();
-    }
-  }, [permissionsGranted, conversation.status, startConversation]);
 
   useEffect(() => {
     const fetchPermissionStatus = async () => {
@@ -106,44 +99,39 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
       ...prev,
       isComplete: false
     }));
+    setApertureState("listening");
   };
 
   const handlePermissionsGranted = async () => {
     console.log('📋 handlePermissionsGranted called');
     
-    // Update UI immediately
-    setPermissionsGranted(true);
-    console.log('✅ permissionsGranted state set to true');
+    try {
+      setPermissionsGranted(true);
+      console.log('✅ permissionsGranted state set to true');
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        console.log('👤 User session found, saving to database...');
+        const { error } = await supabase
+          .from('profiles')
+          .update({ permissions_granted: true })
+          .eq('id', session.user.id);
 
-    // Perform DB update in background
-    const updateDb = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          console.log('👤 User session found, saving to database...');
-          const { error } = await supabase
-            .from('profiles')
-            .update({ permissions_granted: true })
-            .eq('id', session.user.id);
-
-          if (error) {
-            console.error("❌ Failed to save permissions:", error);
-          } else {
-            console.log("✅ Permissions saved to database");
-          }
+        if (error) {
+          console.error("❌ Failed to save permissions:", error);
         } else {
-          console.warn('⚠️ No session found, skipping database save');
+          console.log("✅ Permissions saved to database");
         }
-      } catch (err) {
-        console.error('❌ Background permission save error:', err);
+      } else {
+        console.warn('⚠️ No session found, skipping database save');
       }
-    };
-
-    // Fire and forget
-    updateDb();
-    
-    console.log('🎬 Transition to voice onboarding initiated');
+      
+      console.log('🎬 Transition to voice onboarding should happen now');
+    } catch (err) {
+      console.error('❌ handlePermissionsGranted error:', err);
+      setPermissionsGranted(true);
+    }
   };
 
   const handleEnterKaeva = async () => {
@@ -173,13 +161,9 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
   };
 
   const handleDismissTutorial = () => {
-    console.log("🎓 Tutorial dismissed");
     setShowTutorial(false);
     localStorage.setItem("kaeva_tutorial_seen", "true");
-    console.log("➡️ Should now show permission request. permissionsGranted:", permissionsGranted);
   };
-
-  console.log("🔍 VoiceOnboarding render - showTutorial:", showTutorial, "permissionsGranted:", permissionsGranted);
 
   if (showTutorial) {
     return <TutorialOverlay isOpen={showTutorial} onDismiss={handleDismissTutorial} />;
@@ -201,7 +185,6 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           onClick={() => {
-            console.log('⏭️ Skip to Dashboard clicked in VoiceOnboarding');
             if (conversation.status === "connected") {
               console.log("🔌 Skipping onboarding: Disconnecting ElevenLabs");
               conversation.endSession();
@@ -216,52 +199,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
 
       <AuroraBackground vertical={activeVertical} />
 
-      {/* Debug Button */}
-      <button
-        onClick={() => consoleRecorder.downloadLogs()}
-        className="absolute bottom-4 left-4 z-50 text-xs text-white/10 hover:text-white/40 transition-colors"
-      >
-        Debug Logs
-      </button>
-
       <div className="relative z-10 h-full flex flex-col items-center justify-center">
-        {voiceError && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="absolute top-20 left-1/2 transform -translate-x-1/2 max-w-md"
-          >
-            <div className="glass-card p-6 border-red-500/20">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-red-400 mt-0.5" />
-                <div className="flex-1">
-                  <h3 className="text-white font-medium mb-2">Voice Connection Issue</h3>
-                  <p className="text-white/70 text-sm mb-4">{voiceError}</p>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => window.location.reload()}
-                      className="text-white/80"
-                    >
-                      Retry
-                    </Button>
-                    {onExit && (
-                      <Button
-                        size="sm"
-                        variant="primary"
-                        onClick={onExit}
-                      >
-                        Skip to Dashboard
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-        
         <AnimatePresence mode="wait">
           {!showSummary ? (
             <motion.div

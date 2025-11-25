@@ -41,60 +41,46 @@ serve(async (req) => {
 
     console.log('Found', spoiledItems.length, 'potentially spoiled items');
 
-    // Group by household_id
-    const itemsByHousehold = new Map();
+    // Group by user_id
+    const itemsByUser = new Map();
     
     for (const item of spoiledItems) {
-      // Get household_id for this inventory item
+      // Get user_id for this inventory item
       const { data: invItem } = await supabase
         .from('inventory')
-        .select('household_id')
+        .select('user_id')
         .eq('id', item.inventory_id)
         .single();
 
-      if (invItem?.household_id) {
-        if (!itemsByHousehold.has(invItem.household_id)) {
-          itemsByHousehold.set(invItem.household_id, []);
+      if (invItem?.user_id) {
+        if (!itemsByUser.has(invItem.user_id)) {
+          itemsByUser.set(invItem.user_id, []);
         }
-        itemsByHousehold.get(invItem.household_id).push(item);
+        itemsByUser.get(invItem.user_id).push(item);
       }
     }
 
-    // Create notifications for each household member
+    // Create notifications for each user
     const notifications = [];
-    for (const [householdId, items] of itemsByHousehold) {
-      // Get all members of this household
-      const { data: householdMembers } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('current_household_id', householdId);
-
-      if (!householdMembers || householdMembers.length === 0) {
-        console.log('No members found for household:', householdId);
-        continue;
-      }
-
+    for (const [userId, items] of itemsByUser) {
       const itemNames = items.map((i: any) => i.item_name).join(', ');
       
-      // Create notification for each household member
-      for (const member of householdMembers) {
-        const notification = {
-          user_id: member.id,
-          type: 'spoilage_warning',
-          title: `${items.length} item${items.length > 1 ? 's' : ''} may be spoiled`,
-          message: `Check these items: ${itemNames}`,
-          metadata: {
-            items: items.map((i: any) => ({
-              id: i.inventory_id,
-              name: i.item_name,
-              days_old: i.days_old,
-              category: i.category
-            }))
-          }
-        };
+      const notification = {
+        user_id: userId,
+        type: 'spoilage_warning',
+        title: `${items.length} item${items.length > 1 ? 's' : ''} may be spoiled`,
+        message: `Check these items: ${itemNames}`,
+        metadata: {
+          items: items.map((i: any) => ({
+            id: i.inventory_id,
+            name: i.item_name,
+            days_old: i.days_old,
+            category: i.category
+          }))
+        }
+      };
 
-        notifications.push(notification);
-      }
+      notifications.push(notification);
     }
 
     // Insert all notifications

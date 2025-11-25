@@ -58,19 +58,10 @@ export const RecipeDetail = ({ recipe, open, onClose, onRecipeDeleted }: Props) 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Fetch user's household_id
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('current_household_id')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile?.current_household_id) return;
-
-    const inventoryTable = supabase.from('inventory') as any;
-    const { data } = await inventoryTable
+    const { data } = await supabase
+      .from('inventory')
       .select('*')
-      .eq('household_id', profile.current_household_id);
+      .eq('user_id', user.id);
 
     if (data) setInventory(data);
   };
@@ -92,16 +83,8 @@ export const RecipeDetail = ({ recipe, open, onClose, onRecipeDeleted }: Props) 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('current_household_id')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile?.current_household_id) return;
-
     const cartItems = missingIngredients.map((ing: any) => ({
-      household_id: profile.current_household_id,
+      user_id: user.id,
       item_name: ing.item || ing.name || 'Unknown',
       quantity: parseFloat(ing.quantity) || 1,
       unit: ing.unit || '',

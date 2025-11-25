@@ -169,17 +169,9 @@ const SocialImport = ({ open, onClose, userId, onItemsAdded }: SocialImportProps
     }
 
     try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('current_household_id')
-        .eq('id', userId)
-        .single();
-
-      if (!profile?.current_household_id) return;
-
       const items = extractedData.ingredients.missing.map(ing => ({
         item_name: ing.item,
-        household_id: profile.current_household_id,
+        user_id: userId,
         source: 'social_import',
         priority: 'normal',
         quantity: parseFloat(ing.quantity.match(/\d+\.?\d*/)?.[0] || '1'),
@@ -203,17 +195,8 @@ const SocialImport = ({ open, onClose, userId, onItemsAdded }: SocialImportProps
     if (!extractedData) return;
 
     try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('current_household_id')
-        .eq('id', userId)
-        .single();
-
-      if (!profile?.current_household_id) return;
-
       const recipeData = {
         user_id: userId,
-        household_id: profile.current_household_id,
         name: extractedData.recipe.title,
         ingredients: JSON.parse(JSON.stringify([
           ...extractedData.ingredients.in_pantry,

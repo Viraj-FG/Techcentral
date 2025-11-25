@@ -90,10 +90,6 @@ export const AgentTestPanel = () => {
         .eq('id', session.user.id)
         .single();
 
-      if (!profile?.current_household_id) {
-        throw new Error('No household configured');
-      }
-
       const { data: members } = await supabase
         .from('household_members')
         .select('*')
@@ -104,10 +100,10 @@ export const AgentTestPanel = () => {
         .select('*')
         .eq('user_id', session.user.id);
 
-      const inventoryTable = supabase.from('inventory') as any;
-      const { data: inventory } = await inventoryTable
-        .select('id, name, category, quantity, unit, status')
-        .eq('household_id', profile.current_household_id)
+      const { data: inventory } = await supabase
+        .from('inventory')
+        .select('*')
+        .eq('user_id', session.user.id)
         .limit(5);
 
       setContextTest({

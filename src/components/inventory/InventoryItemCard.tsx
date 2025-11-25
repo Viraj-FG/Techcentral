@@ -28,7 +28,6 @@ import { cn } from '@/lib/utils';
 
 interface InventoryItem {
   id: string;
-  household_id: string;
   name: string;
   brand_name: string | null;
   category: 'fridge' | 'pantry' | 'beauty' | 'pets';
@@ -40,6 +39,7 @@ interface InventoryItem {
   auto_order_enabled: boolean;
   reorder_threshold: number | null;
   product_image_url: string | null;
+  user_id: string;
 }
 
 interface Props {
@@ -106,19 +106,11 @@ export const InventoryItemCard = ({
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('current_household_id')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile?.current_household_id) return;
-
     const { error: cartError } = await supabase
       .from('shopping_list')
       .insert({
         item_name: item.name,
-        household_id: profile.current_household_id,
+        user_id: user.id,
         source: 'manual',
         priority: 'normal',
         quantity: 1,

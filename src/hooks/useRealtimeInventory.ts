@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 interface InventoryItem {
   id: string;
-  household_id: string;
+  user_id: string;
   name: string;
   category: string;
   quantity: number | null;
@@ -25,19 +25,10 @@ export const useRealtimeInventory = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !mounted) return;
 
-      // Fetch user's household_id
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('current_household_id')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile?.current_household_id || !mounted) return;
-
-      const inventoryTable = supabase.from('inventory') as any;
-      const { data, error } = await inventoryTable
+      const { data, error } = await supabase
+        .from('inventory')
         .select('*')
-        .eq('household_id', profile.current_household_id)
+        .eq('user_id', user.id)
         .order('name');
 
       if (!error && data && mounted) {
@@ -66,19 +57,10 @@ export const useRealtimeInventory = () => {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) return;
 
-          // Fetch user's household_id
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('current_household_id')
-            .eq('id', user.id)
-            .single();
-
-          if (!profile?.current_household_id) return;
-
-          const inventoryTable = supabase.from('inventory') as any;
-          const { data } = await inventoryTable
+          const { data } = await supabase
+            .from('inventory')
             .select('*')
-            .eq('household_id', profile.current_household_id)
+            .eq('user_id', user.id)
             .order('name');
 
           if (data) {

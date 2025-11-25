@@ -58,7 +58,6 @@ const FloatingActionButton = () => {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               transition={kaevaTransition}
-              aria-label="Settings"
             >
               <Settings size={24} strokeWidth={1.5} className="text-white" />
             </motion.button>
@@ -82,7 +81,6 @@ const FloatingActionButton = () => {
                 transition: 'all 3s ease-in-out',
                 animationIterationCount: 'infinite'
               }}
-              aria-label="Kaeva Aperture"
             >
               <KaevaAperture state="idle" size="lg" />
             </motion.button>
@@ -94,7 +92,6 @@ const FloatingActionButton = () => {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               transition={kaevaTransition}
-              aria-label="Logout"
             >
               <LogOut size={24} strokeWidth={1.5} className="text-white" />
             </motion.button>

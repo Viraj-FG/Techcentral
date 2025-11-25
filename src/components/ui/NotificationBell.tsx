@@ -47,16 +47,26 @@ export const NotificationBell = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="w-5 h-5" />
-          {(unreadCount > 0 || newNotifications > 0) && (
-            <div className="absolute -top-1 -right-1">
-              <Badge
-                variant="destructive"
-                className="h-5 min-w-[20px] flex items-center justify-center p-0 text-xs"
+          <AnimatePresence>
+            {(unreadCount > 0 || newNotifications > 0) && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+                className="absolute -top-1 -right-1"
               >
-                {Math.min(unreadCount + newNotifications, 99)}
-              </Badge>
-            </div>
-          )}
+                <Badge
+                  variant="destructive"
+                  className={cn(
+                    "h-5 min-w-[20px] flex items-center justify-center p-0 text-xs",
+                    newNotifications > 0 && "animate-pulse"
+                  )}
+                >
+                  {Math.min(unreadCount + newNotifications, 99)}
+                </Badge>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </Button>
       </DropdownMenuTrigger>
 

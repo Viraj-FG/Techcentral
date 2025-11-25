@@ -3,23 +3,19 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface SplashProps {
   onComplete: () => void;
-  autoAdvance?: boolean;
 }
 
-const Splash = ({ onComplete, autoAdvance = false }: SplashProps) => {
+const Splash = ({ onComplete }: SplashProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-      if (autoAdvance) {
-        handleGetStarted();
-      }
     }, 2500);
 
     return () => clearTimeout(timer);
-  }, [autoAdvance]);
+  }, []);
 
   const handleGetStarted = () => {
     setShowSplash(false);

@@ -4,8 +4,6 @@ import { Button } from "./ui/button";
 import { Mic, Volume2, AlertCircle, Loader2 } from "lucide-react";
 import KaevaAperture from "./KaevaAperture";
 import AuroraBackground from "./AuroraBackground";
-import { consoleRecorder } from "@/lib/consoleRecorder";
-
 interface PermissionRequestProps {
   onPermissionsGranted: () => void;
   onSkip?: () => void;
@@ -241,11 +239,8 @@ const PermissionRequest = ({
           {/* Skip to Dashboard */}
           {onSkip && (
             <button
-              onClick={() => {
-                console.log('⏭️ Skip to Dashboard clicked in PermissionRequest');
-                onSkip();
-              }}
-              className="text-sm text-kaeva-slate-400 hover:text-kaeva-mint transition-colors underline-offset-4 hover:underline relative z-50 cursor-pointer"
+              onClick={onSkip}
+              className="text-sm text-kaeva-slate-400 hover:text-kaeva-mint transition-colors underline-offset-4 hover:underline"
             >
               Skip to Dashboard
             </button>
@@ -270,14 +265,6 @@ const PermissionRequest = ({
           <p className="text-xs text-kaeva-slate-400 text-center max-w-md">
             Your privacy is important. Audio is processed in real-time and not stored permanently.
           </p>
-
-          {/* Debug Logs Button */}
-          <button
-            onClick={() => consoleRecorder.downloadLogs()}
-            className="text-xs text-kaeva-slate-500 hover:text-kaeva-slate-300 transition-colors mt-2"
-          >
-            Download Debug Logs
-          </button>
         </motion.div>
       </div>
     </motion.div>;

@@ -4,7 +4,6 @@ import { Settings, Scan, LogOut, Users, Mic, Bell, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { kaevaTransition } from '@/hooks/useKaevaMotion';
 import KaevaAperture from '@/components/KaevaAperture';
 import { NotificationBell } from '@/components/ui/NotificationBell';
@@ -23,10 +22,8 @@ const AppShell = ({
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchOpen, setSearchOpen] = useState(false);
-  const { trigger: triggerHaptic } = useHapticFeedback();
   
   const handleLogout = async () => {
-    await triggerHaptic('medium');
     await supabase.auth.signOut();
     toast({
       title: "Logged out successfully"
@@ -57,7 +54,7 @@ const AppShell = ({
 
       {/* LAYER 10: Scrollable Content */}
       <main className="relative z-10 w-full h-full overflow-y-auto overflow-x-hidden pb-[160px] pt-6 px-4 scroll-smooth">
-        <div className="max-w-md mx-auto space-y-8">
+        <div className="max-w-md mx-auto space-y-6">
           {children}
         </div>
       </main>
@@ -67,7 +64,7 @@ const AppShell = ({
 
       {/* LAYER 50: Navigation Dock */}
       <div className="fixed bottom-6 left-0 right-0 z-50 px-4 pointer-events-none">
-        <motion.div className="mx-auto max-w-sm h-[72px] bg-slate-900/80 border border-white/10 rounded-full pointer-events-auto flex items-center justify-around px-4" initial={{
+        <motion.div className="mx-auto max-w-sm h-[72px] bg-slate-900/80 backdrop-blur-2xl border border-white/10 rounded-full shadow-2xl pointer-events-auto flex items-center justify-around px-4" initial={{
         opacity: 0,
         y: 100
       }} animate={{
@@ -77,65 +74,77 @@ const AppShell = ({
         ...kaevaTransition,
         delay: 0.5
       }}>
-          {/* LEFT SIDE - 3 buttons */}
-          
           {/* Notification Bell */}
           <NotificationBell />
 
           {/* Search Button */}
-          <button 
-            onClick={() => {
-              triggerHaptic('light');
-              setSearchOpen(true);
-            }}
-            className="p-3 text-slate-400 rounded-full"
+          <motion.button 
+            onClick={() => setSearchOpen(true)}
+            className="p-3 text-slate-400 hover:text-white transition-colors rounded-full hover:bg-white/10" 
+            whileHover={{ scale: 1.1 }} 
+            whileTap={{ scale: 0.95 }}
+            transition={kaevaTransition}
           >
             <Search size={22} strokeWidth={1.5} />
-          </button>
-
-          {/* Household Button */}
-          <button 
-            onClick={() => {
-              triggerHaptic('light');
-              navigate('/household');
-            }}
-            className="p-3 text-slate-400 rounded-full"
-          >
-            <Users size={22} strokeWidth={1.5} />
-          </button>
-          
-          {/* The Living Aperture - Vision Scanner Trigger */}
-          <button onClick={onScan} className="relative -top-6">
-            <div className="w-16 h-16 rounded-full bg-kaeva-sage border-4 border-[#0F172A] flex items-center justify-center">
-              <Scan size={28} className="text-slate-900" strokeWidth={2} />
-            </div>
-          </button>
-
-          {/* RIGHT SIDE - 3 buttons */}
+          </motion.button>
 
           {/* Settings Button */}
-          <button 
-            onClick={() => {
-              triggerHaptic('light');
-              navigate('/settings');
-            }}
-            className="p-3 text-slate-400 rounded-full"
-          >
+          <motion.button onClick={() => navigate('/settings')} className="p-3 text-slate-400 hover:text-white transition-colors rounded-full hover:bg-white/10" whileHover={{
+          scale: 1.1
+        }} whileTap={{
+          scale: 0.95
+        }} transition={kaevaTransition}>
             <Settings size={22} strokeWidth={1.5} />
-          </button>
+          </motion.button>
+
+          {/* Household Button */}
+          <motion.button onClick={() => navigate('/household')} className="p-3 text-slate-400 hover:text-kaeva-accent transition-colors rounded-full hover:bg-white/10" whileHover={{
+          scale: 1.1
+        }} whileTap={{
+          scale: 0.95
+        }} transition={kaevaTransition}>
+            <Users size={22} strokeWidth={1.5} />
+          </motion.button>
+          
+          {/* The Living Aperture - Vision Scanner Trigger */}
+          <motion.button onClick={onScan} whileHover={{
+          scale: 1.05
+        }} whileTap={{
+          scale: 0.95
+        }} transition={kaevaTransition} animate={{
+          scale: [1, 1.02, 1],
+          boxShadow: ["0 0 20px rgba(112,224,152,0.3)", "0 0 40px rgba(112,224,152,0.6)", "0 0 20px rgba(112,224,152,0.3)"]
+        }} style={{
+          transition: 'all 3s ease-in-out'
+        }} className="relative -top-6 shadow-none">
+            <div className="w-16 h-16 rounded-full bg-kaeva-sage border-4 border-[#0F172A] flex items-center justify-center shadow-[0_0_20px_rgba(112,224,152,0.4)]">
+              <Scan size={28} className="text-slate-900" strokeWidth={2} />
+            </div>
+          </motion.button>
 
           {/* Mic Button */}
-          <button 
+          <motion.button 
             onClick={onVoiceActivate} 
-            className="p-3 text-slate-400 rounded-full"
+            className="p-3 text-slate-400 hover:text-kaeva-accent transition-colors rounded-full hover:bg-white/10" 
+            whileHover={{
+              scale: 1.1
+            }} 
+            whileTap={{
+              scale: 0.95
+            }} 
+            transition={kaevaTransition}
           >
             <Mic size={22} strokeWidth={1.5} />
-          </button>
+          </motion.button>
 
           {/* Logout Button */}
-          <button onClick={handleLogout} className="p-3 text-slate-400 rounded-full">
+          <motion.button onClick={handleLogout} className="p-3 text-slate-400 hover:text-white transition-colors rounded-full hover:bg-white/10" whileHover={{
+          scale: 1.1
+        }} whileTap={{
+          scale: 0.95
+        }} transition={kaevaTransition}>
             <LogOut size={24} strokeWidth={1.5} />
-          </button>
+          </motion.button>
         </motion.div>
       </div>
 

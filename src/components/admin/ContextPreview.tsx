@@ -17,10 +17,10 @@ const ContextPreview = () => {
       } = await supabase.auth.getSession();
       if (!session?.user) return;
 
-      // Fetch profile with household
+      // Fetch profile
       const { data: profile } = await supabase
         .from("profiles")
-        .select("*, current_household_id")
+        .select("*")
         .eq("id", session.user.id)
         .single();
 
@@ -36,21 +36,19 @@ const ContextPreview = () => {
         .select("*")
         .eq("user_id", session.user.id);
 
-      if (!profile?.current_household_id) return;
-
-      // Fetch inventory by household
+      // Fetch inventory
       const { data: inventory } = await supabase
         .from("inventory")
         .select("*")
-        .eq("household_id", profile.current_household_id)
+        .eq("user_id", session.user.id)
         .order("last_activity_at", { ascending: false })
         .limit(20);
 
-      // Fetch shopping list by household
+      // Fetch shopping list
       const { data: shoppingList } = await supabase
         .from("shopping_list")
         .select("*")
-        .eq("household_id", profile.current_household_id)
+        .eq("user_id", session.user.id)
         .eq("status", "pending");
 
       setContext({
@@ -122,7 +120,6 @@ Cart Status: ${cartCount} items pending
           size="sm"
           onClick={fetchContext}
           disabled={loading}
-          aria-label="Refresh Context"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
         </Button>

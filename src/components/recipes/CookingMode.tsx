@@ -115,18 +115,6 @@ export const CookingMode = ({ recipe, onComplete, onBack }: Props) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Fetch user's household_id
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('current_household_id')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile?.current_household_id) {
-      toast.error('No household configured');
-      return;
-    }
-
     // Deduct ingredients from inventory
     const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
     
@@ -137,10 +125,10 @@ export const CookingMode = ({ recipe, onComplete, onBack }: Props) => {
       if (!itemName || quantity <= 0) continue;
 
       // Find matching inventory item
-      const inventoryTable = supabase.from('inventory') as any;
-      const { data: inventoryItems } = await inventoryTable
-        .select('id, name, quantity, unit, fill_level, household_id')
-        .eq('household_id', profile.current_household_id)
+      const { data: inventoryItems } = await supabase
+        .from('inventory')
+        .select('*')
+        .eq('user_id', user.id)
         .ilike('name', `%${itemName}%`);
 
       if (inventoryItems && inventoryItems.length > 0) {

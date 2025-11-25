@@ -105,16 +105,8 @@ const VisionSpotlight = ({ isOpen, onClose, onItemsAdded }: VisionSpotlightProps
 
       // Save non-empty items to inventory
       if (nonEmptyItems.length > 0) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('current_household_id')
-          .eq('id', session.user.id)
-          .single();
-
-        if (!profile?.current_household_id) return;
-
         const inventoryInserts = nonEmptyItems.map(obj => ({
-          household_id: profile.current_household_id,
+          user_id: session.user.id,
           name: obj.name,
           category: obj.category,
           fill_level: 100,
