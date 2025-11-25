@@ -1,12 +1,16 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Webcam from 'react-webcam';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Video, StopCircle, Loader2, PackageOpen, ChefHat, Sparkles, Utensils, ScanLine, PawPrint, X, Upload } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { X, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import ScanResults, { type ScanResultsProps } from './ScanResults';
+import { ModeSelector, type CaptureMode } from './ModeSelector';
+import { CaptureButton } from './CaptureButton';
+import { ScannerToolbar } from './ScannerToolbar';
+import { BarcodeOverlay } from './BarcodeOverlay';
+import { IntentPresetPicker, type IntentPreset } from './IntentPresetPicker';
 
 type Intent = 'INVENTORY_SWEEP' | 'APPLIANCE_SCAN' | 'VANITY_SWEEP' | 'NUTRITION_TRACK' | 'PRODUCT_ANALYSIS' | 'PET_ID' | 'EMPTY_PACKAGE';
 
@@ -47,6 +51,13 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
   const recordingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Scanner State
+  const [captureMode, setCaptureMode] = useState<CaptureMode>('auto');
+  const [intentPreset, setIntentPreset] = useState<IntentPreset>(null);
+  const [isFlashOn, setIsFlashOn] = useState(false);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
+  
+  // Detection State
   const [detectedIntent, setDetectedIntent] = useState<Intent | null>(null);
   const [confidence, setConfidence] = useState<number>(0);
   const [detectedItems, setDetectedItems] = useState<DetectedItem[]>([]);
@@ -714,39 +725,40 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
     setVideoFrames([]);
   };
 
-  const renderIntentIcon = (intent: Intent) => {
-    const iconClass = "w-12 h-12";
-    const icons = {
-      INVENTORY_SWEEP: <PackageOpen className={cn(iconClass, "text-blue-400")} />,
-      APPLIANCE_SCAN: <ChefHat className={cn(iconClass, "text-orange-400")} />,
-      VANITY_SWEEP: <Sparkles className={cn(iconClass, "text-pink-400")} />,
-      NUTRITION_TRACK: <Utensils className={cn(iconClass, "text-green-400")} />,
-      PRODUCT_ANALYSIS: <ScanLine className={cn(iconClass, "text-purple-400")} />,
-      PET_ID: <PawPrint className={cn(iconClass, "text-emerald-400")} />
-    };
-    return icons[intent];
+  // Handler functions for new UI
+  const handleFlipCamera = () => {
+    setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
   };
 
-  const renderIntentMessage = (intent: Intent) => {
-    const messages = {
-      INVENTORY_SWEEP: 'Scanning multiple items...',
-      APPLIANCE_SCAN: 'Detecting kitchen appliances...',
-      VANITY_SWEEP: 'Analyzing beauty products...',
-      NUTRITION_TRACK: 'Tracking meal nutrition...',
-      PRODUCT_ANALYSIS: 'Analyzing product details...',
-      PET_ID: 'Identifying your pet...'
-    };
-    return messages[intent];
+  const handleFlashToggle = () => {
+    setIsFlashOn(prev => !prev);
+  };
+
+  const handleCapture = () => {
+    if (captureMode === 'photo' || captureMode === 'auto') {
+      captureAndAnalyze();
+    }
+  };
+
+  const handleRecordingStart = () => {
+    if (captureMode === 'video') {
+      startRecording();
+    }
+  };
+
+  const handleRecordingEnd = () => {
+    if (captureMode === 'video' && isRecording) {
+      stopRecording();
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-background">
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-background to-transparent">
-        <h2 className="text-xl font-bold text-foreground">Smart Scanner</h2>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="w-6 h-6" />
-        </Button>
+    <div className="fixed inset-0 z-50 bg-kaeva-void">
+      {/* Top Bar */}
+      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4 bg-gradient-to-b from-kaeva-void/80 to-transparent backdrop-blur-sm">
+        <button onClick={onClose} className="w-10 h-10 flex items-center justify-center">
+          <X className="w-6 h-6 text-white" />
+        </button>
       </div>
 
       {/* Camera View */}
@@ -755,57 +767,72 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
           ref={webcamRef}
           className="w-full h-full object-cover"
           screenshotFormat="image/jpeg"
-          videoConstraints={{ facingMode: 'environment' }}
+          videoConstraints={{ 
+            facingMode,
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }}
         />
 
-        {/* Scanning animation */}
-        {!detectedIntent && !resultData && (
-          <motion.div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: 'linear-gradient(to bottom, transparent 48%, rgba(34, 197, 94, 0.3) 50%, transparent 52%)',
-            }}
-            animate={{ y: ['0%', '100%'] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          />
+        {/* Barcode Overlay */}
+        {captureMode === 'barcode' && <BarcodeOverlay />}
+
+        {/* Scanning Loader */}
+        {isScanning && (
+          <div className="absolute inset-0 bg-kaeva-void/50 backdrop-blur-sm flex items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="w-12 h-12 text-kaeva-sage animate-spin" />
+              <p className="text-white font-medium">Analyzing...</p>
+            </div>
+          </div>
         )}
 
-        {/* Intent overlay */}
-        <AnimatePresence>
-          {detectedIntent && !resultData && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="absolute top-20 left-4 right-4 bg-background/80 backdrop-blur-md p-6 rounded-2xl border border-border"
+        {/* Right Side Toolbar */}
+        <ScannerToolbar
+          isFlashOn={isFlashOn}
+          onFlashToggle={handleFlashToggle}
+          onFlipCamera={handleFlipCamera}
+          onGalleryOpen={() => fileInputRef.current?.click()}
+        />
+
+        {/* Intent Preset Picker (shows in Auto mode) */}
+        <IntentPresetPicker
+          preset={intentPreset}
+          onChange={setIntentPreset}
+          isVisible={captureMode === 'auto'}
+        />
+
+        {/* Bottom Controls */}
+        <div className="absolute bottom-0 left-0 right-0 z-10">
+          {/* Capture Button Area */}
+          <div className="flex items-center justify-center gap-8 pb-6">
+            {/* Last Scan Thumbnail Placeholder */}
+            <div className="w-12 h-12 rounded-lg bg-white/10 backdrop-blur-md" />
+            
+            {/* Main Capture Button */}
+            <CaptureButton
+              mode={captureMode}
+              isRecording={isRecording}
+              isScanning={isScanning}
+              onPress={handleCapture}
+              onLongPressStart={handleRecordingStart}
+              onLongPressEnd={handleRecordingEnd}
+            />
+            
+            {/* Gallery Button */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-12 h-12 rounded-lg bg-white/10 backdrop-blur-md flex items-center justify-center"
             >
-              <div className="flex flex-col items-center gap-3">
-                {renderIntentIcon(detectedIntent)}
-                <p className="text-foreground text-center font-medium">{renderIntentMessage(detectedIntent)}</p>
-                <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-kaeva-sage"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${confidence * 100}%` }}
-                  />
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <div className="w-8 h-8 border-2 border-white rounded" />
+            </button>
+          </div>
 
-        {/* Item count overlay */}
-        {detectedItems.length > 0 && !resultData && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="absolute bottom-32 left-4 right-4 bg-kaeva-sage/90 backdrop-blur-sm p-4 rounded-xl text-foreground text-center"
-          >
-            <p className="font-semibold">{detectedItems.length} items detected</p>
-          </motion.div>
-        )}
+          {/* Mode Selector */}
+          <ModeSelector mode={captureMode} onChange={setCaptureMode} />
+        </div>
 
-        {/* Hidden file input */}
+        {/* Hidden File Input */}
         <input
           type="file"
           ref={fileInputRef}
@@ -813,61 +840,6 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
           className="hidden"
           onChange={handleImageUpload}
         />
-
-        {/* Action buttons */}
-        <div className="absolute bottom-6 left-4 right-4 flex gap-3">
-          {/* Upload button */}
-          <Button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isScanning || isRecording}
-            variant="outline"
-            className="h-14 px-4"
-          >
-            <Upload className="w-5 h-5" />
-          </Button>
-
-          <Button
-            onMouseDown={startRecording}
-            onMouseUp={stopRecording}
-            onTouchStart={startRecording}
-            onTouchEnd={stopRecording}
-            disabled={isScanning}
-            className={cn(
-              "flex-1 h-14",
-              isRecording && "bg-red-500 hover:bg-red-600"
-            )}
-          >
-            {isRecording ? (
-              <>
-                <StopCircle className="mr-2 animate-pulse" />
-                Recording...
-              </>
-            ) : (
-              <>
-                <Video className="mr-2" />
-                Hold to Record
-              </>
-            )}
-          </Button>
-
-          <Button
-            onClick={captureAndAnalyze}
-            disabled={isScanning || isRecording}
-            className="flex-1 h-14"
-          >
-            {isScanning ? (
-              <>
-                <Loader2 className="mr-2 animate-spin" />
-                Analyzing...
-              </>
-            ) : (
-              <>
-                <Camera className="mr-2" />
-                Capture
-              </>
-            )}
-          </Button>
-        </div>
       </div>
 
       {/* Results Modal */}
