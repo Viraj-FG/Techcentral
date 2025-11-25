@@ -24,7 +24,7 @@ const ContextPreview = () => {
         .eq("id", session.user.id)
         .single();
 
-      // Fetch household
+      // Fetch household members
       const { data: household } = await supabase
         .from("household_members")
         .select("*")
@@ -37,19 +37,31 @@ const ContextPreview = () => {
         .eq("user_id", session.user.id);
 
       // Fetch inventory
-      const { data: inventory } = await supabase
-        .from("inventory")
-        .select("*")
-        .eq("user_id", session.user.id)
-        .order("last_activity_at", { ascending: false })
-        .limit(20);
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('current_household_id')
+        .eq('id', session.user.id)
+        .single();
+
+      const householdId = profileData?.current_household_id;
+
+      const { data: inventory } = householdId
+        ? await supabase
+            .from("inventory")
+            .select("*")
+            .eq("household_id", householdId)
+            .order("last_activity_at", { ascending: false })
+            .limit(20)
+        : { data: null };
 
       // Fetch shopping list
-      const { data: shoppingList } = await supabase
-        .from("shopping_list")
-        .select("*")
-        .eq("user_id", session.user.id)
-        .eq("status", "pending");
+      const { data: shoppingList } = householdId
+        ? await supabase
+            .from("shopping_list")
+            .select("*")
+            .eq("household_id", householdId)
+            .eq("status", "pending")
+        : { data: null };
 
       setContext({
         profile,

@@ -59,9 +59,18 @@ const GlobalSearch = ({ open, onOpenChange }: GlobalSearchProps) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    // Get household_id from profile
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('current_household_id')
+      .eq('id', user.id)
+      .single();
+
+    const householdId = profileData?.current_household_id;
+
     const [inventoryRes, recipesRes, petsRes] = await Promise.all([
-      supabase.from('inventory').select('*').eq('user_id', user.id),
-      supabase.from('recipes').select('*').eq('user_id', user.id),
+      householdId ? supabase.from('inventory').select('*').eq('household_id', householdId) : Promise.resolve({ data: [] }),
+      householdId ? supabase.from('recipes').select('*').eq('household_id', householdId) : Promise.resolve({ data: [] }),
       supabase.from('pets').select('*').eq('user_id', user.id),
     ]);
 
