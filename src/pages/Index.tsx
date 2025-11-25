@@ -5,10 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 import Splash from "@/components/Splash";
 import VoiceOnboarding from "@/components/VoiceOnboarding";
 import Dashboard from "@/components/Dashboard";
+import HouseholdSetup from "@/components/HouseholdSetup";
 
 const Index = () => {
   const navigate = useNavigate();
-  const [appState, setAppState] = useState<"splash" | "onboarding" | "dashboard" | null>(null);
+  const [appState, setAppState] = useState<"splash" | "onboarding" | "household-setup" | "dashboard" | null>(null);
   const [userProfile, setUserProfile] = useState(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
@@ -31,10 +32,16 @@ const Index = () => {
           .single();
 
         if (profile?.onboarding_completed) {
-          setUserProfile(profile);
-          setAppState("dashboard"); // Returning user → Dashboard with voice assistant
+          // Check if user has a household
+          if (!profile.current_household_id) {
+            setUserProfile(profile);
+            setAppState("household-setup"); // Missing household → Setup
+          } else {
+            setUserProfile(profile);
+            setAppState("dashboard"); // Returning user → Dashboard
+          }
         } else {
-          setAppState("onboarding"); // New user → Onboarding (which includes splash internally)
+          setAppState("onboarding"); // New user → Onboarding
         }
       } catch (error) {
         console.error("Error checking auth:", error);
@@ -97,6 +104,26 @@ const Index = () => {
         />
       )}
       
+      {appState === "household-setup" && (
+        <HouseholdSetup
+          key="household-setup"
+          onComplete={async (householdId) => {
+            // Fetch updated profile with household_id
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+              
+              setUserProfile(profile);
+            }
+            setAppState("dashboard");
+          }}
+        />
+      )}
+
       {appState === "dashboard" && userProfile && (
         <Dashboard key="dashboard" profile={userProfile} />
       )}
