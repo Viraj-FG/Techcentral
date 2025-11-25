@@ -3,14 +3,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle2, XCircle, Clock, RefreshCw } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, RefreshCw, Wrench } from "lucide-react";
 import { ELEVENLABS_CONFIG } from "@/config/agent";
 import { formatDistanceToNow } from "date-fns";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface AgentStatusData {
   isConfigured: boolean;
   lastConfiguredAt: string | null;
   promptVersion: string | null;
+}
+
+interface AgentTool {
+  name: string;
+  type?: string;
+  description?: string;
+}
+
+interface AgentDetails {
+  onboarding: AgentTool[];
+  assistant: AgentTool[];
 }
 
 export const AgentStatus = () => {
@@ -20,6 +32,57 @@ export const AgentStatus = () => {
     promptVersion: null
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [agentTools, setAgentTools] = useState<AgentDetails>({
+    onboarding: [],
+    assistant: []
+  });
+  const [isLoadingTools, setIsLoadingTools] = useState(false);
+
+  const fetchAgentTools = async () => {
+    setIsLoadingTools(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('provision-agents', {
+        method: 'GET'
+      });
+
+      if (error) throw error;
+
+      // Extract tools from the provisioning configuration
+      // This is a read-only call that returns agent details
+      if (data?.agents) {
+        const onboardingTools = data.agents.onboarding?.tools || [];
+        const assistantTools = data.agents.assistant?.tools || [];
+        
+        setAgentTools({
+          onboarding: onboardingTools,
+          assistant: assistantTools
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching agent tools:', error);
+      // Set default tools from config as fallback
+      setAgentTools({
+        onboarding: [
+          { name: "updateProfile", type: "client", description: "Save user profile information" },
+          { name: "completeConversation", type: "client", description: "End conversation after onboarding" },
+          { name: "endConversation", type: "client", description: "Exit conversation early" },
+          { name: "navigateTo", type: "client", description: "Navigate to dashboard page" }
+        ],
+        assistant: [
+          { name: "checkInventory", type: "client", description: "Search household inventory" },
+          { name: "updateInventory", type: "client", description: "Add/update/remove inventory items" },
+          { name: "addToShoppingList", type: "client", description: "Add items to shopping cart" },
+          { name: "logMeal", type: "client", description: "Log meal for nutrition tracking" },
+          { name: "suggestRecipes", type: "client", description: "Get recipe suggestions" },
+          { name: "checkAllergens", type: "client", description: "Check ingredient allergens" },
+          { name: "navigateTo", type: "client", description: "Navigate to dashboard page" },
+          { name: "endConversation", type: "client", description: "End conversation" }
+        ]
+      });
+    } finally {
+      setIsLoadingTools(false);
+    }
+  };
 
   const fetchStatus = async () => {
     try {
@@ -46,12 +109,13 @@ export const AgentStatus = () => {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchStatus();
+    await Promise.all([fetchStatus(), fetchAgentTools()]);
     setTimeout(() => setIsRefreshing(false), 500);
   };
 
   useEffect(() => {
     fetchStatus();
+    fetchAgentTools();
   }, []);
 
   const isUpToDate = status.promptVersion === ELEVENLABS_CONFIG.onboarding.promptVersion || 
@@ -156,6 +220,79 @@ export const AgentStatus = () => {
             </p>
           </div>
         )}
+
+        {/* Registered Tools */}
+        <div className="space-y-2">
+          <Collapsible>
+            <CollapsibleTrigger className="w-full">
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors">
+                <div className="flex items-center gap-2">
+                  <Wrench className="h-4 w-4" />
+                  <span className="text-sm font-medium">Onboarding Agent Tools</span>
+                </div>
+                <Badge variant="secondary">{agentTools.onboarding.length}</Badge>
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="ml-4 mt-2 space-y-2">
+                {isLoadingTools ? (
+                  <p className="text-xs text-muted-foreground">Loading tools...</p>
+                ) : agentTools.onboarding.length > 0 ? (
+                  agentTools.onboarding.map((tool, idx) => (
+                    <div key={idx} className="p-2 bg-background rounded border border-border">
+                      <div className="flex items-center gap-2 mb-1">
+                        <code className="text-xs font-mono">{tool.name}</code>
+                        {tool.type && (
+                          <Badge variant="outline" className="text-xs">{tool.type}</Badge>
+                        )}
+                      </div>
+                      {tool.description && (
+                        <p className="text-xs text-muted-foreground">{tool.description}</p>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground">No tools configured</p>
+                )}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          <Collapsible>
+            <CollapsibleTrigger className="w-full">
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors">
+                <div className="flex items-center gap-2">
+                  <Wrench className="h-4 w-4" />
+                  <span className="text-sm font-medium">Assistant Agent Tools</span>
+                </div>
+                <Badge variant="secondary">{agentTools.assistant.length}</Badge>
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="ml-4 mt-2 space-y-2">
+                {isLoadingTools ? (
+                  <p className="text-xs text-muted-foreground">Loading tools...</p>
+                ) : agentTools.assistant.length > 0 ? (
+                  agentTools.assistant.map((tool, idx) => (
+                    <div key={idx} className="p-2 bg-background rounded border border-border">
+                      <div className="flex items-center gap-2 mb-1">
+                        <code className="text-xs font-mono">{tool.name}</code>
+                        {tool.type && (
+                          <Badge variant="outline" className="text-xs">{tool.type}</Badge>
+                        )}
+                      </div>
+                      {tool.description && (
+                        <p className="text-xs text-muted-foreground">{tool.description}</p>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground">No tools configured</p>
+                )}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
       </CardContent>
     </Card>
   );
