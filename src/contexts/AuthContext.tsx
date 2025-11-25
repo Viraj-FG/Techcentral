@@ -42,6 +42,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const { toast } = useToast();
 
   const loadProfile = async (userId: string, retries = 3) => {
@@ -77,6 +78,37 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const refreshProfile = async () => {
     if (user?.id) {
       await loadProfile(user.id);
+    }
+  };
+
+  const attemptSessionRecovery = async () => {
+    console.log('🔄 Attempting session recovery...');
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('❌ Session recovery failed:', error);
+        return false;
+      }
+
+      if (data.session) {
+        console.log('✅ Session recovered, reloading profile');
+        setSession(data.session);
+        setUser(data.session.user);
+        await loadProfile(data.session.user.id);
+        
+        toast({
+          title: "Connection Restored",
+          description: "Your session has been recovered.",
+        });
+        return true;
+      } else {
+        console.log('❌ No session found during recovery');
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ Session recovery error:', error);
+      return false;
     }
   };
 
@@ -286,6 +318,69 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     initAuth();
   }, []);
+
+  // Connection monitoring and automatic session recovery
+  useEffect(() => {
+    const handleOnline = async () => {
+      console.log('🌐 Connection restored');
+      setIsOnline(true);
+      
+      // If we have a user but no profile, attempt recovery
+      if (user && !profile) {
+        console.log('🔄 User session exists but profile missing, attempting recovery');
+        await attemptSessionRecovery();
+      } else if (session) {
+        // We have both session and profile, just refresh to ensure data is fresh
+        console.log('🔄 Refreshing session after reconnection');
+        await refreshSession();
+        
+        toast({
+          title: "Back Online",
+          description: "Connection restored.",
+        });
+      }
+    };
+
+    const handleOffline = () => {
+      console.log('📡 Connection lost');
+      setIsOnline(false);
+      
+      toast({
+        title: "Connection Lost",
+        description: "You're currently offline. Changes will sync when reconnected.",
+        variant: "destructive",
+      });
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [user, profile, session]);
+
+  // Periodic session health check when online
+  useEffect(() => {
+    if (!isOnline || !session) return;
+
+    const healthCheckInterval = setInterval(async () => {
+      try {
+        // Quick health check: verify session is still valid
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error || !data.session) {
+          console.warn('⚠️ Session health check failed, attempting recovery');
+          await attemptSessionRecovery();
+        }
+      } catch (error) {
+        console.error('❌ Session health check error:', error);
+      }
+    }, 60000); // Check every 60 seconds
+
+    return () => clearInterval(healthCheckInterval);
+  }, [isOnline, session]);
 
   const value: AuthContextValue = {
     session,
