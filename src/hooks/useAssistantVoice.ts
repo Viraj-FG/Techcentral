@@ -10,7 +10,7 @@ import { logConversationEvent } from "@/lib/conversationLogger";
 import { fetchHouseholdContext, buildInitialContext, buildInventoryUpdate, buildCartUpdate, buildActivityUpdate } from "@/lib/contextBuilder";
 import { voiceLog } from "@/lib/voiceLogger";
 
-type ApertureState = "idle" | "listening" | "thinking" | "speaking";
+type ApertureState = "idle" | "listening" | "thinking" | "speaking" | "acknowledged";
 
 interface UseAssistantVoiceProps {
   userProfile: any;
@@ -116,6 +116,10 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
           eventData: { message: message.message },
           role: 'user'
         });
+        
+        // Flash "acknowledged" state when user stops speaking
+        setApertureState("acknowledged");
+        setTimeout(() => setApertureState("thinking"), 150);
       } else if (message.source === "ai") {
         setAiTranscript(message.message);
         storeMessage("assistant", message.message, conversationIdRef.current);

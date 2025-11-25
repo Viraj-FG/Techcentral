@@ -18,7 +18,7 @@ interface VoiceOnboardingProps {
   onExit?: () => void;
 }
 
-type ApertureState = "idle" | "wakeword" | "listening" | "thinking" | "speaking";
+type ApertureState = "idle" | "wakeword" | "listening" | "thinking" | "speaking" | "acknowledged";
 
 const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
   const [showTutorial, setShowTutorial] = useState(() => {

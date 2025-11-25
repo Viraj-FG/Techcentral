@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Mic, Brain, Volume2 } from "lucide-react";
 
-type ApertureState = "idle" | "wakeword" | "listening" | "thinking" | "speaking";
+type ApertureState = "idle" | "wakeword" | "listening" | "thinking" | "speaking" | "acknowledged";
 
 interface OnboardingStatusProps {
   apertureState: ApertureState;

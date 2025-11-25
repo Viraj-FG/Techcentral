@@ -11,6 +11,7 @@ import { CaptureButton } from './CaptureButton';
 import { ScannerToolbar } from './ScannerToolbar';
 import { BarcodeOverlay } from './BarcodeOverlay';
 import { IntentPresetPicker, type IntentPreset } from './IntentPresetPicker';
+import ToxicityAlert from './ToxicityAlert';
 
 type Intent = 'INVENTORY_SWEEP' | 'APPLIANCE_SCAN' | 'VANITY_SWEEP' | 'NUTRITION_TRACK' | 'PRODUCT_ANALYSIS' | 'PET_ID' | 'EMPTY_PACKAGE';
 
@@ -66,12 +67,80 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
   const [videoFrames, setVideoFrames] = useState<string[]>([]);
   const [resultData, setResultData] = useState<Omit<ScanResultsProps, 'isOpen' | 'onClose'> | null>(null);
   const [lastScanImage, setLastScanImage] = useState<string | null>(null);
+  const [toxicityWarnings, setToxicityWarnings] = useState<Array<{ type: 'pet' | 'human'; name: string; allergen: string }>>([]);
+  const [showToxicityAlert, setShowToxicityAlert] = useState(false);
+  const [pendingToxicProduct, setPendingToxicProduct] = useState<string>('');
 
   const getMealType = (hour: number): string => {
     if (hour < 11) return 'breakfast';
     if (hour < 15) return 'lunch';
     if (hour < 19) return 'snack';
     return 'dinner';
+  };
+
+  const checkItemToxicity = async (itemName: string): Promise<Array<{ type: 'pet' | 'human'; name: string; allergen: string }>> => {
+    const warnings: Array<{ type: 'pet' | 'human'; name: string; allergen: string }> = [];
+    const ingredient = itemName.toLowerCase();
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return warnings;
+
+      // Check user allergies
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('allergies')
+        .eq('id', user.id)
+        .single();
+
+      const userAllergies = (profile?.allergies as string[]) || [];
+      userAllergies.forEach((allergen) => {
+        if (ingredient.includes(allergen.toLowerCase())) {
+          warnings.push({ type: 'human', name: 'You', allergen });
+        }
+      });
+
+      // Check household member allergies
+      const { data: householdMembers } = await supabase
+        .from('household_members')
+        .select('name, allergies')
+        .eq('user_id', user.id);
+
+      householdMembers?.forEach((member) => {
+        const allergies = (member.allergies as string[]) || [];
+        allergies.forEach((allergen) => {
+          if (ingredient.includes(allergen.toLowerCase())) {
+            warnings.push({ type: 'human', name: member.name || 'Household member', allergen });
+          }
+        });
+      });
+
+      // Check pet toxic foods
+      const { data: pets } = await supabase
+        .from('pets')
+        .select('name, species')
+        .eq('user_id', user.id)
+        .eq('toxic_flags_enabled', true);
+
+      if (pets && pets.length > 0) {
+        const toxicFoods = [
+          'chocolate', 'xylitol', 'grape', 'raisin',
+          'onion', 'garlic', 'avocado', 'macadamia',
+        ];
+        toxicFoods.forEach((toxic) => {
+          if (ingredient.includes(toxic)) {
+            pets.forEach((pet) => {
+              warnings.push({ type: 'pet', name: pet.name || pet.species, allergen: toxic });
+            });
+          }
+        });
+      }
+
+      return warnings;
+    } catch (error) {
+      console.error('Toxicity check failed:', error);
+      return warnings;
+    }
   };
 
   const captureAndAnalyze = useCallback(async () => {
@@ -210,6 +279,20 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
     const inventoryItems = items.filter(item => 
       item.category === 'fridge' || item.category === 'pantry' || item.category === 'beauty' || item.category === 'pets'
     );
+
+    // Check all items for toxicity
+    const allWarnings: Array<{ type: 'pet' | 'human'; name: string; allergen: string }> = [];
+    for (const item of inventoryItems) {
+      const itemWarnings = await checkItemToxicity(item.name);
+      if (itemWarnings.length > 0) {
+        allWarnings.push(...itemWarnings);
+        // Show alert for first toxic item and stop
+        setPendingToxicProduct(item.name);
+        setToxicityWarnings(itemWarnings);
+        setShowToxicityAlert(true);
+        return;
+      }
+    }
 
     // Show results modal immediately with items
     setResultData({
@@ -843,6 +926,18 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
           {...resultData}
         />
       )}
+
+      {/* Toxicity Alert Modal */}
+      <ToxicityAlert
+        isOpen={showToxicityAlert}
+        onClose={() => {
+          setShowToxicityAlert(false);
+          setToxicityWarnings([]);
+          setPendingToxicProduct('');
+        }}
+        productName={pendingToxicProduct}
+        warnings={toxicityWarnings}
+      />
     </div>
   );
 };

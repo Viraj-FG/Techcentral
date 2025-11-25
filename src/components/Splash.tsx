@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import ValuePropCarousel from "./ValuePropCarousel";
 
 interface SplashProps {
   onComplete: () => void;
@@ -8,6 +9,7 @@ interface SplashProps {
 const Splash = ({ onComplete }: SplashProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
+  const [showValueProps, setShowValueProps] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -19,12 +21,20 @@ const Splash = ({ onComplete }: SplashProps) => {
 
   const handleGetStarted = () => {
     setShowSplash(false);
-    setTimeout(onComplete, 800);
+    setTimeout(() => setShowValueProps(true), 800);
+  };
+
+  const handleValuePropsComplete = () => {
+    setShowValueProps(false);
+    setTimeout(onComplete, 300);
   };
 
   return (
-    <AnimatePresence>
-      {showSplash && (
+    <>
+      {showValueProps && <ValuePropCarousel onComplete={handleValuePropsComplete} />}
+      
+      <AnimatePresence>
+        {showSplash && (
         <motion.div
           initial={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: "-100%" }}
@@ -161,8 +171,9 @@ const Splash = ({ onComplete }: SplashProps) => {
             )}
           </div>
         </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
