@@ -18,7 +18,7 @@ const modes: { value: CaptureMode; label: string; icon: React.ComponentType<any>
 
 export const ModeSelector = ({ mode, onChange }: ModeSelectorProps) => {
   return (
-    <div className="flex items-center justify-center gap-6 px-4 py-3 bg-kaeva-void/80 backdrop-blur-lg">
+    <div className="flex items-center justify-center gap-6 px-4 py-3 pb-6 bg-kaeva-void/80 backdrop-blur-lg">
       {modes.map((m) => {
         const Icon = m.icon;
         const isActive = mode === m.value;
