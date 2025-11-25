@@ -1,9 +1,12 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { Camera, PackageOpen, Utensils, Sparkles, PawPrint, Zap } from 'lucide-react';
 import type { CaptureMode } from './ModeSelector';
+import type { IntentPreset } from './IntentPresetPicker';
 
 interface CaptureButtonProps {
   mode: CaptureMode;
+  intentPreset: IntentPreset;
   isRecording?: boolean;
   isScanning?: boolean;
   onPress: () => void;
@@ -12,13 +15,27 @@ interface CaptureButtonProps {
 }
 
 export const CaptureButton = ({ 
-  mode, 
+  mode,
+  intentPreset,
   isRecording, 
   isScanning,
   onPress,
   onLongPressStart,
   onLongPressEnd 
 }: CaptureButtonProps) => {
+  const getModeIcon = (preset: IntentPreset) => {
+    switch (preset) {
+      case 'inventory': return PackageOpen;
+      case 'nutrition': return Utensils;
+      case 'beauty': return Sparkles;
+      case 'pets': return PawPrint;
+      case 'appliances': return Zap;
+      default: return Camera;
+    }
+  };
+
+  const ModeIcon = getModeIcon(intentPreset);
+
   const handleTouchStart = () => {
     if (mode === 'video' && onLongPressStart) {
       onLongPressStart();
@@ -56,16 +73,28 @@ export const CaptureButton = ({
         whileTap={{ scale: 0.9 }}
         disabled={isScanning}
         className={cn(
-          "absolute w-16 h-16 rounded-full transition-all duration-200",
+          "absolute w-16 h-16 rounded-full transition-all duration-200 flex items-center justify-center",
           mode === 'photo' && "bg-white",
           mode === 'video' && (isRecording ? "bg-red-500" : "bg-white"),
-          mode === 'barcode' && "bg-white flex items-center justify-center",
-          mode === 'auto' && "bg-gradient-to-br from-kaeva-sage to-kaeva-teal",
+          mode === 'barcode' && "bg-white",
+          mode === 'auto' && "bg-white",
           isScanning && "opacity-50"
         )}
       >
-        {mode === 'barcode' && !isRecording && (
+        {mode === 'barcode' && !isRecording ? (
           <div className="w-8 h-8 border-2 border-kaeva-void rounded" />
+        ) : (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={intentPreset || 'scan'}
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.5, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ModeIcon size={28} strokeWidth={1.5} className="text-kaeva-void" />
+            </motion.div>
+          </AnimatePresence>
         )}
       </motion.button>
 
