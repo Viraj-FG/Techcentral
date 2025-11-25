@@ -108,20 +108,18 @@ const Index = () => {
   };
 
   // Loading state
-  if (authLoading || appState === null || isHouseholdInitializing) {
+  if (authLoading || (isAuthenticated && !profile) || isHouseholdInitializing) {
     return (
       <div className="fixed inset-0 bg-kaeva-void flex items-center justify-center">
         <LoadingState
           message={isHouseholdInitializing ? "Setting up your space..." : "Loading Kaeva..."}
           timeout={10000}
           onTimeout={() => {
-            console.warn("⏱️ Loading timeout - redirecting to login");
+            console.warn("⏱️ Loading is taking longer than expected");
             toast({
-              title: "Loading Timeout",
-              description: "Redirecting to login...",
-              variant: "destructive",
+              title: "Still loading...",
+              description: "This is taking longer than usual. Please wait.",
             });
-            navigate("/auth");
           }}
         />
       </div>
