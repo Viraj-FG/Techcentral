@@ -20,8 +20,8 @@
     "noFallthroughCasesInSwitch": true,
 
     /* Path aliases (mirrors root/app config so referenced project resolves) */
-    "baseUrl": ".",
     "paths": {
+      "*": ["./*"],
       "@/*": ["./src/*"]
     }
   },
