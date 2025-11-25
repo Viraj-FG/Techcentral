@@ -24,7 +24,7 @@ interface InventoryItem {
   auto_order_enabled: boolean;
   reorder_threshold: number | null;
   product_image_url: string | null;
-  user_id: string;
+  household_id: string;
 }
 
 const Inventory = () => {
@@ -136,11 +136,23 @@ const Inventory = () => {
   const handleBulkAddToCart = async () => {
     if (!userId) return;
 
+    // Get household_id from profile
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('current_household_id')
+      .eq('id', userId)
+      .single();
+
+    if (!profileData?.current_household_id) {
+      toast.error('No household found');
+      return;
+    }
+
     const itemsToAdd = items
       .filter(item => selectedItems.includes(item.id))
       .map(item => ({
         item_name: item.name,
-        user_id: userId,
+        household_id: profileData.current_household_id,
         source: 'bulk_add',
         priority: 'normal',
         quantity: 1,

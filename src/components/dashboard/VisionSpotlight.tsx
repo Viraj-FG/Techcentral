@@ -103,10 +103,21 @@ const VisionSpotlight = ({ isOpen, onClose, onItemsAdded }: VisionSpotlightProps
       const emptyItems = itemsToSave.filter(item => item.isEmpty);
       const nonEmptyItems = itemsToSave.filter(item => !item.isEmpty);
 
+      // Get household_id from profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('current_household_id')
+        .eq('id', session.user.id)
+        .single();
+
+      if (!profileData?.current_household_id) {
+        throw new Error('No household found');
+      }
+
       // Save non-empty items to inventory
       if (nonEmptyItems.length > 0) {
         const inventoryInserts = nonEmptyItems.map(obj => ({
-          user_id: session.user.id,
+          household_id: profileData.current_household_id,
           name: obj.name,
           category: obj.category,
           fill_level: 100,

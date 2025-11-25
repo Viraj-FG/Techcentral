@@ -112,8 +112,20 @@ export const createAddToCartTool = () => {
         return "I need you to be logged in to add items to your cart.";
       }
 
+      // Get household_id from profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('current_household_id')
+        .eq('id', session.user.id)
+        .single();
+
+      if (!profileData?.current_household_id) {
+        await logToolCall(toolName, parameters, "ERROR: No household found");
+        return "I couldn't find your household information.";
+      }
+
       const { error } = await supabase.from("shopping_list").insert({
-        user_id: session.user.id,
+        household_id: profileData.current_household_id,
         item_name: parameters.item_name,
         source: "voice",
         status: "pending",

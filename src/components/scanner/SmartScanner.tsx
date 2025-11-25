@@ -141,6 +141,26 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
       onConfirm: async () => {
         toast.loading(`Adding ${inventoryItems.length} items to inventory...`);
         
+        // Get household_id from profile
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast.dismiss();
+          toast.error('Not authenticated');
+          return;
+        }
+
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('current_household_id')
+          .eq('id', user.id)
+          .single();
+
+        if (!profileData?.current_household_id) {
+          toast.dismiss();
+          toast.error('No household found');
+          return;
+        }
+        
         const enrichedItems = await Promise.all(
           inventoryItems.map(async (item) => {
             try {
@@ -160,7 +180,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
                 nutrition_data: data?.nutrition,
                 allergens: data?.allergens,
                 dietary_flags: data?.dietary_flags,
-                user_id: userId,
+                household_id: profileData.current_household_id,
                 quantity: 1,
                 status: 'sufficient' as const
               };
@@ -170,7 +190,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
                 name: item.name,
                 brand_name: item.brand,
                 category: item.category as 'fridge' | 'pantry' | 'beauty' | 'pets',
-                user_id: userId,
+                household_id: profileData.current_household_id,
                 quantity: 1,
                 status: 'sufficient' as const
               };
@@ -241,6 +261,26 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
       onConfirm: async () => {
         toast.loading(`Adding ${items.length} beauty products...`);
 
+        // Get household_id from profile
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast.dismiss();
+          toast.error('Not authenticated');
+          return;
+        }
+
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('current_household_id')
+          .eq('id', user.id)
+          .single();
+
+        if (!profileData?.current_household_id) {
+          toast.dismiss();
+          toast.error('No household found');
+          return;
+        }
+
         const beautyItems = items.map(item => {
           const paoMonths = item.metadata?.pao_symbol
             ? parseInt(item.metadata.pao_symbol.replace('M', ''))
@@ -254,7 +294,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
             brand_name: item.brand,
             category: 'beauty' as const,
             expiry_date: expiryDate.toISOString(),
-            user_id: userId,
+            household_id: profileData.current_household_id,
             quantity: 1,
             status: 'sufficient' as const
           };
@@ -490,11 +530,23 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
     }
 
     try {
+      // Get household_id from profile first
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('current_household_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profileData?.current_household_id) {
+        toast.error('No household found');
+        return;
+      }
+
       // Find matching inventory item
       const { data: inventory, error: fetchError } = await supabase
         .from('inventory')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('household_id', profileData.current_household_id)
         .ilike('name', `%${item.name}%`)
         .limit(1)
         .single();
@@ -519,7 +571,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
       await supabase
         .from('shopping_list')
         .insert({
-          user_id: user.id,
+          household_id: profileData.current_household_id,
           item_name: inventory.name,
           quantity: 1,
           unit: inventory.unit,
