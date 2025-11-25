@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Shield, AlertCircle, Package, Camera, Settings, ArrowRight, Search } from "lucide-react";
@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import AppShell from "./layout/AppShell";
 import { checkAdminStatus } from "@/lib/authUtils";
 import { groupInventoryByCategory, getInventoryStatus } from "@/lib/inventoryUtils";
-import VoiceAssistant, { useVoiceAssistant } from "./voice/VoiceAssistant";
+import VoiceAssistant, { VoiceAssistantRef } from "./voice/VoiceAssistant";
 import WelcomeBanner from "./dashboard/WelcomeBanner";
 import PulseHeader from "./dashboard/PulseHeader";
 import SmartCartWidget from "./dashboard/SmartCartWidget";
@@ -46,11 +46,8 @@ const Dashboard = ({ profile }: DashboardProps) => {
   const [socialImportOpen, setSocialImportOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
-  // Voice assistant hook
-  const { startConversation } = useVoiceAssistant({ 
-    userProfile: profile, 
-    onProfileUpdate: setInventoryData 
-  });
+  // Voice assistant ref
+  const voiceAssistantRef = useRef<VoiceAssistantRef>(null);
 
   // Add to cart handler for refill buttons
   const handleAddToCart = async (item: any) => {
@@ -150,6 +147,19 @@ const Dashboard = ({ profile }: DashboardProps) => {
     fetchInventory();
   }, []);
 
+  // Global keyboard shortcut: Cmd+Shift+K for voice
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'k') {
+        e.preventDefault();
+        voiceAssistantRef.current?.startConversation();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Calculate low stock items for Smart Cart
   const lowStockItems = Object.values(inventoryData)
     .flat()
@@ -165,10 +175,10 @@ const Dashboard = ({ profile }: DashboardProps) => {
     <>
       <AppShell 
         onScan={() => setSpotlightOpen(true)} 
-        onVoiceActivate={startConversation}
+        onVoiceActivate={() => voiceAssistantRef.current?.startConversation()}
       >
         {/* Voice Assistant Overlay */}
-        <VoiceAssistant userProfile={profile} onProfileUpdate={setInventoryData} />
+        <VoiceAssistant ref={voiceAssistantRef} userProfile={profile} onProfileUpdate={setInventoryData} />
 
         {/* Welcome Banner for skipped onboarding */}
         <WelcomeBanner />

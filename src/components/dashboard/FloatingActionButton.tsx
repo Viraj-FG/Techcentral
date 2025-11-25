@@ -4,11 +4,15 @@ import KaevaAperture from "../KaevaAperture";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Settings, LogOut } from "lucide-react";
+import { Settings, LogOut, Camera } from "lucide-react";
 import VisionSpotlight from "./VisionSpotlight";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
 
-const FloatingActionButton = () => {
+interface FloatingActionButtonProps {
+  onVoiceActivate?: () => void;
+}
+
+const FloatingActionButton = ({ onVoiceActivate }: FloatingActionButtonProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [spotlightOpen, setSpotlightOpen] = useState(false);
@@ -62,9 +66,9 @@ const FloatingActionButton = () => {
               <Settings size={24} strokeWidth={1.5} className="text-white" />
             </motion.button>
 
-            {/* Vision Spotlight - Living Aperture (Center) */}
+            {/* Voice Assistant - Living Aperture (Center) */}
             <motion.button
-              onClick={() => setSpotlightOpen(true)}
+              onClick={onVoiceActivate}
               className="relative"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
@@ -83,6 +87,17 @@ const FloatingActionButton = () => {
               }}
             >
               <KaevaAperture state="idle" size="lg" />
+            </motion.button>
+
+            {/* Scanner Button */}
+            <motion.button
+              onClick={() => setSpotlightOpen(true)}
+              className="p-3 rounded-full hover:bg-white/10 transition-kaeva active-press"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              transition={kaevaTransition}
+            >
+              <Camera size={24} strokeWidth={1.5} className="text-white" />
             </motion.button>
 
             {/* Logout Button */}
