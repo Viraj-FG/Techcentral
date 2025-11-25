@@ -813,14 +813,15 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
         <div className="absolute bottom-0 left-0 right-0 z-10">
           {/* Capture Button Area */}
           <div className="flex items-center justify-center pt-4 pb-4 mb-4">
-            <CaptureButton
-              mode={captureMode}
-              isRecording={isRecording}
-              isScanning={isScanning}
-              onPress={handleCapture}
-              onLongPressStart={handleRecordingStart}
-              onLongPressEnd={handleRecordingEnd}
-            />
+          <CaptureButton
+            mode={captureMode}
+            intentPreset={intentPreset}
+            isRecording={isRecording}
+            isScanning={isScanning}
+            onPress={handleCapture}
+            onLongPressStart={handleRecordingStart}
+            onLongPressEnd={handleRecordingEnd}
+          />
           </div>
         </div>
 

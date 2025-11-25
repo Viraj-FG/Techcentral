@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { motion } from 'framer-motion';
+import { Camera, PackageOpen, Utensils, Sparkles, PawPrint, Zap, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { IntentPreset } from './IntentPresetPicker';
 
@@ -9,13 +10,13 @@ interface ScanModeCarouselProps {
   onChange: (preset: IntentPreset) => void;
 }
 
-const modes: { value: IntentPreset; label: string }[] = [
-  { value: null, label: 'Scan' },
-  { value: 'inventory', label: 'Inventory' },
-  { value: 'nutrition', label: 'Nutrition' },
-  { value: 'beauty', label: 'Beauty' },
-  { value: 'pets', label: 'Pets' },
-  { value: 'appliances', label: 'Appliances' },
+const modes: { value: IntentPreset; label: string; icon: LucideIcon }[] = [
+  { value: null, label: 'Scan', icon: Camera },
+  { value: 'inventory', label: 'Inventory', icon: PackageOpen },
+  { value: 'nutrition', label: 'Nutrition', icon: Utensils },
+  { value: 'beauty', label: 'Beauty', icon: Sparkles },
+  { value: 'pets', label: 'Pets', icon: PawPrint },
+  { value: 'appliances', label: 'Appliances', icon: Zap },
 ];
 
 export const ScanModeCarousel = ({ preset, onChange }: ScanModeCarouselProps) => {
@@ -72,12 +73,16 @@ export const ScanModeCarousel = ({ preset, onChange }: ScanModeCarouselProps) =>
               <button
                 onClick={() => emblaApi?.scrollTo(index)}
                 className={cn(
-                  "px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap",
+                  "flex flex-col items-center gap-1 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap",
                   isActive
                     ? "text-kaeva-sage"
-                    : "text-white"
+                    : "text-white/60"
                 )}
               >
+                <mode.icon 
+                  size={isActive ? 24 : 20} 
+                  strokeWidth={1.5}
+                />
                 {mode.label}
               </button>
             </motion.div>
