@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingCart, Loader2, Sparkles, Camera, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -46,6 +46,7 @@ const SmartCartWidget = ({ cartItems, showDeliveryEstimate = true }: SmartCartWi
   const [storeSelectorOpen, setStoreSelectorOpen] = useState(false);
   const [hasStore, setHasStore] = useState(true);
   const [userId, setUserId] = useState<string>("");
+  const [showBuildingCart, setShowBuildingCart] = useState(false);
   const webcamRef = useRef<Webcam>(null);
   const { toast } = useToast();
 
@@ -183,13 +184,20 @@ const SmartCartWidget = ({ cartItems, showDeliveryEstimate = true }: SmartCartWi
 
       if (error) throw error;
 
-      // Open Instacart link in new tab
-      window.open(data.productsLink, '_blank');
-
-      toast({
-        title: "Cart Ready!",
-        description: "Opening Instacart with your dietary preferences applied..."
-      });
+      // Show "Building Cart..." overlay
+      setShowBuildingCart(true);
+      
+      // Wait 1.5 seconds before redirect
+      setTimeout(() => {
+        // Open Instacart link in new tab
+        window.open(data.productsLink, '_blank');
+        setShowBuildingCart(false);
+        
+        toast({
+          title: "Cart Ready!",
+          description: "Opening Instacart with your dietary preferences applied..."
+        });
+      }, 1500);
     } catch (error) {
       console.error('Error creating cart:', error);
       toast({
@@ -561,6 +569,31 @@ const SmartCartWidget = ({ cartItems, showDeliveryEstimate = true }: SmartCartWi
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Building Cart Overlay */}
+      <AnimatePresence>
+        {showBuildingCart && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-kaeva-void/95 backdrop-blur-md flex items-center justify-center"
+          >
+            <div className="flex flex-col items-center gap-6">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              >
+                <ShoppingCart className="w-16 h-16 text-kaeva-mint" />
+              </motion.div>
+              <div className="text-center">
+                <h3 className="text-2xl font-light text-white mb-2">Building Cart...</h3>
+                <p className="text-white/60 text-sm">Preparing your personalized shopping experience</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

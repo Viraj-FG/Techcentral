@@ -61,6 +61,20 @@ const Auth = () => {
   }, [navigate]);
 
   const handleGoogleSignIn = async () => {
+    // Detect in-app browsers (Instagram, Facebook, LinkedIn WebViews)
+    const userAgent = navigator.userAgent || navigator.vendor;
+    const isInAppBrowser = /Instagram|FBAN|FBAV|LinkedInApp/i.test(userAgent);
+    
+    if (isInAppBrowser) {
+      toast({
+        title: "In-App Browser Detected",
+        description: "Google sign-in may not work in this browser. Please open this page in Safari or Chrome.",
+        variant: "destructive",
+        duration: 6000
+      });
+      return;
+    }
+    
     setIsGoogleLoading(true);
     try {
       const redirectUrl = `${window.location.origin}/`;

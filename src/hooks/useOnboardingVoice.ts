@@ -499,6 +499,12 @@ export const useOnboardingVoice = ({ onProfileUpdate, onComplete }: UseOnboardin
     };
   }, []);
 
+  const sendContextualUpdate = useCallback((message: string) => {
+    if (conversation.sendContextualUpdate) {
+      conversation.sendContextualUpdate(message);
+    }
+  }, [conversation]);
+
   return {
     apertureState,
     audioAmplitude,
@@ -508,6 +514,7 @@ export const useOnboardingVoice = ({ onProfileUpdate, onComplete }: UseOnboardin
     status: conversation.status,
     isSpeaking: conversation.isSpeaking,
     startConversation,
-    endConversation
+    endConversation,
+    sendContextualUpdate
   };
 };
