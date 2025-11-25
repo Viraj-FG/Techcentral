@@ -65,6 +65,48 @@ export const saveOnboardingData = async (state: ConversationState): Promise<bool
 
     console.log("✅ SAVE Step 4: Profile saved successfully");
 
+    // Create household if user doesn't have one
+    console.log("💾 SAVE Step 4.5: Checking for existing household");
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('current_household_id, user_name')
+      .eq('id', userId)
+      .single();
+
+    if (!existingProfile?.current_household_id) {
+      console.log("💾 SAVE Step 4.6: Creating default household");
+      const householdName = `${existingProfile?.user_name || 'My'} Household`;
+      
+      const { data: household, error: householdError } = await supabase
+        .from('households')
+        .insert({
+          owner_id: userId,
+          name: householdName
+        })
+        .select()
+        .single();
+
+      if (householdError) {
+        await logError("household-create", householdError, { userId, householdName });
+      } else {
+        console.log("✅ SAVE Step 4.6: Household created:", household.id);
+        
+        // Update profile with household_id
+        const { error: householdUpdateError } = await supabase
+          .from('profiles')
+          .update({ current_household_id: household.id })
+          .eq('id', userId);
+
+        if (householdUpdateError) {
+          await logError("household-update", householdUpdateError, { userId, householdId: household.id });
+        } else {
+          console.log("✅ SAVE Step 4.7: Profile updated with household_id");
+        }
+      }
+    } else {
+      console.log("ℹ️ SAVE Step 4.5: User already has household:", existingProfile.current_household_id);
+    }
+
     // Save household members
     if (state.householdMembers && state.householdMembers.length > 0) {
       console.log(`💾 SAVE Step 5: Preparing ${state.householdMembers.length} household members`);
