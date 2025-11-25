@@ -108,18 +108,6 @@ export const AgentStatus = () => {
           </code>
         </div>
 
-        {/* Prompt Version */}
-        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-          <span className="text-sm font-medium">Prompt Versions</span>
-          <div className="flex flex-col items-end gap-1">
-            <code className="text-xs bg-background px-2 py-1 rounded">
-              Onboarding: {ELEVENLABS_CONFIG.onboarding.promptVersion}
-            </code>
-            <code className="text-xs bg-background px-2 py-1 rounded">
-              Assistant: {ELEVENLABS_CONFIG.assistant.promptVersion}
-            </code>
-          </div>
-        </div>
 
         {/* Current Deployed Version */}
         <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">

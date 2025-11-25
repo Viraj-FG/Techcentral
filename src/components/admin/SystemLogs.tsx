@@ -46,7 +46,7 @@ export const SystemLogs = () => {
               <AlertCircle className="h-4 w-4 text-destructive" />
               <span className="text-sm font-medium">Onboarding Errors ({errorLogs.length})</span>
             </div>
-            <ScrollArea className="h-[400px] w-full rounded border">
+            <ScrollArea className="h-[calc(100vh-400px)] max-h-[400px] min-h-[200px] w-full rounded border">
               <div className="p-4 space-y-3">
                 {errorLogs.map((log) => {
                   const metadata = log.metadata as any;

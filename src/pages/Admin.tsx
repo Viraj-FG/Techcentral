@@ -50,28 +50,34 @@ const Admin = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="health" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-10 glass-card">
-            <TabsTrigger value="health" className="text-micro">Health</TabsTrigger>
-            <TabsTrigger value="agent" className="text-micro">Agent</TabsTrigger>
-            <TabsTrigger value="monitor" className="text-micro">Monitor</TabsTrigger>
-            <TabsTrigger value="testing" className="text-micro">Testing</TabsTrigger>
-            <TabsTrigger value="users" className="text-micro">Users</TabsTrigger>
-            <TabsTrigger value="database" className="text-micro">Database</TabsTrigger>
-            <TabsTrigger value="logs" className="text-micro">Logs</TabsTrigger>
-            <TabsTrigger value="tool-logs" className="text-micro">Tools</TabsTrigger>
-            <TabsTrigger value="context" className="text-micro">Context</TabsTrigger>
-            <TabsTrigger value="analytics" className="text-micro">Analytics</TabsTrigger>
-          </TabsList>
+          <ScrollArea className="w-full">
+            <TabsList className="inline-flex h-12 w-max gap-1 p-1 glass-card">
+              <TabsTrigger value="health" className="text-micro px-4 min-w-[80px]">Health</TabsTrigger>
+              <TabsTrigger value="agent" className="text-micro px-4 min-w-[80px]">Agent</TabsTrigger>
+              <TabsTrigger value="monitor" className="text-micro px-4 min-w-[80px]">Monitor</TabsTrigger>
+              <TabsTrigger value="testing" className="text-micro px-4 min-w-[80px]">Testing</TabsTrigger>
+              <TabsTrigger value="users" className="text-micro px-4 min-w-[80px]">Users</TabsTrigger>
+              <TabsTrigger value="database" className="text-micro px-4 min-w-[80px]">Database</TabsTrigger>
+              <TabsTrigger value="logs" className="text-micro px-4 min-w-[80px]">Logs</TabsTrigger>
+              <TabsTrigger value="tool-logs" className="text-micro px-4 min-w-[80px]">Tools</TabsTrigger>
+              <TabsTrigger value="context" className="text-micro px-4 min-w-[80px]">Context</TabsTrigger>
+              <TabsTrigger value="analytics" className="text-micro px-4 min-w-[80px]">Analytics</TabsTrigger>
+            </TabsList>
+          </ScrollArea>
 
           <TabsContent value="health" className="space-y-6">
             <AgentHealthDashboard />
           </TabsContent>
 
           <TabsContent value="agent" className="space-y-6">
-            <AgentProvisioning />
-            <AgentStatus />
-            <AgentTestPanel />
-            <DeploymentChecklist />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <AgentProvisioning />
+              <AgentStatus />
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <AgentTestPanel />
+              <DeploymentChecklist />
+            </div>
           </TabsContent>
 
           <TabsContent value="monitor">
