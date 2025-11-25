@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Webcam from 'react-webcam';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Video, StopCircle, Loader2, PackageOpen, ChefHat, Sparkles, Utensils, ScanLine, PawPrint, X } from 'lucide-react';
+import { Camera, Video, StopCircle, Loader2, PackageOpen, ChefHat, Sparkles, Utensils, ScanLine, PawPrint, X, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -45,6 +45,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
   if (!isOpen) return null;
   const webcamRef = useRef<Webcam>(null);
   const recordingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [detectedIntent, setDetectedIntent] = useState<Intent | null>(null);
   const [confidence, setConfidence] = useState<number>(0);
@@ -100,6 +101,70 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
       setIsScanning(false);
     }
   }, []);
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+    
+    // File size validation (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image too large', { description: 'Please upload an image under 10MB' });
+      return;
+    }
+    
+    setIsScanning(true);
+    
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const base64Image = e.target?.result as string;
+      
+      try {
+        // Use same detect-intent pipeline
+        const { data, error } = await supabase.functions.invoke('detect-intent', {
+          body: { image: base64Image }
+        });
+
+        if (error) throw error;
+
+        if (data.error) {
+          toast.error(data.error, { description: data.suggestion });
+          setIsScanning(false);
+          return;
+        }
+
+        const intentData: IntentResponse = data;
+        setDetectedIntent(intentData.intent);
+        setConfidence(intentData.confidence);
+        setDetectedItems(intentData.items);
+
+        // Route to appropriate handler
+        await handleIntent(intentData, base64Image);
+
+      } catch (error) {
+        console.error('Upload analysis error:', error);
+        toast.error('Failed to analyze uploaded image');
+      } finally {
+        setIsScanning(false);
+      }
+    };
+    
+    reader.onerror = () => {
+      toast.error('Failed to read image file');
+      setIsScanning(false);
+    };
+    
+    reader.readAsDataURL(file);
+    
+    // Reset input to allow same file to be selected again
+    event.target.value = '';
+  };
 
   const handleIntent = async (intentData: IntentResponse, image: string) => {
     switch (intentData.intent) {
@@ -740,8 +805,27 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
           </motion.div>
         )}
 
+        {/* Hidden file input */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept="image/jpeg,image/png,image/webp,image/heic"
+          className="hidden"
+          onChange={handleImageUpload}
+        />
+
         {/* Action buttons */}
         <div className="absolute bottom-6 left-4 right-4 flex gap-3">
+          {/* Upload button */}
+          <Button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isScanning || isRecording}
+            variant="outline"
+            className="h-14 px-4"
+          >
+            <Upload className="w-5 h-5" />
+          </Button>
+
           <Button
             onMouseDown={startRecording}
             onMouseUp={stopRecording}
