@@ -141,6 +141,13 @@ Confidence threshold: Only return intent if > 0.75. Be precise with item detecti
     }
 
     const data = await response.json();
+    
+    // Validate response structure
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+      console.error('Unexpected Gemini response structure:', JSON.stringify(data));
+      throw new Error('Invalid response from Gemini API - unexpected structure');
+    }
+    
     const text = data.candidates[0].content.parts[0].text;
     
     console.log('Gemini response:', text);
