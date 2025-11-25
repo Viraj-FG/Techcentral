@@ -217,13 +217,17 @@ serve(async (req) => {
       }
       
       console.log('No products found in either FatSecret or Open Food Facts');
+      // Return graceful response with basic info, no enrichment
       return new Response(
         JSON.stringify({ 
-          error: 'No products found',
-          searchTerm: name,
-          suggestion: 'Try a more generic product name or use camera to scan the product'
+          name,
+          brand: brand || null,
+          image_url: null,
+          nutrition: null,
+          source: 'none',
+          enriched: false
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
