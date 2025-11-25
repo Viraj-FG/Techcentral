@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Cpu, Scan, Activity, Camera, ShoppingBag, ShieldCheck, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import PublicShell from "@/components/layout/PublicShell";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -13,114 +14,101 @@ const Landing = () => {
 
   const features = [
     {
-      icon: <Scan className="w-6 h-6 text-white" />,
-      tags: ["Computer Vision", "Inventory Tracking", "Intent Detection"],
-      title: "The Universal Lens",
-      description: "Don't type. Just show it to Kaeva. Point your camera at your fridge, pantry, or vanity. Our AI identifies 10,000+ ingredients, cosmetics, and appliances instantly, building a real-time digital twin of your home.",
-      image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070",
-      colSpan: "md:col-span-2"
+      icon: <Cpu className="w-6 h-6" />,
+      title: "Vision Scanning",
+      description: "Just point and capture. AI instantly reads barcodes, labels, and full ingredient panels.",
+      bgGradient: "from-teal-500/10 to-cyan-500/10"
     },
     {
-      icon: <Activity className="w-6 h-6 text-kaeva-sage" />,
-      tags: ["Macros", "Medical"],
-      title: "Prescriptive Nutrition",
-      description: "Hypertension? Diabetes? Keto? Kaeva filters your entire food supply chain. We auto-swap high-sodium items in your cart for heart-healthy alternatives.",
-      image: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=2053",
-      colSpan: ""
+      icon: <Activity className="w-6 h-6" />,
+      title: "Nutrition Autopilot",
+      description: "Track every meal effortlessly. Get real-time macros tailored to your household.",
+      bgGradient: "from-violet-500/10 to-purple-500/10"
     },
     {
-      icon: <Camera className="w-6 h-6 text-pink-400" />,
-      tags: ["FatSecret API", "Calories"],
-      title: "Visual Food Diary",
-      description: "Stop searching databases. Snap a photo of your dinner. Kaeva estimates portion sizes and logs calories/macros instantly using Vision AI.",
-      image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1760",
-      colSpan: ""
+      icon: <Camera className="w-6 h-6" />,
+      title: "Food Logging",
+      description: "Snap your plate—AI logs calories, macros, and keeps your digital twin in sync.",
+      bgGradient: "from-pink-500/10 to-rose-500/10"
     },
     {
-      icon: <ShoppingBag className="w-6 h-6 text-cyan-400" />,
-      tags: ["Instacart", "Price Watch", "Auto-Refill"],
-      title: "Automated Supply Chain",
-      description: "The self-filling home. Kaeva tracks your consumption and auto-orders essentials before you run out. One-tap checkout via Instacart with your local store preferences locked in.",
-      image: "https://images.unsplash.com/photo-1578916171728-46686eac8d58?q=80&w=1974",
-      colSpan: "md:col-span-2"
+      icon: <ShoppingBag className="w-6 h-6" />,
+      title: "Smart Shopping",
+      description: "Auto-refill items before they run out. Never forget essentials again.",
+      bgGradient: "from-orange-500/10 to-amber-500/10"
     },
     {
-      icon: <ShieldCheck className="w-6 h-6 text-amber-500" />,
-      tags: ["Toxicity Scanner", "Vet Logic"],
-      title: "The Guardian Layer",
-      description: "Never guess. Scan a grape? We scream if you have a dog. Kaeva cross-references every product against your pet's breed, weight, and toxicity profile to prevent accidents.",
-      image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=2070",
-      colSpan: "md:col-span-3"
-    }
-  ];
-
-  const testimonials = [
-    {
-      stars: 5,
-      text: "I saved $400 in my first month just by stopping food waste. The 'Use First' notification is genius.",
-      name: "Sarah Jenkins",
-      location: "Seattle, WA",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200"
+      icon: <ShieldCheck className="w-6 h-6" />,
+      title: "Pet Safety",
+      description: "Real-time toxicity alerts for your pets. Prevent accidents before they happen.",
+      bgGradient: "from-emerald-500/10 to-green-500/10"
     },
     {
-      stars: 5,
-      text: "As a diabetic, grocery shopping was a nightmare of label reading. Kaeva filters everything for me automatically.",
-      name: "David Chen",
-      location: "Bellevue, WA",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200"
-    },
-    {
-      stars: 5,
-      text: "The pet safety scanner literally saved my dog from eating Xylitol gum. I will never delete this app.",
-      name: "Elena Rodriguez",
-      location: "Redmond, WA",
-      avatar: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=200"
+      icon: <Scan className="w-6 h-6" />,
+      title: "Beauty Profile",
+      description: "Know what's in your skincare and hair products. Personalized to your profile.",
+      bgGradient: "from-red-500/10 to-orange-500/10"
     }
   ];
 
   const faqs = [
     {
-      question: "Is my data private?",
-      answer: "Absolutely. Your inventory data is encrypted. We do not sell your shopping habits to advertisers. Your health data is stored securely and never shared with insurance companies."
+      question: "How does the Vision Scanner work?",
+      answer: "Simply point your camera at any product, barcode, or shelf. Our AI instantly identifies the item, reads nutrition facts, and adds it to your household inventory."
     },
     {
-      question: "Does it work with any store?",
-      answer: "We integrate with the Instacart platform, which covers 85,000+ stores including Costco, Safeway, Petco, and Sephora."
+      question: "Is my data secure?",
+      answer: "Absolutely. All data is encrypted and stored securely. We never sell your information to third parties."
     },
     {
-      question: "How much does it cost?",
-      answer: "The basic Vision Scanner and Recipe engine are free. The \"Smart Cart\" automation and Health Filters require a Kaeva+ subscription ($12/mo)."
+      question: "Can I share my household with family?",
+      answer: "Yes! Invite family members to collaborate on your shared inventory and meal planning."
+    },
+    {
+      question: "What about pet safety features?",
+      answer: "We cross-reference ingredients against toxicity databases for dogs and cats, alerting you in real-time if you scan something harmful."
+    },
+    {
+      question: "Do I need a subscription?",
+      answer: "Basic features are free forever. Premium features unlock advanced analytics and AI meal planning."
+    }
+  ];
+
+  const testimonials = [
+    {
+      name: "Emily R.",
+      role: "Busy Parent",
+      quote: "This app changed how I shop and cook. I never forget groceries, and my kids' allergies are always protected.",
+      avatar: "https://i.pravatar.cc/150?img=5"
+    },
+    {
+      name: "Marcus T.",
+      role: "Fitness Enthusiast",
+      quote: "Tracking macros has never been easier. The AI does all the work—I just eat and scan.",
+      avatar: "https://i.pravatar.cc/150?img=12"
+    },
+    {
+      name: "Sarah K.",
+      role: "Pet Owner",
+      quote: "The pet safety feature literally saved my dog's life. I almost bought grapes—app warned me instantly.",
+      avatar: "https://i.pravatar.cc/150?img=9"
     }
   ];
 
   return (
-    <div className="relative bg-kaeva-void text-foreground overflow-x-hidden">
-      {/* Background Video Layer */}
-      <div className="fixed inset-0 w-full h-screen -z-10 overflow-hidden">
-        <video autoPlay muted loop playsInline className="w-full h-full object-cover opacity-15 grayscale contrast-125">
-          <source src="https://cdn.coverr.co/videos/coverr-fog-over-a-dark-forest-5543/1080p.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-gradient-radial from-transparent to-kaeva-void" />
-      </div>
-
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full px-6 md:px-12 py-6 z-50 bg-kaeva-void/80 backdrop-blur-xl border-b border-border">
-        <div className="flex justify-between items-center max-w-7xl mx-auto">
-          <div className="flex items-center gap-3">
-            <div className="w-3 h-3 bg-amber-500 rounded-full shadow-[0_0_20px_rgba(245,158,11,0.5)]" />
-            <span className="font-display font-extrabold text-xl tracking-tight text-white">KAEVA</span>
+    <PublicShell>
+      {/* Navbar */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-lg"></div>
+            <span className="text-xl font-bold font-['Space_Grotesk']">KAEVA</span>
           </div>
-          <div className="flex gap-3">
-            <button 
-              onClick={() => navigate('/auth')}
-              className="px-5 py-2.5 border border-border rounded-lg text-sm font-semibold hover:bg-white hover:text-black transition-all"
-            >
+          <div className="flex gap-4">
+            <button onClick={() => navigate('/auth')} className="px-6 py-2 text-sm font-medium rounded-lg border border-white/20 hover:bg-white/10 transition">
               Login
             </button>
-            <button 
-              onClick={() => navigate('/auth')}
-              className="px-5 py-2.5 bg-white text-black rounded-lg text-sm font-semibold hover:bg-amber-500 transition-all"
-            >
+            <button onClick={() => navigate('/auth')} className="px-6 py-2 text-sm font-medium rounded-lg bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 transition">
               Get App
             </button>
           </div>
@@ -128,61 +116,46 @@ const Landing = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="min-h-screen w-full flex flex-col justify-center items-center text-center px-6 pt-32 pb-16">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 font-space text-xs font-semibold rounded-full mb-8"
-        >
-          <Cpu size={14} />
-          KAEVA OS 1.0
-        </motion.div>
-
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden pt-20">
         <motion.h1 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="font-display font-extrabold text-6xl md:text-8xl lg:text-9xl leading-[0.95] tracking-tight mb-6 bg-gradient-to-b from-white via-white to-slate-400 bg-clip-text text-transparent"
+          transition={{ duration: 0.6 }}
+          className="text-6xl md:text-7xl font-bold text-center max-w-4xl font-['Space_Grotesk'] leading-tight"
         >
-          Your Home.<br />
-          <span className="text-amber-500">On Autopilot.</span>
+          Your Home.
+          <br />
+          <span className="bg-gradient-to-r from-teal-400 to-cyan-500 bg-clip-text text-transparent">On Autopilot.</span>
         </motion.h1>
 
         <motion.p 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="text-xl text-muted-foreground leading-relaxed mb-12 max-w-2xl"
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="text-lg md:text-xl text-gray-300 text-center max-w-2xl mt-6"
         >
-          The first Prescriptive Life OS. We combine <strong>Vision AI</strong>, <strong>Logistics Automation</strong>, and <strong>Health Logic</strong> to liberate you from the mental load of household management.
+          Your entire household—food, beauty, pets—powered by a personal AI that knows you, your family, and every product you own.
         </motion.p>
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="flex flex-wrap gap-4 items-center justify-center mb-12"
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="flex gap-4 mt-8"
         >
-          <button 
-            onClick={() => navigate('/auth')}
-            className="px-10 py-4 bg-white text-black font-bold rounded-full hover:bg-amber-500 hover:shadow-[0_0_30px_rgba(245,158,11,0.3)] transition-all inline-flex items-center gap-2"
-          >
-            Initialize System
+          <button onClick={() => navigate('/auth')} className="px-8 py-4 text-lg font-medium rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 transition shadow-lg shadow-teal-500/50">
+            Start Free
           </button>
-          <a 
-            href="#features"
-            className="px-10 py-4 bg-white/5 border border-border text-white font-semibold rounded-full hover:bg-white/10 transition-all"
-          >
-            Explore Features
-          </a>
+          <button className="px-8 py-4 text-lg font-medium rounded-xl border border-white/20 hover:bg-white/10 transition">
+            Watch Demo
+          </button>
         </motion.div>
 
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.7 }}
           transition={{ duration: 0.6, delay: 0.8 }}
-          className="flex gap-4 opacity-70 hover:opacity-100 transition-opacity"
+          className="flex gap-4 opacity-70 hover:opacity-100 transition-opacity mt-6"
         >
           <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" className="h-11 invert" alt="App Store" />
           <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" className="h-11 invert" alt="Play Store" />
@@ -193,173 +166,171 @@ const Landing = () => {
       <div className="w-full py-8 border-y border-border bg-black/30 backdrop-blur-sm">
         <div className="flex justify-center gap-16 flex-wrap items-center max-w-5xl mx-auto px-8 opacity-50 grayscale">
           <img src="https://upload.wikimedia.org/wikipedia/commons/b/b9/TechCrunch_logo.svg" className="h-6 brightness-150" alt="TechCrunch" />
-          <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Wired_logo.svg" className="h-5 brightness-150" alt="Wired" />
-          <img src="https://upload.wikimedia.org/wikipedia/commons/a/a6/The_Verge_logo.svg" className="h-5 brightness-150" alt="The Verge" />
-          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Fast_Company_logo.svg/2560px-Fast_Company_logo.svg.png" className="h-5 brightness-150" alt="Fast Company" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" className="h-6 brightness-150" alt="Google" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg" className="h-5 brightness-150" alt="Netflix" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" className="h-6 brightness-150 invert" alt="Apple" />
         </div>
       </div>
 
-      {/* Features Section */}
-      <section id="features" className="pt-32 pb-16">
-        <div className="text-center mb-20">
-          <div className="text-amber-500 font-space text-sm font-semibold mb-4 tracking-widest">SYSTEM CAPABILITIES</div>
-          <h2 className="font-display font-bold text-5xl">From Vision to Action.</h2>
-        </div>
+      {/* Features Bento Grid */}
+      <section className="py-24 px-6 max-w-7xl mx-auto">
+        <motion.h2 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-4xl md:text-5xl font-bold text-center mb-16 font-['Space_Grotesk']"
+        >
+          Everything You Need.
+          <br />
+          <span className="text-gray-400">In One Place.</span>
+        </motion.h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-7xl mx-auto px-6 pb-32">
-          {features.map((feature, index) => (
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={{
+            hidden: {},
+            visible: {
+              transition: {
+                staggerChildren: 0.1
+              }
+            }
+          }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          {features.map((feature, i) => (
             <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              className={`${feature.colSpan} relative bg-white/[0.03] border border-border rounded-[2rem] p-10 min-h-[400px] flex flex-col justify-end overflow-hidden group hover:-translate-y-2 hover:border-white/20 transition-all duration-400`}
+              key={i}
+              variants={{
+                hidden: { opacity: 0, y: 30 },
+                visible: { opacity: 1, y: 0 }
+              }}
+              className={`p-8 rounded-2xl bg-gradient-to-br ${feature.bgGradient} border border-white/10 backdrop-blur-sm hover:scale-105 transition`}
             >
-              <img 
-                src={feature.image} 
-                className="absolute inset-0 w-full h-full object-cover opacity-40 grayscale contrast-110 group-hover:opacity-20 transition-opacity duration-500 z-0" 
-                alt=""
-              />
-              
-              <div className="relative z-10">
-                <div className="w-12 h-12 bg-white/10 backdrop-blur-xl rounded-xl flex items-center justify-center mb-6">
-                  {feature.icon}
-                </div>
-                
-                <div className="flex gap-2 mb-4 flex-wrap">
-                  {feature.tags.map((tag, i) => (
-                    <span key={i} className="text-[0.7rem] font-space px-2 py-1 rounded bg-white/5 border border-white/10 text-muted-foreground uppercase tracking-wider">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                
-                <h3 className="text-3xl font-semibold mb-2 tracking-tight">{feature.title}</h3>
-                <p className="text-base text-muted-foreground leading-relaxed">{feature.description}</p>
+              <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mb-4">
+                {feature.icon}
               </div>
+              <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
+              <p className="text-gray-400">{feature.description}</p>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
       </section>
 
       {/* Testimonials */}
-      <section className="py-16 border-t border-border">
-        <div className="text-center mb-16">
-          <h2 className="font-display font-bold text-5xl mb-4">Built for Modern Living.</h2>
-          <p className="text-muted-foreground">Join 2,000+ beta users in Seattle.</p>
-        </div>
+      <section className="py-24 px-6 max-w-7xl mx-auto">
+        <motion.h2 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-4xl md:text-5xl font-bold text-center mb-16 font-['Space_Grotesk']"
+        >
+          Loved by Households
+        </motion.h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-6">
-          {testimonials.map((review, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {testimonials.map((testimonial, i) => (
             <motion.div
-              key={index}
+              key={i}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="bg-white/[0.02] p-8 rounded-2xl border border-border"
+              transition={{ delay: i * 0.1 }}
+              className="p-8 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm"
             >
-              <div className="flex gap-1 text-amber-500 mb-4">
-                {[...Array(review.stars)].map((_, i) => (
-                  <span key={i}>★</span>
-                ))}
-              </div>
-              <p className="text-lg leading-relaxed text-foreground mb-6">{review.text}</p>
-              <div className="flex items-center gap-4">
-                <div 
-                  className="w-10 h-10 rounded-full bg-cover bg-center"
-                  style={{ backgroundImage: `url(${review.avatar})` }}
-                />
+              <div className="flex items-center gap-4 mb-4">
+                <img src={testimonial.avatar} alt={testimonial.name} className="w-12 h-12 rounded-full" />
                 <div>
-                  <div className="font-semibold">{review.name}</div>
-                  <div className="text-sm text-muted-foreground">{review.location}</div>
+                  <div className="font-bold">{testimonial.name}</div>
+                  <div className="text-sm text-gray-400">{testimonial.role}</div>
                 </div>
               </div>
+              <p className="text-gray-300 italic">"{testimonial.quote}"</p>
             </motion.div>
           ))}
         </div>
       </section>
 
       {/* FAQ */}
-      <section className="max-w-4xl mx-auto px-6 py-32">
-        <h2 className="font-display font-bold text-5xl text-center mb-12">Frequently Asked Questions</h2>
-        
-        <div>
-          {faqs.map((faq, index) => (
-            <div key={index} className="border-b border-border">
+      <section className="py-24 px-6 max-w-4xl mx-auto">
+        <motion.h2 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-4xl md:text-5xl font-bold text-center mb-16 font-['Space_Grotesk']"
+        >
+          Questions?
+        </motion.h2>
+
+        <div className="space-y-4">
+          {faqs.map((faq, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.05 }}
+              className="bg-white/5 border border-white/10 rounded-xl overflow-hidden backdrop-blur-sm"
+            >
               <button
-                onClick={() => toggleFaq(index)}
-                className="w-full text-left py-6 flex justify-between items-center text-xl font-semibold hover:text-amber-500 transition-colors"
+                onClick={() => toggleFaq(i)}
+                className="w-full p-6 flex items-center justify-between text-left hover:bg-white/5 transition"
               >
-                {faq.question}
-                <ChevronDown 
-                  className={`transform transition-transform ${activeFaq === index ? 'rotate-180' : ''}`}
-                  size={24}
-                />
+                <span className="text-lg font-medium">{faq.question}</span>
+                <ChevronDown className={`w-5 h-5 transition-transform ${activeFaq === i ? 'rotate-180' : ''}`} />
               </button>
-              <div 
-                className={`overflow-hidden transition-all ${activeFaq === index ? 'max-h-96 pb-6' : 'max-h-0'}`}
-              >
-                <p className="text-base text-muted-foreground leading-relaxed">{faq.answer}</p>
-              </div>
-            </div>
+              {activeFaq === i && (
+                <div className="px-6 pb-6 text-gray-400">
+                  {faq.answer}
+                </div>
+              )}
+            </motion.div>
           ))}
         </div>
       </section>
 
-      {/* CTA Footer */}
-      <section className="min-h-[60vh] flex flex-col justify-center items-center text-center px-6">
-        <h2 className="font-display font-extrabold text-6xl md:text-7xl mb-6">Scan. Plan. Live.</h2>
-        <p className="text-xl text-muted-foreground mb-12">Download the beta today.</p>
-        <div className="flex gap-4">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" className="h-[50px] invert" alt="App Store" />
-          <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" className="h-[50px] invert" alt="Play Store" />
-        </div>
-      </section>
-
       {/* Footer */}
-      <footer className="border-t border-border py-16 mt-16 bg-[#050505]">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-6xl mx-auto px-6">
+      <footer className="border-t border-white/10 py-12 px-6 bg-black/50 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
           <div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-3 h-3 bg-amber-500 rounded-full shadow-[0_0_20px_rgba(245,158,11,0.5)]" />
-              <span className="font-display font-extrabold text-xl tracking-tight text-white">KAEVA</span>
-            </div>
-            <p className="text-sm text-muted-foreground">The Operating System for the modern home.</p>
+            <h4 className="font-bold mb-4">Product</h4>
+            <ul className="space-y-2 text-gray-400">
+              <li><a href="#" className="hover:text-white transition">Features</a></li>
+              <li><a href="#" className="hover:text-white transition">Pricing</a></li>
+              <li><a href="#" className="hover:text-white transition">Roadmap</a></li>
+            </ul>
           </div>
-          
           <div>
-            <h4 className="text-white font-bold text-xs uppercase tracking-widest mb-6">Product</h4>
-            <div className="space-y-3">
-              <a href="#" className="block text-muted-foreground hover:text-amber-500 transition-colors text-sm">Vision Engine</a>
-              <a href="#" className="block text-muted-foreground hover:text-amber-500 transition-colors text-sm">Safety Shield</a>
-              <a href="#" className="block text-muted-foreground hover:text-amber-500 transition-colors text-sm">Instacart Integration</a>
-              <a href="#" className="block text-muted-foreground hover:text-amber-500 transition-colors text-sm">Pricing</a>
-            </div>
+            <h4 className="font-bold mb-4">Company</h4>
+            <ul className="space-y-2 text-gray-400">
+              <li><a href="#" className="hover:text-white transition">About</a></li>
+              <li><a href="#" className="hover:text-white transition">Blog</a></li>
+              <li><a href="#" className="hover:text-white transition">Careers</a></li>
+            </ul>
           </div>
-          
           <div>
-            <h4 className="text-white font-bold text-xs uppercase tracking-widest mb-6">Company</h4>
-            <div className="space-y-3">
-              <a href="#" className="block text-muted-foreground hover:text-amber-500 transition-colors text-sm">About Us</a>
-              <a href="#" className="block text-muted-foreground hover:text-amber-500 transition-colors text-sm">Careers</a>
-              <a href="#" className="block text-muted-foreground hover:text-amber-500 transition-colors text-sm">Press Kit</a>
-              <a href="#" className="block text-muted-foreground hover:text-amber-500 transition-colors text-sm">Contact</a>
-            </div>
+            <h4 className="font-bold mb-4">Legal</h4>
+            <ul className="space-y-2 text-gray-400">
+              <li><a href="#" className="hover:text-white transition">Privacy</a></li>
+              <li><a href="#" className="hover:text-white transition">Terms</a></li>
+              <li><a href="#" className="hover:text-white transition">Security</a></li>
+            </ul>
           </div>
-          
           <div>
-            <h4 className="text-white font-bold text-xs uppercase tracking-widest mb-6">Legal</h4>
-            <div className="space-y-3">
-              <a href="#" className="block text-muted-foreground hover:text-amber-500 transition-colors text-sm">Privacy Policy</a>
-              <a href="#" className="block text-muted-foreground hover:text-amber-500 transition-colors text-sm">Terms of Service</a>
-              <a href="#" className="block text-muted-foreground hover:text-amber-500 transition-colors text-sm">Data Security</a>
-            </div>
+            <h4 className="font-bold mb-4">Connect</h4>
+            <ul className="space-y-2 text-gray-400">
+              <li><a href="#" className="hover:text-white transition">Twitter</a></li>
+              <li><a href="#" className="hover:text-white transition">LinkedIn</a></li>
+              <li><a href="#" className="hover:text-white transition">Discord</a></li>
+            </ul>
           </div>
+        </div>
+        <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-white/10 text-center text-gray-500 text-sm">
+          © 2024 KAEVA. All rights reserved.
         </div>
       </footer>
-    </div>
+    </PublicShell>
   );
 };
 

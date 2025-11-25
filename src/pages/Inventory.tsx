@@ -192,8 +192,7 @@ const Inventory = () => {
 
   return (
     <AppShell onScan={() => navigate('/')}>
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5">
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-4 py-8 max-w-7xl pb-16">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-foreground mb-2">Inventory Manager</h1>
@@ -306,8 +305,7 @@ const Inventory = () => {
                 </div>
               </motion.div>
             )}
-          </AnimatePresence>
-        </div>
+        </AnimatePresence>
       </div>
     </AppShell>
   );

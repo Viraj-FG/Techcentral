@@ -5,15 +5,16 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { kaevaTransition } from '@/hooks/useKaevaMotion';
-import KaevaAperture from '@/components/KaevaAperture';
 import { NotificationBell } from '@/components/ui/NotificationBell';
 import GlobalSearch from '@/components/search/GlobalSearch';
+import UniversalShell from './UniversalShell';
 
 interface AppShellProps {
   children: ReactNode;
   onScan: () => void;
   onVoiceActivate?: () => void;
 }
+
 const AppShell = ({
   children,
   onScan,
@@ -30,50 +31,29 @@ const AppShell = ({
     });
     navigate('/auth');
   };
-  return <div className="relative w-full h-screen bg-[#0F172A] text-slate-50 overflow-hidden selection:bg-emerald-500/30">
+
+  return (
+    <>
+      {/* Background atmosphere layer */}
+      <motion.div 
+        className="fixed inset-0 bg-gradient-to-br from-kaeva-void via-kaeva-void to-kaeva-teal/5 z-0"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.2 }}
+      />
       
-      {/* LAYER 0: Atmosphere (Fixed Background) */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <motion.div className="absolute top-[-10%] left-[-10%] w-[80%] h-[80%] bg-kaeva-sage/10 rounded-full blur-[120px]" animate={{
-        scale: [1, 1.1, 1],
-        opacity: [0.3, 0.5, 0.3]
-      }} transition={{
-        duration: 8,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }} />
-        <motion.div className="absolute bottom-[-10%] right-[-10%] w-[80%] h-[80%] bg-kaeva-terra/10 rounded-full blur-[120px]" animate={{
-        scale: [1.1, 1, 1.1],
-        opacity: [0.3, 0.5, 0.3]
-      }} transition={{
-        duration: 10,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }} />
-      </div>
+      <UniversalShell className="pt-6">
+        {children}
+      </UniversalShell>
 
-      {/* LAYER 10: Scrollable Content */}
-      <main className="relative z-10 w-full h-full overflow-y-auto overflow-x-hidden pb-[200px] pt-6 px-4 scroll-smooth">
-        <div className="max-w-md mx-auto space-y-6">
-          {children}
-        </div>
-      </main>
-
-      {/* LAYER 20: Bottom Gradient Mask */}
-      <div className="fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/80 to-transparent z-20 pointer-events-none" />
-
-      {/* LAYER 50: Navigation Dock */}
-      <div className="fixed bottom-6 left-0 right-0 z-50 px-4 pointer-events-none">
-        <motion.div className="mx-auto max-w-sm h-[72px] bg-slate-900/80 border border-white/10 rounded-full pointer-events-auto flex items-center justify-between px-6" initial={{
-        opacity: 0,
-        y: 100
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        ...kaevaTransition,
-        delay: 0.5
-      }}>
+      {/* Navigation Dock - positioned with safe area support */}
+      <motion.div
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.3, type: "spring", stiffness: 260, damping: 20 }}
+        className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-50 pointer-events-auto"
+      >
+        <div className="mx-auto max-w-sm h-[72px] bg-slate-900/80 border border-white/10 rounded-full flex items-center justify-between px-6">
           {/* Left Group - 3 Buttons */}
           <div className="flex items-center gap-0.5">
             <NotificationBell />
@@ -114,11 +94,13 @@ const AppShell = ({
               <LogOut size={24} strokeWidth={1.5} />
             </button>
           </div>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
 
       {/* Global Search */}
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
-    </div>;
+    </>
+  );
 };
+
 export default AppShell;
