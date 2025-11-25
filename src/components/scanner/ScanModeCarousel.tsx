@@ -65,24 +65,20 @@ export const ScanModeCarousel = ({ preset, onChange }: ScanModeCarouselProps) =>
               key={mode.value || 'scan'}
               className="flex-[0_0_33.33%] min-w-0 flex items-center justify-center"
               animate={{
-                scale: isActive ? 1 : 0.75,
-                opacity: isActive ? 1 : 0.4,
+                scale: isActive ? 1 : 0.8,
+                opacity: isActive ? 1 : 0.5,
               }}
               transition={{ duration: 0.2 }}
             >
               <button
                 onClick={() => emblaApi?.scrollTo(index)}
                 className={cn(
-                  "flex flex-col items-center gap-1 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap",
+                  "px-3 py-1 text-sm font-medium transition-colors whitespace-nowrap",
                   isActive
                     ? "text-kaeva-sage"
                     : "text-white/60"
                 )}
               >
-                <mode.icon 
-                  size={isActive ? 24 : 20} 
-                  strokeWidth={1.5}
-                />
                 {mode.label}
               </button>
             </motion.div>

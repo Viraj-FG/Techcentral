@@ -14,10 +14,10 @@ export const IntentPresetPicker = ({ preset, onChange, isVisible }: IntentPreset
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-          className="absolute bottom-32 left-0 right-0 px-8"
+          exit={{ opacity: 0, y: 10 }}
+          className="w-full"
         >
           <ScanModeCarousel preset={preset} onChange={onChange} />
         </motion.div>
