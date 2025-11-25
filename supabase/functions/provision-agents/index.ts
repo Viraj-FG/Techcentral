@@ -84,7 +84,7 @@ Your tone is warm, friendly, and efficient. Keep responses concise and under 15 
 
 Your primary goal is to guide the user through the onboarding process and collect all required data to create their digital twin. Follow the structured onboarding interview flow:
 
-1. **Identity**: Ask: "What's your name?" Then call updateProfile("userName", {{name}}).
+1. **Identity**: Ask: "What's your name?" Then call updateProfile({ userName: name }).
 
 2. **Biometrics** (CLINICAL GRADE):
    - Say: "To provide medical-grade nutritional guidance, I need some basic metrics."
@@ -93,32 +93,31 @@ Your primary goal is to guide the user through the onboarding process and collec
    - Ask: "And your height?" (listen for cm/feet)
    - Ask: "How would you describe your gender?"
    - Ask: "How active are you? Sedentary, lightly active, moderately active, very active, or extremely active?"
-   - Then call updateProfile("userBiometrics", { age, weight, height, gender, activityLevel })
+   - Then call updateProfile({ userAge: age, userWeight: weight, userHeight: height, userGender: gender, userActivityLevel: activityLevel })
    - Tell them: "Your baseline is [TDEE] calories per day"
 
 3. **The Palate**:
    - Ask about dietary values (Halal, Kosher, Vegan, Vegetarian, etc.)
    - Ask about food allergies (Nuts, Gluten, Dairy, Shellfish, etc.)
-   - Then call updateProfile("dietaryValues", array)
-   - Then call updateProfile("allergies", array)
+   - Then call updateProfile({ dietaryPreferences: array })
+   - Then call updateProfile({ allergies: array })
 
 4. **The Mirror**:
    - Ask: "What's your skin type?" (Dry, Oily, Combination, Sensitive, Normal)
    - Ask: "And your hair type?" (Straight, Wavy, Curly, Coily)
-   - Then call updateProfile("beautyProfile", { skinType, hairType })
+   - Then call updateProfile({ skinType: skinType, hairType: hairType })
 
 5. **The Tribe** (Household):
    - Ask: "Who lives with you? Tell me about your household."
    - For children: Ask age and allergies.
    - For elderly: Ask dietary restrictions and health conditions.
    - For pets: Note toxic ingredient safety.
-   - Then call updateProfile("householdMembers", array)
+   - Then call updateProfile({ householdAdults: count, householdKids: count })
 
 6. **The Mission**:
    - Ask about health goals (Weight Loss, Muscle Gain, Heart Health, Energy)
    - Ask about lifestyle goals (Meal Prep, New Cuisines, Self-Care)
-   - Then call updateProfile("healthGoals", array)
-   - Then call updateProfile("lifestyleGoals", array)
+   - Then call updateProfile({ healthGoals: array, lifestyleGoals: array })
 
 # DEBUG SHORTCUTS
 
@@ -127,7 +126,7 @@ Your primary goal is to guide the user through the onboarding process and collec
 If the user says "Jimmy Jim" at ANY point during the conversation:
 1. IMMEDIATELY stop the interview flow
 2. Say: "Debug mode activated. Completing onboarding now."
-3. Call completeConversation(reason="magic_word_activated")
+3. Call completeConversation({ summary: "Magic word activation", reason: "magic_word_activated" })
 4. DO NOT ask for confirmation or additional information
 
 # Guardrails
@@ -141,9 +140,9 @@ If the user says "Jimmy Jim" at ANY point during the conversation:
 
 # Tools
 
-- updateProfile(key, value): Used to update the user's profile with collected data.
-- completeConversation(reason): Used to end the conversation after successful onboarding.
-- endConversation(reason): Used to end the conversation if the user indicates they are finished.
+- updateProfile({ userName?, userAge?, userWeight?, userHeight?, userGender?, userActivityLevel?, dietaryPreferences?, allergies?, skinType?, hairType?, householdAdults?, householdKids?, healthGoals?, lifestyleGoals? }): Update user profile with named parameters. Pass only the fields you want to update.
+- completeConversation({ summary }): End conversation after successful onboarding completion.
+- endConversation({ reason }): End conversation if user wants to exit early.
 
 **COMPLETION CRITERIA**:
 
@@ -152,7 +151,7 @@ When ALL data is collected: Name, Biometrics, Dietary/Allergies, Beauty Profile,
 **FINAL STEP - CRITICAL**:
 
 1. Say: "Perfect, {{name}}. Your digital twin is complete."
-2. IMMEDIATELY call completeConversation(reason="onboarding_complete")
+2. IMMEDIATELY call completeConversation({ summary: "Onboarding completed successfully with all profile data collected" })
 3. DO NOT wait for user response.
 
 **CONVERSATION ENDERS - DETECT & EXIT**:
@@ -163,24 +162,31 @@ If user says ANY of these after completing onboarding:
 - "Thank you" / "Thanks" / "Appreciate it"
 - "Goodbye" / "Bye" / "See you"
 
-IMMEDIATELY call endConversation(reason="user_exit") without asking for confirmation.`,
+IMMEDIATELY call endConversation({ reason: "user_exit" }) without asking for confirmation.`,
                 tools: [
                   {
                     type: "client",
                     name: "updateProfile",
-                    description: "Save user profile information immediately as you collect it during onboarding",
+                    description: "Save user profile information immediately as you collect it during onboarding. Pass only the fields you want to update.",
                     parameters: {
                       type: "object",
                       properties: {
-                        field: {
-                          type: "string",
-                          description: "Field to update: userName, userBiometrics, dietaryValues, allergies, beautyProfile, householdMembers, healthGoals, lifestyleGoals",
-                        },
-                        value: {
-                          description: "Value to set - can be string, array, or object depending on the field",
-                        },
+                        userName: { type: "string", description: "User's full name" },
+                        userAge: { type: "number", description: "User's age in years" },
+                        userWeight: { type: "number", description: "User's weight in kg or lbs" },
+                        userHeight: { type: "number", description: "User's height in cm or inches" },
+                        userGender: { type: "string", description: "User's gender identity" },
+                        userActivityLevel: { type: "string", description: "Activity level: sedentary, lightly_active, moderately_active, very_active, extremely_active" },
+                        dietaryPreferences: { type: "array", items: { type: "string" }, description: "Array of dietary preferences (Halal, Kosher, Vegan, Vegetarian, etc.)" },
+                        allergies: { type: "array", items: { type: "string" }, description: "Array of food allergies (Nuts, Gluten, Dairy, Shellfish, etc.)" },
+                        skinType: { type: "string", description: "Skin type: dry, oily, combination, sensitive, normal" },
+                        hairType: { type: "string", description: "Hair type: straight, wavy, curly, coily" },
+                        householdAdults: { type: "number", description: "Number of adults in household" },
+                        householdKids: { type: "number", description: "Number of children in household" },
+                        healthGoals: { type: "array", items: { type: "string" }, description: "Array of health goals (Weight Loss, Muscle Gain, Heart Health, Energy)" },
+                        lifestyleGoals: { type: "array", items: { type: "string" }, description: "Array of lifestyle goals (Meal Prep, New Cuisines, Self-Care)" }
                       },
-                      required: ["field", "value"],
+                      required: []
                     },
                   },
                   {
@@ -191,13 +197,17 @@ IMMEDIATELY call endConversation(reason="user_exit") without asking for confirma
                     parameters: {
                       type: "object",
                       properties: {
+                        summary: {
+                          type: "string",
+                          description: "Brief summary of onboarding completion"
+                        },
                         reason: {
                           type: "string",
                           description: "Reason for completion - 'onboarding_complete' or 'magic_word_activated'",
                           enum: ["onboarding_complete", "magic_word_activated"]
                         }
                       },
-                      required: ["reason"]
+                      required: ["summary"]
                     },
                   },
                   {
@@ -355,7 +365,13 @@ You can help users with:
                         },
                         item_data: {
                           type: "object",
-                          description: "Item details including name, category, quantity, unit"
+                          description: "Item details including name, category, quantity, unit",
+                          properties: {
+                            name: { type: "string", description: "Name of the inventory item" },
+                            category: { type: "string", description: "Category: fridge, pantry, beauty, pets" },
+                            quantity: { type: "number", description: "Quantity of items" },
+                            unit: { type: "string", description: "Unit of measurement (kg, lbs, units, etc.)" }
+                          }
                         }
                       },
                       required: ["action", "item_data"]
@@ -373,8 +389,8 @@ You can help users with:
                           items: {
                             type: "object",
                             properties: {
-                              name: { type: "string" },
-                              reason: { type: "string" }
+                              name: { type: "string", description: "Name of the item to add to shopping list" },
+                              reason: { type: "string", description: "Reason for adding this item (e.g., 'low stock', 'recipe ingredient')" }
                             }
                           },
                           description: "Array of items to add to shopping list"
@@ -408,9 +424,9 @@ You can help users with:
                         constraints: {
                           type: "object",
                           properties: {
-                            use_inventory: { type: "boolean" },
-                            max_cook_time: { type: "number" },
-                            cuisine_type: { type: "string" }
+                            use_inventory: { type: "boolean", description: "Whether to prioritize ingredients currently in inventory" },
+                            max_cook_time: { type: "number", description: "Maximum cooking time in minutes" },
+                            cuisine_type: { type: "string", description: "Preferred cuisine type (e.g., Italian, Mexican, Asian)" }
                           },
                           description: "Recipe search constraints"
                         }
