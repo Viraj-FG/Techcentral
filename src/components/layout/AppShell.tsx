@@ -64,7 +64,7 @@ const AppShell = ({
 
       {/* LAYER 50: Navigation Dock */}
       <div className="fixed bottom-6 left-0 right-0 z-50 px-4 pointer-events-none">
-        <motion.div className="mx-auto max-w-sm h-[72px] bg-slate-900/80 border border-white/10 rounded-full pointer-events-auto flex items-center justify-around px-4" initial={{
+        <motion.div className="mx-auto max-w-sm h-[72px] bg-slate-900/80 border border-white/10 rounded-full pointer-events-auto flex items-center justify-between px-4" initial={{
         opacity: 0,
         y: 100
       }} animate={{
@@ -74,46 +74,46 @@ const AppShell = ({
         ...kaevaTransition,
         delay: 0.5
       }}>
-          {/* Notification Bell */}
-          <NotificationBell />
+          {/* Left Group - 3 Buttons */}
+          <div className="flex items-center gap-1">
+            <NotificationBell />
+            
+            <button 
+              onClick={() => setSearchOpen(true)}
+              className="p-3 text-slate-400 hover:text-white transition-colors rounded-full"
+            >
+              <Search size={22} strokeWidth={1.5} />
+            </button>
 
-          {/* Search Button */}
-          <button 
-            onClick={() => setSearchOpen(true)}
-            className="p-3 text-slate-400 hover:text-white transition-colors rounded-full"
-          >
-            <Search size={22} strokeWidth={1.5} />
-          </button>
-
-          {/* Settings Button */}
-          <button onClick={() => navigate('/settings')} className="p-3 text-slate-400 hover:text-white transition-colors rounded-full">
-            <Settings size={22} strokeWidth={1.5} />
-          </button>
-
-          {/* Household Button */}
-          <button onClick={() => navigate('/household')} className="p-3 text-slate-400 hover:text-kaeva-accent transition-colors rounded-full">
-            <Users size={22} strokeWidth={1.5} />
-          </button>
+            <button onClick={() => navigate('/settings')} className="p-3 text-slate-400 hover:text-white transition-colors rounded-full">
+              <Settings size={22} strokeWidth={1.5} />
+            </button>
+          </div>
           
-          {/* The Living Aperture - Vision Scanner Trigger */}
+          {/* Center - Scan Button */}
           <button onClick={onScan} className="p-3">
             <div className="w-16 h-16 rounded-full bg-kaeva-sage border-4 border-[#0F172A] flex items-center justify-center">
               <Scan size={28} className="text-slate-900" strokeWidth={2} />
             </div>
           </button>
 
-          {/* Mic Button */}
-          <button 
-            onClick={onVoiceActivate} 
-            className="p-3 text-slate-400 hover:text-kaeva-accent transition-colors rounded-full"
-          >
-            <Mic size={22} strokeWidth={1.5} />
-          </button>
+          {/* Right Group - 3 Buttons */}
+          <div className="flex items-center gap-1">
+            <button onClick={() => navigate('/household')} className="p-3 text-slate-400 hover:text-kaeva-accent transition-colors rounded-full">
+              <Users size={22} strokeWidth={1.5} />
+            </button>
 
-          {/* Logout Button */}
-          <button onClick={handleLogout} className="p-3 text-slate-400 hover:text-white transition-colors rounded-full">
-            <LogOut size={24} strokeWidth={1.5} />
-          </button>
+            <button 
+              onClick={onVoiceActivate} 
+              className="p-3 text-slate-400 hover:text-kaeva-accent transition-colors rounded-full"
+            >
+              <Mic size={22} strokeWidth={1.5} />
+            </button>
+
+            <button onClick={handleLogout} className="p-3 text-slate-400 hover:text-white transition-colors rounded-full">
+              <LogOut size={24} strokeWidth={1.5} />
+            </button>
+          </div>
         </motion.div>
       </div>
 
