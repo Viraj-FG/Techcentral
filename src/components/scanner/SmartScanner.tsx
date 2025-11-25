@@ -65,6 +65,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
   const [isRecording, setIsRecording] = useState(false);
   const [videoFrames, setVideoFrames] = useState<string[]>([]);
   const [resultData, setResultData] = useState<Omit<ScanResultsProps, 'isOpen' | 'onClose'> | null>(null);
+  const [lastScanImage, setLastScanImage] = useState<string | null>(null);
 
   const getMealType = (hour: number): string => {
     if (hour < 11) return 'breakfast';
@@ -80,6 +81,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
       return;
     }
 
+    setLastScanImage(imageSrc);
     setIsScanning(true);
     try {
       // Call detect-intent edge function
@@ -793,6 +795,8 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
           onFlashToggle={handleFlashToggle}
           onFlipCamera={handleFlipCamera}
           onGalleryOpen={() => fileInputRef.current?.click()}
+          lastScanThumbnail={lastScanImage}
+          onLastScanClick={() => lastScanImage && resultData && setResultData(resultData)}
         />
 
         {/* Intent Preset Picker (shows in Auto mode) */}
@@ -805,11 +809,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
         {/* Bottom Controls */}
         <div className="absolute bottom-0 left-0 right-0 z-10">
           {/* Capture Button Area */}
-          <div className="flex items-center justify-between px-8 pt-4 pb-4 mb-4">
-            {/* Last Scan Thumbnail Placeholder */}
-            <div className="w-12 h-12 rounded-lg bg-white/10 backdrop-blur-md" />
-            
-            {/* Main Capture Button */}
+          <div className="flex items-center justify-center pt-4 pb-4 mb-4">
             <CaptureButton
               mode={captureMode}
               isRecording={isRecording}
@@ -818,14 +818,6 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
               onLongPressStart={handleRecordingStart}
               onLongPressEnd={handleRecordingEnd}
             />
-            
-            {/* Gallery Button */}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-12 h-12 rounded-lg bg-white/10 backdrop-blur-md flex items-center justify-center"
-            >
-              <ImagePlus className="w-5 h-5 text-white" />
-            </button>
           </div>
 
           {/* Mode Selector */}
