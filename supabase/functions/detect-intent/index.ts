@@ -128,7 +128,7 @@ Confidence threshold: Only return intent if > 0.75. Be precise with item detecti
             temperature: 0.4,
             topK: 32,
             topP: 1,
-            maxOutputTokens: 2048,
+            maxOutputTokens: 8192,
           }
         })
       }
@@ -142,8 +142,14 @@ Confidence threshold: Only return intent if > 0.75. Be precise with item detecti
 
     const data = await response.json();
     
+    // Check for MAX_TOKENS finish reason
+    if (data.candidates?.[0]?.finishReason === 'MAX_TOKENS') {
+      console.error('Gemini hit token limit:', JSON.stringify(data));
+      throw new Error('Response too long - please try with a simpler image or closer view');
+    }
+    
     // Validate response structure
-    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+    if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
       console.error('Unexpected Gemini response structure:', JSON.stringify(data));
       throw new Error('Invalid response from Gemini API - unexpected structure');
     }
