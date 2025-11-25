@@ -1,0 +1,182 @@
+erDiagram
+    PROFILES ||--o{ HOUSEHOLD_MEMBERSHIPS : has
+    PROFILES ||--o{ HOUSEHOLD_MEMBERS : owns
+    PROFILES ||--o{ PETS : owns
+    PROFILES ||--o{ MEAL_LOGS : logs
+    PROFILES ||--o{ RECIPES : creates
+    PROFILES ||--o| HOUSEHOLDS : "current_household"
+    
+    HOUSEHOLDS ||--o{ HOUSEHOLD_MEMBERSHIPS : contains
+    HOUSEHOLDS ||--o{ HOUSEHOLD_INVITES : generates
+    HOUSEHOLDS ||--o{ HOUSEHOLD_ACTIVITY : tracks
+    HOUSEHOLDS ||--o{ INVENTORY : owns
+    HOUSEHOLDS ||--o{ SHOPPING_LIST : maintains
+    HOUSEHOLDS ||--o{ RECIPES : shares
+    
+    INVENTORY }o--|| SHOPPING_LIST : "restock_via"
+    
+    PROFILES {
+        uuid id PK
+        string user_name
+        int user_age
+        int user_weight
+        int user_height
+        string user_gender
+        string user_activity_level
+        int calculated_tdee
+        json dietary_preferences
+        json allergies
+        json beauty_profile
+        json health_goals
+        json lifestyle_goals
+        uuid current_household_id FK
+        bool onboarding_completed
+        bool agent_configured
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    HOUSEHOLDS {
+        uuid id PK
+        string name
+        uuid owner_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    HOUSEHOLD_MEMBERSHIPS {
+        uuid id PK
+        uuid household_id FK
+        uuid user_id FK
+        string role
+        timestamp joined_at
+    }
+    
+    HOUSEHOLD_MEMBERS {
+        uuid id PK
+        uuid user_id FK
+        string name
+        string member_type
+        int age
+        string age_group
+        string gender
+        int weight
+        int height
+        string activity_level
+        int calculated_tdee
+        json allergies
+        json dietary_restrictions
+        json health_conditions
+        json medication_interactions
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    PETS {
+        uuid id PK
+        uuid user_id FK
+        string name
+        string species
+        string breed
+        int age
+        string food_brand
+        int daily_serving_size
+        bool toxic_flags_enabled
+        string notes
+        timestamp created_at
+    }
+    
+    INVENTORY {
+        uuid id PK
+        uuid household_id FK
+        string name
+        string brand_name
+        string category
+        int quantity
+        string unit
+        int fill_level
+        date expiry_date
+        string barcode
+        json nutrition_data
+        json allergens
+        json dietary_flags
+        string status
+        bool auto_order_enabled
+        int reorder_threshold
+        string fatsecret_id
+        string product_image_url
+        timestamp last_enriched_at
+        timestamp last_activity_at
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    SHOPPING_LIST {
+        uuid id PK
+        uuid household_id FK
+        uuid inventory_id FK
+        string item_name
+        int quantity
+        string unit
+        string source
+        string status
+        string priority
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    MEAL_LOGS {
+        uuid id PK
+        uuid user_id FK
+        string meal_type
+        timestamp logged_at
+        int calories
+        int protein
+        int carbs
+        int fat
+        int fiber
+        json items
+        string image_url
+        timestamp created_at
+    }
+    
+    RECIPES {
+        uuid id PK
+        uuid user_id FK
+        uuid household_id FK
+        string name
+        json ingredients
+        json instructions
+        int servings
+        int cooking_time
+        string difficulty
+        int estimated_calories
+        int match_score
+        array required_appliances
+        timestamp cached_at
+        timestamp created_at
+    }
+    
+    HOUSEHOLD_INVITES {
+        uuid id PK
+        uuid household_id FK
+        uuid created_by FK
+        string invite_code
+        timestamp expires_at
+        int max_uses
+        int times_used
+        timestamp created_at
+    }
+    
+    HOUSEHOLD_ACTIVITY {
+        uuid id PK
+        uuid household_id FK
+        uuid actor_id FK
+        string actor_name
+        string activity_type
+        string entity_type
+        uuid entity_id
+        string entity_name
+        json metadata
+        timestamp created_at
+    }

@@ -1,0 +1,21 @@
+flowchart TD
+    Start([User Visits]) --> Root[/ Route]
+    Root --> Landing[Landing Page - Marketing]
+    Landing --> Auth1[Login Button]
+    Auth1 --> AuthPage[/auth Route]
+    
+    AuthPage --> |Success| AppIndex[/app Route]
+    AppIndex --> CheckOnboarding{Onboarding<br/>Complete?}
+    
+    CheckOnboarding --> |No| Onboarding[Voice Onboarding]
+    CheckOnboarding --> |Yes| CheckHousehold{Household<br/>ID Set?}
+    
+    CheckHousehold --> |No| HouseholdSetup[Household Setup]
+    CheckHousehold --> |Yes| Dashboard[Dashboard]
+    
+    Dashboard --> Inventory[/inventory]
+    Dashboard --> Recipes[/recipes]
+    Dashboard --> Analytics[/analytics]
+    Dashboard --> Household[/household]
+    Dashboard --> Settings[/settings]
+    Dashboard --> Admin[/admin - Admin Only]
