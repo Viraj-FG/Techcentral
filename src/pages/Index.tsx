@@ -40,13 +40,8 @@ const Index = () => {
 
     // Wait for profile to load before determining route
     if (!profile) {
-      console.log('📍 Authenticated but profile not loaded yet, triggering fallback refresh');
-      // Fallback: Explicitly try to refresh profile after 2 seconds
-      const timer = setTimeout(() => {
-        console.log('📍 Profile still not loaded after 2s, calling refreshProfile()');
-        refreshProfile();
-      }, 2000);
-      return () => clearTimeout(timer);
+      // Just wait - AuthContext will load profile via onAuthStateChange
+      return;
     }
 
     // Show splash first (only once)
@@ -148,7 +143,7 @@ const Index = () => {
       <div className="fixed inset-0 bg-kaeva-void flex items-center justify-center">
         <LoadingState
           message={isHouseholdInitializing ? "Setting up your space..." : "Loading Kaeva..."}
-          timeout={20000}
+          timeout={10000}
           onTimeout={() => {
             console.warn("⏱️ Loading timeout - redirecting to login");
             toast({

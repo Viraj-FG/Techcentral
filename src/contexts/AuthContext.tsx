@@ -42,25 +42,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const { toast } = useToast();
 
   const loadProfile = async (userId: string, retries = 3) => {
+    // Idempotent check - only load if we don't already have this user's profile
+    if (profile?.id === userId) {
+      console.log('✅ Profile already loaded');
+      return profile;
+    }
+
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .maybeSingle();
+        .single();
 
       if (error) throw error;
-      
-      if (!data && retries > 0) {
-        console.log(`⚠️ Profile not found, retrying... (${retries} attempts left)`);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return loadProfile(userId, retries - 1);
-      }
 
+      console.log('✅ Profile loaded:', data);
       setProfile(data);
       return data;
     } catch (error: any) {
@@ -78,37 +78,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const refreshProfile = async () => {
     if (user?.id) {
       await loadProfile(user.id);
-    }
-  };
-
-  const attemptSessionRecovery = async () => {
-    console.log('🔄 Attempting session recovery...');
-    try {
-      const { data, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('❌ Session recovery failed:', error);
-        return false;
-      }
-
-      if (data.session) {
-        console.log('✅ Session recovered, reloading profile');
-        setSession(data.session);
-        setUser(data.session.user);
-        await loadProfile(data.session.user.id);
-        
-        toast({
-          title: "Connection Restored",
-          description: "Your session has been recovered.",
-        });
-        return true;
-      } else {
-        console.log('❌ No session found during recovery');
-        return false;
-      }
-    } catch (error) {
-      console.error('❌ Session recovery error:', error);
-      return false;
     }
   };
 
@@ -224,7 +193,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Initialize auth state
   useEffect(() => {
     let mounted = true;
-    let isProcessingAuth = false;
 
     const initAuth = async () => {
       try {
@@ -235,152 +203,49 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           async (event, session) => {
             if (!mounted) return;
             
-            console.log('🔐 Auth event:', event, { hasSession: !!session });
+            console.log('🔐 Auth event:', event);
 
-            // Handle session-based events (SIGNED_IN and INITIAL_SESSION)
-            if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
-              // Avoid duplicate processing if we already have this user's profile
-              if (profile?.id === session.user.id) {
-                console.log('🔐 Profile already loaded for this user, skipping');
-                return;
-              }
-              
-              isProcessingAuth = true;
-              try {
-                console.log(`🔐 ${event} event - loading profile`);
+            if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+              if (session) {
                 setSession(session);
                 setUser(session.user);
                 await loadProfile(session.user.id);
-              } finally {
-                isProcessingAuth = false;
               }
             }
 
             if (event === 'SIGNED_OUT') {
-              console.log('🔐 SIGNED_OUT event');
               setSession(null);
               setUser(null);
               setProfile(null);
             }
 
-            if (event === 'TOKEN_REFRESHED' && session) {
-              console.log('🔐 TOKEN_REFRESHED event');
-              setSession(session);
+            if (event === 'TOKEN_REFRESHED') {
+              if (session) setSession(session);
             }
           }
         );
 
-        // THEN check for existing session - but DON'T update state here
-        // Let onAuthStateChange handle it via INITIAL_SESSION event
-        console.log('🔐 Checking for existing session...');
-        
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Auth initialization timeout')), 15000)
-        );
-
-        let sessionData;
-        try {
-          const result = await Promise.race([
-            supabase.auth.getSession(),
-            timeoutPromise
-          ]);
-          sessionData = result;
-        } catch (err) {
-          console.warn('⚠️ Auth initialization check timed out, proceeding with auth state from listener', err);
-        }
-
-        // Small delay to allow onAuthStateChange to process
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Fallback: If we have a session but no profile loaded, load it explicitly
-        if (mounted && sessionData?.data?.session && !profile) {
-          console.log('🔐 Fallback: Session exists but profile not loaded, loading explicitly');
-          const currentSession = sessionData.data.session;
-          setSession(currentSession);
-          setUser(currentSession.user);
-          await loadProfile(currentSession.user.id);
-        }
-        
-        if (mounted) {
+        // THEN check for existing session (non-blocking)
+        supabase.auth.getSession().then(({ data }) => {
+          if (mounted && data.session) {
+            // Let the INITIAL_SESSION event handle this
+            console.log('🔐 Existing session detected, INITIAL_SESSION will fire');
+          }
           setIsLoading(false);
-          console.log('🔐 Auth initialization complete');
-        }
+        });
 
         return () => {
           mounted = false;
           subscription.unsubscribe();
         };
       } catch (error) {
-        console.error("🔐 Auth initialization error:", error);
+        console.error('🔐 Auth initialization error:', error);
         if (mounted) setIsLoading(false);
       }
     };
 
     initAuth();
   }, []);
-
-  // Connection monitoring and automatic session recovery
-  useEffect(() => {
-    const handleOnline = async () => {
-      console.log('🌐 Connection restored');
-      setIsOnline(true);
-      
-      // If we have a user but no profile, attempt recovery
-      if (user && !profile) {
-        console.log('🔄 User session exists but profile missing, attempting recovery');
-        await attemptSessionRecovery();
-      } else if (session) {
-        // We have both session and profile, just refresh to ensure data is fresh
-        console.log('🔄 Refreshing session after reconnection');
-        await refreshSession();
-        
-        toast({
-          title: "Back Online",
-          description: "Connection restored.",
-        });
-      }
-    };
-
-    const handleOffline = () => {
-      console.log('📡 Connection lost');
-      setIsOnline(false);
-      
-      toast({
-        title: "Connection Lost",
-        description: "You're currently offline. Changes will sync when reconnected.",
-        variant: "destructive",
-      });
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, [user, profile, session]);
-
-  // Periodic session health check when online
-  useEffect(() => {
-    if (!isOnline || !session) return;
-
-    const healthCheckInterval = setInterval(async () => {
-      try {
-        // Quick health check: verify session is still valid
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error || !data.session) {
-          console.warn('⚠️ Session health check failed, attempting recovery');
-          await attemptSessionRecovery();
-        }
-      } catch (error) {
-        console.error('❌ Session health check error:', error);
-      }
-    }, 60000); // Check every 60 seconds
-
-    return () => clearInterval(healthCheckInterval);
-  }, [isOnline, session]);
 
   const value: AuthContextValue = {
     session,
