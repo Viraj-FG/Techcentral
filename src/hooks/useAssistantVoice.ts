@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { generateConversationId, storeMessage } from "@/lib/conversationUtils";
 import { logConversationEvent } from "@/lib/conversationLogger";
 import { fetchHouseholdContext, buildInitialContext, buildInventoryUpdate, buildCartUpdate, buildActivityUpdate } from "@/lib/contextBuilder";
+import { voiceLog } from "@/lib/voiceLogger";
 
 type ApertureState = "idle" | "listening" | "thinking" | "speaking";
 
@@ -32,6 +33,9 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
   // Define clientTools INLINE to avoid stale closures
   const conversation = useConversation({
     onConnect: async () => {
+      const timer = voiceLog.startTimer();
+      voiceLog.info('connection', 'Assistant agent connected');
+      
       console.log("🔌 Assistant agent connected");
       logConversationEvent({
         conversationId: conversationIdRef.current,
@@ -40,17 +44,40 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
         eventData: { timestamp: new Date().toISOString() }
       });
 
+      voiceLog.info('connection', 'Connection established', {
+        conversationId: conversationIdRef.current,
+        connectionTime: timer.elapsed(),
+        agentId: ELEVENLABS_CONFIG.assistant.agentId
+      });
+
       // Inject initial household context
       if (userProfile?.id && conversation.sendContextualUpdate) {
         try {
+          const contextTimer = voiceLog.startTimer();
           const context = await fetchHouseholdContext(userProfile.id);
+          
           if (context) {
             const contextString = buildInitialContext(context);
+            
+            voiceLog.info('context', 'Injecting initial household context', {
+              inventoryCount: context.inventory?.length || 0,
+              memberCount: context.members?.length || 0,
+              petCount: context.pets?.length || 0,
+              activityCount: context.recentActivity?.length || 0,
+              contextLength: contextString.length,
+              fetchDuration: contextTimer.elapsed()
+            });
+            
             console.log("🧠 Injecting initial context:", contextString);
             await conversation.sendContextualUpdate(contextString);
+            
+            voiceLog.debug('context', 'Initial context injected successfully');
+          } else {
+            voiceLog.warn('context', 'No household context available to inject');
           }
         } catch (error) {
           console.error("❌ Failed to inject initial context:", error);
+          voiceLog.logError('context', 'Failed to inject initial context', error);
         }
       }
 
@@ -420,6 +447,11 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
   const setupRealtimeSubscriptions = useCallback(() => {
     if (!userProfile?.current_household_id || !conversation.sendContextualUpdate) return;
 
+    voiceLog.info('realtime', 'Setting up household subscriptions', {
+      householdId: userProfile.current_household_id,
+      tables: ['inventory', 'shopping_list', 'household_activity']
+    });
+
     // Clean up existing channel
     if (realtimeChannelRef.current) {
       supabase.removeChannel(realtimeChannelRef.current);
@@ -439,6 +471,7 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
           // Throttle updates (max 1 per 5 seconds)
           const now = Date.now();
           if (now - lastContextUpdateRef.current < 5000) {
+            voiceLog.debug('realtime', 'Throttling inventory context update');
             console.log("⏱️ Throttling context update");
             return;
           }
@@ -451,10 +484,18 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
               type: payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE',
               item: payload.new || payload.old
             });
+            
+            voiceLog.debug('context', 'Sending inventory context update', {
+              eventType: payload.eventType,
+              itemName: (payload.new as any)?.name || (payload.old as any)?.name,
+              updateLength: updateString.length
+            });
+            
             console.log("📦 Sending inventory update:", updateString);
             await conversation.sendContextualUpdate(updateString);
           } catch (error) {
             console.error("❌ Failed to send inventory update:", error);
+            voiceLog.logError('context', 'Failed to send inventory update', error);
           }
         }
       )
@@ -545,32 +586,67 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
 
   // Update aperture state based on conversation status
   useEffect(() => {
+    const previousState = apertureState;
+    let newState: ApertureState;
+    
     if (conversation.isSpeaking) {
-      setApertureState("speaking");
+      newState = "speaking";
     } else if (conversation.status === "connected") {
-      setApertureState("listening");
+      newState = "listening";
     } else {
-      setApertureState("idle");
+      newState = "idle";
     }
-  }, [conversation.isSpeaking, conversation.status]);
+
+    if (previousState !== newState) {
+      voiceLog.debug('state', 'Aperture state changed', {
+        from: previousState,
+        to: newState,
+        reason: conversation.isSpeaking ? 'agent_speaking' : conversation.status,
+        audioAmplitude
+      });
+      setApertureState(newState);
+    }
+  }, [conversation.isSpeaking, conversation.status, audioAmplitude]);
 
   const startConversation = useCallback(async () => {
+    const timer = voiceLog.startTimer();
+    conversationIdRef.current = generateConversationId();
+    
+    voiceLog.setContext(conversationIdRef.current, 'assistant');
+    voiceLog.info('session', 'Starting assistant conversation', {
+      conversationId: conversationIdRef.current,
+      agentId: ELEVENLABS_CONFIG.assistant.agentId,
+      userId: userProfile?.id
+    });
+    
     console.log("🚀 Starting assistant conversation");
     setShowConversation(true);
     setApertureState("thinking");
 
     try {
-      conversationIdRef.current = generateConversationId();
-
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) throw new Error("Not authenticated");
+      if (!session?.user) {
+        voiceLog.error('session', 'Authentication required');
+        throw new Error("Not authenticated");
+      }
+
+      voiceLog.debug('session', 'User authenticated', { userId: session.user.id });
 
       const signedUrl = await getSignedUrl(ELEVENLABS_CONFIG.assistant.agentId);
+      
+      voiceLog.debug('session', 'Starting ElevenLabs session');
       console.log("🤖 Starting assistant agent");
 
       await conversation.startSession({ signedUrl });
+      
+      voiceLog.info('session', 'Assistant session started successfully', {
+        duration: timer.elapsed()
+      });
+      
       setApertureState("listening");
     } catch (error) {
+      voiceLog.logError('session', 'Failed to start assistant conversation', error);
+      
       console.error("❌ Failed to start assistant:", error);
       toast({
         title: "Connection Failed",
@@ -579,15 +655,18 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
       });
       endConversation();
     }
-  }, [conversation, toast]);
+  }, [conversation, toast, userProfile]);
 
   const endConversation = useCallback(async () => {
+    voiceLog.info('session', 'Ending assistant conversation');
+    
     console.log("🔚 Ending assistant conversation");
     
     if (conversation.status === "connected") {
       await conversation.endSession();
     }
 
+    voiceLog.clearContext();
     conversationIdRef.current = "";
     setUserTranscript("");
     setAiTranscript("");

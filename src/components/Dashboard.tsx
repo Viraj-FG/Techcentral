@@ -147,18 +147,33 @@ const Dashboard = ({ profile }: DashboardProps) => {
     fetchInventory();
   }, []);
 
-  // Global keyboard shortcut: Cmd+Shift+K for voice
+  // Global keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd+Shift+K for voice
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'k') {
         e.preventDefault();
         voiceAssistantRef.current?.startConversation();
+      }
+      
+      // Cmd+Shift+D to toggle debug mode
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'd') {
+        e.preventDefault();
+        const current = localStorage.getItem('kaeva_voice_debug');
+        const newValue = current === 'true' ? 'false' : 'true';
+        localStorage.setItem('kaeva_voice_debug', newValue);
+        toast({
+          title: `Voice Debug Mode: ${newValue === 'true' ? 'ON' : 'OFF'}`,
+          description: newValue === 'true' 
+            ? 'Verbose logging enabled. Check console for detailed voice logs.' 
+            : 'Verbose logging disabled.',
+        });
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [toast]);
 
   // Calculate low stock items for Smart Cart
   const lowStockItems = Object.values(inventoryData)
