@@ -28,27 +28,42 @@ const Index = () => {
 
   // Handle authentication and routing
   useEffect(() => {
+    console.log('📍 Index routing check:', { authLoading, isAuthenticated, appState, hasProfile: !!profile });
+    
     if (authLoading) return;
 
     if (!isAuthenticated) {
-      navigate('/auth');
+      console.log('📍 Not authenticated, redirecting to /auth');
+      navigate('/auth', { replace: true });
       return;
     }
 
-    // Show splash first
+    // Wait for profile to load before determining route
+    if (!profile) {
+      console.log('📍 Authenticated but profile not loaded yet');
+      return;
+    }
+
+    // Show splash first (only once)
     if (!appState) {
+      console.log('📍 Setting splash state');
       setAppState("splash");
       return;
     }
 
-    // After splash, check onboarding status and household
-    if (appState === "splash" && profile) {
+    // After splash, check onboarding status
+    if (appState === "splash") {
       if (profile.onboarding_completed) {
-        // Check if household exists
+        console.log('📍 Onboarding complete, ensuring household and showing dashboard');
         ensureHousehold().then(() => {
+          setAppState("dashboard");
+        }).catch((error) => {
+          console.error('📍 Failed to ensure household:', error);
+          // Continue to dashboard anyway
           setAppState("dashboard");
         });
       } else {
+        console.log('📍 Onboarding not complete, showing onboarding');
         setAppState("onboarding");
       }
     }
