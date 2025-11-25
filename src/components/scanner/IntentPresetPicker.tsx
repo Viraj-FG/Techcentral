@@ -26,7 +26,7 @@ export const IntentPresetPicker = ({ preset, onChange, isVisible }: IntentPreset
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
-          className="absolute bottom-32 left-0 right-0 flex justify-center px-4"
+          className="absolute bottom-48 left-0 right-0 flex justify-center px-4"
         >
           <div className="flex gap-2 p-2 bg-kaeva-void/80 backdrop-blur-lg rounded-full">
             {presets.map((p) => {

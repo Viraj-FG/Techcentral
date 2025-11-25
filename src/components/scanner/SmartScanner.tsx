@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Webcam from 'react-webcam';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, ImagePlus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -805,7 +805,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
         {/* Bottom Controls */}
         <div className="absolute bottom-0 left-0 right-0 z-10">
           {/* Capture Button Area */}
-          <div className="flex items-center justify-center gap-8 pb-6">
+          <div className="flex items-center justify-between px-8 pt-4 pb-4 mb-4">
             {/* Last Scan Thumbnail Placeholder */}
             <div className="w-12 h-12 rounded-lg bg-white/10 backdrop-blur-md" />
             
@@ -824,7 +824,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
               onClick={() => fileInputRef.current?.click()}
               className="w-12 h-12 rounded-lg bg-white/10 backdrop-blur-md flex items-center justify-center"
             >
-              <div className="w-8 h-8 border-2 border-white rounded" />
+              <ImagePlus className="w-5 h-5 text-white" />
             </button>
           </div>
 
