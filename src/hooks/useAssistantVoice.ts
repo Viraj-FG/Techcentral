@@ -7,7 +7,7 @@ import { ELEVENLABS_CONFIG } from "@/config/agent";
 import { useNavigate } from "react-router-dom";
 import { generateConversationId, storeMessage } from "@/lib/conversationUtils";
 import { logConversationEvent } from "@/lib/conversationLogger";
-import { fetchHouseholdContext, buildInitialContext, buildInventoryUpdate, buildCartUpdate } from "@/lib/contextBuilder";
+import { fetchHouseholdContext, buildInitialContext, buildInventoryUpdate, buildCartUpdate, buildActivityUpdate } from "@/lib/contextBuilder";
 
 type ApertureState = "idle" | "listening" | "thinking" | "speaking";
 
@@ -487,6 +487,31 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
             await conversation.sendContextualUpdate(updateString);
           } catch (error) {
             console.error("❌ Failed to send cart update:", error);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'household_activity',
+          filter: `household_id=eq.${userProfile.current_household_id}`
+        },
+        async (payload) => {
+          // Throttle updates
+          const now = Date.now();
+          if (now - lastContextUpdateRef.current < 5000) return;
+          lastContextUpdateRef.current = now;
+
+          if (conversation.status !== 'connected') return;
+
+          try {
+            const updateString = buildActivityUpdate(payload.new);
+            console.log("👥 Sending activity update:", updateString);
+            await conversation.sendContextualUpdate(updateString);
+          } catch (error) {
+            console.error("❌ Failed to send activity update:", error);
           }
         }
       )

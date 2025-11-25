@@ -6,6 +6,7 @@ export interface HouseholdContext {
   pets: any[];
   shoppingList: any[];
   profile: any;
+  recentActivity?: any[];
 }
 
 /**
@@ -23,7 +24,7 @@ export async function fetchHouseholdContext(userId: string): Promise<HouseholdCo
     if (!profile?.current_household_id) return null;
 
     // Fetch all household data in parallel
-    const [inventoryRes, membersRes, petsRes, cartRes] = await Promise.all([
+    const [inventoryRes, membersRes, petsRes, cartRes, activityRes] = await Promise.all([
       supabase
         .from('inventory')
         .select('*')
@@ -40,7 +41,13 @@ export async function fetchHouseholdContext(userId: string): Promise<HouseholdCo
         .from('shopping_list')
         .select('*')
         .eq('household_id', profile.current_household_id)
-        .eq('status', 'pending')
+        .eq('status', 'pending'),
+      supabase
+        .from('household_activity')
+        .select('*')
+        .eq('household_id', profile.current_household_id)
+        .order('created_at', { ascending: false })
+        .limit(10)
     ]);
 
     return {
@@ -48,6 +55,7 @@ export async function fetchHouseholdContext(userId: string): Promise<HouseholdCo
       members: membersRes.data || [],
       pets: petsRes.data || [],
       shoppingList: cartRes.data || [],
+      recentActivity: activityRes.data || [],
       profile
     };
   } catch (error) {
@@ -136,7 +144,52 @@ export function buildInitialContext(data: HouseholdContext): string {
     lines.push(`\nALLERGIES TO AVOID: ${[...new Set(allAllergies)].join(', ')}`);
   }
 
+  // Recent activity
+  if (data.recentActivity && data.recentActivity.length > 0) {
+    lines.push(`\nRECENT HOUSEHOLD ACTIVITY:`);
+    data.recentActivity.slice(0, 5).forEach(activity => {
+      const timeAgo = getTimeAgo(activity.created_at);
+      const actorName = activity.actor_name || 'Someone';
+      const entityName = activity.entity_name || 'an item';
+      
+      let actionDesc = '';
+      switch (activity.activity_type) {
+        case 'inventory_added':
+          actionDesc = `added "${entityName}" to ${activity.metadata?.category || 'inventory'}`;
+          break;
+        case 'inventory_updated':
+          actionDesc = `updated "${entityName}" in inventory`;
+          break;
+        case 'inventory_removed':
+          actionDesc = `removed "${entityName}" from inventory`;
+          break;
+        case 'recipe_added':
+          actionDesc = `added recipe "${entityName}"`;
+          break;
+        case 'member_joined':
+          actionDesc = `joined the household`;
+          break;
+        default:
+          actionDesc = `performed ${activity.activity_type} on ${entityName}`;
+      }
+      
+      lines.push(`- ${actorName} ${actionDesc} (${timeAgo})`);
+    });
+  }
+
   return lines.join('\n');
+}
+
+/**
+ * Helper to format time ago
+ */
+function getTimeAgo(timestamp: string): string {
+  const seconds = Math.floor((Date.now() - new Date(timestamp).getTime()) / 1000);
+  
+  if (seconds < 60) return 'just now';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hour${Math.floor(seconds / 3600) > 1 ? 's' : ''} ago`;
+  return `${Math.floor(seconds / 86400)} day${Math.floor(seconds / 86400) > 1 ? 's' : ''} ago`;
 }
 
 /**
@@ -172,4 +225,35 @@ export function buildCartUpdate(items: any[]): string {
     return 'SHOPPING CART: Empty';
   }
   return `SHOPPING CART UPDATE: Now has ${items.length} items (${items.map(i => i.item_name).slice(0, 5).join(', ')}${items.length > 5 ? '...' : ''})`;
+}
+
+/**
+ * Build activity update string for realtime
+ */
+export function buildActivityUpdate(activity: any): string {
+  const actorName = activity.actor_name || 'Someone';
+  const entityName = activity.entity_name || 'an item';
+  
+  let actionDesc = '';
+  switch (activity.activity_type) {
+    case 'inventory_added':
+      actionDesc = `added "${entityName}" to ${activity.metadata?.category || 'inventory'}`;
+      break;
+    case 'inventory_updated':
+      actionDesc = `updated "${entityName}" in inventory`;
+      break;
+    case 'inventory_removed':
+      actionDesc = `removed "${entityName}" from inventory`;
+      break;
+    case 'recipe_added':
+      actionDesc = `added recipe "${entityName}"`;
+      break;
+    case 'member_joined':
+      actionDesc = `joined the household`;
+      break;
+    default:
+      actionDesc = `performed ${activity.activity_type}`;
+  }
+  
+  return `HOUSEHOLD UPDATE: ${actorName} just ${actionDesc}`;
 }
