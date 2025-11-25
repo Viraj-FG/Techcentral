@@ -18,38 +18,28 @@ const modes: { value: CaptureMode; label: string; icon: React.ComponentType<any>
 
 export const ModeSelector = ({ mode, onChange }: ModeSelectorProps) => {
   return (
-    <div className="flex items-center justify-center gap-6 px-4 py-3 pb-6 bg-kaeva-void/80 backdrop-blur-lg">
+    <div className="absolute top-4 left-4 z-20 flex flex-col gap-3">
       {modes.map((m) => {
         const Icon = m.icon;
         const isActive = mode === m.value;
         
         return (
-          <button
+          <motion.button
             key={m.value}
             onClick={() => onChange(m.value)}
+            whileTap={{ scale: 0.9 }}
             className={cn(
-              "relative flex flex-col items-center gap-1 transition-opacity",
-              isActive ? "opacity-100" : "opacity-50"
+              "w-10 h-10 rounded-full backdrop-blur-md flex items-center justify-center transition-colors",
+              isActive 
+                ? "bg-kaeva-sage/20 border border-kaeva-sage" 
+                : "bg-white/10"
             )}
           >
             <Icon className={cn(
-              "w-6 h-6 transition-colors",
+              "w-5 h-5",
               isActive ? "text-kaeva-sage" : "text-white"
             )} />
-            <span className={cn(
-              "text-xs font-medium transition-colors",
-              isActive ? "text-kaeva-sage" : "text-white"
-            )}>
-              {m.label}
-            </span>
-            {isActive && (
-              <motion.div
-                layoutId="mode-indicator"
-                className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-kaeva-sage rounded-full"
-                transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
-              />
-            )}
-          </button>
+          </motion.button>
         );
       })}
     </div>

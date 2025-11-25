@@ -799,6 +799,9 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
           onLastScanClick={() => lastScanImage && resultData && setResultData(resultData)}
         />
 
+        {/* Mode Selector - Top Left */}
+        <ModeSelector mode={captureMode} onChange={setCaptureMode} />
+
         {/* Intent Preset Picker (shows in Auto mode) */}
         <IntentPresetPicker
           preset={intentPreset}
@@ -819,9 +822,6 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
               onLongPressEnd={handleRecordingEnd}
             />
           </div>
-
-          {/* Mode Selector */}
-          <ModeSelector mode={captureMode} onChange={setCaptureMode} />
         </div>
 
         {/* Hidden File Input */}
