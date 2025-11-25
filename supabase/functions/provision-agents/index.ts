@@ -57,10 +57,11 @@ serve(async (req) => {
     console.log('=== AGENT PROVISIONING START ===');
     console.log('Timestamp:', new Date().toISOString());
 
-    // Define agent configurations
+    // Define agent configurations with known agent IDs
     const agentConfigs = [
       {
         type: 'onboarding',
+        agentId: 'agent_0501kakwnx5rffaby5px9y1pskkb', // Known agent ID
         name: 'Kaeva Onboarding',
         config: {
           name: "Kaeva",
@@ -163,6 +164,74 @@ If user says ANY of these after completing onboarding:
 - "Goodbye" / "Bye" / "See you"
 
 IMMEDIATELY call endConversation(reason="user_exit") without asking for confirmation.`,
+                tools: [
+                  {
+                    type: "client",
+                    name: "updateProfile",
+                    description: "Save user profile information immediately as you collect it during onboarding",
+                    parameters: {
+                      type: "object",
+                      properties: {
+                        field: {
+                          type: "string",
+                          description: "Field to update: userName, userBiometrics, dietaryValues, allergies, beautyProfile, householdMembers, healthGoals, lifestyleGoals",
+                        },
+                        value: {
+                          description: "Value to set - can be string, array, or object depending on the field",
+                        },
+                      },
+                      required: ["field", "value"],
+                    },
+                  },
+                  {
+                    type: "client",
+                    name: "completeConversation",
+                    description: "BLOCKING TOOL: End conversation after successful onboarding completion. Call when ALL required data is collected.",
+                    wait_for_response: true,
+                    parameters: {
+                      type: "object",
+                      properties: {
+                        reason: {
+                          type: "string",
+                          description: "Reason for completion - 'onboarding_complete' or 'magic_word_activated'",
+                          enum: ["onboarding_complete", "magic_word_activated"]
+                        }
+                      },
+                      required: ["reason"]
+                    },
+                  },
+                  {
+                    type: "client",
+                    name: "endConversation",
+                    description: "End conversation if user wants to exit or finish early",
+                    parameters: {
+                      type: "object",
+                      properties: {
+                        reason: {
+                          type: "string",
+                          description: "Reason for ending - typically 'user_exit'",
+                          enum: ["user_exit"]
+                        }
+                      },
+                      required: ["reason"]
+                    },
+                  },
+                  {
+                    type: "client",
+                    name: "navigateTo",
+                    description: "Navigate to a specific dashboard page (assistant mode only)",
+                    parameters: {
+                      type: "object",
+                      properties: {
+                        page: {
+                          type: "string",
+                          description: "Page to navigate: inventory, settings, beauty, pets, food",
+                        },
+                      },
+                      required: ["page"],
+                    },
+                  },
+                ],
               },
               first_message: "Hello! I'm Kaeva, your AI Life Operating System. Let's get to know you. What's your name?",
               language: "en",
@@ -171,74 +240,11 @@ IMMEDIATELY call endConversation(reason="user_exit") without asking for confirma
               voice_id: "9BWtsMINqrJLrRacOk9x",
             },
           },
-          client_tools: [
-            {
-              name: "updateProfile",
-              description: "Save user profile information immediately as you collect it during onboarding",
-              parameters: {
-                type: "object",
-                properties: {
-                  field: {
-                    type: "string",
-                    description: "Field to update: userName, userBiometrics, dietaryValues, allergies, beautyProfile, householdMembers, healthGoals, lifestyleGoals",
-                  },
-                  value: {
-                    description: "Value to set - can be string, array, or object depending on the field",
-                  },
-                },
-                required: ["field", "value"],
-              },
-            },
-            {
-              name: "completeConversation",
-              description: "BLOCKING TOOL: End conversation after successful onboarding completion. Call when ALL required data is collected.",
-              wait_for_response: true,
-              parameters: {
-                type: "object",
-                properties: {
-                  reason: {
-                    type: "string",
-                    description: "Reason for completion - 'onboarding_complete' or 'magic_word_activated'",
-                    enum: ["onboarding_complete", "magic_word_activated"]
-                  }
-                },
-                required: ["reason"]
-              },
-            },
-            {
-              name: "endConversation",
-              description: "End conversation if user wants to exit or finish early",
-              parameters: {
-                type: "object",
-                properties: {
-                  reason: {
-                    type: "string",
-                    description: "Reason for ending - typically 'user_exit'",
-                    enum: ["user_exit"]
-                  }
-                },
-                required: ["reason"]
-              },
-            },
-            {
-              name: "navigateTo",
-              description: "Navigate to a specific dashboard page (assistant mode only)",
-              parameters: {
-                type: "object",
-                properties: {
-                  page: {
-                    type: "string",
-                    description: "Page to navigate: inventory, settings, beauty, pets, food",
-                  },
-                },
-                required: ["page"],
-              },
-            },
-          ],
         }
       },
       {
         type: 'assistant',
+        agentId: 'agent_2601kaqwv4ejfhets9fyyafzj2e6', // Known agent ID
         name: 'Kaeva Assistant',
         config: {
           name: "Kaeva Assistant",
@@ -319,6 +325,146 @@ You can help users with:
 - Provide context: "You have 3 items expiring in the next 2 days"
 - Offer actions: "Would you like me to suggest recipes using those ingredients?"
 - End with next steps: "I've added milk to your cart. Anything else?"`,
+                tools: [
+                  {
+                    type: "client",
+                    name: "checkInventory",
+                    description: "Search the household inventory for specific items",
+                    parameters: {
+                      type: "object",
+                      properties: {
+                        query: {
+                          type: "string",
+                          description: "Search term for inventory items"
+                        }
+                      },
+                      required: ["query"]
+                    }
+                  },
+                  {
+                    type: "client",
+                    name: "updateInventory",
+                    description: "Add, update, or remove items from the user's inventory",
+                    parameters: {
+                      type: "object",
+                      properties: {
+                        action: {
+                          type: "string",
+                          enum: ["add", "update", "remove"],
+                          description: "Action to perform on inventory"
+                        },
+                        item_data: {
+                          type: "object",
+                          description: "Item details including name, category, quantity, unit"
+                        }
+                      },
+                      required: ["action", "item_data"]
+                    }
+                  },
+                  {
+                    type: "client",
+                    name: "addToShoppingList",
+                    description: "Add items to the user's shopping cart",
+                    parameters: {
+                      type: "object",
+                      properties: {
+                        items: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            properties: {
+                              name: { type: "string" },
+                              reason: { type: "string" }
+                            }
+                          },
+                          description: "Array of items to add to shopping list"
+                        }
+                      },
+                      required: ["items"]
+                    }
+                  },
+                  {
+                    type: "client",
+                    name: "logMeal",
+                    description: "Log a meal description for nutritional tracking",
+                    parameters: {
+                      type: "object",
+                      properties: {
+                        description: {
+                          type: "string",
+                          description: "Description of the meal consumed"
+                        }
+                      },
+                      required: ["description"]
+                    }
+                  },
+                  {
+                    type: "client",
+                    name: "suggestRecipes",
+                    description: "Get recipe suggestions based on available inventory and user preferences",
+                    parameters: {
+                      type: "object",
+                      properties: {
+                        constraints: {
+                          type: "object",
+                          properties: {
+                            use_inventory: { type: "boolean" },
+                            max_cook_time: { type: "number" },
+                            cuisine_type: { type: "string" }
+                          },
+                          description: "Recipe search constraints"
+                        }
+                      },
+                      required: ["constraints"]
+                    }
+                  },
+                  {
+                    type: "client",
+                    name: "checkAllergens",
+                    description: "Check if an ingredient conflicts with household allergies or pet toxicity",
+                    parameters: {
+                      type: "object",
+                      properties: {
+                        ingredient: {
+                          type: "string",
+                          description: "Ingredient name to check"
+                        }
+                      },
+                      required: ["ingredient"]
+                    }
+                  },
+                  {
+                    type: "client",
+                    name: "navigateTo",
+                    description: "Navigate to a specific page in the dashboard",
+                    parameters: {
+                      type: "object",
+                      properties: {
+                        page: {
+                          type: "string",
+                          enum: ["inventory", "shopping", "recipes", "household", "settings"],
+                          description: "Page to navigate to"
+                        }
+                      },
+                      required: ["page"]
+                    }
+                  },
+                  {
+                    type: "client",
+                    name: "endConversation",
+                    description: "End the conversation when user is finished",
+                    parameters: {
+                      type: "object",
+                      properties: {
+                        reason: {
+                          type: "string",
+                          description: "Reason for ending conversation"
+                        }
+                      },
+                      required: ["reason"]
+                    }
+                  }
+                ],
               },
               first_message: "Hi {{user_name}}! How can I help you today?",
               language: "en",
@@ -327,196 +473,34 @@ You can help users with:
               voice_id: "9BWtsMINqrJLrRacOk9x",
             },
           },
-          client_tools: [
-            {
-              name: "checkInventory",
-              description: "Search the household inventory for specific items",
-              parameters: {
-                type: "object",
-                properties: {
-                  query: {
-                    type: "string",
-                    description: "Search term for inventory items"
-                  }
-                },
-                required: ["query"]
-              }
-            },
-            {
-              name: "updateInventory",
-              description: "Add, update, or remove items from the user's inventory",
-              parameters: {
-                type: "object",
-                properties: {
-                  action: {
-                    type: "string",
-                    enum: ["add", "update", "remove"],
-                    description: "Action to perform on inventory"
-                  },
-                  item_data: {
-                    type: "object",
-                    description: "Item details including name, category, quantity, unit"
-                  }
-                },
-                required: ["action", "item_data"]
-              }
-            },
-            {
-              name: "addToShoppingList",
-              description: "Add items to the user's shopping cart",
-              parameters: {
-                type: "object",
-                properties: {
-                  items: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        name: { type: "string" },
-                        reason: { type: "string" }
-                      }
-                    },
-                    description: "Array of items to add to shopping list"
-                  }
-                },
-                required: ["items"]
-              }
-            },
-            {
-              name: "logMeal",
-              description: "Log a meal description for nutritional tracking",
-              parameters: {
-                type: "object",
-                properties: {
-                  description: {
-                    type: "string",
-                    description: "Description of the meal consumed"
-                  }
-                },
-                required: ["description"]
-              }
-            },
-            {
-              name: "suggestRecipes",
-              description: "Get recipe suggestions based on available inventory and user preferences",
-              parameters: {
-                type: "object",
-                properties: {
-                  constraints: {
-                    type: "object",
-                    properties: {
-                      use_inventory: { type: "boolean" },
-                      max_cook_time: { type: "number" },
-                      cuisine_type: { type: "string" }
-                    },
-                    description: "Recipe search constraints"
-                  }
-                },
-                required: ["constraints"]
-              }
-            },
-            {
-              name: "checkAllergens",
-              description: "Check if an ingredient conflicts with household allergies or pet toxicity",
-              parameters: {
-                type: "object",
-                properties: {
-                  ingredient: {
-                    type: "string",
-                    description: "Ingredient name to check"
-                  }
-                },
-                required: ["ingredient"]
-              }
-            },
-            {
-              name: "navigateTo",
-              description: "Navigate to a specific page in the dashboard",
-              parameters: {
-                type: "object",
-                properties: {
-                  page: {
-                    type: "string",
-                    enum: ["inventory", "shopping", "recipes", "household", "settings"],
-                    description: "Page to navigate to"
-                  }
-                },
-                required: ["page"]
-              }
-            },
-            {
-              name: "endConversation",
-              description: "End the conversation when user is finished",
-              parameters: {
-                type: "object",
-                properties: {
-                  reason: {
-                    type: "string",
-                    description: "Reason for ending conversation"
-                  }
-                },
-                required: ["reason"]
-              }
-            }
-          ],
         }
       }
     ];
 
-    // Fetch existing agents
-    console.log('Fetching existing agents...');
-    const listResponse = await fetch('https://api.elevenlabs.io/v1/convai/agents', {
-      method: 'GET',
-      headers: {
-        'xi-api-key': apiKey,
-      },
-    });
-
-    if (!listResponse.ok) {
-      throw new Error(`Failed to list agents: ${listResponse.status}`);
-    }
-
-    const existingAgents = await listResponse.json();
-    console.log('Existing agents count:', existingAgents.agents?.length || 0);
-
     const results = [];
 
-    // Process each agent
+    // Process each agent using known agent IDs
     for (const agentDef of agentConfigs) {
       console.log(`\n=== Processing ${agentDef.type} agent ===`);
-      
-      const existingAgent = existingAgents.agents?.find((a: any) => a.name === agentDef.name);
+      console.log(`Attempting update with known ID: ${agentDef.agentId}`);
 
-      if (existingAgent) {
-        console.log(`Agent "${agentDef.name}" exists, updating...`);
-        console.log('Existing agent ID:', existingAgent.agent_id);
-
-        // Update existing agent
-        const updateResponse = await fetch(
-          `https://api.elevenlabs.io/v1/convai/agents/${existingAgent.agent_id}`,
-          {
-            method: 'PATCH',
-            headers: {
-              'xi-api-key': apiKey,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(agentDef.config),
-          }
-        );
-
-        if (!updateResponse.ok) {
-          const errorText = await updateResponse.text();
-          console.error(`Failed to update ${agentDef.type} agent:`, errorText);
-          results.push({
-            type: agentDef.type,
-            status: 'error',
-            error: `Update failed: ${updateResponse.status}`
-          });
-          continue;
+      // Always try to update first using the known agent ID
+      const updateResponse = await fetch(
+        `https://api.elevenlabs.io/v1/convai/agents/${agentDef.agentId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'xi-api-key': apiKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(agentDef.config),
         }
+      );
 
+      if (updateResponse.ok) {
         const updatedAgent = await updateResponse.json();
         console.log(`✅ ${agentDef.type} agent updated successfully`);
+        console.log('Agent ID:', updatedAgent.agent_id);
         
         results.push({
           type: agentDef.type,
@@ -525,10 +509,10 @@ You can help users with:
           name: updatedAgent.name
         });
 
-      } else {
-        console.log(`Agent "${agentDef.name}" does not exist, creating...`);
+      } else if (updateResponse.status === 404) {
+        // Agent doesn't exist, try to create it
+        console.log(`Agent ID ${agentDef.agentId} not found, creating new agent...`);
 
-        // Create new agent
         const createResponse = await fetch('https://api.elevenlabs.io/v1/convai/agents', {
           method: 'POST',
           headers: {
@@ -544,7 +528,7 @@ You can help users with:
           results.push({
             type: agentDef.type,
             status: 'error',
-            error: `Creation failed: ${createResponse.status}`
+            error: `Creation failed: ${createResponse.status} - ${errorText}`
           });
           continue;
         }
@@ -558,6 +542,16 @@ You can help users with:
           status: 'created',
           agent_id: newAgent.agent_id,
           name: newAgent.name
+        });
+
+      } else {
+        // Other error during update
+        const errorText = await updateResponse.text();
+        console.error(`Failed to update ${agentDef.type} agent:`, errorText);
+        results.push({
+          type: agentDef.type,
+          status: 'error',
+          error: `Update failed: ${updateResponse.status} - ${errorText}`
         });
       }
     }
