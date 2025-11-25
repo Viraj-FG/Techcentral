@@ -196,8 +196,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               if (session) {
                 setSession(session);
                 setUser(session.user);
-                await loadProfile(session.user.id);
                 setIsLoading(false);
+                loadProfile(session.user.id);
               }
             }
 
@@ -242,7 +242,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     session,
     user,
     profile,
-    isLoading: isLoading || isLoadingProfile,
+    isLoading: isLoading,
     isAuthenticated: !!session && !!user,
     error,
     signIn,
