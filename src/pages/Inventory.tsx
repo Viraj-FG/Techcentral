@@ -84,10 +84,22 @@ const Inventory = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    // Get household_id from profile
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('current_household_id')
+      .eq('id', user.id)
+      .single();
+
+    if (!profileData?.current_household_id) {
+      setLoading(false);
+      return;
+    }
+
     const { data, error } = await supabase
       .from('inventory')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('household_id', profileData.current_household_id)
       .order('name');
 
     if (!error && data) {

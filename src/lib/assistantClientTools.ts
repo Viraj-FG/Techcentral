@@ -50,10 +50,22 @@ export const createCheckInventoryTool = () => {
         return "I need you to be logged in to check inventory.";
       }
 
+      // Get household_id from profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('current_household_id')
+        .eq('id', session.user.id)
+        .single();
+
+      if (!profileData?.current_household_id) {
+        await logToolCall(toolName, parameters, "ERROR: No household found");
+        return "I couldn't find your household information.";
+      }
+
       const { data: items, error } = await supabase
         .from("inventory")
         .select("name, quantity, unit, status, expiry_date, category")
-        .eq("user_id", session.user.id)
+        .eq("household_id", profileData.current_household_id)
         .ilike("name", `%${parameters.query}%`)
         .limit(10);
 
