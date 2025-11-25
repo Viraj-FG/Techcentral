@@ -197,7 +197,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 setSession(session);
                 setUser(session.user);
                 setIsLoading(false);
-                loadProfile(session.user.id);
+                await loadProfile(session.user.id);
               }
             }
 
