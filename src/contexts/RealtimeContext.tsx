@@ -59,116 +59,163 @@ export const RealtimeProvider = ({ children }: Props) => {
     if (!userId) return;
 
     console.log('[Realtime] Setting up subscriptions for user:', userId);
-    setIsConnected(true);
 
-    // Inventory subscription
-    const inventoryChannel = supabase
-      .channel('inventory-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'inventory',
-          filter: `user_id=eq.${userId}`
-        },
-        (payload) => {
-          console.log('[Realtime] Inventory change:', payload);
-          handleInventoryChange(payload);
-        }
-      )
-      .subscribe((status) => {
-        console.log('[Realtime] Inventory subscription status:', status);
-      });
+    const setupSubscriptions = async () => {
+      // Get household_id from profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('current_household_id')
+        .eq('id', userId)
+        .single();
 
-    // Shopping list subscription
-    const shoppingChannel = supabase
-      .channel('shopping-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'shopping_list',
-          filter: `user_id=eq.${userId}`
-        },
-        (payload) => {
-          console.log('[Realtime] Shopping list change:', payload);
-          handleShoppingChange(payload);
-        }
-      )
-      .subscribe((status) => {
-        console.log('[Realtime] Shopping subscription status:', status);
-      });
+      const householdId = profileData?.current_household_id;
+      
+      if (!householdId) {
+        console.log('[Realtime] No household_id found, skipping subscriptions');
+        return;
+      }
 
-    // Notifications subscription
-    const notificationsChannel = supabase
-      .channel('notifications-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`
-        },
-        (payload) => {
-          console.log('[Realtime] Notification change:', payload);
-          handleNotificationChange(payload);
-        }
-      )
-      .subscribe((status) => {
-        console.log('[Realtime] Notifications subscription status:', status);
-      });
+      console.log('[Realtime] Setting up subscriptions for household:', householdId);
+      setIsConnected(true);
 
-    // Meal logs subscription
-    const mealLogsChannel = supabase
-      .channel('meal-logs-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'meal_logs',
-          filter: `user_id=eq.${userId}`
-        },
-        (payload) => {
-          console.log('[Realtime] Meal log change:', payload);
-          handleMealLogChange(payload);
-        }
-      )
-      .subscribe((status) => {
-        console.log('[Realtime] Meal logs subscription status:', status);
-      });
+      // Inventory subscription (fixed to use household_id)
+      const inventoryChannel = supabase
+        .channel('inventory-realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'inventory',
+            filter: `household_id=eq.${householdId}`
+          },
+          (payload) => {
+            console.log('[Realtime] Inventory change:', payload);
+            handleInventoryChange(payload);
+          }
+        )
+        .subscribe((status) => {
+          console.log('[Realtime] Inventory subscription status:', status);
+        });
 
-    // Recipes subscription
-    const recipesChannel = supabase
-      .channel('recipes-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'recipes',
-          filter: `user_id=eq.${userId}`
-        },
-        (payload) => {
-          console.log('[Realtime] Recipe change:', payload);
-          handleRecipeChange(payload);
-        }
-      )
-      .subscribe((status) => {
-        console.log('[Realtime] Recipes subscription status:', status);
-      });
+      // Shopping list subscription (fixed to use household_id)
+      const shoppingChannel = supabase
+        .channel('shopping-realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'shopping_list',
+            filter: `household_id=eq.${householdId}`
+          },
+          (payload) => {
+            console.log('[Realtime] Shopping list change:', payload);
+            handleShoppingChange(payload);
+          }
+        )
+        .subscribe((status) => {
+          console.log('[Realtime] Shopping subscription status:', status);
+        });
 
+      // Notifications subscription
+      const notificationsChannel = supabase
+        .channel('notifications-realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${userId}`
+          },
+          (payload) => {
+            console.log('[Realtime] Notification change:', payload);
+            handleNotificationChange(payload);
+          }
+        )
+        .subscribe((status) => {
+          console.log('[Realtime] Notifications subscription status:', status);
+        });
+
+      // Meal logs subscription
+      const mealLogsChannel = supabase
+        .channel('meal-logs-realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'meal_logs',
+            filter: `user_id=eq.${userId}`
+          },
+          (payload) => {
+            console.log('[Realtime] Meal log change:', payload);
+            handleMealLogChange(payload);
+          }
+        )
+        .subscribe((status) => {
+          console.log('[Realtime] Meal logs subscription status:', status);
+        });
+
+      // Recipes subscription (fixed to use household_id)
+      const recipesChannel = supabase
+        .channel('recipes-realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'recipes',
+            filter: `household_id=eq.${householdId}`
+          },
+          (payload) => {
+            console.log('[Realtime] Recipe change:', payload);
+            handleRecipeChange(payload);
+          }
+        )
+        .subscribe((status) => {
+          console.log('[Realtime] Recipes subscription status:', status);
+        });
+
+      // Household activity subscription
+      const activityChannel = supabase
+        .channel('activity-realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'household_activity',
+            filter: `household_id=eq.${householdId}`
+          },
+          (payload) => {
+            console.log('[Realtime] Household activity:', payload);
+            setIsSyncing(true);
+            setLastSync(new Date());
+            queryClient.invalidateQueries({ queryKey: ['household_activity'] });
+            setTimeout(() => setIsSyncing(false), 1000);
+          }
+        )
+        .subscribe((status) => {
+          console.log('[Realtime] Activity subscription status:', status);
+        });
+
+      return () => {
+        console.log('[Realtime] Cleaning up subscriptions');
+        supabase.removeChannel(inventoryChannel);
+        supabase.removeChannel(shoppingChannel);
+        supabase.removeChannel(notificationsChannel);
+        supabase.removeChannel(mealLogsChannel);
+        supabase.removeChannel(recipesChannel);
+        supabase.removeChannel(activityChannel);
+        setIsConnected(false);
+      };
+    };
+
+    const cleanup = setupSubscriptions();
     return () => {
-      console.log('[Realtime] Cleaning up subscriptions');
-      supabase.removeChannel(inventoryChannel);
-      supabase.removeChannel(shoppingChannel);
-      supabase.removeChannel(notificationsChannel);
-      supabase.removeChannel(mealLogsChannel);
-      supabase.removeChannel(recipesChannel);
-      setIsConnected(false);
+      cleanup.then(fn => fn?.());
     };
   }, [userId]);
 

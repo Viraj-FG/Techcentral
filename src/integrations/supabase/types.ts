@@ -77,6 +77,53 @@ export type Database = {
         }
         Relationships: []
       }
+      household_activity: {
+        Row: {
+          activity_type: string
+          actor_id: string
+          actor_name: string | null
+          created_at: string | null
+          entity_id: string | null
+          entity_name: string | null
+          entity_type: string | null
+          household_id: string
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          activity_type: string
+          actor_id: string
+          actor_name?: string | null
+          created_at?: string | null
+          entity_id?: string | null
+          entity_name?: string | null
+          entity_type?: string | null
+          household_id: string
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          activity_type?: string
+          actor_id?: string
+          actor_name?: string | null
+          created_at?: string | null
+          entity_id?: string | null
+          entity_name?: string | null
+          entity_type?: string | null
+          household_id?: string
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "household_activity_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       household_invites: {
         Row: {
           created_at: string | null
@@ -748,6 +795,17 @@ export type Database = {
       insert_household_batch: {
         Args: { p_members: Json; p_pets: Json; p_user_id: string }
         Returns: Json
+      }
+      log_household_activity: {
+        Args: {
+          p_activity_type: string
+          p_entity_id: string
+          p_entity_name: string
+          p_entity_type: string
+          p_household_id: string
+          p_metadata?: Json
+        }
+        Returns: undefined
       }
       mark_spoilage: { Args: { _inventory_id: string }; Returns: undefined }
     }

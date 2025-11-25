@@ -19,7 +19,7 @@ import RecipeFeed from "./dashboard/RecipeFeed";
 import SocialImport from "./dashboard/SocialImport";
 import SafetyShield from "./dashboard/SafetyShield";
 import HouseholdQuickAccess from "./dashboard/HouseholdQuickAccess";
-import RecentActivity from "./dashboard/RecentActivity";
+import { HouseholdActivityFeed } from "./dashboard/HouseholdActivityFeed";
 import SmartScanner from "./scanner/SmartScanner";
 import InventoryMatrixSkeleton from "./dashboard/InventoryMatrixSkeleton";
 import NutritionWidget from "./dashboard/NutritionWidget";
@@ -276,8 +276,17 @@ const Dashboard = ({ profile }: DashboardProps) => {
           </>
         )}
         
-        {/* Recent Activity */}
-        <RecentActivity />
+        {/* Household Activity */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3">Household Activity</h3>
+          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-6">
+            <HouseholdActivityFeed householdId={profile?.current_household_id || null} maxItems={10} />
+          </div>
+        </motion.div>
         
         {/* End of Stream Marker */}
         <div className="w-full p-6 text-center opacity-30">
