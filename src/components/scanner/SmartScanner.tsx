@@ -70,6 +70,13 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
   const [toxicityWarnings, setToxicityWarnings] = useState<Array<{ type: 'pet' | 'human'; name: string; allergen: string }>>([]);
   const [showToxicityAlert, setShowToxicityAlert] = useState(false);
   const [pendingToxicProduct, setPendingToxicProduct] = useState<string>('');
+  const [showHint, setShowHint] = useState(true);
+
+  // Hide hint after 3 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => setShowHint(false), 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const getMealType = (hour: number): string => {
     if (hour < 11) return 'breakfast';
@@ -861,6 +868,25 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
 
         {/* Barcode Overlay */}
         {captureMode === 'barcode' && <BarcodeOverlay />}
+        
+        {/* Fleeting Hint Text */}
+        <AnimatePresence>
+          {showHint && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+              className="absolute top-24 left-0 right-0 flex justify-center pointer-events-none z-10"
+            >
+              <div className="bg-kaeva-void/80 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20">
+                <p className="text-white/90 text-sm">
+                  Point at a product, barcode, or shelf
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Scanning Loader */}
         {isScanning && (

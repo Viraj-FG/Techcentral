@@ -60,7 +60,8 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
     showConversation: voiceShowConversation,
     status,
     startConversation,
-    endConversation
+    endConversation,
+    sendContextualUpdate
   } = useOnboardingVoice({
     onProfileUpdate: (profile) => {
       console.log("Profile updated:", profile);
@@ -257,6 +258,25 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
 
               <KeywordFeedback detectedKeywords={detectedKeywords} />
               <OnboardingStatus apertureState={apertureState} />
+              
+              {/* Edit Last Answer Button */}
+              <AnimatePresence>
+                {status === 'connected' && voiceUserTranscript && (
+                  <motion.button
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    onClick={() => {
+                      if (sendContextualUpdate) {
+                        sendContextualUpdate("The user wants to edit or add to their previous answer. Please ask them what they'd like to change or add.");
+                      }
+                    }}
+                    className="mt-6 px-6 py-2 text-sm text-kaeva-mint/80 hover:text-kaeva-mint border border-kaeva-mint/30 hover:border-kaeva-mint/60 rounded-full transition-colors backdrop-blur-sm bg-kaeva-void/30"
+                  >
+                    ✏️ Edit Last Answer
+                  </motion.button>
+                )}
+              </AnimatePresence>
             </motion.div>
           ) : (
             <DigitalTwinCard
