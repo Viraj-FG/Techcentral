@@ -338,12 +338,30 @@ export const useOnboardingVoice = ({ onProfileUpdate, onComplete }: UseOnboardin
         }
       },
 
-      navigateTo: async (parameters: { route: string }) => {
+      endConversation: async () => {
+        try {
+          voiceLog.info('tool', 'endConversation called', {
+            conversationId: conversationIdRef.current
+          });
+
+          await conversation.endSession();
+          
+          voiceLog.info('tool', 'endConversation completed', {
+            conversationId: conversationIdRef.current
+          });
+
+          return "Conversation ended successfully";
+        } catch (error) {
+          voiceLog.logError('tool', 'endConversation failed', error);
+          return `Error ending conversation: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        }
+      },
+      navigateTo: async (parameters: { page: string }) => {
         console.log("🧭 navigateTo called:", parameters);
         
         try {
-          navigate(parameters.route);
-          return `SUCCESS: Navigated to ${parameters.route}`;
+          navigate(parameters.page);
+          return `SUCCESS: Navigated to ${parameters.page}`;
         } catch (error) {
           console.error("❌ navigateTo error:", error);
           return `ERROR: ${error instanceof Error ? error.message : 'Unknown error'}`;

@@ -131,7 +131,7 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
     
     // CLIENT TOOLS DEFINED INLINE - No stale closures!
     clientTools: {
-      check_inventory: async (parameters: { query: string }) => {
+      checkInventory: async (parameters: { query: string }) => {
         console.log("🔍 check_inventory called:", parameters);
         
         try {
@@ -188,7 +188,50 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
         }
       },
 
-      add_to_cart: async (parameters: { item_name: string; reason: string }) => {
+      updateInventory: async (parameters: { item_id: string; quantity?: number; status?: string }) => {
+        try {
+          voiceLog.info('tool', 'updateInventory called', {
+            conversationId: conversationIdRef.current,
+            parameters
+          });
+
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) throw new Error("Not authenticated");
+
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('current_household_id')
+            .eq('id', user.id)
+            .single();
+
+          if (!profile?.current_household_id) {
+            throw new Error("No household found");
+          }
+
+          const updates: any = {};
+          if (parameters.quantity !== undefined) updates.quantity = parameters.quantity;
+          if (parameters.status) updates.status = parameters.status;
+
+          const { error } = await supabase
+            .from('inventory')
+            .update(updates)
+            .eq('id', parameters.item_id)
+            .eq('household_id', profile.current_household_id);
+
+          if (error) throw error;
+
+          voiceLog.info('tool', 'updateInventory completed', {
+            conversationId: conversationIdRef.current,
+            itemId: parameters.item_id
+          });
+
+          return "Inventory updated successfully";
+        } catch (error) {
+          voiceLog.logError('tool', 'updateInventory failed', error);
+          return `Error updating inventory: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        }
+      },
+      addToShoppingList: async (parameters: { items: Array<{ name: string; reason: string }> }) => {
         console.log("🛒 add_to_cart called:", parameters);
         
         try {
@@ -207,17 +250,19 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
             return "ERROR: No household found";
           }
 
-          const { error } = await supabase.from("shopping_list").insert({
+          const itemsToInsert = parameters.items.map(item => ({
             household_id: profile.current_household_id,
-            item_name: parameters.item_name,
-            source: "voice",
+            item_name: item.name,
+            source: item.reason || "voice",
             status: "pending",
             quantity: 1,
-          });
+          }));
+
+          const { error } = await supabase.from("shopping_list").insert(itemsToInsert);
 
           if (error) throw error;
 
-          const result = `Added ${parameters.item_name} to cart (reason: ${parameters.reason})`;
+          const result = `Added ${parameters.items.length} item(s) to shopping list`;
           
           logConversationEvent({
             conversationId: conversationIdRef.current,
@@ -233,7 +278,7 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
         }
       },
 
-      log_meal: async (parameters: { description: string }) => {
+      logMeal: async (parameters: { description: string }) => {
         console.log("🍽️ log_meal called:", parameters);
         
         try {
@@ -268,7 +313,7 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
         }
       },
 
-      search_recipes: async (parameters: { constraints?: any }) => {
+      suggestRecipes: async (parameters: { constraints?: any }) => {
         console.log("📖 search_recipes called:", parameters);
         
         try {
@@ -325,7 +370,7 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
         }
       },
 
-      check_allergens: async (parameters: { ingredient: string }) => {
+      checkAllergens: async (parameters: { ingredient: string }) => {
         console.log("🛡️ check_allergens called:", parameters);
         
         try {
@@ -412,7 +457,7 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
         }
       },
 
-      end_conversation: async (parameters: { reason: string }) => {
+      endConversation: async (parameters: { reason: string }) => {
         console.log("🔚 end_conversation called:", parameters.reason);
         
         logConversationEvent({
@@ -429,12 +474,12 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
         return "SUCCESS: Conversation ended";
       },
 
-      navigateTo: async (parameters: { route: string }) => {
+      navigateTo: async (parameters: { page: string }) => {
         console.log("🧭 navigateTo called:", parameters);
         
         try {
-          navigate(parameters.route);
-          return `SUCCESS: Navigated to ${parameters.route}`;
+          navigate(parameters.page);
+          return `SUCCESS: Navigated to ${parameters.page}`;
         } catch (error) {
           console.error("❌ navigateTo error:", error);
           return `ERROR: ${error instanceof Error ? error.message : 'Unknown error'}`;

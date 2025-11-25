@@ -329,6 +329,20 @@ You can help users with:
           },
           client_tools: [
             {
+              name: "checkInventory",
+              description: "Search the household inventory for specific items",
+              parameters: {
+                type: "object",
+                properties: {
+                  query: {
+                    type: "string",
+                    description: "Search term for inventory items"
+                  }
+                },
+                required: ["query"]
+              }
+            },
+            {
               name: "updateInventory",
               description: "Add, update, or remove items from the user's inventory",
               parameters: {
@@ -359,14 +373,27 @@ You can help users with:
                       type: "object",
                       properties: {
                         name: { type: "string" },
-                        quantity: { type: "number" },
-                        priority: { type: "string", enum: ["low", "medium", "high"] }
+                        reason: { type: "string" }
                       }
                     },
                     description: "Array of items to add to shopping list"
                   }
                 },
                 required: ["items"]
+              }
+            },
+            {
+              name: "logMeal",
+              description: "Log a meal description for nutritional tracking",
+              parameters: {
+                type: "object",
+                properties: {
+                  description: {
+                    type: "string",
+                    description: "Description of the meal consumed"
+                  }
+                },
+                required: ["description"]
               }
             },
             {
