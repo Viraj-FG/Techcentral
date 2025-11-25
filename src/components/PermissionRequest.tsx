@@ -16,12 +16,57 @@ const PermissionRequest = ({
   const [error, setError] = useState<string | null>(null);
   const [audioReady, setAudioReady] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const isInAppBrowser = () => {
+    const ua = navigator.userAgent || navigator.vendor;
+    return /FBAN|FBAV|Instagram|LinkedIn|Twitter/i.test(ua);
+  };
+
+  const isMobile = () => {
+    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  };
+
+  const getMobileErrorMessage = (errorName: string) => {
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isAndroid = /Android/i.test(navigator.userAgent);
+
+    if (errorName === 'NotAllowedError' || errorName === 'PermissionDeniedError') {
+      if (isIOS) {
+        return 'Access denied. Open Settings → Safari → Camera & Microphone → Allow for this site.';
+      } else if (isAndroid) {
+        return 'Access denied. Tap the lock icon in the address bar → Site Settings → Allow Camera & Microphone.';
+      }
+      return 'Access denied. Please enable microphone and camera permissions in your browser settings.';
+    }
+    return null;
+  };
+
   const requestPermissions = async () => {
     console.log('🎯 Permission button clicked');
     setIsRequesting(true);
     setError(null);
     
     try {
+      // Check for in-app browser
+      if (isInAppBrowser()) {
+        setError('Please open this page in Safari or Chrome for full functionality. Tap ⋯ menu → "Open in Safari/Chrome"');
+        setIsRequesting(false);
+        return;
+      }
+
+      // Check if mediaDevices API exists
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setError('Your browser does not support camera/microphone access. Please use Safari, Chrome, or Firefox.');
+        setIsRequesting(false);
+        return;
+      }
+
+      // Check for secure context (HTTPS)
+      if (!window.isSecureContext) {
+        setError('Permissions require a secure connection (HTTPS). Please access this site via HTTPS.');
+        setIsRequesting(false);
+        return;
+      }
+
       // 1. IOS UNLOCK: Create & Resume AudioContext immediately (Top priority)
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       const audioContext = new AudioContextClass();
@@ -41,24 +86,68 @@ const PermissionRequest = ({
         console.warn("Silent audio play failed (non-critical):", audioErr);
       }
 
-      // 3. REQUEST MEDIA (Removed strict sampleRate for iOS compatibility)
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        },
-        video: { 
-          facingMode: "user" 
+      // 3. PROGRESSIVE PERMISSION REQUEST with fallback
+      let stream: MediaStream | null = null;
+      let audioGranted = false;
+      
+      // Step 1: Try audio + video together
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          },
+          video: true  // Simplified - let browser choose defaults
+        });
+        audioGranted = true;
+        console.log('✅ Audio + Video granted');
+      } catch (bothErr: any) {
+        console.warn('⚠️ Audio + Video failed, trying audio only:', bothErr.name);
+        
+        // Step 2: Try audio only (most critical for voice)
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true
+            }
+          });
+          audioGranted = true;
+          console.log('✅ Audio only granted');
+        } catch (audioErr: any) {
+          console.error('❌ Audio failed:', audioErr);
+          
+          // Provide detailed error for audio failure
+          const mobileMsg = getMobileErrorMessage(audioErr.name);
+          if (mobileMsg) {
+            setError(mobileMsg);
+          } else if (audioErr.name === 'NotFoundError') {
+            setError('No microphone found. Please check your device has a working microphone.');
+          } else if (audioErr.name === 'NotReadableError') {
+            setError('Microphone is busy. Close other apps and try again.');
+          } else {
+            setError(`Microphone access failed: ${audioErr.message}`);
+          }
+          
+          setIsRequesting(false);
+          return;
         }
-      });
+      }
+
+      if (!stream || !audioGranted) {
+        setError('Unable to access microphone. Please check your device and browser settings.');
+        setIsRequesting(false);
+        return;
+      }
       
       console.log('✅ getUserMedia successful');
 
       // 4. SUCCESS STATE
       setAudioReady(true);
       
-      // 5. TRANSITION LOGIC (Delay track stopping)
+      // 5. TRANSITION LOGIC
       setIsTransitioning(true);
       
       // Artificial delay to show "Success" state to user
@@ -84,56 +173,22 @@ const PermissionRequest = ({
         setIsTransitioning(false);
       }
 
-      // Clean up tracks only AFTER we've handed off control
+      // Clean up tracks after callback completes
       setTimeout(() => {
-        stream.getTracks().forEach(track => track.stop());
-        console.log('🛑 Tracks stopped (cleanup)');
-      }, 2000);
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+          console.log('🛑 Tracks stopped (cleanup)');
+        }
+      }, 3000);
 
     } catch (err: any) {
-      console.error("❌ Permission error:", err);
+      console.error("❌ Unexpected permission error:", err);
       
-      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setError('Access denied. Please enable Microphone & Camera in your iOS Settings → Safari.');
-      } else if (err.name === 'NotFoundError') {
-        setError('No camera or microphone found.');
-      } else if (err.name === 'NotReadableError') {
-        setError('Hardware is busy. Close other apps (Zoom/FaceTime) and try again.');
-      } else if (err.name === 'OverconstrainedError') {
-        setError('Invalid configuration. Retrying with defaults...');
-        // Fallback retry with minimal constraints
-        try {
-          const fallbackStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-          console.log('✅ Fallback getUserMedia successful');
-          setAudioReady(true);
-          setIsTransitioning(true);
-          await new Promise(resolve => setTimeout(resolve, 800));
-          
-          try {
-            await Promise.race([
-              onPermissionsGranted(),
-              new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Transition timeout')), 5000)
-              )
-            ]);
-          } catch (timeoutErr) {
-            console.error('⏱️ Callback timeout:', timeoutErr);
-            alert('Taking longer than expected. Continuing anyway...');
-          } finally {
-            setIsRequesting(false);
-            setIsTransitioning(false);
-          }
-          
-          setTimeout(() => {
-            fallbackStream.getTracks().forEach(track => track.stop());
-            console.log('🛑 Fallback tracks stopped');
-          }, 2000);
-          return;
-        } catch (retryErr) {
-          setError('Hardware incompatible. Please use a newer device.');
-        }
+      const mobileMsg = getMobileErrorMessage(err.name);
+      if (mobileMsg) {
+        setError(mobileMsg);
       } else {
-        setError(`${err.name}: ${err.message}`);
+        setError(`Error: ${err.message || 'Unknown error occurred'}`);
       }
       
       setIsRequesting(false);
