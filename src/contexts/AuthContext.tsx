@@ -26,7 +26,6 @@ interface AuthContextValue {
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  refreshSession: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -41,6 +40,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -51,6 +51,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return profile;
     }
 
+    setIsLoadingProfile(true);
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -62,6 +63,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       console.log('✅ Profile loaded:', data);
       setProfile(data);
+      setIsLoadingProfile(false);
       return data;
     } catch (error: any) {
       console.error("Failed to load profile:", error);
@@ -70,6 +72,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         await new Promise(resolve => setTimeout(resolve, 1000));
         return loadProfile(userId, retries - 1);
       }
+      setIsLoadingProfile(false);
       logError(error, { component: "AuthContext", action: "loadProfile" });
       return null;
     }
@@ -78,22 +81,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const refreshProfile = async () => {
     if (user?.id) {
       await loadProfile(user.id);
-    }
-  };
-
-  const refreshSession = async () => {
-    try {
-      const { data, error } = await supabase.auth.refreshSession();
-      if (error) throw error;
-      
-      if (data.session) {
-        setSession(data.session);
-        setUser(data.session.user);
-        await loadProfile(data.session.user.id);
-      }
-    } catch (error: any) {
-      console.error("Session refresh failed:", error);
-      logError(error, { component: "AuthContext", action: "refreshSession" });
     }
   };
 
@@ -210,6 +197,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 setSession(session);
                 setUser(session.user);
                 await loadProfile(session.user.id);
+                setIsLoading(false);
               }
             }
 
@@ -227,11 +215,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         // THEN check for existing session (non-blocking)
         supabase.auth.getSession().then(({ data }) => {
-          if (mounted && data.session) {
-            // Let the INITIAL_SESSION event handle this
-            console.log('🔐 Existing session detected, INITIAL_SESSION will fire');
+          if (mounted) {
+            if (data.session) {
+              console.log('🔐 Existing session detected, INITIAL_SESSION will fire');
+            } else {
+              // No session = we're done loading
+              setIsLoading(false);
+            }
           }
-          setIsLoading(false);
         });
 
         return () => {
@@ -251,14 +242,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     session,
     user,
     profile,
-    isLoading,
+    isLoading: isLoading || isLoadingProfile,
     isAuthenticated: !!session && !!user,
     error,
     signIn,
     signUp,
     signOut,
     resetPassword,
-    refreshSession,
     refreshProfile,
   };
 

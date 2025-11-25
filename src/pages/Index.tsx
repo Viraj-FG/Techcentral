@@ -28,7 +28,7 @@ const Index = () => {
 
   // Handle authentication and routing
   useEffect(() => {
-    console.log('📍 Index routing check:', { authLoading, isAuthenticated, appState, hasProfile: !!profile });
+    console.log('📍 Index routing check:', { authLoading, isAuthenticated, appState, hasProfile: !!profile, profileId: profile?.id });
     
     if (authLoading) return;
 
@@ -91,48 +91,18 @@ const Index = () => {
   };
 
   const handleOnboardingSkip = async () => {
-    console.log("⏭️ Skipping onboarding requested");
-    if (!user) {
-      console.error("❌ Cannot skip onboarding: No user found");
-      return;
-    }
+    console.log("⏭️ Skipping onboarding");
+    if (!user) return;
 
     try {
-      console.log("⏳ Calling completeOnboarding...");
       await completeOnboarding();
-      console.log("✅ Onboarding skipped, setting dashboard state");
       setAppState("dashboard");
     } catch (error: any) {
       console.error("❌ Error skipping onboarding:", error);
-      
-      const isTimeout = error.message?.includes('timed out') || error.message?.includes('timeout');
-      
-      if (isTimeout) {
-        // Check connection to be sure
-        const isConnected = await checkSupabaseConnection();
-        if (!isConnected) {
-          // Force dashboard anyway if we are in dev mode or if user insists
-          console.log("⚠️ Connection lost but forcing dashboard for debugging/offline access");
-          setAppState("dashboard");
-          toast({
-            title: "Offline Mode",
-            description: "Connection lost. Entering offline mode.",
-            duration: 4000,
-          });
-          return;
-        }
-      }
-
-      const title = isTimeout ? "Server Timeout" : "Setup Failed";
-      const description = isTimeout 
-        ? "The server is taking too long to respond. Please try again." 
-        : "Failed to skip onboarding. Please try again.";
-
       toast({
-        title,
-        description,
+        title: "Error",
+        description: "Failed to skip onboarding. Please try again.",
         variant: "destructive",
-        duration: 6000,
       });
     }
   };
