@@ -33,7 +33,7 @@ const App = () => (
             <SyncIndicator />
             <BrowserRouter>
               <Routes>
-                <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
+                <Route path="/" element={<ProtectedRoute><ErrorBoundary><Index /></ErrorBoundary></ProtectedRoute>} />
                 <Route path="/auth" element={<ErrorBoundary><Auth /></ErrorBoundary>} />
                 <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                 <Route path="/household" element={<ProtectedRoute><Household /></ProtectedRoute>} />

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { useHouseholdInit } from "@/hooks/useHouseholdInit";
 import Splash from "@/components/Splash";
 import VoiceOnboarding from "@/components/VoiceOnboarding";
@@ -9,38 +9,40 @@ import Dashboard from "@/components/Dashboard";
 import LoadingState from "@/components/LoadingState";
 import { useToast } from "@/hooks/use-toast";
 
-import { checkSupabaseConnection } from "@/lib/utils";
-
 const Index = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
-  const { isAuthenticated, profile, isLoading: authLoading, refreshProfile, user } = useAuth();
+  const { user, isLoading: authLoading, isAuthenticated } = useAuth();
+  const { profile, isLoading: profileLoading, refreshProfile } = useProfile();
   const { ensureHousehold, completeOnboarding, isInitializing: isHouseholdInitializing } = useHouseholdInit();
   const [appState, setAppState] = useState<"splash" | "onboarding" | "dashboard" | null>(null);
-  const [userProfile, setUserProfile] = useState(profile);
 
-  // Sync profile from auth context
+  console.log('📍 Index state:', {
+    authLoading,
+    isAuthenticated,
+    profileLoading,
+    hasProfile: !!profile,
+    profileId: profile?.id,
+    onboardingCompleted: profile?.onboarding_completed,
+    appState
+  });
+
+  // Determine app state once profile is loaded
   useEffect(() => {
-    if (profile) {
-      setUserProfile(profile);
-    }
-  }, [profile]);
-
-  // Handle authentication and routing
-  useEffect(() => {
-    console.log('📍 Index routing check:', { authLoading, isAuthenticated, appState, hasProfile: !!profile, profileId: profile?.id });
-    
-    if (authLoading) return;
-
-    if (!isAuthenticated) {
-      console.log('📍 Not authenticated, redirecting to /auth');
-      navigate('/auth', { replace: true });
+    // Still loading auth or profile
+    if (authLoading || profileLoading) {
+      console.log('📍 Still loading auth or profile');
       return;
     }
 
-    // Wait for profile to load before determining route
+    // Not authenticated (ProtectedRoute should handle this, but just in case)
+    if (!isAuthenticated || !user) {
+      console.log('📍 Not authenticated');
+      return;
+    }
+
+    // No profile found
     if (!profile) {
-      // Just wait - AuthContext will load profile via onAuthStateChange
+      console.log('📍 No profile found');
       return;
     }
 
@@ -67,9 +69,9 @@ const Index = () => {
         setAppState("onboarding");
       }
     }
-  }, [authLoading, isAuthenticated, appState, profile, navigate, ensureHousehold]);
+  }, [authLoading, profileLoading, isAuthenticated, user, profile, appState, ensureHousehold]);
 
-  const handleOnboardingComplete = async (completedProfile?: any) => {
+  const handleOnboardingComplete = async () => {
     console.log("🎉 Onboarding complete");
     
     try {
@@ -96,6 +98,7 @@ const Index = () => {
 
     try {
       await completeOnboarding();
+      await refreshProfile();
       setAppState("dashboard");
     } catch (error: any) {
       console.error("❌ Error skipping onboarding:", error);
@@ -108,11 +111,17 @@ const Index = () => {
   };
 
   // Loading state
-  if (authLoading || (isAuthenticated && !profile) || isHouseholdInitializing) {
+  if (authLoading || profileLoading || isHouseholdInitializing) {
     return (
       <div className="fixed inset-0 bg-kaeva-void flex items-center justify-center">
         <LoadingState
-          message={isHouseholdInitializing ? "Setting up your space..." : "Loading Kaeva..."}
+          message={
+            isHouseholdInitializing 
+              ? "Setting up your space..." 
+              : profileLoading 
+              ? "Loading your profile..." 
+              : "Loading Kaeva..."
+          }
           timeout={10000}
           onTimeout={() => {
             console.warn("⏱️ Loading is taking longer than expected");
@@ -150,10 +159,10 @@ const Index = () => {
         />
       )}
 
-      {appState === "dashboard" && userProfile && (
+      {appState === "dashboard" && profile && (
         <Dashboard 
           key="dashboard"
-          profile={userProfile}
+          profile={profile}
         />
       )}
     </AnimatePresence>

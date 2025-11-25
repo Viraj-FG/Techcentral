@@ -1,9 +1,11 @@
 import { useState, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 
 export const useHouseholdInit = () => {
-  const { user, profile, refreshProfile } = useAuth();
+  const { user } = useAuth();
+  const { profile, refreshProfile } = useProfile();
   const [isInitializing, setIsInitializing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
