@@ -201,39 +201,39 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // Set up auth listener FIRST - this is the single source of truth
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
-            if (!mounted || isProcessingAuth) return;
+            if (!mounted) return;
             
-            isProcessingAuth = true;
             console.log('🔐 Auth event:', event, { hasSession: !!session });
 
-            try {
-              if (event === 'SIGNED_IN' && session) {
-                console.log('🔐 SIGNED_IN event - loading profile');
+            // Handle session-based events (SIGNED_IN and INITIAL_SESSION)
+            if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
+              // Avoid duplicate processing if we already have this user's profile
+              if (profile?.id === session.user.id) {
+                console.log('🔐 Profile already loaded for this user, skipping');
+                return;
+              }
+              
+              isProcessingAuth = true;
+              try {
+                console.log(`🔐 ${event} event - loading profile`);
                 setSession(session);
                 setUser(session.user);
                 await loadProfile(session.user.id);
+              } finally {
+                isProcessingAuth = false;
               }
+            }
 
-              if (event === 'SIGNED_OUT') {
-                console.log('🔐 SIGNED_OUT event');
-                setSession(null);
-                setUser(null);
-                setProfile(null);
-              }
+            if (event === 'SIGNED_OUT') {
+              console.log('🔐 SIGNED_OUT event');
+              setSession(null);
+              setUser(null);
+              setProfile(null);
+            }
 
-              if (event === 'TOKEN_REFRESHED' && session) {
-                console.log('🔐 TOKEN_REFRESHED event');
-                setSession(session);
-              }
-
-              if (event === 'INITIAL_SESSION' && session) {
-                console.log('🔐 INITIAL_SESSION event - loading profile');
-                setSession(session);
-                setUser(session.user);
-                await loadProfile(session.user.id);
-              }
-            } finally {
-              isProcessingAuth = false;
+            if (event === 'TOKEN_REFRESHED' && session) {
+              console.log('🔐 TOKEN_REFRESHED event');
+              setSession(session);
             }
           }
         );
@@ -243,20 +243,31 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         console.log('🔐 Checking for existing session...');
         
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Auth initialization timeout')), 8000)
+          setTimeout(() => reject(new Error('Auth initialization timeout')), 15000)
         );
 
+        let sessionData;
         try {
-          await Promise.race([
+          const result = await Promise.race([
             supabase.auth.getSession(),
             timeoutPromise
           ]);
+          sessionData = result;
         } catch (err) {
           console.warn('⚠️ Auth initialization check timed out, proceeding with auth state from listener', err);
         }
 
         // Small delay to allow onAuthStateChange to process
         await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Fallback: If we have a session but no profile loaded, load it explicitly
+        if (mounted && sessionData?.data?.session && !profile) {
+          console.log('🔐 Fallback: Session exists but profile not loaded, loading explicitly');
+          const currentSession = sessionData.data.session;
+          setSession(currentSession);
+          setUser(currentSession.user);
+          await loadProfile(currentSession.user.id);
+        }
         
         if (mounted) {
           setIsLoading(false);
