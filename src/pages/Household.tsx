@@ -54,6 +54,8 @@ const Household = () => {
   const [deletingMember, setDeletingMember] = useState<StoredHouseholdMember | null>(null);
   const [inviteLinkCopied, setInviteLinkCopied] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [isCreatingInvite, setIsCreatingInvite] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
 
   // Fetch household members
   useEffect(() => {
@@ -242,20 +244,50 @@ const Household = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
     
-    // Generate invite link with user's household ID
-    const baseUrl = window.location.origin;
-    const inviteCode = btoa(`${session.user.id}:${Date.now()}`); // Simple encoding, should use proper tokens in production
-    const inviteLink = `${baseUrl}/household/join?code=${inviteCode}`;
-    
-    navigator.clipboard.writeText(inviteLink);
-    setInviteLinkCopied(true);
-    
-    toast({
-      title: "Invite Link Copied",
-      description: "Share this link with household members to give them access",
-    });
+    if (!userProfile?.current_household_id) {
+      toast({
+        title: "Error",
+        description: "No household found. Please create a household first.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    setTimeout(() => setInviteLinkCopied(false), 3000);
+    setIsCreatingInvite(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke("create-household-invite", {
+        body: {
+          household_id: userProfile.current_household_id,
+          expires_in_hours: 24,
+          max_uses: 5,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.invite_url) {
+        await navigator.clipboard.writeText(data.invite_url);
+        setInviteLinkCopied(true);
+        
+        toast({
+          title: "Invite Link Created",
+          description: "Link copied to clipboard. Share it with household members!",
+        });
+
+        setTimeout(() => setInviteLinkCopied(false), 3000);
+        setInviteDialogOpen(false);
+      }
+    } catch (err: any) {
+      console.error("Error creating invite:", err);
+      toast({
+        title: "Error",
+        description: err.message || "Failed to create invite link",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingInvite(false);
+    }
   };
 
   return (
