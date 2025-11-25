@@ -177,14 +177,14 @@ IMMEDIATELY call endConversation({ reason: "user_exit" }) without asking for con
                         userHeight: { type: "number", description: "User's height in cm or inches" },
                         userGender: { type: "string", description: "User's gender identity" },
                         userActivityLevel: { type: "string", description: "Activity level: sedentary, lightly_active, moderately_active, very_active, extremely_active" },
-                        dietaryPreferences: { type: "array", items: { type: "string" }, description: "Array of dietary preferences (Halal, Kosher, Vegan, Vegetarian, etc.)" },
-                        allergies: { type: "array", items: { type: "string" }, description: "Array of food allergies (Nuts, Gluten, Dairy, Shellfish, etc.)" },
+                        dietaryPreferences: { type: "array", items: { type: "string", description: "A dietary preference (e.g., Halal, Kosher, Vegan, Vegetarian)" }, description: "Array of dietary preferences (Halal, Kosher, Vegan, Vegetarian, etc.)" },
+                        allergies: { type: "array", items: { type: "string", description: "A food allergy (e.g., Nuts, Gluten, Dairy, Shellfish)" }, description: "Array of food allergies (Nuts, Gluten, Dairy, Shellfish, etc.)" },
                         skinType: { type: "string", description: "Skin type: dry, oily, combination, sensitive, normal" },
                         hairType: { type: "string", description: "Hair type: straight, wavy, curly, coily" },
                         householdAdults: { type: "number", description: "Number of adults in household" },
                         householdKids: { type: "number", description: "Number of children in household" },
-                        healthGoals: { type: "array", items: { type: "string" }, description: "Array of health goals (Weight Loss, Muscle Gain, Heart Health, Energy)" },
-                        lifestyleGoals: { type: "array", items: { type: "string" }, description: "Array of lifestyle goals (Meal Prep, New Cuisines, Self-Care)" }
+                        healthGoals: { type: "array", items: { type: "string", description: "A health goal (e.g., Weight Loss, Muscle Gain, Heart Health, Energy)" }, description: "Array of health goals (Weight Loss, Muscle Gain, Heart Health, Energy)" },
+                        lifestyleGoals: { type: "array", items: { type: "string", description: "A lifestyle goal (e.g., Meal Prep, New Cuisines, Self-Care)" }, description: "Array of lifestyle goals (Meal Prep, New Cuisines, Self-Care)" }
                       },
                       required: []
                     },
