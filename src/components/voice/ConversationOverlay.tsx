@@ -5,7 +5,7 @@ import { Button } from "../ui/button";
 
 interface ConversationOverlayProps {
   isOpen: boolean;
-  apertureState: "idle" | "wakeword" | "listening" | "thinking" | "speaking";
+  apertureState: "idle" | "wakeword" | "listening" | "thinking" | "speaking" | "acknowledged";
   audioAmplitude: number;
   userTranscript: string;
   aiTranscript: string;

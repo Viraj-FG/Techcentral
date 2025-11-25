@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 interface KaevaApertureProps {
-  state: "idle" | "wakeword" | "listening" | "thinking" | "speaking";
+  state: "idle" | "wakeword" | "listening" | "thinking" | "speaking" | "acknowledged";
   size?: "sm" | "md" | "lg";
   audioAmplitude?: number;
   audioElement?: HTMLAudioElement | null;
@@ -137,6 +137,22 @@ const KaevaAperture = ({ state, size = "md", audioAmplitude = 0, audioElement, i
         />
       )}
       
+      {/* ACKNOWLEDGED: Quick pulse when user stops speaking */}
+      {state === 'acknowledged' && (
+        <motion.div
+          className="absolute inset-0 rounded-full border-3 sm:border-4 border-kaeva-sage"
+          initial={{ scale: 1, opacity: 0.6 }}
+          animate={{ scale: 1.2, opacity: 1 }}
+          transition={{
+            duration: 0.2,
+            ease: "easeOut"
+          }}
+          style={{
+            filter: 'drop-shadow(0 0 25px rgb(112 224 152 / 0.8))'
+          }}
+        />
+      )}
+
       {/* SPEAKING: Rapid pulse (more energetic) */}
       {state === 'speaking' && (
         <motion.div

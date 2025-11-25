@@ -53,7 +53,7 @@ const AppShell = ({
       </div>
 
       {/* LAYER 10: Scrollable Content */}
-      <main className="relative z-10 w-full h-full overflow-y-auto overflow-x-hidden pb-[160px] pt-6 px-4 scroll-smooth">
+      <main className="relative z-10 w-full h-full overflow-y-auto overflow-x-hidden pb-[200px] pt-6 px-4 scroll-smooth">
         <div className="max-w-md mx-auto space-y-6">
           {children}
         </div>
