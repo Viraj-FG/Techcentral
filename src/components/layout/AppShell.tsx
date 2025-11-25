@@ -77,6 +77,8 @@ const AppShell = ({
         ...kaevaTransition,
         delay: 0.5
       }}>
+          {/* LEFT SIDE - 3 buttons */}
+          
           {/* Notification Bell */}
           <NotificationBell />
 
@@ -92,20 +94,6 @@ const AppShell = ({
             transition={kaevaTransition}
           >
             <Search size={22} strokeWidth={1.5} />
-          </motion.button>
-
-          {/* Settings Button */}
-          <motion.button 
-            onClick={() => {
-              triggerHaptic('light');
-              navigate('/settings');
-            }}
-            className="p-3 text-slate-400 hover:text-white transition-colors rounded-full hover:bg-white/10" 
-            whileHover={{ scale: 1.1 }} 
-            whileTap={{ scale: 0.95 }}
-            transition={kaevaTransition}
-          >
-            <Settings size={22} strokeWidth={1.5} />
           </motion.button>
 
           {/* Household Button */}
@@ -136,6 +124,22 @@ const AppShell = ({
             <div className="w-16 h-16 rounded-full bg-kaeva-sage border-4 border-[#0F172A] flex items-center justify-center shadow-[0_0_20px_rgba(112,224,152,0.4)]">
               <Scan size={28} className="text-slate-900" strokeWidth={2} />
             </div>
+          </motion.button>
+
+          {/* RIGHT SIDE - 3 buttons */}
+
+          {/* Settings Button */}
+          <motion.button 
+            onClick={() => {
+              triggerHaptic('light');
+              navigate('/settings');
+            }}
+            className="p-3 text-slate-400 hover:text-white transition-colors rounded-full hover:bg-white/10" 
+            whileHover={{ scale: 1.1 }} 
+            whileTap={{ scale: 0.95 }}
+            transition={kaevaTransition}
+          >
+            <Settings size={22} strokeWidth={1.5} />
           </motion.button>
 
           {/* Mic Button */}
