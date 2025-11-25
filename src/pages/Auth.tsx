@@ -25,7 +25,7 @@ import { kaevaTransition } from "@/hooks/useKaevaMotion";
 const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { signIn, signUp, resetPassword, isAuthenticated, isLoading: authLoading, error: authError } = useAuth();
+  const { signIn, signUp, resetPassword, session, error: authError } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
@@ -80,13 +80,16 @@ const Auth = () => {
     resolver: zodResolver(authSchema),
   });
 
-  // Redirect if already authenticated
+  // Redirect immediately when we have a session
   useEffect(() => {
-    if (isAuthenticated && !authLoading) {
-      navigate('/');
+    if (session) {
+      console.log('🔐 Session detected, redirecting to dashboard');
+      navigate('/', { replace: true });
     }
+  }, [session, navigate]);
 
-    // Listen for online/offline status
+  // Listen for online/offline status
+  useEffect(() => {
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => {
       setIsOffline(true);
@@ -104,7 +107,7 @@ const Auth = () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, [isAuthenticated, authLoading, navigate, toast]);
+  }, [toast]);
 
   const onSubmit = async (data: AuthFormData) => {
     console.log('📝 Form submitted:', { email: data.email, isSignUp });
