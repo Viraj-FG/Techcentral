@@ -121,7 +121,7 @@ serve(async (req) => {
       console.log('Searching by barcode:', barcode);
     } else {
       const searchExpression = brand ? `${brand} ${name}` : name;
-      searchParams.method = 'foods.search.v3';
+      searchParams.method = 'foods.search';
       searchParams.search_expression = searchExpression;
       searchParams.max_results = '5';
       console.log('Searching FatSecret for:', searchExpression);
