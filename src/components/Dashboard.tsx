@@ -333,6 +333,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
         variants={kaevaStaggerContainer}
         className="space-y-4"
       >
+        <motion.div variants={kaevaStaggerChild}><PulseHeader profile={profile} /></motion.div>
         <motion.div variants={kaevaStaggerChild}><WelcomeBanner /></motion.div>
         <motion.div variants={kaevaStaggerChild}>
           <QuickActions
@@ -365,7 +366,6 @@ const Dashboard = ({ profile }: DashboardProps) => {
           />
         </motion.div>
         <motion.div variants={kaevaStaggerChild}><AIInsightsWidget userId={profile.id} /></motion.div>
-        <motion.div variants={kaevaStaggerChild}><PulseHeader profile={profile} /></motion.div>
         <motion.div variants={kaevaStaggerChild}><SafetyShield profile={profile} /></motion.div>
       </motion.div>
     );
