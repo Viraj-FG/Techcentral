@@ -4,12 +4,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UniversalLibrary } from '@/components/ui/UniversalLibrary';
+import type { LibraryFilter } from '@/components/ui/UniversalLibrary';
 import {
   UtensilsCrossed,
   Package,
   ChefHat,
   PawPrint,
   Sparkles,
+  Clock,
+  Bookmark,
+  AlertCircle,
+  Apple,
+  BookOpen,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -19,6 +25,135 @@ interface GlobalSearchProps {
 }
 
 type DomainType = 'nutrition' | 'inventory' | 'recipes' | 'pets' | 'beauty';
+
+// Domain-specific filter configurations
+const nutritionFilters: LibraryFilter[] = [
+  {
+    id: 'meals',
+    label: 'My Meals',
+    icon: BookOpen,
+    query: (items) => items.filter((item: any) => item.is_template === true)
+  },
+  {
+    id: 'recent',
+    label: 'Recent',
+    icon: Clock,
+    query: (items) => items.slice().sort((a: any, b: any) => 
+      new Date(b.last_used_at || b.created_at).getTime() - 
+      new Date(a.last_used_at || a.created_at).getTime()
+    ).slice(0, 20)
+  },
+  {
+    id: 'bookmarked',
+    label: 'Saved',
+    icon: Bookmark,
+    query: (items) => items.filter((item: any) => item.is_bookmarked === true)
+  }
+];
+
+const inventoryFilters: LibraryFilter[] = [
+  {
+    id: 'expiring',
+    label: 'Expiring',
+    icon: AlertCircle,
+    query: (items) => {
+      const sevenDaysFromNow = new Date();
+      sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+      return items.filter((item: any) => 
+        item.expiry_date && new Date(item.expiry_date) <= sevenDaysFromNow
+      ).sort((a: any, b: any) => 
+        new Date(a.expiry_date).getTime() - new Date(b.expiry_date).getTime()
+      );
+    }
+  },
+  {
+    id: 'fridge',
+    label: 'Fridge',
+    icon: Package,
+    query: (items) => items.filter((item: any) => item.category === 'fridge')
+  },
+  {
+    id: 'pantry',
+    label: 'Pantry',
+    icon: Package,
+    query: (items) => items.filter((item: any) => item.category === 'pantry')
+  }
+];
+
+const recipeFilters: LibraryFilter[] = [
+  {
+    id: 'my_recipes',
+    label: 'My Recipes',
+    icon: Sparkles,
+    query: (items) => items.filter((item: any) => item.user_created === true)
+  },
+  {
+    id: 'bookmarked',
+    label: 'Saved',
+    icon: Bookmark,
+    query: (items) => items.filter((item: any) => item.is_bookmarked === true)
+  },
+  {
+    id: 'ready',
+    label: 'Ready to Cook',
+    icon: AlertCircle,
+    query: (items) => items.filter((item: any) => 
+      item.match_score !== null && item.match_score >= 80
+    ).sort((a: any, b: any) => (b.match_score || 0) - (a.match_score || 0))
+  }
+];
+
+const petFilters: LibraryFilter[] = [
+  {
+    id: 'safe',
+    label: 'Safe Foods',
+    icon: Bookmark,
+    query: (items) => items.filter((item: any) => item.is_safe === true)
+  },
+  {
+    id: 'toxic',
+    label: 'Toxic Foods',
+    icon: AlertCircle,
+    query: (items) => items.filter((item: any) => item.is_toxic === true)
+  },
+  {
+    id: 'schedule',
+    label: 'Schedule',
+    icon: Clock,
+    query: (items) => items.filter((item: any) => item.is_scheduled === true)
+  }
+];
+
+const beautyFilters: LibraryFilter[] = [
+  {
+    id: 'expiring',
+    label: 'Expiring Soon',
+    icon: AlertCircle,
+    query: (items) => {
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+      return items.filter((item: any) => 
+        item.expiry_date && new Date(item.expiry_date) <= thirtyDaysFromNow
+      ).sort((a: any, b: any) => 
+        new Date(a.expiry_date).getTime() - new Date(b.expiry_date).getTime()
+      );
+    }
+  },
+  {
+    id: 'morning',
+    label: 'Morning',
+    icon: Clock,
+    query: (items) => items.filter((item: any) => 
+      item.routine?.includes('morning') || item.category === 'morning'
+    )
+  },
+  {
+    id: 'bookmarked',
+    label: 'Repurchase',
+    icon: Bookmark,
+    query: (items) => items.filter((item: any) => item.is_bookmarked === true)
+  }
+];
 
 const GlobalSearch = ({ open, onOpenChange }: GlobalSearchProps) => {
   const navigate = useNavigate();
@@ -143,6 +278,7 @@ const GlobalSearch = ({ open, onOpenChange }: GlobalSearchProps) => {
                 items={nutritionItems}
                 onSelect={handleNutritionSelect}
                 placeholder="Search foods..."
+                filters={nutritionFilters}
                 standalone={false}
               />
             </TabsContent>
@@ -153,6 +289,7 @@ const GlobalSearch = ({ open, onOpenChange }: GlobalSearchProps) => {
                 items={inventory}
                 onSelect={handleInventorySelect}
                 placeholder="Search inventory..."
+                filters={inventoryFilters}
                 standalone={false}
               />
             </TabsContent>
@@ -163,6 +300,7 @@ const GlobalSearch = ({ open, onOpenChange }: GlobalSearchProps) => {
                 items={recipes}
                 onSelect={handleRecipeSelect}
                 placeholder="Search recipes..."
+                filters={recipeFilters}
                 standalone={false}
               />
             </TabsContent>
@@ -173,6 +311,7 @@ const GlobalSearch = ({ open, onOpenChange }: GlobalSearchProps) => {
                 items={pets}
                 onSelect={handlePetSelect}
                 placeholder="Search pet items..."
+                filters={petFilters}
                 standalone={false}
               />
             </TabsContent>
@@ -183,6 +322,7 @@ const GlobalSearch = ({ open, onOpenChange }: GlobalSearchProps) => {
                 items={beautyItems}
                 onSelect={handleBeautySelect}
                 placeholder="Search beauty products..."
+                filters={beautyFilters}
                 standalone={false}
               />
             </TabsContent>
