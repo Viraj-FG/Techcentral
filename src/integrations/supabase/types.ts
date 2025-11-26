@@ -101,6 +101,44 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_digests: {
+        Row: {
+          digest_date: string
+          generated_at: string | null
+          household_id: string | null
+          id: string
+          insights: Json
+          user_id: string
+          viewed_at: string | null
+        }
+        Insert: {
+          digest_date?: string
+          generated_at?: string | null
+          household_id?: string | null
+          id?: string
+          insights?: Json
+          user_id: string
+          viewed_at?: string | null
+        }
+        Update: {
+          digest_date?: string
+          generated_at?: string | null
+          household_id?: string | null
+          id?: string
+          insights?: Json
+          user_id?: string
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_digests_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       household_activity: {
         Row: {
           activity_type: string

@@ -14,6 +14,7 @@ interface Recipe {
   servings: number | null;
   difficulty: string | null;
   estimated_calories: number | null;
+  explanation?: string | null;
 }
 
 interface Props {
@@ -83,6 +84,16 @@ export const RecipeCard = ({ recipe, onClick }: Props) => {
           {matchScore}% Match
         </Badge>
       </div>
+
+      {/* Explanation - Why this recipe is recommended */}
+      {recipe.explanation && (
+        <div className="mb-4 p-3 rounded-lg bg-background/30 border border-border/30">
+          <p className="text-xs text-muted-foreground">
+            <span className="font-semibold text-foreground">Why this recipe: </span>
+            {recipe.explanation}
+          </p>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-4">

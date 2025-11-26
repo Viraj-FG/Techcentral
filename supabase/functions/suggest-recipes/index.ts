@@ -129,7 +129,13 @@ For each recipe provide:
 - instructions: Array of 3-5 brief steps
 - estimated_calories: Calories per serving
 - servings: Number of servings
+- explanation: Clear 1-2 sentence explanation of WHY this recipe is recommended (e.g., "92% match because you have chicken, tomatoes. Missing: basil (common pantry item). Supports your weight loss goal with 400 cal, 35g protein.")
 ${inventory_match ? '- missing_ingredients: Array of ingredients user doesn\'t have\n- match_score: Percentage (0-100) of ingredients user has' : ''}
+
+IMPORTANT: The explanation should be transparent about:
+1. What ingredients the user already has
+2. What's missing (if any) and why it's acceptable
+3. How it aligns with their health goals (if provided)
 
 Return ONLY valid JSON array (no markdown):
 [
@@ -140,7 +146,8 @@ Return ONLY valid JSON array (no markdown):
     "required_appliances": ["Oven"],
     "instructions": ["Step 1", "Step 2", "Step 3"],
     "estimated_calories": 400,
-    "servings": 4${inventory_match ? ',\n    "missing_ingredients": ["ingredient1"],\n    "match_score": 85' : ''}
+    "servings": 4,
+    "explanation": "Great match explanation here"${inventory_match ? ',\n    "missing_ingredients": ["ingredient1"],\n    "match_score": 85' : ''}
   }
 ]`;
 
