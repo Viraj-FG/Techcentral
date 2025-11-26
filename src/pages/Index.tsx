@@ -65,8 +65,8 @@ const Index = () => {
 
   if (isCheckingAuth || appState === null) {
     return (
-      <div className="fixed inset-0 bg-kaeva-void flex items-center justify-center">
-        <div className="text-kaeva-sage text-lg animate-pulse">Loading Kaeva...</div>
+      <div className="fixed inset-0 bg-background flex items-center justify-center">
+        <div className="text-secondary text-lg animate-pulse">Loading Kaeva...</div>
       </div>
     );
   }

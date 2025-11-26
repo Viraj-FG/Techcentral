@@ -39,11 +39,11 @@ const Splash = ({ onComplete }: SplashProps) => {
           initial={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: "-100%" }}
           transition={{ duration: 0.8, ease: "easeIn" }}
-          className="fixed inset-0 bg-kaeva-void overflow-hidden flex items-center justify-center z-50 pb-safe pt-safe"
+          className="fixed inset-0 bg-background overflow-hidden flex items-center justify-center z-50 pb-safe pt-safe"
         >
           {/* Atmospheric Orb 1 - Top-Left Sage Green */}
           <motion.div
-            className="absolute -top-10 -left-10 sm:-top-24 sm:-left-24 md:-top-32 md:-left-32 lg:-top-40 lg:-left-40 w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 lg:w-80 lg:h-80 bg-kaeva-sage rounded-full blur-[50px] sm:blur-[60px] md:blur-[80px] lg:blur-[100px]"
+            className="absolute -top-10 -left-10 sm:-top-24 sm:-left-24 md:-top-32 md:-left-32 lg:-top-40 lg:-left-40 w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 lg:w-80 lg:h-80 bg-secondary rounded-full blur-[50px] sm:blur-[60px] md:blur-[80px] lg:blur-[100px]"
             animate={{
               x: [-10, 10, -10],
               y: [-10, 10, -10],
@@ -58,7 +58,7 @@ const Splash = ({ onComplete }: SplashProps) => {
 
           {/* Atmospheric Orb 2 - Bottom-Right Teal */}
           <motion.div
-            className="absolute -bottom-10 -right-10 sm:-bottom-24 sm:-right-24 md:-bottom-32 md:-right-32 lg:-bottom-40 lg:-right-40 w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96 bg-kaeva-teal rounded-full blur-[50px] sm:blur-[60px] md:blur-[80px] lg:blur-[100px]"
+            className="absolute -bottom-10 -right-10 sm:-bottom-24 sm:-right-24 md:-bottom-32 md:-right-32 lg:-bottom-40 lg:-right-40 w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96 bg-accent rounded-full blur-[50px] sm:blur-[60px] md:blur-[80px] lg:blur-[100px]"
             animate={{
               x: [10, -10, 10],
               y: [10, -10, 10],
@@ -84,7 +84,7 @@ const Splash = ({ onComplete }: SplashProps) => {
                 {/* K Shape with Viewfinder Aesthetic */}
                 <motion.path
                   d="M 20 20 L 20 80 M 20 50 L 60 20 M 20 50 L 60 80 M 15 15 L 15 25 M 15 15 L 25 15 M 15 85 L 15 75 M 15 85 L 25 85 M 85 15 L 85 25 M 85 15 L 75 15 M 85 85 L 85 75 M 85 85 L 75 85"
-                  stroke="hsl(var(--kaeva-sage))"
+                  stroke="hsl(var(--secondary))"
                   strokeWidth="2.5"
                   fill="none"
                   strokeLinecap="round"
@@ -99,7 +99,7 @@ const Splash = ({ onComplete }: SplashProps) => {
                   cx="50"
                   cy="50"
                   r="3"
-                  fill="hsl(var(--kaeva-sage))"
+                  fill="hsl(var(--secondary))"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ 
@@ -136,7 +136,7 @@ const Splash = ({ onComplete }: SplashProps) => {
                 </div>
 
                 {/* Subtitle */}
-                <div className="flex gap-2 text-kaeva-slate-400 text-xs sm:text-sm md:text-base tracking-ultra-wide">
+                <div className="flex gap-2 text-muted-foreground text-xs sm:text-sm md:text-base tracking-ultra-wide">
                   {["SCAN.", "PLAN.", "LIVE."].map((word, index) => (
                     <motion.span
                       key={index}
@@ -158,7 +158,7 @@ const Splash = ({ onComplete }: SplashProps) => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
                 onClick={handleGetStarted}
-                className="group relative px-10 py-4 sm:px-12 sm:py-5 bg-kaeva-sage/90 border-2 border-kaeva-sage backdrop-blur-md rounded-full text-kaeva-void tracking-wide text-base sm:text-lg font-bold overflow-hidden transition-all hover:bg-kaeva-sage hover:scale-105 shadow-lg shadow-kaeva-sage/50 min-h-[48px]"
+                className="group relative px-10 py-4 sm:px-12 sm:py-5 bg-secondary/90 border-2 border-secondary backdrop-blur-md rounded-full text-background tracking-wide text-base sm:text-lg font-bold overflow-hidden transition-all hover:bg-secondary hover:scale-105 shadow-lg shadow-secondary/50 min-h-[48px]"
               >
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"

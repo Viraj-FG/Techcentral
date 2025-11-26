@@ -262,7 +262,7 @@ const SocialImport = ({ open, onClose, userId, onItemsAdded }: SocialImportProps
       <DialogContent className="sm:max-w-2xl bg-slate-900/95 backdrop-blur-xl border-white/10 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-white">
-            <Sparkles className="w-5 h-5 text-kaeva-electric-sky animate-pulse" strokeWidth={1.5} />
+            <Sparkles className="w-5 h-5 text-accent animate-pulse" strokeWidth={1.5} />
             Social Recipe Import
           </DialogTitle>
           <DialogDescription className="text-white/60">
@@ -272,11 +272,11 @@ const SocialImport = ({ open, onClose, userId, onItemsAdded }: SocialImportProps
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "link" | "image")} className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-slate-800/50">
-            <TabsTrigger value="link" className="data-[state=active]:bg-kaeva-electric-sky/20">
+            <TabsTrigger value="link" className="data-[state=active]:bg-accent/20">
               <Link2 className="w-4 h-4 mr-2" />
               Paste Link
             </TabsTrigger>
-            <TabsTrigger value="image" className="data-[state=active]:bg-kaeva-electric-sky/20">
+            <TabsTrigger value="image" className="data-[state=active]:bg-accent/20">
               <Camera className="w-4 h-4 mr-2" />
               Upload Screenshot
             </TabsTrigger>
@@ -295,7 +295,7 @@ const SocialImport = ({ open, onClose, userId, onItemsAdded }: SocialImportProps
               <Button 
                 onClick={handleExtract} 
                 disabled={loading || !socialUrl.trim()}
-                className="w-full bg-kaeva-electric-sky hover:bg-kaeva-electric-sky/80"
+                className="w-full bg-accent hover:bg-accent/80"
               >
                 {loading ? (
                   <>
@@ -327,7 +327,7 @@ const SocialImport = ({ open, onClose, userId, onItemsAdded }: SocialImportProps
                 onClick={() => fileInputRef.current?.click()}
                 className={cn(
                   "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
-                  "border-white/20 hover:border-kaeva-electric-sky/50 bg-slate-800/30 hover:bg-slate-800/50"
+                  "border-white/20 hover:border-accent/50 bg-slate-800/30 hover:bg-slate-800/50"
                 )}
               >
                 <Upload className="w-12 h-12 mx-auto mb-4 text-white/40" />
@@ -359,7 +359,7 @@ const SocialImport = ({ open, onClose, userId, onItemsAdded }: SocialImportProps
                 <Button 
                   onClick={handleAnalyzeImage} 
                   disabled={loading}
-                  className="w-full bg-kaeva-electric-sky hover:bg-kaeva-electric-sky/80"
+                  className="w-full bg-accent hover:bg-accent/80"
                 >
                   {loading ? (
                     <>
@@ -394,7 +394,7 @@ const SocialImport = ({ open, onClose, userId, onItemsAdded }: SocialImportProps
             <div className="space-y-1">
               <div className="h-2 bg-slate-800/50 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-emerald-400 to-kaeva-electric-sky transition-all duration-500"
+                  className="h-full bg-gradient-to-r from-emerald-400 to-accent transition-all duration-500"
                   style={{ width: `${extractedData.match_percent}%` }}
                 />
               </div>
@@ -439,9 +439,9 @@ const SocialImport = ({ open, onClose, userId, onItemsAdded }: SocialImportProps
 
             {/* Cost Estimation */}
             {extractedData.estimated_total_cost && extractedData.estimated_total_cost > 0 && (
-              <div className="p-3 rounded-lg bg-kaeva-electric-sky/10 border border-kaeva-electric-sky/20 flex items-center justify-between">
+              <div className="p-3 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-between">
                 <p className="text-sm text-white/70">Estimated Cost</p>
-                <p className="text-lg font-bold text-kaeva-electric-sky">
+                <p className="text-lg font-bold text-accent">
                   ${extractedData.estimated_total_cost.toFixed(2)}
                 </p>
               </div>
@@ -461,7 +461,7 @@ const SocialImport = ({ open, onClose, userId, onItemsAdded }: SocialImportProps
               <Button
                 onClick={handleAddToCart}
                 disabled={extractedData.ingredients.missing.length === 0}
-                className="bg-emerald-400 hover:bg-emerald-500 text-kaeva-void font-semibold"
+                className="bg-emerald-400 hover:bg-emerald-500 text-background font-semibold"
               >
                 <ShoppingCart className="w-4 h-4 mr-2" />
                 Add to Cart

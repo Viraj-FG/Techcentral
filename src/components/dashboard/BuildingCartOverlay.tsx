@@ -15,7 +15,7 @@ export const BuildingCartOverlay = ({ isOpen }: BuildingCartOverlayProps) => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={kaevaTransition}
-      className="fixed inset-0 bg-kaeva-void/95 backdrop-blur-xl z-[100] flex items-center justify-center"
+      className="fixed inset-0 bg-background/95 backdrop-blur-xl z-[100] flex items-center justify-center"
     >
       <div className="text-center">
         <motion.div
@@ -28,9 +28,9 @@ export const BuildingCartOverlay = ({ isOpen }: BuildingCartOverlayProps) => {
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="w-24 h-24 mx-auto mb-6 rounded-full bg-kaeva-sage/20 flex items-center justify-center"
+          className="w-24 h-24 mx-auto mb-6 rounded-full bg-secondary/20 flex items-center justify-center"
         >
-          <Truck size={48} className="text-kaeva-sage" strokeWidth={1.5} />
+          <Truck size={48} className="text-secondary" strokeWidth={1.5} />
         </motion.div>
 
         <motion.h2
@@ -57,7 +57,7 @@ export const BuildingCartOverlay = ({ isOpen }: BuildingCartOverlayProps) => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
         >
-          <Loader2 size={16} className="animate-spin text-kaeva-sage" />
+          <Loader2 size={16} className="animate-spin text-secondary" />
           <span className="text-xs text-data text-slate-500">Processing...</span>
         </motion.div>
       </div>

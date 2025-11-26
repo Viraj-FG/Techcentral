@@ -58,7 +58,7 @@ const ProductSelector = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-kaeva-void/95 backdrop-blur-xl border-white/10">
+      <DialogContent className="max-w-2xl bg-background/95 backdrop-blur-xl border-white/10">
         <DialogHeader>
           <DialogTitle className="text-xl text-white font-light tracking-wider">
             Select Correct Product
@@ -133,7 +133,7 @@ const ProductSelector = ({
                       exit={{ scale: 0 }}
                       className="absolute top-4 right-4 w-6 h-6 rounded-full bg-emerald-400 flex items-center justify-center"
                     >
-                      <Check size={14} className="text-kaeva-void" />
+                      <Check size={14} className="text-background" />
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -154,7 +154,7 @@ const ProductSelector = ({
           </Button>
           <Button
             onClick={handleConfirm}
-            className="flex-1 bg-emerald-400 hover:bg-emerald-500 text-kaeva-void"
+            className="flex-1 bg-emerald-400 hover:bg-emerald-500 text-background"
             disabled={loading}
           >
             {loading ? (

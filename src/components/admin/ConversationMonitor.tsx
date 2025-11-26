@@ -186,7 +186,7 @@ export const ConversationMonitor = () => {
       <Card className="lg:col-span-1">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-kaeva-sage" />
+            <Activity className="h-5 w-5 text-secondary" />
             Active Conversations
           </CardTitle>
           <CardDescription>
@@ -205,7 +205,7 @@ export const ConversationMonitor = () => {
                     exit={{ opacity: 0, x: 20 }}
                     className={`p-3 rounded-lg border cursor-pointer transition-all ${
                       selectedConversation === conv.conversation_id
-                        ? 'bg-kaeva-sage/10 border-kaeva-sage'
+                        ? 'bg-secondary/10 border-secondary'
                         : 'bg-muted/50 border-border hover:bg-muted'
                     }`}
                     onClick={() => setSelectedConversation(
@@ -245,7 +245,7 @@ export const ConversationMonitor = () => {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-kaeva-sage" />
+                <MessageSquare className="h-5 w-5 text-secondary" />
                 Live Event Stream
               </CardTitle>
               <CardDescription>
