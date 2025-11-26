@@ -188,37 +188,111 @@ KAEVA is a comprehensive AI-powered home management app with voice assistant, sm
 
 > **Post-launch improvements**
 
-### P3-001: No Usage Analytics
+### P3-001: Onboarding Too Long - Needs Modular Approach
+- **Location:** `src/components/VoiceOnboarding.tsx`
+- **Current:** Single 2+ minute voice onboarding collecting everything upfront (biometrics, dietary, allergies, household, pets, beauty)
+- **Impact:** High drop-off rate, user fatigue, collects info before user sees value
+- **Proposed Solution:** Split into 6 contextual micro-onboarding modules (30 seconds each)
+
+#### Modular Onboarding Architecture
+
+| Module | Trigger Location | Data Collected | Duration |
+|--------|-----------------|----------------|----------|
+| **Core** | Initial app launch | Name, primary goal | 30s |
+| **Nutrition** | First Fuel dashboard view or meal scan | Age, gender, height, weight, allergies, TDEE | 30s |
+| **Pantry** | First inventory scan | Shopping habits, preferred stores, organic preference | 30s |
+| **Beauty** | Glow dashboard view or vanity scan | Skin type, hair type, skin concerns | 30s |
+| **Pets** | Pets dashboard view or pet scan | Pet names, species, breeds, toxic monitoring | 30s |
+| **Household** | Home dashboard view or household page | Family members, their allergies/restrictions | 30s |
+
+#### Database Change
+```sql
+ALTER TABLE profiles ADD COLUMN onboarding_modules JSONB DEFAULT '{
+  "core": false,
+  "nutrition": false,
+  "pantry": false,
+  "beauty": false,
+  "pets": false,
+  "household": false
+}'::jsonb;
+```
+
+#### Component Structure
+```
+src/components/onboarding/
+├── ModularOnboardingPrompt.tsx    # Floating Kaeva dialog prompt
+├── OnboardingModuleSheet.tsx      # Bottom sheet with voice UI
+├── modules/
+│   ├── CoreOnboarding.tsx         # Name, primary goal (30s)
+│   ├── NutritionOnboarding.tsx    # TDEE, diet, allergies (30s)
+│   ├── PantryOnboarding.tsx       # Shopping habits (30s)
+│   ├── BeautyOnboarding.tsx       # Skin/hair profile (30s)
+│   ├── PetsOnboarding.tsx         # Pet setup (30s)
+│   └── HouseholdOnboarding.tsx    # Family members (30s)
+└── hooks/
+    └── useModularOnboarding.ts    # State management
+```
+
+#### UX Flow
+1. **App Launch:** Only Core module (30s) - name + goal, then straight to dashboard
+2. **Contextual Prompts:** When user visits a section without that module complete, show:
+   ```
+   ┌─────────────────────────────────────────┐
+   │   [Kaeva Aperture Animation]            │
+   │                                         │
+   │   "Want me to learn about your skin     │
+   │    so I can give better advice?"        │
+   │                                         │
+   │   [Let's Go! (30s)]  [Maybe Later]     │
+   └─────────────────────────────────────────┘
+   ```
+3. **"Maybe Later":** Dismiss, re-prompt once per session
+4. **Progress Tracking:** Show completion badges in Settings
+
+#### Benefits
+- Lower drop-off (30s vs 2+ min initial commitment)
+- Contextual relevance (user learns when they need it)
+- Progressive disclosure (don't overwhelm upfront)
+- Better data quality (user is in context when answering)
+- Skip & return (no blocking - explore first, setup later)
+
+#### ElevenLabs Configuration
+Update `provision-agents` to support module-specific 30-second prompts for each onboarding type.
+
+- **Effort:** 20-28 hours
+- **Priority:** P3 (post-launch enhancement, but high impact on retention)
+
+### P3-002: No Usage Analytics
 - **Location:** N/A
 - **Current:** No tracking of user behavior
 - **Solution:** Add Mixpanel, Amplitude, or PostHog
 - **Effort:** 8-12 hours
 
-### P3-002: No Performance Monitoring
+### P3-003: No Performance Monitoring
 - **Location:** N/A
 - **Current:** No Web Vitals tracking
 - **Solution:** Add performance monitoring (Lighthouse CI, Vercel Analytics)
 - **Effort:** 4-6 hours
 
-### P3-003: No i18n (Internationalization)
+### P3-004: No i18n (Internationalization)
 - **Location:** Entire app
 - **Current:** English only, hardcoded strings
 - **Solution:** Extract strings to i18n files, add language selector
 - **Effort:** 24-40 hours
 
-### P3-004: Pet Scan No Care Tips
+### P3-005: Pet Scan No Care Tips
 - **Location:** `src/components/scanner/result-modes/PetIdResult.tsx`
 - **Current:** Shows species/breed/size only
 - **Enhancement:** Add breed-specific care tips, common health issues
 - **Effort:** 8-12 hours
 
-### P3-005: No Recipe Sharing
+### P3-006: No Recipe Sharing
 - **Location:** `src/pages/RecipeBook.tsx`
 - **Current:** Recipes are private per user
 - **Enhancement:** Share recipes with household or publicly
 - **Effort:** 12-16 hours
 
-### P3-006: Accessibility Audit Needed
+### P3-007: Accessibility Audit Needed
 - **Location:** Entire app
 - **Current:** Basic accessibility, needs audit
 - **Solution:** ARIA labels, keyboard navigation, screen reader testing
@@ -379,8 +453,8 @@ KAEVA is a comprehensive AI-powered home management app with voice assistant, sm
 | P0 (Critical) | 4 | 32-50h | $3,200-5,000 |
 | P1 (High) | 6 | 36-52h | $3,600-5,200 |
 | P2 (Medium) | 8 | 44-65h | $4,400-6,500 |
-| P3 (Low) | 6 | 72-110h | $7,200-11,000 |
-| **Total** | **24** | **184-277h** | **$18,400-27,700** |
+| P3 (Low) | 7 | 92-138h | $9,200-13,800 |
+| **Total** | **25** | **204-305h** | **$20,400-30,500** |
 
 ### By Category
 
