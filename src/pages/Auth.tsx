@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import AuroraBackground from "@/components/AuroraBackground";
 import { Mail, Lock, Loader2 } from "lucide-react";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
+import { usePrefetch } from "@/hooks/usePrefetch";
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -35,6 +36,9 @@ const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  
+  // Prefetch /app route to reduce navigation latency after successful auth
+  usePrefetch();
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),

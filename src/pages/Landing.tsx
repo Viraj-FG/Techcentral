@@ -3,10 +3,14 @@ import { Cpu, Scan, Activity, Camera, ShoppingBag, ShieldCheck, ChevronDown } fr
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PublicShell from "@/components/layout/PublicShell";
+import { usePrefetch } from "@/hooks/usePrefetch";
 
 const Landing = () => {
   const navigate = useNavigate();
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+  
+  // Prefetch likely next route to reduce navigation latency
+  usePrefetch();
 
   // Note: PublicRoute wrapper handles redirect for authenticated users
 
