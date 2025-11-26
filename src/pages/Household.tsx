@@ -294,7 +294,7 @@ const Household = () => {
   return (
     <UniversalShell>
       {/* Header */}
-      <div className="border-b border-kaeva-sage/10 bg-kaeva-void/95 backdrop-blur-sm sticky top-0 z-40">
+      <div className="border-b border-secondary/10 bg-background/95 backdrop-blur-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -302,13 +302,13 @@ const Household = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate('/')}
-                className="hover:bg-kaeva-sage/10"
+                className="hover:bg-secondary/10"
               >
-                <ArrowLeft className="w-5 h-5 text-kaeva-sage" />
+                <ArrowLeft className="w-5 h-5 text-secondary" />
               </Button>
               <div className="flex items-center gap-3">
-                <Users className="w-6 h-6 text-kaeva-accent" />
-                <h1 className="text-2xl font-light text-kaeva-sage">Household Roster</h1>
+                <Users className="w-6 h-6 text-accent" />
+                <h1 className="text-2xl font-light text-secondary">Household Roster</h1>
               </div>
             </div>
 
@@ -316,7 +316,7 @@ const Household = () => {
               <Button
                 variant="outline"
                 onClick={generateInviteLink}
-                className="gap-2 border-kaeva-sage/20 hover:bg-kaeva-accent/10"
+                className="gap-2 border-secondary/20 hover:bg-accent/10"
               >
                 {inviteLinkCopied ? (
                   <>
@@ -333,15 +333,15 @@ const Household = () => {
 
               <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="gap-2 bg-kaeva-accent hover:bg-kaeva-accent/90 text-kaeva-void">
+                  <Button className="gap-2 bg-accent hover:bg-accent/90 text-background">
                     <Plus className="w-4 h-4" />
                     Add Member
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-2xl bg-kaeva-void border-kaeva-sage/20 max-h-[90vh] overflow-y-auto">
+                <DialogContent className="sm:max-w-2xl bg-background border-secondary/20 max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle className="text-kaeva-sage">Add Household Member</DialogTitle>
-                    <DialogDescription className="text-kaeva-sage/70">
+                    <DialogTitle className="text-secondary">Add Household Member</DialogTitle>
+                    <DialogDescription className="text-secondary/70">
                       Create a detailed profile for your family member
                     </DialogDescription>
                   </DialogHeader>
@@ -368,11 +368,11 @@ const Household = () => {
             <div className="flex items-center gap-3 mb-4">
               <div className="text-4xl">👤</div>
               <div>
-                <h3 className="text-xl font-medium text-kaeva-sage truncate">
+                <h3 className="text-xl font-medium text-secondary truncate">
                   {userProfile.user_name || 'You'} (Primary User)
                 </h3>
                 {userProfile.calculated_tdee && (
-                  <p className="text-sm text-kaeva-sage/70">
+                  <p className="text-sm text-secondary/70">
                     Baseline: {userProfile.calculated_tdee} cal/day
                     {userProfile.user_age && ` • Age ${userProfile.user_age}`}
                   </p>
@@ -382,7 +382,7 @@ const Household = () => {
             
             <div className="flex flex-wrap gap-2">
               {Array.isArray(userProfile.dietary_preferences) && userProfile.dietary_preferences.map((pref: string, idx: number) => (
-                <span key={idx} className="text-xs px-3 py-1 rounded-full bg-kaeva-sage/10 text-kaeva-sage/70">
+                <span key={idx} className="text-xs px-3 py-1 rounded-full bg-secondary/10 text-secondary/70">
                   {pref}
                 </span>
               ))}
@@ -399,7 +399,7 @@ const Household = () => {
         {/* Household Members */}
         {isLoading ? (
           <div className="text-center py-12">
-            <div className="text-kaeva-sage/50 animate-pulse">Loading household members...</div>
+            <div className="text-secondary/50 animate-pulse">Loading household members...</div>
           </div>
         ) : members.length === 0 ? (
           <motion.div
@@ -407,14 +407,14 @@ const Household = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="glass-card p-12 rounded-2xl text-center overflow-hidden"
           >
-            <Users className="w-16 h-16 text-kaeva-sage/30 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-kaeva-sage mb-2">No Household Members Yet</h3>
-            <p className="text-kaeva-sage/70 mb-6 max-w-md mx-auto">
+            <Users className="w-16 h-16 text-secondary/30 mx-auto mb-4" />
+            <h3 className="text-xl font-medium text-secondary mb-2">No Household Members Yet</h3>
+            <p className="text-secondary/70 mb-6 max-w-md mx-auto">
               Add family members to enable personalized safety alerts, dietary filtering, and precise nutritional recommendations for everyone.
             </p>
             <Button
               onClick={() => setIsAddDialogOpen(true)}
-              className="gap-2 bg-kaeva-accent hover:bg-kaeva-accent/90 text-kaeva-void"
+              className="gap-2 bg-accent hover:bg-accent/90 text-background"
             >
               <Plus className="w-4 h-4" />
               Add Your First Member
@@ -432,7 +432,7 @@ const Household = () => {
                   transition={{ delay: index * 0.05 }}
                   className="group"
                 >
-                  <div className="glass-card p-6 rounded-2xl hover:bg-kaeva-sage/5 transition-all overflow-hidden">
+                  <div className="glass-card p-6 rounded-2xl hover:bg-secondary/5 transition-all overflow-hidden">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <HouseholdMemberCard member={member} index={index} />
@@ -445,15 +445,15 @@ const Household = () => {
                               variant="ghost"
                               size="icon"
                               onClick={() => setEditingMember(member)}
-                              className="hover:bg-kaeva-accent/20"
+                              className="hover:bg-accent/20"
                             >
-                              <Edit className="w-4 h-4 text-kaeva-sage" />
+                              <Edit className="w-4 h-4 text-secondary" />
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="sm:max-w-2xl bg-kaeva-void border-kaeva-sage/20 max-h-[90vh] overflow-y-auto">
+                          <DialogContent className="sm:max-w-2xl bg-background border-secondary/20 max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
-                              <DialogTitle className="text-kaeva-sage">Edit Household Member</DialogTitle>
-                              <DialogDescription className="text-kaeva-sage/70">
+                              <DialogTitle className="text-secondary">Edit Household Member</DialogTitle>
+                              <DialogDescription className="text-secondary/70">
                                 Update {member.name || 'this member'}'s profile
                               </DialogDescription>
                             </DialogHeader>
@@ -487,15 +487,15 @@ const Household = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="mt-8 glass-card p-6 rounded-2xl border-2 border-kaeva-accent/20"
+          className="mt-8 glass-card p-6 rounded-2xl border-2 border-accent/20"
         >
-          <h3 className="text-lg font-medium text-kaeva-sage mb-2 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-kaeva-accent" />
+          <h3 className="text-lg font-medium text-secondary mb-2 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-accent" />
             Why Add Household Members?
           </h3>
-          <ul className="space-y-2 text-sm text-kaeva-sage/70">
+          <ul className="space-y-2 text-sm text-secondary/70">
             <li className="flex items-start gap-2">
-              <span className="text-kaeva-accent mt-0.5">•</span>
+              <span className="text-accent mt-0.5">•</span>
               <span><strong>Safety Alerts:</strong> Automatic warnings for allergies and toxic ingredients</span>
             </li>
             <li className="flex items-start gap-2">

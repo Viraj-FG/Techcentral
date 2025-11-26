@@ -75,7 +75,7 @@ export const ScanModeCarousel = ({ preset, onChange }: ScanModeCarouselProps) =>
                 className={cn(
                   "px-3 py-1 text-sm font-medium transition-colors whitespace-nowrap",
                   isActive
-                    ? "text-kaeva-sage"
+                    ? "text-secondary"
                     : "text-white/60"
                 )}
               >

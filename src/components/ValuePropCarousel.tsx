@@ -11,7 +11,7 @@ const slides = [
     title: "Your Household,\nYour Command",
     subtitle: "Voice-powered inventory management that actually understands you",
     icon: (
-      <svg width="80" height="80" viewBox="0 0 80 80" className="text-kaeva-sage">
+      <svg width="80" height="80" viewBox="0 0 80 80" className="text-secondary">
         <motion.circle
           cx="40"
           cy="40"
@@ -39,7 +39,7 @@ const slides = [
     title: "Never Waste\nAnother Grape",
     subtitle: "AI-powered safety alerts for your family, pets, and allergies",
     icon: (
-      <svg width="80" height="80" viewBox="0 0 80 80" className="text-kaeva-sage">
+      <svg width="80" height="80" viewBox="0 0 80 80" className="text-secondary">
         <motion.path
           d="M 40 15 L 48 35 L 70 35 L 52 48 L 60 68 L 40 55 L 20 68 L 28 48 L 10 35 L 32 35 Z"
           stroke="currentColor"
@@ -56,7 +56,7 @@ const slides = [
     title: "Scan.\nPlan.\nLive.",
     subtitle: "Point your camera at anything. Kaeva does the rest.",
     icon: (
-      <svg width="80" height="80" viewBox="0 0 80 80" className="text-kaeva-sage">
+      <svg width="80" height="80" viewBox="0 0 80 80" className="text-secondary">
         <motion.rect
           x="20"
           y="20"
@@ -102,7 +102,7 @@ const ValuePropCarousel = ({ onComplete }: ValuePropCarouselProps) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-kaeva-void z-50 flex flex-col items-center justify-center px-6 pb-safe pt-safe">
+    <div className="fixed inset-0 bg-background z-50 flex flex-col items-center justify-center px-6 pb-safe pt-safe">
       {/* Progress dots */}
       <div className="absolute top-12 left-0 right-0 flex justify-center gap-2">
         {slides.map((_, index) => (
@@ -110,7 +110,7 @@ const ValuePropCarousel = ({ onComplete }: ValuePropCarouselProps) => {
             key={index}
             className={`h-1.5 rounded-full transition-all duration-300 ${
               index === currentSlide
-                ? "w-8 bg-kaeva-sage"
+                ? "w-8 bg-secondary"
                 : "w-1.5 bg-slate-700"
             }`}
           />
@@ -167,7 +167,7 @@ const ValuePropCarousel = ({ onComplete }: ValuePropCarouselProps) => {
           className={`p-3 rounded-full border-2 border-slate-700 transition-all ${
             currentSlide === 0
               ? "opacity-0 pointer-events-none"
-              : "opacity-100 hover:border-kaeva-sage hover:text-kaeva-sage"
+              : "opacity-100 hover:border-secondary hover:text-secondary"
           }`}
         >
           <ChevronLeft size={24} />
@@ -175,7 +175,7 @@ const ValuePropCarousel = ({ onComplete }: ValuePropCarouselProps) => {
 
         <button
           onClick={nextSlide}
-          className="px-8 py-4 bg-kaeva-sage rounded-full text-kaeva-void font-bold hover:bg-kaeva-sage/90 transition-all min-h-[48px]"
+          className="px-8 py-4 bg-secondary rounded-full text-background font-bold hover:bg-secondary/90 transition-all min-h-[48px]"
         >
           {currentSlide === slides.length - 1 ? "Get Started" : "Next"}
         </button>

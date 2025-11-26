@@ -35,7 +35,7 @@ const ApplianceScanResult = ({
               <ChefHat className="w-10 h-10 text-orange-400" />
               <div>
                 <h4 className="text-xl font-bold text-white">{appliance.name}</h4>
-                <span className="inline-block mt-1 px-2 py-0.5 bg-kaeva-sage/20 text-kaeva-sage text-xs font-semibold rounded-full">
+                <span className="inline-block mt-1 px-2 py-0.5 bg-secondary/20 text-secondary text-xs font-semibold rounded-full">
                   NEW
                 </span>
               </div>
@@ -55,7 +55,7 @@ const ApplianceScanResult = ({
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="flex-shrink-0 w-64 p-4 bg-slate-800/60 rounded-xl border border-slate-700/50 hover:border-kaeva-sage/50 transition-colors cursor-pointer"
+                className="flex-shrink-0 w-64 p-4 bg-slate-800/60 rounded-xl border border-slate-700/50 hover:border-secondary/50 transition-colors cursor-pointer"
               >
                 <div className="w-full h-32 bg-slate-700 rounded-lg mb-3 flex items-center justify-center">
                   <Utensils className="w-8 h-8 text-slate-400" />

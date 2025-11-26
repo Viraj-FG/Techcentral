@@ -135,12 +135,12 @@ const RecipeFeed = ({ userInventory, userProfile }: RecipeFeedProps) => {
         <TabsList className="grid w-full grid-cols-2 bg-slate-800/50 border border-white/10">
           <TabsTrigger 
             value="pantry" 
-            className="data-[state=active]:bg-kaeva-sage data-[state=active]:text-white relative"
+            className="data-[state=active]:bg-secondary data-[state=active]:text-white relative"
           >
             {mode === 'pantry' && (
               <motion.div
                 layoutId="activeMode"
-                className="absolute inset-0 bg-kaeva-sage rounded-lg"
+                className="absolute inset-0 bg-secondary rounded-lg"
                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
               />
             )}
@@ -148,12 +148,12 @@ const RecipeFeed = ({ userInventory, userProfile }: RecipeFeedProps) => {
           </TabsTrigger>
           <TabsTrigger 
             value="explore"
-            className="data-[state=active]:bg-kaeva-electric-sky data-[state=active]:text-white relative"
+            className="data-[state=active]:bg-accent data-[state=active]:text-white relative"
           >
             {mode === 'explore' && (
               <motion.div
                 layoutId="activeMode"
-                className="absolute inset-0 bg-kaeva-electric-sky rounded-lg"
+                className="absolute inset-0 bg-accent rounded-lg"
                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
               />
             )}
@@ -162,7 +162,7 @@ const RecipeFeed = ({ userInventory, userProfile }: RecipeFeedProps) => {
         </TabsList>
 
         <TabsContent value="pantry" className="mt-4">
-          <div className="mb-4 p-3 rounded-lg bg-kaeva-sage/10 border border-kaeva-sage/30">
+          <div className="mb-4 p-3 rounded-lg bg-secondary/10 border border-secondary/30">
             <p className="text-sm text-white/70">
               Recipes you can make with items in your kitchen (80%+ match)
             </p>
@@ -171,7 +171,7 @@ const RecipeFeed = ({ userInventory, userProfile }: RecipeFeedProps) => {
           <Button 
             onClick={() => loadRecipes('pantry')} 
             disabled={loading}
-            className="w-full bg-kaeva-sage hover:bg-kaeva-sage/80 mb-4"
+            className="w-full bg-secondary hover:bg-secondary/80 mb-4"
           >
             {loading ? (
               <>
@@ -221,7 +221,7 @@ const RecipeFeed = ({ userInventory, userProfile }: RecipeFeedProps) => {
           <Button 
             onClick={() => loadRecipes('explore')} 
             disabled={loading}
-            className="w-full bg-kaeva-electric-sky hover:bg-kaeva-electric-sky/80 mb-4"
+            className="w-full bg-accent hover:bg-accent/80 mb-4"
           >
             {loading ? (
               <>
@@ -305,7 +305,7 @@ const RecipeFeed = ({ userInventory, userProfile }: RecipeFeedProps) => {
                     {recipe.required_appliances.map((app, i) => (
                       <span 
                         key={i}
-                        className="text-xs px-2 py-1 rounded-full bg-kaeva-electric-sky/20 text-kaeva-electric-sky border border-kaeva-electric-sky/30"
+                        className="text-xs px-2 py-1 rounded-full bg-accent/20 text-accent border border-accent/30"
                       >
                         {app}
                       </span>

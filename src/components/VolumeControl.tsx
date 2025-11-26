@@ -10,10 +10,10 @@ const VolumeControl = ({ volume, onVolumeChange }: VolumeControlProps) => {
   const isMuted = volume === 0;
 
   return (
-    <div className="flex items-center gap-2 sm:gap-3 px-3 py-2 sm:px-4 sm:py-3 bg-kaeva-void/40 backdrop-blur-sm border border-kaeva-slate-700/30 rounded-lg">
+    <div className="flex items-center gap-2 sm:gap-3 px-3 py-2 sm:px-4 sm:py-3 bg-background/40 backdrop-blur-sm border border-muted/30 rounded-lg">
       <button
         onClick={() => onVolumeChange(isMuted ? 0.7 : 0)}
-        className="p-2 text-kaeva-slate-400 hover:text-kaeva-slate-300 transition-colors"
+        className="p-2 text-muted-foreground hover:text-muted-foreground/70 transition-colors"
         aria-label={isMuted ? "Unmute" : "Mute"}
       >
         {isMuted ? (
@@ -34,7 +34,7 @@ const VolumeControl = ({ volume, onVolumeChange }: VolumeControlProps) => {
         />
       </div>
       
-      <span className="text-kaeva-slate-400 text-sm font-mono min-w-[3ch] text-right">
+      <span className="text-muted-foreground text-sm font-mono min-w-[3ch] text-right">
         {Math.round(volume * 100)}%
       </span>
     </div>

@@ -53,20 +53,20 @@ export const AgentProvisioning = () => {
     switch (status) {
       case 'created':
       case 'updated':
-        return <CheckCircle2 className="h-5 w-5 text-kaeva-sage" />;
+        return <CheckCircle2 className="h-5 w-5 text-secondary" />;
       case 'error':
         return <XCircle className="h-5 w-5 text-red-500" />;
       default:
-        return <AlertCircle className="h-5 w-5 text-kaeva-electric-sky" />;
+        return <AlertCircle className="h-5 w-5 text-accent" />;
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'created':
-        return <Badge className="bg-kaeva-sage/20 text-kaeva-sage border-kaeva-sage/30">Created</Badge>;
+        return <Badge className="bg-secondary/20 text-secondary border-secondary/30">Created</Badge>;
       case 'updated':
-        return <Badge className="bg-kaeva-electric-sky/20 text-kaeva-electric-sky border-kaeva-electric-sky/30">Updated</Badge>;
+        return <Badge className="bg-accent/20 text-accent border-accent/30">Updated</Badge>;
       case 'error':
         return <Badge variant="destructive">Error</Badge>;
       default:
@@ -75,10 +75,10 @@ export const AgentProvisioning = () => {
   };
 
   return (
-    <Card className="glass-card border-kaeva-sage/20">
+    <Card className="glass-card border-secondary/20">
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Zap className="h-5 w-5 text-kaeva-sage" />
+          <Zap className="h-5 w-5 text-secondary" />
           <CardTitle className="text-display text-white">Agent Provisioning</CardTitle>
         </div>
         <CardDescription className="text-body text-white/60">
@@ -95,7 +95,7 @@ export const AgentProvisioning = () => {
           <Button
             onClick={handleProvisionAgents}
             disabled={isProvisioning}
-            className="w-full bg-kaeva-sage hover:bg-kaeva-sage/80 text-white"
+            className="w-full bg-secondary hover:bg-secondary/80 text-background"
             size="lg"
           >
             {isProvisioning ? (

@@ -70,7 +70,7 @@ const ShoppingManifest = ({ items }: ShoppingManifestProps) => {
                   )}
                   
                   {item.source === 'recipe' && item.recipeName && (
-                    <p className="text-xs text-kaeva-teal mt-1 truncate">
+                    <p className="text-xs text-accent mt-1 truncate">
                       For "{item.recipeName}"
                     </p>
                   )}
@@ -100,19 +100,19 @@ const ShoppingManifest = ({ items }: ShoppingManifestProps) => {
     <div className="space-y-6">
       {renderItemGroup(
         'Auto-Refill',
-        <Package size={14} className="text-kaeva-terracotta" />,
+        <Package size={14} className="text-destructive" />,
         groupedItems.auto_refill
       )}
       
       {renderItemGroup(
         'Recipe Ingredients',
-        <ChefHat size={14} className="text-kaeva-teal" />,
+        <ChefHat size={14} className="text-accent" />,
         groupedItems.recipe
       )}
       
       {renderItemGroup(
         'Manual Additions',
-        <ShoppingCart size={14} className="text-kaeva-sage" />,
+        <ShoppingCart size={14} className="text-secondary" />,
         groupedItems.manual
       )}
     </div>

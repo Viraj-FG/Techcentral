@@ -23,7 +23,7 @@ const Admin = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="h-screen bg-kaeva-seattle-slate flex flex-col">
+    <div className="h-screen bg-background flex flex-col">
       <ScrollArea className="flex-1">
         <motion.div 
           className="max-w-7xl mx-auto space-y-6 p-6 pb-16"
@@ -35,7 +35,7 @@ const Admin = () => {
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Shield size={24} strokeWidth={1.5} className="text-kaeva-sage" />
+              <Shield size={24} strokeWidth={1.5} className="text-secondary" />
               <h1 className="text-display text-3xl text-white">ADMIN DASHBOARD</h1>
             </div>
             <p className="text-body text-white/60">

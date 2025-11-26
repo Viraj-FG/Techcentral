@@ -104,7 +104,7 @@ const WelcomeBanner = () => {
               <Button
                 onClick={handleCompleteProfile}
                 size="sm"
-                className="bg-violet-400 hover:bg-violet-500 text-kaeva-void font-medium"
+                className="bg-violet-400 hover:bg-violet-500 text-background font-medium"
               >
                 <User className="w-4 h-4 mr-2" />
                 Complete Profile Later

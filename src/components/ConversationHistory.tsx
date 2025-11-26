@@ -126,7 +126,7 @@ const ConversationHistory = () => {
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-8 h-8 border-2 border-kaeva-sage border-t-transparent rounded-full"
+          className="w-8 h-8 border-2 border-secondary border-t-transparent rounded-full"
         />
       </div>
     );
@@ -134,10 +134,10 @@ const ConversationHistory = () => {
 
   if (conversations.length === 0) {
     return (
-      <Card className="p-8 text-center bg-kaeva-void/50 border-kaeva-sage/20">
-        <MessageSquare className="w-12 h-12 mx-auto mb-4 text-kaeva-sage/40" />
-        <p className="text-kaeva-slate-400">No conversation history yet</p>
-        <p className="text-sm text-kaeva-slate-500 mt-2">
+      <Card className="p-8 text-center bg-background/50 border-secondary/20">
+        <MessageSquare className="w-12 h-12 mx-auto mb-4 text-secondary/40" />
+        <p className="text-muted-foreground">No conversation history yet</p>
+        <p className="text-sm text-muted-foreground/70 mt-2">
           Start a conversation with Kaeva to see your history here
         </p>
       </Card>
@@ -146,7 +146,7 @@ const ConversationHistory = () => {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium text-kaeva-sage flex items-center gap-2">
+      <h3 className="text-lg font-medium text-secondary flex items-center gap-2">
         <MessageSquare className="w-5 h-5" />
         Conversation History
       </h3>
@@ -156,19 +156,19 @@ const ConversationHistory = () => {
           {conversations.map((conv) => (
             <Card
               key={conv.conversation_id}
-              className="bg-kaeva-void/50 border-kaeva-sage/20 overflow-hidden"
+              className="bg-background/50 border-secondary/20 overflow-hidden"
             >
               <div
-                className="p-4 cursor-pointer hover:bg-kaeva-sage/5 transition-colors"
+                className="p-4 cursor-pointer hover:bg-secondary/5 transition-colors"
                 onClick={() => setExpandedId(expandedId === conv.conversation_id ? null : conv.conversation_id)}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Clock className="w-4 h-4 text-kaeva-sage/60" />
-                    <span className="text-sm text-kaeva-slate-300">
+                    <Clock className="w-4 h-4 text-secondary/60" />
+                    <span className="text-sm text-muted-foreground/70">
                       {formatTime(conv.first_message_time)}
                     </span>
-                    <span className="text-xs text-kaeva-slate-500">
+                    <span className="text-xs text-muted-foreground/50">
                       {conv.messages.length} messages
                     </span>
                   </div>
@@ -183,17 +183,17 @@ const ConversationHistory = () => {
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent className="bg-kaeva-void border-kaeva-sage/30">
+                    <AlertDialogContent className="bg-background border-secondary/30">
                       <AlertDialogHeader>
-                        <AlertDialogTitle className="text-kaeva-sage">
+                        <AlertDialogTitle className="text-secondary">
                           Delete Conversation
                         </AlertDialogTitle>
-                        <AlertDialogDescription className="text-kaeva-slate-400">
+                        <AlertDialogDescription className="text-muted-foreground">
                           Are you sure you want to delete this conversation? This action cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel className="bg-kaeva-sage/10 border-kaeva-sage/30 text-kaeva-sage hover:bg-kaeva-sage/20">
+                        <AlertDialogCancel className="bg-secondary/10 border-secondary/30 text-secondary hover:bg-secondary/20">
                           Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
@@ -208,7 +208,7 @@ const ConversationHistory = () => {
                 </div>
 
                 {/* First message preview */}
-                <div className="mt-2 text-sm text-kaeva-slate-400 line-clamp-1">
+                <div className="mt-2 text-sm text-muted-foreground line-clamp-1">
                   {conv.messages[0]?.message || ""}
                 </div>
               </div>
@@ -221,7 +221,7 @@ const ConversationHistory = () => {
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="border-t border-kaeva-sage/20"
+                    className="border-t border-secondary/20"
                   >
                     <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
                       {conv.messages.map((msg) => (
@@ -237,25 +237,25 @@ const ConversationHistory = () => {
                             <div
                               className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                                 msg.role === "user"
-                                  ? "bg-kaeva-sage/20"
-                                  : "bg-kaeva-teal/20"
+                                  ? "bg-secondary/20"
+                                  : "bg-accent/20"
                               }`}
                             >
                               {msg.role === "user" ? (
-                                <User className="w-4 h-4 text-kaeva-sage" />
+                                <User className="w-4 h-4 text-secondary" />
                               ) : (
-                                <Bot className="w-4 h-4 text-kaeva-teal" />
+                                <Bot className="w-4 h-4 text-accent" />
                               )}
                             </div>
                             <div
                               className={`rounded-lg px-4 py-2 ${
                                 msg.role === "user"
-                                  ? "bg-kaeva-sage/10 border border-kaeva-sage/20"
-                                  : "bg-kaeva-teal/10 border border-kaeva-teal/20"
+                                  ? "bg-secondary/10 border border-secondary/20"
+                                  : "bg-accent/10 border border-accent/20"
                               }`}
                             >
-                              <p className="text-sm text-kaeva-slate-200">{msg.message}</p>
-                              <p className="text-xs text-kaeva-slate-500 mt-1">
+                              <p className="text-sm text-foreground/90">{msg.message}</p>
+                              <p className="text-xs text-muted-foreground/50 mt-1">
                                 {new Date(msg.created_at).toLocaleTimeString('en-US', {
                                   hour: '2-digit',
                                   minute: '2-digit'

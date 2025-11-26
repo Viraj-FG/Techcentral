@@ -50,8 +50,8 @@ const BetterAlternativeCard = ({ alternative }: { alternative: { name: string; b
   };
 
   return (
-    <div className="p-4 bg-gradient-to-br from-kaeva-sage/20 to-kaeva-mint/10 rounded-2xl border border-kaeva-sage/30 overflow-hidden">
-      <h4 className="text-sm font-semibold text-kaeva-sage uppercase tracking-wide mb-2">
+    <div className="p-4 bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-2xl border border-secondary/30 overflow-hidden">
+      <h4 className="text-sm font-semibold text-secondary uppercase tracking-wide mb-2">
         ✨ Better Alternative
       </h4>
       <p className="text-white font-semibold mb-1 truncate">
@@ -64,7 +64,7 @@ const BetterAlternativeCard = ({ alternative }: { alternative: { name: string; b
         size="sm"
         onClick={handleShopAlternative}
         disabled={loading}
-        className="w-full border-kaeva-sage/50 text-kaeva-sage hover:bg-kaeva-sage/10 gap-2"
+        className="w-full border-secondary/50 text-secondary hover:bg-secondary/10 gap-2"
       >
         {loading ? (
           <>
