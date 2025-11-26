@@ -21,6 +21,7 @@ import { GoalsSheet } from "@/components/settings/GoalsSheet";
 import { NutritionGoalsSheet } from "@/components/settings/NutritionGoalsSheet";
 import { AccountSheet } from "@/components/settings/AccountSheet";
 import { ConversationHistorySheet } from "@/components/settings/ConversationHistorySheet";
+import { NotificationSettingsSheet } from "@/components/settings/NotificationSettingsSheet";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { BottomTabBar } from "@/components/layout/BottomTabBar";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
@@ -58,6 +59,7 @@ const Settings = () => {
   const [nutritionGoalsSheetOpen, setNutritionGoalsSheetOpen] = useState(false);
   const [accountSheetOpen, setAccountSheetOpen] = useState(false);
   const [historySheetOpen, setHistorySheetOpen] = useState(false);
+  const [notificationSheetOpen, setNotificationSheetOpen] = useState(false);
   const [storeSelectorOpen, setStoreSelectorOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -247,12 +249,7 @@ const Settings = () => {
               icon={Bell}
               title="Notification Settings"
               description="Manage alerts and preferences"
-              onClick={() => {
-                toast({
-                  title: "Feature Coming Soon",
-                  description: "Notification settings will be available in a future update",
-                });
-              }}
+              onClick={() => setNotificationSheetOpen(true)}
             />
             <SettingsRow 
               icon={Shield}
@@ -340,6 +337,12 @@ const Settings = () => {
             daily_carbs_goal: carbsGoal,
             daily_fat_goal: fatGoal,
           }}
+          userId={userId}
+        />
+
+        <NotificationSettingsSheet
+          open={notificationSheetOpen}
+          onClose={() => setNotificationSheetOpen(false)}
           userId={userId}
         />
 
