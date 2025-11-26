@@ -93,7 +93,7 @@ serve(async (req) => {
       .eq('household_id', profile.current_household_id)
       .lte('expiry_date', threeDaysFromNow.toISOString().split('T')[0])
       .order('expiry_date', { ascending: true })
-      .limit(10);
+      .limit(5);
 
     // Fetch low stock items
     const { data: lowStockItems } = await supabaseAdmin
@@ -101,7 +101,7 @@ serve(async (req) => {
       .select('*')
       .eq('household_id', profile.current_household_id)
       .lte('fill_level', 20)
-      .limit(10);
+      .limit(5);
 
     // Fetch recent meal logs (last 3 days)
     const threeDaysAgo = new Date();
@@ -143,7 +143,7 @@ serve(async (req) => {
     }
 
     // Build context for Gemini
-    const contextPrompt = `You are KAEVA's proactive AI assistant. Generate 3-5 personalized insight cards for the user based on their current household state.
+    const contextPrompt = `You are KAEVA's proactive AI assistant. Generate 2-3 personalized insight cards for the user based on their current household state. Keep responses concise - each field should be 1-2 sentences max.
 
 Current time: ${timeOfDay} (${hour}:00), appropriate for ${mealType}
 
@@ -163,9 +163,9 @@ Low Stock Items: ${lowStockItems?.length || 0} items
 ${lowStockItems?.map(i => `- ${i.name} (${i.fill_level}% remaining)`).join('\n') || 'None'}
 
 Recent Meals (last 3 days): ${recentMeals?.length || 0} logged
-${recentMeals?.slice(0, 5).map(m => `- ${m.meal_type}: ${m.calories}cal`).join('\n') || 'No recent meals'}
+${recentMeals?.slice(0, 3).map(m => `- ${m.meal_type}: ${m.calories}cal`).join('\n') || 'No recent meals'}
 
-Generate 3-5 insight cards prioritized by urgency and relevance. Each card should:
+Generate 2-3 insight cards prioritized by urgency and relevance. Each card should:
 1. Address a specific, actionable item
 2. Explain WHY this matters (reasoning)
 3. Provide clear next action
@@ -183,22 +183,17 @@ Return ONLY valid JSON array (no markdown):
     "type": "expiring_food",
     "priority": 1,
     "title": "Chicken Expires Tomorrow",
-    "message": "Use your chicken breast before it spoils",
-    "reasoning": "This item expires in less than 24 hours. Using it now prevents waste and saves money.",
-    "action": {
-      "type": "find_recipe",
-      "payload": { "ingredients": ["chicken"] }
-    },
+    "message": "Use your chicken before it spoils",
+    "reasoning": "Expires in <24hrs. Use now to prevent waste.",
+    "action": { "type": "find_recipe", "payload": { "ingredients": ["chicken"] } },
     "expiresAt": "2024-01-15T23:59:59Z"
   }
-]
-
-Focus on what's MOST important NOW. Be conversational but concise.`;
+]`;
 
     console.log('Generating AI digest with Gemini...');
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -210,7 +205,7 @@ Focus on what's MOST important NOW. Be conversational but concise.`;
             temperature: 0.8,
             topK: 40,
             topP: 0.95,
-            maxOutputTokens: 2048,
+            maxOutputTokens: 4096,
           }
         })
       }
@@ -224,18 +219,47 @@ Focus on what's MOST important NOW. Be conversational but concise.`;
 
     const data = await response.json();
     
-    // Validate response structure
+    // Validate response structure and handle MAX_TOKENS gracefully
     if (!data.candidates || data.candidates.length === 0) {
       console.error('No candidates in Gemini response:', JSON.stringify(data));
       throw new Error('Gemini API returned no candidates');
     }
     
-    if (!data.candidates[0].content || !data.candidates[0].content.parts || data.candidates[0].content.parts.length === 0) {
-      console.error('Invalid candidate structure:', JSON.stringify(data.candidates[0]));
-      throw new Error('Gemini API response missing content');
+    const candidate = data.candidates[0];
+    
+    // Handle truncated responses (MAX_TOKENS) with default insight
+    if (!candidate.content?.parts?.length || candidate.finishReason === 'MAX_TOKENS') {
+      console.warn('Gemini response truncated or empty, returning default insight. Finish reason:', candidate.finishReason);
+      const defaultInsights: InsightCard[] = [{
+        type: 'nutrition_tip',
+        priority: 3,
+        title: 'AI Insights Loading',
+        message: 'Check back soon for personalized recommendations',
+        reasoning: 'Our AI is processing your household data',
+        action: { type: 'refresh', payload: {} }
+      }];
+      
+      const { data: digest } = await supabaseAdmin
+        .from('daily_digests')
+        .upsert({
+          user_id: user.id,
+          household_id: profile.current_household_id,
+          digest_date: new Date().toISOString().split('T')[0],
+          insights: defaultInsights,
+          generated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,digest_date'
+        })
+        .select()
+        .single();
+      
+      return new Response(
+        JSON.stringify({ digest, insights: defaultInsights }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
     
-    const text = data.candidates[0].content.parts[0].text;
+    const text = candidate.content.parts[0].text;
 
     // Extract JSON
     let jsonText = text.trim();
