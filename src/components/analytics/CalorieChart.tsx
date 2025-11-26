@@ -14,11 +14,11 @@ interface CalorieChartProps {
 const chartConfig = {
   calories: { 
     label: "Calories", 
-    color: "hsl(142, 70%, 66%)" // Kaeva sage
+    color: "hsl(var(--secondary))"
   },
   tdee: { 
     label: "Goal", 
-    color: "hsl(215, 16%, 47%)" // Slate 400
+    color: "hsl(var(--muted-foreground))"
   }
 };
 

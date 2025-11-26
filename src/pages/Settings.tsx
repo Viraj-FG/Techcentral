@@ -242,7 +242,7 @@ const Settings = () => {
                   className="glass-card p-6 space-y-6"
                 >
                   <div className="flex items-center gap-3 pb-4 border-b border-white/10">
-                    <User className="text-kaeva-sage" size={24} strokeWidth={1.5} />
+                    <User className="text-secondary" size={24} strokeWidth={1.5} />
                     <h2 className="text-display text-xl text-white">PERSONAL INFORMATION</h2>
                   </div>
 
@@ -271,7 +271,7 @@ const Settings = () => {
                   className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-6 space-y-6"
                 >
                   <div className="flex items-center gap-3 pb-4 border-b border-white/10">
-                    <Leaf className="text-emerald-400" size={24} strokeWidth={1.5} />
+                    <Leaf className="text-secondary" size={24} strokeWidth={1.5} />
                     <h2 className="text-xl font-light tracking-wider text-white">The Palate</h2>
                   </div>
 
@@ -285,7 +285,7 @@ const Settings = () => {
                         placeholder="e.g., Vegan, Halal, Kosher (comma-separated)"
                       />
                       {errors.dietaryValues && (
-                        <p className="text-red-400 text-sm mt-1">{errors.dietaryValues.message}</p>
+                        <p className="text-destructive text-sm mt-1">{errors.dietaryValues.message}</p>
                       )}
                     </div>
 
@@ -298,7 +298,7 @@ const Settings = () => {
                         placeholder="e.g., Nuts, Gluten, Dairy (comma-separated)"
                       />
                       {errors.allergies && (
-                        <p className="text-red-400 text-sm mt-1">{errors.allergies.message}</p>
+                        <p className="text-destructive text-sm mt-1">{errors.allergies.message}</p>
                       )}
                     </div>
                   </div>
@@ -313,7 +313,7 @@ const Settings = () => {
                   className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-6 space-y-6"
                 >
                   <div className="flex items-center gap-3 pb-4 border-b border-white/10">
-                    <Sparkles className="text-orange-400" size={24} strokeWidth={1.5} />
+                    <Sparkles className="text-destructive" size={24} strokeWidth={1.5} />
                     <h2 className="text-xl font-light tracking-wider text-white">The Mirror</h2>
                   </div>
 
@@ -327,7 +327,7 @@ const Settings = () => {
                         placeholder="e.g., Dry, Oily, Combination, Sensitive"
                       />
                       {errors.skinType && (
-                        <p className="text-red-400 text-sm mt-1">{errors.skinType.message}</p>
+                        <p className="text-destructive text-sm mt-1">{errors.skinType.message}</p>
                       )}
                     </div>
 
@@ -340,7 +340,7 @@ const Settings = () => {
                         placeholder="e.g., Straight, Wavy, Curly, Coily"
                       />
                       {errors.hairType && (
-                        <p className="text-red-400 text-sm mt-1">{errors.hairType.message}</p>
+                        <p className="text-destructive text-sm mt-1">{errors.hairType.message}</p>
                       )}
                     </div>
                   </div>
@@ -355,7 +355,7 @@ const Settings = () => {
                   className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-6 space-y-6"
                 >
                   <div className="flex items-center gap-3 pb-4 border-b border-white/10">
-                    <Users className="text-emerald-400" size={24} strokeWidth={1.5} />
+                    <Users className="text-secondary" size={24} strokeWidth={1.5} />
                     <h2 className="text-xl font-light tracking-wider text-white">The Tribe</h2>
                   </div>
 
@@ -370,7 +370,7 @@ const Settings = () => {
                         min="0"
                       />
                       {errors.householdAdults && (
-                        <p className="text-red-400 text-sm mt-1">{errors.householdAdults.message}</p>
+                        <p className="text-destructive text-sm mt-1">{errors.householdAdults.message}</p>
                       )}
                     </div>
 
@@ -384,7 +384,7 @@ const Settings = () => {
                         min="0"
                       />
                       {errors.householdKids && (
-                        <p className="text-red-400 text-sm mt-1">{errors.householdKids.message}</p>
+                        <p className="text-destructive text-sm mt-1">{errors.householdKids.message}</p>
                       )}
                     </div>
 
@@ -398,7 +398,7 @@ const Settings = () => {
                         min="0"
                       />
                       {errors.householdDogs && (
-                        <p className="text-red-400 text-sm mt-1">{errors.householdDogs.message}</p>
+                        <p className="text-destructive text-sm mt-1">{errors.householdDogs.message}</p>
                       )}
                     </div>
 
@@ -412,14 +412,14 @@ const Settings = () => {
                         min="0"
                       />
                       {errors.householdCats && (
-                        <p className="text-red-400 text-sm mt-1">{errors.householdCats.message}</p>
+                        <p className="text-destructive text-sm mt-1">{errors.householdCats.message}</p>
                       )}
                     </div>
                   </div>
 
                   <div>
                     <Label htmlFor="petDetails" className="text-white/90 flex items-center gap-2">
-                      <PawPrint className="w-4 h-4 text-sky-400" />
+                      <PawPrint className="w-4 h-4 text-accent" />
                       Pet Details
                     </Label>
                     <Input
@@ -429,7 +429,7 @@ const Settings = () => {
                       placeholder="e.g., Golden Retriever (age 3), Two cats"
                     />
                     {errors.petDetails && (
-                      <p className="text-red-400 text-sm mt-1">{errors.petDetails.message}</p>
+                      <p className="text-destructive text-sm mt-1">{errors.petDetails.message}</p>
                     )}
                   </div>
                 </motion.div>
@@ -443,7 +443,7 @@ const Settings = () => {
                   className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-6 space-y-6"
                 >
                   <div className="flex items-center gap-3 pb-4 border-b border-white/10">
-                    <Heart className="text-emerald-400" size={24} strokeWidth={1.5} />
+                    <Heart className="text-secondary" size={24} strokeWidth={1.5} />
                     <h2 className="text-xl font-light tracking-wider text-white">The Mission</h2>
                   </div>
 
@@ -457,7 +457,7 @@ const Settings = () => {
                         placeholder="e.g., Weight Loss, Muscle Gain, Heart Health (comma-separated)"
                       />
                       {errors.healthGoals && (
-                        <p className="text-red-400 text-sm mt-1">{errors.healthGoals.message}</p>
+                        <p className="text-destructive text-sm mt-1">{errors.healthGoals.message}</p>
                       )}
                     </div>
 
@@ -470,7 +470,7 @@ const Settings = () => {
                         placeholder="e.g., Meal Prep Efficiency, Self-Care Routine (comma-separated)"
                       />
                       {errors.lifestyleGoals && (
-                        <p className="text-red-400 text-sm mt-1">{errors.lifestyleGoals.message}</p>
+                        <p className="text-destructive text-sm mt-1">{errors.lifestyleGoals.message}</p>
                       )}
                     </div>
                   </div>
@@ -485,7 +485,7 @@ const Settings = () => {
                   className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-6 space-y-6"
                 >
                   <div className="flex items-center gap-3 pb-4 border-b border-white/10">
-                    <Store className="text-emerald-400" size={24} strokeWidth={1.5} />
+                    <Store className="text-secondary" size={24} strokeWidth={1.5} />
                     <h2 className="text-xl font-light tracking-wider text-white">Preferred Store</h2>
                   </div>
 
@@ -536,7 +536,7 @@ const Settings = () => {
                   <div className="border-t border-white/10 pt-6">
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-2 mb-2">
-                        <BarChart3 className="text-kaeva-sage" size={24} strokeWidth={1.5} />
+                        <BarChart3 className="text-accent" size={24} strokeWidth={1.5} />
                         <h3 className="text-white text-lg font-semibold">Meal Analytics</h3>
                       </div>
                       <p className="text-muted-foreground text-sm mb-4">
@@ -567,7 +567,7 @@ const Settings = () => {
                 type="submit"
                 disabled={isSaving}
                 variant="primary"
-                className="flex-1 py-6 shadow-lg shadow-kaeva-sage/20"
+                className="flex-1 py-6 shadow-lg shadow-primary/20"
               >
                 {isSaving ? (
                   <>
