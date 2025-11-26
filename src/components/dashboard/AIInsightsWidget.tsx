@@ -114,9 +114,10 @@ export const AIInsightsWidget: React.FC<AIInsightsWidgetProps> = ({ userId }) =>
   const generateDigest = async () => {
     setIsGenerating(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      // Refresh session to get a valid token
+      const { data: { session }, error: sessionError } = await supabase.auth.refreshSession();
       
-      if (!session) {
+      if (sessionError || !session) {
         throw new Error('Not authenticated');
       }
 
