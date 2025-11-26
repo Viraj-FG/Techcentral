@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, X, Apple, Package, BookOpen, PawPrint, Sparkles, Clock, Bookmark, AlertCircle } from "lucide-react";
+import { Search, X, Apple, Package, BookOpen, PawPrint, Sparkles, Clock, Bookmark, AlertCircle, Dumbbell, Leaf, ShieldAlert, TrendingDown, Zap } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -30,11 +30,15 @@ const domainTabs = {
     { id: 'all', label: 'All Foods', icon: Apple },
     { id: 'meals', label: 'My Meals', icon: BookOpen },
     { id: 'recent', label: 'Recent', icon: Clock },
-    { id: 'bookmarked', label: 'Saved', icon: Bookmark }
+    { id: 'bookmarked', label: 'Saved', icon: Bookmark },
+    { id: 'high_protein', label: 'High Protein', icon: Dumbbell },
+    { id: 'vegan', label: 'Vegan', icon: Leaf },
+    { id: 'allergen_free', label: 'Allergen-Free', icon: ShieldAlert }
   ],
   inventory: [
     { id: 'all', label: 'All Items', icon: Package },
     { id: 'expiring', label: 'Expiring', icon: AlertCircle },
+    { id: 'low_stock', label: 'Low Stock', icon: TrendingDown },
     { id: 'fridge', label: 'Fridge', icon: Package },
     { id: 'pantry', label: 'Pantry', icon: Package }
   ],
@@ -42,7 +46,8 @@ const domainTabs = {
     { id: 'all', label: 'All Recipes', icon: BookOpen },
     { id: 'my_recipes', label: 'My Recipes', icon: Sparkles },
     { id: 'bookmarked', label: 'Saved', icon: Bookmark },
-    { id: 'ready', label: 'Ready to Cook', icon: AlertCircle }
+    { id: 'ready', label: 'Ready to Cook', icon: AlertCircle },
+    { id: 'quick', label: 'Quick (<30min)', icon: Zap }
   ],
   pets: [
     { id: 'all', label: 'All Products', icon: Package },

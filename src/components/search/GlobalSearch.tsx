@@ -16,6 +16,11 @@ import {
   AlertCircle,
   Apple,
   BookOpen,
+  Dumbbell,
+  Leaf,
+  ShieldAlert,
+  TrendingDown,
+  Zap,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -48,6 +53,41 @@ const nutritionFilters: LibraryFilter[] = [
     label: 'Saved',
     icon: Bookmark,
     query: (items) => items.filter((item: any) => item.is_bookmarked === true)
+  },
+  {
+    id: 'high_protein',
+    label: 'High Protein',
+    icon: Dumbbell,
+    query: (items) => items.filter((item: any) => {
+      const protein = item.nutrition_data?.protein || 0;
+      return protein > 15;
+    }).sort((a: any, b: any) => 
+      (b.nutrition_data?.protein || 0) - (a.nutrition_data?.protein || 0)
+    )
+  },
+  {
+    id: 'vegan',
+    label: 'Vegan',
+    icon: Leaf,
+    query: (items) => items.filter((item: any) => {
+      const dietaryFlags = item.dietary_flags || [];
+      const allergens = item.allergens || [];
+      return dietaryFlags.includes('vegan') || 
+             (dietaryFlags.includes('vegetarian') && 
+              !allergens.some((a: string) => ['milk', 'eggs', 'honey'].includes(a.toLowerCase())));
+    })
+  },
+  {
+    id: 'allergen_free',
+    label: 'Allergen-Free',
+    icon: ShieldAlert,
+    query: (items) => items.filter((item: any) => {
+      const allergens = item.allergens || [];
+      const commonAllergens = ['milk', 'eggs', 'fish', 'shellfish', 'tree nuts', 'peanuts', 'wheat', 'soybeans'];
+      return !allergens.some((a: string) => 
+        commonAllergens.some(common => a.toLowerCase().includes(common))
+      );
+    })
   }
 ];
 
@@ -65,6 +105,14 @@ const inventoryFilters: LibraryFilter[] = [
         new Date(a.expiry_date).getTime() - new Date(b.expiry_date).getTime()
       );
     }
+  },
+  {
+    id: 'low_stock',
+    label: 'Low Stock',
+    icon: TrendingDown,
+    query: (items) => items.filter((item: any) => 
+      item.fill_level !== null && item.fill_level <= 20
+    ).sort((a: any, b: any) => (a.fill_level || 0) - (b.fill_level || 0))
   },
   {
     id: 'fridge',
@@ -100,6 +148,14 @@ const recipeFilters: LibraryFilter[] = [
     query: (items) => items.filter((item: any) => 
       item.match_score !== null && item.match_score >= 80
     ).sort((a: any, b: any) => (b.match_score || 0) - (a.match_score || 0))
+  },
+  {
+    id: 'quick',
+    label: 'Quick (<30min)',
+    icon: Zap,
+    query: (items) => items.filter((item: any) => 
+      item.cooking_time !== null && item.cooking_time < 30
+    ).sort((a: any, b: any) => (a.cooking_time || 0) - (b.cooking_time || 0))
   }
 ];
 
