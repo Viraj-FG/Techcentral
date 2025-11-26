@@ -6,12 +6,16 @@ import Splash from "@/components/Splash";
 import VoiceOnboarding from "@/components/VoiceOnboarding";
 import Dashboard from "@/components/Dashboard";
 import HouseholdSetup from "@/components/HouseholdSetup";
+import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 
 const Index = () => {
   const navigate = useNavigate();
   const [appState, setAppState] = useState<"splash" | "onboarding" | "household-setup" | "dashboard" | null>(null);
   const [userProfile, setUserProfile] = useState(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  // Enable swipe navigation on dashboard
+  useSwipeNavigation({ enabled: appState === "dashboard" });
 
   useEffect(() => {
     const checkAuthAndProfile = async () => {

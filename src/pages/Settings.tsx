@@ -22,6 +22,7 @@ import { AccountSheet } from "@/components/settings/AccountSheet";
 import { ConversationHistorySheet } from "@/components/settings/ConversationHistorySheet";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { BottomTabBar } from "@/components/layout/BottomTabBar";
+import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -50,6 +51,9 @@ const Settings = () => {
   const [accountSheetOpen, setAccountSheetOpen] = useState(false);
   const [historySheetOpen, setHistorySheetOpen] = useState(false);
   const [storeSelectorOpen, setStoreSelectorOpen] = useState(false);
+
+  // Enable swipe navigation
+  useSwipeNavigation();
 
   useEffect(() => {
     loadProfile();
