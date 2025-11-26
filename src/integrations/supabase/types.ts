@@ -668,6 +668,7 @@ export type Database = {
           longest_streak: number | null
           notification_preferences: Json | null
           onboarding_completed: boolean
+          onboarding_modules: Json | null
           permissions_granted: boolean | null
           preferred_retailer_id: string | null
           preferred_retailer_name: string | null
@@ -709,6 +710,7 @@ export type Database = {
           longest_streak?: number | null
           notification_preferences?: Json | null
           onboarding_completed?: boolean
+          onboarding_modules?: Json | null
           permissions_granted?: boolean | null
           preferred_retailer_id?: string | null
           preferred_retailer_name?: string | null
@@ -750,6 +752,7 @@ export type Database = {
           longest_streak?: number | null
           notification_preferences?: Json | null
           onboarding_completed?: boolean
+          onboarding_modules?: Json | null
           permissions_granted?: boolean | null
           preferred_retailer_id?: string | null
           preferred_retailer_name?: string | null

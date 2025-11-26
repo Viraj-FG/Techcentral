@@ -3,18 +3,21 @@ import { AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Splash from "@/components/Splash";
-import VoiceOnboarding from "@/components/VoiceOnboarding";
 import Dashboard from "@/components/Dashboard";
 import HouseholdSetup from "@/components/HouseholdSetup";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { OnboardingModuleSheet } from "@/components/onboarding/OnboardingModuleSheet";
+import { useModularOnboarding } from "@/hooks/useModularOnboarding";
 
 const Index = () => {
   const navigate = useNavigate();
-  const [appState, setAppState] = useState<"splash" | "onboarding" | "household-setup" | "dashboard" | null>(null);
+  const [appState, setAppState] = useState<"splash" | "core-onboarding" | "household-setup" | "dashboard" | null>(null);
   const [userProfile, setUserProfile] = useState(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [session, setSession] = useState<any>(null);
+  const [coreOnboardingOpen, setCoreOnboardingOpen] = useState(false);
+  const { modules, completeModule, reloadModules } = useModularOnboarding();
 
   // Enable swipe navigation on dashboard and get swipe state
   const swipeState = useSwipeNavigation({ enabled: appState === "dashboard" });
@@ -69,21 +72,34 @@ const Index = () => {
         .eq('id', session.user.id)
         .single();
 
-      if (profile?.onboarding_completed) {
-        if (!profile.current_household_id) {
-          setUserProfile(profile);
-          setAppState("household-setup");
-        } else {
-          setUserProfile(profile);
-          setAppState("dashboard");
-        }
+      await reloadModules();
+
+      // Check if core module is complete (new modular onboarding)
+      const onboardingModules = profile?.onboarding_modules as any || {};
+      
+      if (!onboardingModules.core) {
+        // Core module not complete - show core onboarding
+        setAppState("core-onboarding");
+        setCoreOnboardingOpen(true);
+      } else if (!profile.current_household_id) {
+        // Core complete but no household - show household setup
+        setUserProfile(profile);
+        setAppState("household-setup");
       } else {
-        setAppState("onboarding");
+        // Everything complete - show dashboard
+        setUserProfile(profile);
+        setAppState("dashboard");
       }
     } catch (error) {
       console.error("Error loading profile after splash:", error);
-      setAppState("onboarding");
+      setAppState("core-onboarding");
+      setCoreOnboardingOpen(true);
     }
+  };
+
+  const handleCoreComplete = async () => {
+    setCoreOnboardingOpen(false);
+    await handleSplashComplete(); // Re-check state after core completion
   };
 
   if (isCheckingAuth || appState === null) {
@@ -95,40 +111,14 @@ const Index = () => {
   }
 
   return (
-    <AnimatePresence mode="wait">
-      {appState === "splash" && (
-        <Splash key="splash" onComplete={handleSplashComplete} />
+    <>
+      <AnimatePresence mode="wait">
+        {appState === "splash" && (
+          <Splash key="splash" onComplete={handleSplashComplete} />
       )}
 
-      {appState === "onboarding" && (
-        <VoiceOnboarding 
-          key="voice-onboarding"
-          onComplete={(profile) => {
-            setUserProfile(profile);
-            setAppState("dashboard");
-          }}
-          onExit={async () => {
-            // For admin testing: mark onboarding as complete to prevent loop
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) {
-              // Update profile to mark onboarding as complete
-              await supabase
-                .from('profiles')
-                .update({ onboarding_completed: true })
-                .eq('id', session.user.id);
-              
-              // Fetch updated profile
-              const { data: profile } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
-              
-              setUserProfile(profile);
-            }
-            setAppState("dashboard");
-          }}
-        />
+      {appState === "core-onboarding" && (
+        <div key="core-onboarding" />
       )}
       
       {appState === "household-setup" && (
@@ -159,7 +149,16 @@ const Index = () => {
           <Dashboard key="dashboard" profile={userProfile} />
         </PageTransition>
       )}
-    </AnimatePresence>
+      </AnimatePresence>
+
+      {/* Core onboarding sheet */}
+      <OnboardingModuleSheet
+        open={coreOnboardingOpen}
+        module="core"
+        onClose={() => {}}
+        onComplete={handleCoreComplete}
+      />
+    </>
   );
 };
 
