@@ -10,21 +10,31 @@ import { ErrorBoundary } from "@/lib/ErrorBoundary";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { PublicRoute } from "./components/PublicRoute";
 import Landing from "./pages/Landing";
-import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Settings from "./pages/Settings";
-import Admin from "./pages/Admin";
-import Household from "./pages/Household";
-import HouseholdInviteAccept from "./pages/HouseholdInviteAccept";
-import Inventory from "./pages/Inventory";
-import RecipeBook from "./pages/RecipeBook";
-import SharedRecipe from "./pages/SharedRecipe";
-import MealPlanner from "./pages/MealPlanner";
-import Analytics from "./pages/Analytics";
-import NotFound from "./pages/NotFound";
 import { AdminRoute } from "./components/AdminRoute";
+import { lazy, Suspense } from "react";
+
+// Lazy load route components for better code splitting
+const Index = lazy(() => import("./pages/Index"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Admin = lazy(() => import("./pages/Admin"));
+const Household = lazy(() => import("./pages/Household"));
+const HouseholdInviteAccept = lazy(() => import("./pages/HouseholdInviteAccept"));
+const Inventory = lazy(() => import("./pages/Inventory"));
+const RecipeBook = lazy(() => import("./pages/RecipeBook"));
+const SharedRecipe = lazy(() => import("./pages/SharedRecipe"));
+const MealPlanner = lazy(() => import("./pages/MealPlanner"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
+
+// Loading fallback for lazy routes
+const PageLoader = () => (
+  <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+  </div>
+);
 
 /**
  * Route Configuration:
@@ -55,70 +65,72 @@ const App = () => (
           <SyncIndicator />
           <BrowserRouter>
             <VoiceAssistantProvider>
-              <Routes>
-                {/* PUBLIC ROUTES - Redirect authenticated users */}
-                <Route path="/" element={
-                  <PublicRoute redirectIfAuthenticated>
-                    <Landing />
-                  </PublicRoute>
-                } />
-                <Route path="/auth" element={
-                  <PublicRoute redirectIfAuthenticated>
-                    <Auth />
-                  </PublicRoute>
-                } />
-                
-                {/* PUBLIC ROUTES - Accessible to everyone */}
-                <Route path="/recipe/:shareToken" element={<SharedRecipe />} />
-                <Route path="/household/join" element={<HouseholdInviteAccept />} />
-                
-                {/* PROTECTED ROUTES - Require authentication */}
-                <Route path="/app" element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                } />
-                <Route path="/settings" element={
-                  <ProtectedRoute>
-                    <Settings />
-                  </ProtectedRoute>
-                } />
-                <Route path="/household" element={
-                  <ProtectedRoute>
-                    <Household />
-                  </ProtectedRoute>
-                } />
-                <Route path="/inventory" element={
-                  <ProtectedRoute>
-                    <Inventory />
-                  </ProtectedRoute>
-                } />
-                <Route path="/recipes" element={
-                  <ProtectedRoute>
-                    <RecipeBook />
-                  </ProtectedRoute>
-                } />
-                <Route path="/meal-planner" element={
-                  <ProtectedRoute>
-                    <MealPlanner />
-                  </ProtectedRoute>
-                } />
-                <Route path="/analytics" element={
-                  <ProtectedRoute>
-                    <Analytics />
-                  </ProtectedRoute>
-                } />
-                
-                {/* ADMIN ROUTE - Requires admin role */}
-                <Route path="/admin" element={
-                  <AdminRoute>
-                    <Admin />
-                  </AdminRoute>
-                } />
-                
-                {/* CATCH-ALL - 404 */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  {/* PUBLIC ROUTES - Redirect authenticated users */}
+                  <Route path="/" element={
+                    <PublicRoute redirectIfAuthenticated>
+                      <Landing />
+                    </PublicRoute>
+                  } />
+                  <Route path="/auth" element={
+                    <PublicRoute redirectIfAuthenticated>
+                      <Auth />
+                    </PublicRoute>
+                  } />
+                  
+                  {/* PUBLIC ROUTES - Accessible to everyone */}
+                  <Route path="/recipe/:shareToken" element={<SharedRecipe />} />
+                  <Route path="/household/join" element={<HouseholdInviteAccept />} />
+                  
+                  {/* PROTECTED ROUTES - Require authentication */}
+                  <Route path="/app" element={
+                    <ProtectedRoute>
+                      <Index />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/settings" element={
+                    <ProtectedRoute>
+                      <Settings />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/household" element={
+                    <ProtectedRoute>
+                      <Household />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/inventory" element={
+                    <ProtectedRoute>
+                      <Inventory />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/recipes" element={
+                    <ProtectedRoute>
+                      <RecipeBook />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/meal-planner" element={
+                    <ProtectedRoute>
+                      <MealPlanner />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/analytics" element={
+                    <ProtectedRoute>
+                      <Analytics />
+                    </ProtectedRoute>
+                  } />
+                  
+                  {/* ADMIN ROUTE - Requires admin role */}
+                  <Route path="/admin" element={
+                    <AdminRoute>
+                      <Admin />
+                    </AdminRoute>
+                  } />
+                  
+                  {/* CATCH-ALL - 404 */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
             </VoiceAssistantProvider>
           </BrowserRouter>
         </ErrorBoundary>
