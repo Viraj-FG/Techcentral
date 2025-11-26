@@ -121,7 +121,7 @@ const PulseHeader = ({ profile }: PulseHeaderProps) => {
       <div className="flex flex-row items-center justify-between gap-4">
         {/* Left: Greeting */}
         <div className="flex-1 min-w-0">
-          <h1 className="text-display text-xl text-white truncate">
+          <h1 className="text-display text-lg sm:text-xl text-white">
             {getGreeting()}, {profile.user_name || "User"}
           </h1>
         </div>
