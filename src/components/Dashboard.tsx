@@ -34,6 +34,7 @@ import { PetRosterCard } from "./dashboard/PetRosterCard";
 import { PetSuppliesStatus } from "./dashboard/PetSuppliesStatus";
 import { ToxicFoodMonitor } from "./dashboard/ToxicFoodMonitor";
 import { SwipeEdgeIndicator } from "./dashboard/SwipeEdgeIndicator";
+import { MealPlanWidget } from "./dashboard/MealPlanWidget";
 import { kaevaStaggerContainer, kaevaStaggerChild } from "@/hooks/useKaevaMotion";
 import { useModularOnboarding, OnboardingModule } from "@/hooks/useModularOnboarding";
 import { ModularOnboardingPrompt } from "./onboarding/ModularOnboardingPrompt";
@@ -576,6 +577,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
       className="space-y-4"
     >
       <motion.div variants={kaevaStaggerChild}><HouseholdQuickAccess /></motion.div>
+      <motion.div variants={kaevaStaggerChild}><MealPlanWidget /></motion.div>
       <motion.div variants={kaevaStaggerChild}>
         <section className="space-y-3">
           <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Recipe Engine</h3>

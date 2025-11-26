@@ -4,8 +4,9 @@ import AppShell from '@/components/layout/AppShell';
 import { PageTransition } from '@/components/layout/PageTransition';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { Button } from '@/components/ui/button';
-import { Calendar, ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react';
+import { Calendar, ShoppingCart } from 'lucide-react';
 import { WeeklyCalendar } from '@/components/meal-planner/WeeklyCalendar';
+import { ShoppingPreviewSheet } from '@/components/meal-planner/ShoppingPreviewSheet';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { startOfWeek, addWeeks, format } from 'date-fns';
@@ -29,13 +30,18 @@ const MealPlanner = () => {
   const swipeState = useSwipeNavigation();
   const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentWeekStart, setCurrentWeekStart] = useState(() => 
-    startOfWeek(new Date(), { weekStartsOn: 0 })
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [shoppingPreviewOpen, setShoppingPreviewOpen] = useState(false);
+  const [recipesForShopping, setRecipesForShopping] = useState<any[]>([]);
+  
+  const currentWeekStart = addWeeks(
+    startOfWeek(new Date(), { weekStartsOn: 0 }), 
+    weekOffset
   );
 
   useEffect(() => {
     fetchMealPlans();
-  }, [currentWeekStart]);
+  }, [weekOffset]);
 
   const fetchMealPlans = async () => {
     setLoading(true);
@@ -85,7 +91,7 @@ const MealPlanner = () => {
     }
   };
 
-  const handleGenerateShoppingList = async () => {
+  const handleGenerateShoppingListPreview = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -98,74 +104,50 @@ const MealPlanner = () => {
 
       if (!profile?.current_household_id) return;
 
-      // Get current inventory
-      const { data: inventory } = await supabase
-        .from('inventory')
-        .select('name, quantity')
-        .eq('household_id', profile.current_household_id);
+      // Fetch recipes for all meal plans
+      const recipeIds = mealPlans
+        .filter(plan => plan.recipe_id)
+        .map(plan => plan.recipe_id);
 
-      const inventoryMap = new Map(
-        (inventory || []).map(item => [item.name.toLowerCase(), item.quantity || 0])
-      );
-
-      // Collect all ingredients from planned recipes
-      const ingredientsNeeded: { [key: string]: number } = {};
-      
-      mealPlans.forEach(plan => {
-        const ingredients = plan.recipes?.ingredients || [];
-        if (Array.isArray(ingredients)) {
-          ingredients.forEach((ing: any) => {
-            const name = ing.name || ing.ingredient || '';
-            const amount = parseFloat(ing.amount || ing.quantity || 1);
-            if (name) {
-              ingredientsNeeded[name] = (ingredientsNeeded[name] || 0) + amount;
-            }
-          });
-        }
-      });
-
-      // Create shopping list items for missing ingredients
-      const shoppingItems = [];
-      for (const [ingredient, needed] of Object.entries(ingredientsNeeded)) {
-        const inStock = inventoryMap.get(ingredient.toLowerCase()) || 0;
-        if (inStock < needed) {
-          shoppingItems.push({
-            household_id: profile.current_household_id,
-            item_name: ingredient,
-            quantity: needed - inStock,
-            source: 'meal_plan',
-            priority: 'normal',
-            status: 'pending'
-          });
-        }
+      if (recipeIds.length === 0) {
+        toast.error('No meals planned for this week');
+        return;
       }
 
-      if (shoppingItems.length > 0) {
-        const { error } = await supabase
-          .from('shopping_list')
-          .insert(shoppingItems);
+      const { data: recipes, error: recipesError } = await supabase
+        .from('recipes')
+        .select('id, name, ingredients')
+        .in('id', recipeIds);
 
-        if (error) throw error;
-        toast.success(`Added ${shoppingItems.length} items to shopping list!`);
-      } else {
-        toast.info('You have all ingredients for this week!');
-      }
+      if (recipesError) throw recipesError;
+
+      // Open preview sheet with recipes
+      setRecipesForShopping(recipes || []);
+      setShoppingPreviewOpen(true);
     } catch (error) {
-      console.error('Error generating shopping list:', error);
+      console.error('Error generating shopping preview:', error);
       toast.error('Failed to generate shopping list');
     }
   };
 
   const goToPreviousWeek = () => {
-    setCurrentWeekStart(prev => addWeeks(prev, -1));
+    setWeekOffset(prev => prev - 1);
   };
 
   const goToNextWeek = () => {
-    setCurrentWeekStart(prev => addWeeks(prev, 1));
+    setWeekOffset(prev => prev + 1);
   };
 
   const goToThisWeek = () => {
-    setCurrentWeekStart(startOfWeek(new Date(), { weekStartsOn: 0 }));
+    setWeekOffset(0);
+  };
+
+  const handleWeekChange = (direction: 'prev' | 'next') => {
+    if (direction === 'prev') {
+      goToPreviousWeek();
+    } else {
+      goToNextWeek();
+    }
   };
 
   return (
@@ -185,8 +167,8 @@ const MealPlanner = () => {
               <p className="text-muted-foreground">Plan your week and reduce food waste</p>
             </div>
             <Button 
-              onClick={handleGenerateShoppingList}
-              className="gap-2"
+              onClick={handleGenerateShoppingListPreview}
+              className="gap-2 bg-primary text-background hover:bg-primary/90"
               disabled={mealPlans.length === 0}
             >
               <ShoppingCart className="w-4 h-4" />
@@ -194,22 +176,16 @@ const MealPlanner = () => {
             </Button>
           </div>
 
-          {/* Week Navigation */}
-          <div className="flex items-center justify-between mb-6">
-            <Button variant="outline" size="sm" onClick={goToPreviousWeek}>
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <div className="flex items-center gap-4">
-              <h2 className="text-xl font-semibold text-foreground">
-                Week of {format(currentWeekStart, 'MMM d, yyyy')}
-              </h2>
+          {/* Week Display */}
+          <div className="flex items-center justify-center mb-6 gap-4">
+            <h2 className="text-xl font-semibold text-foreground">
+              Week of {format(currentWeekStart, 'MMM d, yyyy')}
+            </h2>
+            {weekOffset !== 0 && (
               <Button variant="ghost" size="sm" onClick={goToThisWeek}>
-                This Week
+                Back to This Week
               </Button>
-            </div>
-            <Button variant="outline" size="sm" onClick={goToNextWeek}>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+            )}
           </div>
 
           {/* Calendar Grid */}
@@ -218,6 +194,14 @@ const MealPlanner = () => {
             mealPlans={mealPlans}
             onRefresh={fetchMealPlans}
             loading={loading}
+            onWeekChange={handleWeekChange}
+            currentWeekIndex={weekOffset}
+          />
+
+          <ShoppingPreviewSheet
+            open={shoppingPreviewOpen}
+            onOpenChange={setShoppingPreviewOpen}
+            recipes={recipesForShopping}
           />
         </div>
       </PageTransition>

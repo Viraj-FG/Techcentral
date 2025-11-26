@@ -3,10 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { addDays, format, isSameDay } from 'date-fns';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { MealPlanCard } from './MealPlanCard';
 import { RecipeSelector } from './RecipeSelector';
 import { toast } from 'sonner';
+import { motion, PanInfo } from 'framer-motion';
+import { haptics } from '@/lib/haptics';
 
 interface MealPlan {
   id: string;
@@ -27,12 +29,21 @@ interface WeeklyCalendarProps {
   mealPlans: MealPlan[];
   onRefresh: () => void;
   loading: boolean;
+  onWeekChange: (direction: 'prev' | 'next') => void;
+  currentWeekIndex: number;
 }
 
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack'];
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-export const WeeklyCalendar = ({ weekStart, mealPlans, onRefresh, loading }: WeeklyCalendarProps) => {
+export const WeeklyCalendar = ({ 
+  weekStart, 
+  mealPlans, 
+  onRefresh, 
+  loading,
+  onWeekChange,
+  currentWeekIndex
+}: WeeklyCalendarProps) => {
   const [selectedSlot, setSelectedSlot] = useState<{ date: Date; mealType: string } | null>(null);
 
   const getMealsForDay = (date: Date) => {
@@ -104,73 +115,135 @@ export const WeeklyCalendar = ({ weekStart, mealPlans, onRefresh, loading }: Wee
     }
   };
 
+  const handleDragEnd = (_event: any, info: PanInfo) => {
+    const threshold = 100;
+    
+    if (info.offset.x > threshold) {
+      // Swipe right - previous week
+      haptics.selection();
+      onWeekChange('prev');
+    } else if (info.offset.x < -threshold) {
+      // Swipe left - next week
+      haptics.selection();
+      onWeekChange('next');
+    }
+  };
+
   if (loading) {
     return (
-      <div className="grid grid-cols-7 gap-4">
-        {Array.from({ length: 7 }).map((_, i) => (
-          <Card key={i} className="p-4 h-96 animate-pulse bg-card/30" />
-        ))}
+      <div className="space-y-4">
+        <div className="grid grid-cols-7 gap-4">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <Card key={i} className="p-4 h-96 animate-pulse bg-card/30" />
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
     <>
-      <div className="grid grid-cols-7 gap-3">
-        {Array.from({ length: 7 }).map((_, dayIndex) => {
-          const date = addDays(weekStart, dayIndex);
-          const isToday = isSameDay(date, new Date());
+      <motion.div
+        className="space-y-4"
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.2}
+        onDragEnd={handleDragEnd}
+      >
+        {/* Week Navigation */}
+        <div className="flex items-center justify-between mb-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onWeekChange('prev')}
+            className="gap-1"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Previous
+          </Button>
+          
+          {/* Week Indicator Dots */}
+          <div className="flex gap-2">
+            {[-2, -1, 0, 1, 2].map((offset) => (
+              <div
+                key={offset}
+                className={`h-2 rounded-full transition-all ${
+                  offset === currentWeekIndex
+                    ? 'w-8 bg-primary'
+                    : 'w-2 bg-white/20'
+                }`}
+              />
+            ))}
+          </div>
 
-          return (
-            <div key={dayIndex} className="space-y-2">
-              {/* Day Header */}
-              <div className={`text-center p-2 rounded-lg ${
-                isToday ? 'bg-primary/20 border border-primary/30' : 'bg-card/30'
-              }`}>
-                <div className="text-sm font-medium text-muted-foreground">
-                  {DAYS[dayIndex]}
-                </div>
-                <div className={`text-lg font-bold ${
-                  isToday ? 'text-primary' : 'text-foreground'
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onWeekChange('next')}
+            className="gap-1"
+          >
+            Next
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Calendar Grid */}
+        <div className="grid grid-cols-7 gap-3">
+          {Array.from({ length: 7 }).map((_, dayIndex) => {
+            const date = addDays(weekStart, dayIndex);
+            const isToday = isSameDay(date, new Date());
+
+            return (
+              <div key={dayIndex} className="space-y-2">
+                {/* Day Header */}
+                <div className={`text-center p-2 rounded-lg ${
+                  isToday ? 'bg-primary/20 border border-primary/30' : 'bg-card/30'
                 }`}>
-                  {format(date, 'd')}
+                  <div className="text-sm font-medium text-muted-foreground">
+                    {DAYS[dayIndex]}
+                  </div>
+                  <div className={`text-lg font-bold ${
+                    isToday ? 'text-primary' : 'text-foreground'
+                  }`}>
+                    {format(date, 'd')}
+                  </div>
+                </div>
+
+                {/* Meal Slots */}
+                <div className="space-y-2">
+                  {MEAL_TYPES.map(mealType => {
+                    const meal = getMealForSlot(date, mealType);
+
+                    return (
+                      <Card 
+                        key={mealType}
+                        className="p-2 min-h-[80px] bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors"
+                      >
+                        {meal ? (
+                          <MealPlanCard 
+                            meal={meal}
+                            onDelete={() => handleDeleteMeal(meal.id)}
+                          />
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full h-full flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground"
+                            onClick={() => handleAddMeal(date, mealType)}
+                          >
+                            <Plus className="w-4 h-4" />
+                            <span className="text-xs capitalize">{mealType}</span>
+                          </Button>
+                        )}
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
-
-              {/* Meal Slots */}
-              <div className="space-y-2">
-                {MEAL_TYPES.map(mealType => {
-                  const meal = getMealForSlot(date, mealType);
-
-                  return (
-                    <Card 
-                      key={mealType}
-                      className="p-2 min-h-[80px] bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors"
-                    >
-                      {meal ? (
-                        <MealPlanCard 
-                          meal={meal}
-                          onDelete={() => handleDeleteMeal(meal.id)}
-                        />
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="w-full h-full flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground"
-                          onClick={() => handleAddMeal(date, mealType)}
-                        >
-                          <Plus className="w-4 h-4" />
-                          <span className="text-xs capitalize">{mealType}</span>
-                        </Button>
-                      )}
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      </motion.div>
 
       {/* Recipe Selector Dialog */}
       {selectedSlot && (
