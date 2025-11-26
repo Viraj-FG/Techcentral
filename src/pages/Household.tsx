@@ -5,7 +5,6 @@ import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { 
   Plus, 
-  ArrowLeft,
   Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,6 +32,8 @@ import { HeroHeaderBanner } from "@/components/household/HeroHeaderBanner";
 import { CompactMemberRow } from "@/components/household/CompactMemberRow";
 import { MemberDetailSheet } from "@/components/household/MemberDetailSheet";
 import { HouseholdPreferencesSection } from "@/components/household/HouseholdPreferencesSection";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { BottomTabBar } from "@/components/layout/BottomTabBar";
 
 interface StoredHouseholdMember extends HouseholdMember {
   id: string;
@@ -282,23 +283,10 @@ const Household = () => {
 
   return (
     <UniversalShell>
-      {/* Simplified Header */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-secondary/10">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/app')}
-            className="hover:bg-secondary/10"
-          >
-            <ArrowLeft className="w-5 h-5 text-secondary" />
-          </Button>
-          <h1 className="text-lg font-medium text-secondary">Household</h1>
-        </div>
-      </div>
+      <PageHeader title="Household" showHomeButton />
 
       {/* Scrollable Content */}
-      <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-32">
+      <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-24">
         
         {/* Hero Header Banner */}
         <HeroHeaderBanner />
@@ -392,6 +380,8 @@ const Household = () => {
           </ul>
         </motion.div>
       </div>
+
+      <BottomTabBar />
 
       {/* Member Detail Sheet */}
       <MemberDetailSheet
