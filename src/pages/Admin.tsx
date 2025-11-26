@@ -16,6 +16,7 @@ import ToolCallLogs from "@/components/admin/ToolCallLogs";
 import ContextPreview from "@/components/admin/ContextPreview";
 import { AgentProvisioning } from "@/components/admin/AgentProvisioning";
 import { ConversationMonitor } from "@/components/admin/ConversationMonitor";
+import { AccessibilityAudit } from "@/components/admin/AccessibilityAudit";
 import { motion } from "framer-motion";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
 
@@ -62,6 +63,7 @@ const Admin = () => {
               <TabsTrigger value="tool-logs" className="text-micro px-4 min-w-[80px]">Tools</TabsTrigger>
               <TabsTrigger value="context" className="text-micro px-4 min-w-[80px]">Context</TabsTrigger>
               <TabsTrigger value="analytics" className="text-micro px-4 min-w-[80px]">Analytics</TabsTrigger>
+              <TabsTrigger value="accessibility" className="text-micro px-4 min-w-[120px]">Accessibility</TabsTrigger>
             </TabsList>
           </ScrollArea>
 
@@ -110,6 +112,10 @@ const Admin = () => {
 
         <TabsContent value="analytics">
           <Analytics />
+        </TabsContent>
+
+        <TabsContent value="accessibility">
+          <AccessibilityAudit />
         </TabsContent>
       </Tabs>
       </motion.div>
