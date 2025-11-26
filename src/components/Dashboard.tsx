@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence, useMotionValue, PanInfo } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { Package, Camera, ArrowRight, Heart, Sparkles, PawPrint, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -65,6 +65,18 @@ const Dashboard = ({ profile }: DashboardProps) => {
   // Gesture navigation
   const dragX = useMotionValue(0);
   const dragConstraints = { left: 0, right: 0 };
+
+  // Calculate adjacent views for preview
+  const getAdjacentViews = () => {
+    const currentIndex = DASHBOARD_VIEWS.findIndex(v => v.id === viewMode);
+    const prevIndex = currentIndex === 0 ? DASHBOARD_VIEWS.length - 1 : currentIndex - 1;
+    const nextIndex = (currentIndex + 1) % DASHBOARD_VIEWS.length;
+    
+    return {
+      prev: DASHBOARD_VIEWS[prevIndex].id as DashboardViewMode,
+      next: DASHBOARD_VIEWS[nextIndex].id as DashboardViewMode
+    };
+  };
 
   const handleDragEnd = (_event: any, info: PanInfo) => {
     const threshold = 100;
@@ -535,8 +547,8 @@ const Dashboard = ({ profile }: DashboardProps) => {
     </motion.div>
   );
 
-  const renderCurrentView = () => {
-    switch (viewMode) {
+  const renderViewByMode = (mode: DashboardViewMode) => {
+    switch (mode) {
       case 'pulse': return renderPulseView();
       case 'fuel': return renderFuelView();
       case 'pantry': return renderPantryView();
@@ -565,19 +577,59 @@ const Dashboard = ({ profile }: DashboardProps) => {
         {/* Swipe Edge Indicators */}
         <SwipeEdgeIndicator dragX={dragX} currentView={viewMode} />
 
-        {/* Swipeable Container */}
-        <motion.div
-          drag="x"
-          dragConstraints={dragConstraints}
-          dragElastic={0.2}
-          onDragEnd={handleDragEnd}
-          style={{ x: dragX }}
-          className="relative"
-        >
-          <AnimatePresence mode="wait">
-            {renderCurrentView()}
-          </AnimatePresence>
-        </motion.div>
+        {/* Swipeable Container with Adjacent View Previews */}
+        <div className="relative overflow-hidden -mx-6">
+          <motion.div
+            drag="x"
+            dragConstraints={dragConstraints}
+            dragElastic={0.2}
+            onDragEnd={handleDragEnd}
+            className="relative"
+            style={{ touchAction: 'pan-y' }}
+          >
+            {/* Three-view container for swipe preview */}
+            <motion.div 
+              className="flex"
+              style={{ 
+                x: dragX,
+                // Offset to center current view (middle of 3 views)
+                transform: 'translateX(calc(-100vw))'
+              }}
+            >
+              {/* Previous View Preview (left) */}
+              <motion.div 
+                className="w-screen flex-shrink-0 px-6"
+                style={{
+                  opacity: useTransform(dragX, [0, 200], [0.3, 1])
+                }}
+              >
+                {renderViewByMode(getAdjacentViews().prev)}
+              </motion.div>
+
+              {/* Current View (center) */}
+              <motion.div 
+                className="w-screen flex-shrink-0 px-6"
+                style={{
+                  opacity: useTransform(dragX, [-200, 0, 200], [0.5, 1, 0.5])
+                }}
+              >
+                <AnimatePresence mode="wait">
+                  {renderViewByMode(viewMode)}
+                </AnimatePresence>
+              </motion.div>
+
+              {/* Next View Preview (right) */}
+              <motion.div 
+                className="w-screen flex-shrink-0 px-6"
+                style={{
+                  opacity: useTransform(dragX, [-200, 0], [1, 0.3])
+                }}
+              >
+                {renderViewByMode(getAdjacentViews().next)}
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        </div>
 
         {/* End of Stream */}
         <div className="w-full p-6 text-center opacity-30 mt-8">
