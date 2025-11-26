@@ -12,6 +12,8 @@ import { ScannerToolbar } from './ScannerToolbar';
 import { BarcodeOverlay } from './BarcodeOverlay';
 import { IntentPresetPicker, type IntentPreset } from './IntentPresetPicker';
 import ToxicityAlert from './ToxicityAlert';
+import { ScannerHUD } from './ScannerHUD';
+import { haptics } from '@/lib/haptics';
 
 type Intent = 'INVENTORY_SWEEP' | 'APPLIANCE_SCAN' | 'VANITY_SWEEP' | 'NUTRITION_TRACK' | 'PRODUCT_ANALYSIS' | 'PET_ID' | 'EMPTY_PACKAGE';
 
@@ -294,6 +296,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
       if (itemWarnings.length > 0) {
         allWarnings.push(...itemWarnings);
         // Show alert for first toxic item and stop
+        haptics.warning(); // Double heavy vibration for toxicity warning
         setPendingToxicProduct(item.name);
         setToxicityWarnings(itemWarnings);
         setShowToxicityAlert(true);
@@ -374,6 +377,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
           console.error('Failed to add items:', error);
           toast.error('Failed to add items to inventory');
         } else {
+          haptics.success(); // Success vibration
           toast.success(`Added ${enrichedItems.length} items to inventory`);
           onItemsAdded?.();
           setResultData(null);
@@ -853,21 +857,27 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
         </button>
       </div>
 
-      {/* Camera View */}
-      <div className="relative w-full h-full">
-        <Webcam
-          ref={webcamRef}
-          className="w-full h-full object-cover"
-          screenshotFormat="image/jpeg"
-          videoConstraints={{ 
-            facingMode,
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
-          }}
-        />
+        {/* Camera View */}
+        <div className="relative w-full h-full">
+          <Webcam
+            ref={webcamRef}
+            className="w-full h-full object-cover"
+            screenshotFormat="image/jpeg"
+            videoConstraints={{ 
+              facingMode,
+              width: { ideal: 1920 },
+              height: { ideal: 1080 }
+            }}
+          />
 
-        {/* Barcode Overlay */}
-        {captureMode === 'barcode' && <BarcodeOverlay />}
+          {/* Scanner HUD Overlay */}
+          <ScannerHUD 
+            mode={captureMode === 'auto' ? 'inventory' : captureMode as any} 
+            isScanning={isScanning} 
+          />
+
+          {/* Barcode Overlay */}
+          {captureMode === 'barcode' && <BarcodeOverlay />}
         
         {/* Fleeting Hint Text */}
         <AnimatePresence>

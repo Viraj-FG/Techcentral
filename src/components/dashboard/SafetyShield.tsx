@@ -1,12 +1,14 @@
 import { motion } from 'framer-motion';
 import { ShieldCheck } from 'lucide-react';
 import { kaevaEntranceVariants, kaevaTransition } from '@/hooks/useKaevaMotion';
+import { useNavigate } from 'react-router-dom';
 
 interface SafetyShieldProps {
   profile: any;
 }
 
 const SafetyShield = ({ profile }: SafetyShieldProps) => {
+  const navigate = useNavigate();
   const getActiveFilters = () => {
     const filters: Array<{ label: string; abbreviation: string }> = [];
 
@@ -43,7 +45,10 @@ const SafetyShield = ({ profile }: SafetyShieldProps) => {
       initial="hidden"
       animate="visible"
       transition={kaevaTransition}
-      className="w-full rounded-2xl bg-slate-800/40 border border-white/5 p-4 flex items-center justify-between backdrop-blur-sm"
+      onClick={() => navigate('/settings')}
+      className="w-full rounded-2xl bg-slate-800/40 border border-white/5 p-4 flex items-center justify-between backdrop-blur-sm cursor-pointer hover:bg-slate-800/60 transition-colors active:scale-[0.98]"
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.98 }}
     >
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center relative">
