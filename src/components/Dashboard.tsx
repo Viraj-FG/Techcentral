@@ -66,11 +66,6 @@ const Dashboard = ({ profile }: DashboardProps) => {
   const dragX = useMotionValue(0);
   const dragConstraints = { left: 0, right: 0 };
 
-  // Pre-compute opacity transforms for swipe preview (MUST be at top level)
-  const prevViewOpacity = useTransform(dragX, [0, 200], [0.3, 1]);
-  const currentViewOpacity = useTransform(dragX, [-200, 0, 200], [0.3, 1, 0.3]);
-  const nextViewOpacity = useTransform(dragX, [-200, 0], [1, 0.3]);
-
   // Calculate adjacent views for preview
   const getAdjacentViews = () => {
     const currentIndex = DASHBOARD_VIEWS.findIndex(v => v.id === viewMode);
@@ -582,51 +577,19 @@ const Dashboard = ({ profile }: DashboardProps) => {
         {/* Swipe Edge Indicators */}
         <SwipeEdgeIndicator dragX={dragX} currentView={viewMode} />
 
-        {/* Swipeable Container with Adjacent View Previews */}
-        <div className="relative overflow-hidden -mx-6">
+        {/* Swipeable Container - Single View */}
+        <div className="relative -mx-6">
           <motion.div
             drag="x"
-            dragConstraints={dragConstraints}
+            dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.2}
             onDragEnd={handleDragEnd}
-            className="relative"
-            style={{ touchAction: 'pan-y' }}
+            className="px-6"
+            style={{ touchAction: 'pan-y', x: dragX }}
           >
-            {/* Three-view container for swipe preview */}
-            <motion.div 
-              className="flex"
-              style={{ 
-                x: dragX,
-                // Offset to center current view (middle of 3 views)
-                transform: 'translateX(calc(-100vw))'
-              }}
-            >
-              {/* Previous View Preview (left) */}
-              <motion.div 
-                className="w-screen flex-shrink-0 px-6"
-                style={{ opacity: prevViewOpacity }}
-              >
-                {renderViewByMode(getAdjacentViews().prev)}
-              </motion.div>
-
-              {/* Current View (center) */}
-              <motion.div 
-                className="w-screen flex-shrink-0 px-6"
-                style={{ opacity: currentViewOpacity }}
-              >
-                <AnimatePresence mode="wait">
-                  {renderViewByMode(viewMode)}
-                </AnimatePresence>
-              </motion.div>
-
-              {/* Next View Preview (right) */}
-              <motion.div 
-                className="w-screen flex-shrink-0 px-6"
-                style={{ opacity: nextViewOpacity }}
-              >
-                {renderViewByMode(getAdjacentViews().next)}
-              </motion.div>
-            </motion.div>
+            <AnimatePresence mode="wait">
+              {renderViewByMode(viewMode)}
+            </AnimatePresence>
           </motion.div>
         </div>
 
