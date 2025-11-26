@@ -35,12 +35,13 @@ const ConversationOverlay = ({
         onClick={(e) => e.stopPropagation()}
         className="relative w-full h-full flex flex-col items-center justify-center p-8"
       >
-        {/* Close button */}
+        {/* Close button - 44px touch target */}
         <Button
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="absolute top-6 right-6 text-secondary hover:text-accent hover:bg-secondary/10"
+          className="absolute top-6 right-6 text-secondary hover:text-accent hover:bg-secondary/10 min-w-[44px] min-h-[44px]"
+          aria-label="Close conversation"
         >
           <X className="w-5 h-5" />
         </Button>
@@ -50,6 +51,9 @@ const ConversationOverlay = ({
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1 }}
+          role="status"
+          aria-live="polite"
+          aria-label={`Voice assistant is ${apertureState}`}
         >
           <KaevaAperture
             state={apertureState}

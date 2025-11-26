@@ -226,7 +226,8 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
             }
             onExit?.();
           }}
-          className="absolute top-4 right-4 z-50 px-4 py-2 text-sm text-muted-foreground hover:text-primary transition-colors underline-offset-4 hover:underline backdrop-blur-sm"
+          className="absolute top-4 right-4 z-50 px-4 py-2 min-h-[44px] text-sm text-muted-foreground hover:text-primary transition-colors underline-offset-4 hover:underline backdrop-blur-sm"
+          aria-label="Skip onboarding and go to dashboard"
         >
           Skip to Dashboard →
         </motion.button>
@@ -244,13 +245,15 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
               exit={{ scale: 0.8, opacity: 0 }}
               className="flex flex-col items-center"
             >
-              <KaevaAperture 
-                state={apertureState} 
-                size="lg" 
-                audioElement={null}
-                isDetectingSound={false}
-                audioAmplitude={voiceAudioAmplitude}
-              />
+              <div role="status" aria-live="polite" aria-label={`Voice onboarding assistant is ${apertureState}`}>
+                <KaevaAperture 
+                  state={apertureState} 
+                  size="lg" 
+                  audioElement={null}
+                  isDetectingSound={false}
+                  audioAmplitude={voiceAudioAmplitude}
+                />
+              </div>
 
               <AnimatePresence>
                 {conversationState.householdMembers.length > 0 && (
@@ -293,7 +296,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
                 )}
               </AnimatePresence>
               
-              {/* Edit Last Answer Button */}
+              {/* Edit Last Answer Button - Voice Fallback */}
               <AnimatePresence>
                 {status === 'connected' && voiceUserTranscript && (
                   <motion.button
@@ -305,7 +308,8 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
                         sendContextualUpdate("The user wants to edit or add to their previous answer. Please ask them what they'd like to change or add.");
                       }
                     }}
-                    className="mt-6 px-6 py-2 text-sm text-primary/80 hover:text-primary border border-primary/30 hover:border-primary/60 rounded-full transition-colors backdrop-blur-sm bg-background/30"
+                    className="mt-6 px-6 py-2 min-h-[44px] text-sm text-primary/80 hover:text-primary border border-primary/30 hover:border-primary/60 rounded-full transition-colors backdrop-blur-sm bg-background/30"
+                    aria-label="Edit or add to your previous answer"
                   >
                     ✏️ Edit Last Answer
                   </motion.button>

@@ -102,20 +102,20 @@ const AppShell = ({
         className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-50 pointer-events-auto"
       >
         <div className="relative flex items-center gap-8 px-8 py-4 bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-full">
-          {/* Left: Settings */}
+          {/* Left: Settings - 44px touch target */}
           <button 
             onClick={() => navigate('/settings')} 
-            className="p-3 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-white/5"
-            aria-label="Settings"
+            className="p-3 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-white/5 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="Open settings"
           >
             <Settings size={22} strokeWidth={1.5} />
           </button>
 
-          {/* Center: The Living Aperture (Hero Button) */}
+          {/* Center: The Living Aperture (Hero Button) - 64px touch target */}
           <button 
             onClick={handleApertureClick}
-            className="relative -my-8 cursor-pointer group"
-            aria-label="Open action menu"
+            className="relative -my-8 cursor-pointer group min-w-[64px] min-h-[64px] flex items-center justify-center"
+            aria-label="Open action menu - Voice or Scanner"
           >
             <div className="w-16 h-16 transition-transform group-hover:scale-105 group-active:scale-95">
               <KaevaAperture 
@@ -125,11 +125,11 @@ const AppShell = ({
             </div>
           </button>
 
-          {/* Right: Profile/Household */}
+          {/* Right: Profile/Household - 44px touch target */}
           <button 
             onClick={() => navigate('/household')} 
-            className="p-1 hover:opacity-80 transition-opacity rounded-full hover:bg-white/5"
-            aria-label="Household"
+            className="p-1 hover:opacity-80 transition-opacity rounded-full hover:bg-white/5 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="View household members and settings"
           >
             <Avatar className="h-10 w-10 border-2 border-secondary/30">
               <AvatarImage src={undefined} />
