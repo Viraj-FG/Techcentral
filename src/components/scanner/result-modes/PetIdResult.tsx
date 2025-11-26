@@ -1,11 +1,17 @@
 import { useState } from 'react';
 import { PawPrint } from 'lucide-react';
+import { MultiModalInput } from '@/components/ui/MultiModalInput';
+import { UniversalFixSheet } from '@/components/ui/UniversalFixSheet';
 import type { PetData } from '../ScanResults';
 
 const PetIdResult = ({ data }: { data?: PetData }) => {
   const [petName, setPetName] = useState('');
 
   if (!data) return null;
+
+  const handleFixPet = async (correction: string) => {
+    console.log("Re-analyzing pet with correction:", correction);
+  };
 
   return (
     <div className="space-y-6">
@@ -55,15 +61,22 @@ const PetIdResult = ({ data }: { data?: PetData }) => {
         <label className="text-sm font-semibold text-white uppercase tracking-wide">
           What's their name?
         </label>
-        <input
-          type="text"
-          value={petName}
-          onChange={(e) => setPetName(e.target.value)}
+        <MultiModalInput
+          mode="text"
           placeholder={`Enter your ${data.breed || data.species}'s name...`}
-          className="w-full px-4 py-3 bg-slate-800/60 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/20"
-          autoFocus
+          onSubmit={(name) => setPetName(name)}
+          domain="pets"
+          showHint={false}
         />
       </div>
+
+      {/* Fix Pet Info */}
+      <UniversalFixSheet
+        domain="pet"
+        onSubmit={handleFixPet}
+        currentData={data}
+        triggerLabel="Fix Pet Details"
+      />
 
       {/* Fun fact */}
       <div className="p-4 bg-slate-800/40 rounded-xl border border-slate-700/50">

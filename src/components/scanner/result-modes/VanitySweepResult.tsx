@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { UniversalFixSheet } from '@/components/ui/UniversalFixSheet';
 
 interface DetectedItem {
   name: string;
@@ -12,11 +13,22 @@ interface DetectedItem {
 }
 
 const VanitySweepResult = ({ items }: { items: DetectedItem[] }) => {
+  const handleFixProduct = async (correction: string) => {
+    console.log("Re-analyzing beauty products with correction:", correction);
+  };
+
   return (
     <div className="space-y-4">
       <p className="text-slate-300">
         Found <span className="font-bold text-white">{items.length}</span> beauty products
       </p>
+
+      {/* Fix Products Info */}
+      <UniversalFixSheet
+        domain="beauty"
+        onSubmit={handleFixProduct}
+        triggerLabel="Fix Products Info"
+      />
 
       <div className="grid grid-cols-2 gap-3">
         {items.map((item, index) => {

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { UniversalFixSheet } from '@/components/ui/UniversalFixSheet';
 import type { ProductTruthData } from '../ScanResults';
 
 // Better Alternative Card Component with Instacart swap
@@ -83,7 +84,16 @@ const BetterAlternativeCard = ({ alternative }: { alternative: { name: string; b
 };
 
 const ProductAnalysisResult = ({ data }: { data?: ProductTruthData }) => {
+  const { toast } = useToast();
+
   if (!data) return null;
+
+  const handleFixProduct = async (correction: string) => {
+    toast({
+      title: "Re-analyzing product...",
+      description: "AI will re-analyze with your corrections",
+    });
+  };
 
   const getScoreColor = (score: number) => {
     if (score >= 71) return { color: 'emerald', label: 'Clean' };
@@ -204,6 +214,14 @@ const ProductAnalysisResult = ({ data }: { data?: ProductTruthData }) => {
       {data.betterAlternative && (
         <BetterAlternativeCard alternative={data.betterAlternative} />
       )}
+
+      {/* Fix Product Info */}
+      <UniversalFixSheet
+        domain="product"
+        onSubmit={handleFixProduct}
+        currentData={data}
+        triggerLabel="Fix Product Info"
+      />
     </div>
   );
 };

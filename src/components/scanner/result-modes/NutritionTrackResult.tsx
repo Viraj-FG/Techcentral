@@ -12,6 +12,8 @@ import { PhotoEditModal } from '../PhotoEditModal';
 import { MealTemplateSheet } from '../MealTemplateSheet';
 import { SaveTemplateDialog } from '../SaveTemplateDialog';
 import { VoiceMealInput } from '../VoiceMealInput';
+import { MultiModalInput } from '@/components/ui/MultiModalInput';
+import { UniversalFixSheet } from '@/components/ui/UniversalFixSheet';
 import { updateStreak } from '@/lib/streakUtils';
 import type { Recipe } from '../ScanResults';
 
@@ -683,15 +685,25 @@ const NutritionTrackResult = ({
 
         {/* Log Meal Button */}
         <div className="space-y-3">
-          {/* Voice Input */}
+          {/* Universal Fix Sheet */}
+          <UniversalFixSheet
+            domain="nutrition"
+            onSubmit={handleFixIssue}
+            triggerLabel="Fix Meal Info"
+          />
+
+          {/* Voice/Text Input */}
           {showVoiceInput && (
-            <VoiceMealInput 
-              onTranscript={(text) => setVoiceTranscript(text)}
-              onComplete={() => {
+            <MultiModalInput
+              mode="both"
+              placeholder="Describe what you ate..."
+              onSubmit={(text) => {
+                setVoiceTranscript(text);
                 setShowVoiceInput(false);
-                toast({ title: "Voice input captured" });
+                toast({ title: "Input captured" });
               }}
-              disabled={logging}
+              domain="nutrition"
+              showHint
             />
           )}
           
@@ -702,11 +714,11 @@ const NutritionTrackResult = ({
               onClick={() => setShowVoiceInput(true)}
               className="w-full gap-2"
             >
-              Voice Input
+              Add Notes (Voice/Text)
             </Button>
           )}
 
-          <Button 
+          <Button
             size="lg" 
             onClick={handleLogMeal}
             disabled={logging}
