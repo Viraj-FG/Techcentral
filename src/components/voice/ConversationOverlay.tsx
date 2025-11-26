@@ -27,7 +27,7 @@ const ConversationOverlay = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-kaeva-void/95 backdrop-blur-lg"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-lg"
       onClick={onClose}
     >
       {/* Content wrapper - prevent click propagation */}
@@ -40,7 +40,7 @@ const ConversationOverlay = ({
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="absolute top-6 right-6 text-kaeva-sage hover:text-kaeva-teal hover:bg-kaeva-sage/10"
+          className="absolute top-6 right-6 text-secondary hover:text-accent hover:bg-secondary/10"
         >
           <X className="w-5 h-5" />
         </Button>
@@ -67,7 +67,7 @@ const ConversationOverlay = ({
           transition={{ delay: 0.2 }}
           className="mt-8 text-center"
         >
-          <p className="text-kaeva-sage text-sm font-medium tracking-wide uppercase">
+          <p className="text-secondary text-sm font-medium tracking-wide uppercase">
             {apertureState === "listening" && "Listening..."}
             {apertureState === "thinking" && "Processing..."}
             {apertureState === "speaking" && "Speaking..."}
@@ -88,10 +88,10 @@ const ConversationOverlay = ({
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="bg-kaeva-sage/10 border border-kaeva-sage/20 rounded-lg p-4"
+                className="bg-secondary/10 border border-secondary/20 rounded-lg p-4"
               >
-                <p className="text-xs text-kaeva-sage/60 mb-1">You</p>
-                <p className="text-kaeva-slate-100 text-sm">{userTranscript}</p>
+                <p className="text-xs text-secondary/60 mb-1">You</p>
+                <p className="text-foreground/90 text-sm">{userTranscript}</p>
               </motion.div>
             )}
 
@@ -101,10 +101,10 @@ const ConversationOverlay = ({
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
-                className="bg-kaeva-teal/10 border border-kaeva-teal/20 rounded-lg p-4"
+                className="bg-accent/10 border border-accent/20 rounded-lg p-4"
               >
-                <p className="text-xs text-kaeva-teal/60 mb-1">Kaeva</p>
-                <p className="text-kaeva-slate-100 text-sm">{aiTranscript}</p>
+                <p className="text-xs text-accent/60 mb-1">Kaeva</p>
+                <p className="text-foreground/90 text-sm">{aiTranscript}</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -115,7 +115,7 @@ const ConversationOverlay = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="absolute bottom-8 text-kaeva-sage/60 text-sm text-center"
+          className="absolute bottom-8 text-secondary/60 text-sm text-center"
         >
           Click anywhere or press ESC to close
         </motion.p>

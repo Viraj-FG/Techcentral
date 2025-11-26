@@ -77,7 +77,7 @@ const VanitySweepResult = ({ items }: { items: DetectedItem[] }) => {
                     {daysUntilExpiry} days left
                   </span>
                 ) : (
-                  <span className="inline-block px-2 py-0.5 bg-kaeva-sage/20 text-kaeva-sage text-xs rounded-full">
+                  <span className="inline-block px-2 py-0.5 bg-secondary/20 text-secondary text-xs rounded-full">
                     Fresh
                   </span>
                 )}

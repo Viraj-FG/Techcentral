@@ -26,10 +26,10 @@ const ClusterLanguage = ({ onSelect, selectedLanguage }: ClusterLanguageProps) =
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-2xl sm:text-3xl tracking-premium text-kaeva-sage">
+        <h2 className="text-2xl sm:text-3xl tracking-premium text-secondary">
           SELECT YOUR LANGUAGE
         </h2>
-        <div className="w-32 h-0.5 bg-kaeva-sage/50 mx-auto" />
+        <div className="w-32 h-0.5 bg-secondary/50 mx-auto" />
       </div>
       
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">

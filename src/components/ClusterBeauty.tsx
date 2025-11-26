@@ -66,14 +66,14 @@ const ClusterBeauty = ({ onSubmit }: ClusterBeautyProps) => {
           PERSONAL CARE PROFILE
         </h2>
         <div className="w-32 h-0.5 mx-auto" style={{ backgroundColor: "rgba(194, 65, 12, 0.5)" }} />
-        <p className="text-sm text-kaeva-slate-400 mt-2">
+        <p className="text-sm text-muted-foreground mt-2">
           To track products and effectiveness, I need to know your profile.
         </p>
       </div>
 
       {/* Skin Conditions Section */}
       <div>
-        <h3 className="text-sm uppercase tracking-wider text-kaeva-slate-400 mb-3 flex items-center gap-2">
+        <h3 className="text-sm uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
           <Microscope size={16} />
           Skin Conditions
         </h3>
@@ -110,7 +110,7 @@ const ClusterBeauty = ({ onSubmit }: ClusterBeautyProps) => {
 
       {/* Hair/Scalp Section */}
       <div>
-        <h3 className="text-sm uppercase tracking-wider text-kaeva-slate-400 mb-3 flex items-center gap-2">
+        <h3 className="text-sm uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
           <Activity size={16} />
           Hair / Scalp Profile
         </h3>

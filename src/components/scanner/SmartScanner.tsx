@@ -849,9 +849,9 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-kaeva-void">
+    <div className="fixed inset-0 z-50 bg-background">
       {/* Top Bar */}
-      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4 bg-gradient-to-b from-kaeva-void/80 to-transparent backdrop-blur-sm">
+      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4 bg-gradient-to-b from-background/80 to-transparent backdrop-blur-sm">
         <button onClick={onClose} className="w-10 h-10 flex items-center justify-center">
           <X className="w-6 h-6 text-white" />
         </button>

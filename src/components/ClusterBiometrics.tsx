@@ -56,8 +56,8 @@ const ClusterBiometrics = ({ onSubmit }: ClusterBiometricsProps) => {
       className="glass-card p-6 rounded-2xl"
     >
       <div className="flex items-center gap-3 mb-4">
-        <Icon className="w-5 h-5 text-kaeva-sage" />
-        <span className="text-sm text-kaeva-sage/70">{label}</span>
+        <Icon className="w-5 h-5 text-secondary" />
+        <span className="text-sm text-secondary/70">{label}</span>
       </div>
       
       <div className="flex items-center justify-between gap-4">
@@ -69,8 +69,8 @@ const ClusterBiometrics = ({ onSubmit }: ClusterBiometricsProps) => {
         </button>
         
         <div className="flex-1 text-center">
-          <div className="text-4xl font-light text-kaeva-sage">{value}</div>
-          <div className="text-xs text-kaeva-sage/50 mt-1">{unit}</div>
+          <div className="text-4xl font-light text-secondary">{value}</div>
+          <div className="text-xs text-secondary/50 mt-1">{unit}</div>
         </div>
         
         <button
@@ -97,10 +97,10 @@ const ClusterBiometrics = ({ onSubmit }: ClusterBiometricsProps) => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center space-y-4"
         >
-          <h2 className="text-4xl font-light text-kaeva-sage">
+          <h2 className="text-4xl font-light text-secondary">
             Calculating Your Baseline
           </h2>
-          <p className="text-kaeva-sage/70 text-lg">
+          <p className="text-secondary/70 text-lg">
             To provide medical-grade nutritional guidance, I need some basic metrics. 
             This data stays encrypted and enables precise recommendations.
           </p>
@@ -111,13 +111,13 @@ const ClusterBiometrics = ({ onSubmit }: ClusterBiometricsProps) => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="glass-card p-6 rounded-2xl text-center border-2 border-kaeva-sage/20"
+          className="glass-card p-6 rounded-2xl text-center border-2 border-secondary/20"
         >
-          <div className="text-sm text-kaeva-sage/70 mb-2">Your Baseline Energy Needs</div>
-          <div className="text-5xl font-light text-kaeva-accent">
+          <div className="text-sm text-secondary/70 mb-2">Your Baseline Energy Needs</div>
+          <div className="text-5xl font-light text-accent">
             {calculatedTDEE.toLocaleString()}
           </div>
-          <div className="text-sm text-kaeva-sage/50 mt-1">calories per day</div>
+          <div className="text-sm text-secondary/50 mt-1">calories per day</div>
         </motion.div>
 
         {/* Biometric Inputs */}
@@ -160,8 +160,8 @@ const ClusterBiometrics = ({ onSubmit }: ClusterBiometricsProps) => {
             className="glass-card p-6 rounded-2xl"
           >
             <div className="flex items-center gap-3 mb-4">
-              <User className="w-5 h-5 text-kaeva-sage" />
-              <span className="text-sm text-kaeva-sage/70">Gender</span>
+              <User className="w-5 h-5 text-secondary" />
+              <span className="text-sm text-secondary/70">Gender</span>
             </div>
             
             <div className="grid grid-cols-3 gap-2">
@@ -171,8 +171,8 @@ const ClusterBiometrics = ({ onSubmit }: ClusterBiometricsProps) => {
                   onClick={() => setGender(g)}
                   className={`px-4 py-2 rounded-full text-sm transition-all ${
                     gender === g
-                      ? 'bg-kaeva-accent text-kaeva-void'
-                      : 'glass-button hover:bg-kaeva-sage/10'
+                      ? 'bg-accent text-background'
+                      : 'glass-button hover:bg-secondary/10'
                   }`}
                 >
                   {g === 'male' ? 'M' : g === 'female' ? 'F' : 'Other'}
@@ -190,8 +190,8 @@ const ClusterBiometrics = ({ onSubmit }: ClusterBiometricsProps) => {
           className="glass-card p-6 rounded-2xl"
         >
           <div className="flex items-center gap-3 mb-6">
-            <Activity className="w-5 h-5 text-kaeva-sage" />
-            <span className="text-sm text-kaeva-sage/70">Activity Level</span>
+            <Activity className="w-5 h-5 text-secondary" />
+            <span className="text-sm text-secondary/70">Activity Level</span>
           </div>
           
           <div className="space-y-2">
@@ -207,12 +207,12 @@ const ClusterBiometrics = ({ onSubmit }: ClusterBiometricsProps) => {
                 onClick={() => setActivityLevel(level.value as BiometricData['activityLevel'])}
                 className={`w-full p-4 rounded-xl text-left transition-all ${
                   activityLevel === level.value
-                    ? 'bg-kaeva-accent/20 border-2 border-kaeva-accent'
-                    : 'glass-button hover:bg-kaeva-sage/5'
+                    ? 'bg-accent/20 border-2 border-accent'
+                    : 'glass-button hover:bg-secondary/5'
                 }`}
               >
-                <div className="font-medium text-kaeva-sage">{level.label}</div>
-                <div className="text-xs text-kaeva-sage/50 mt-1">{level.desc}</div>
+                <div className="font-medium text-secondary">{level.label}</div>
+                <div className="text-xs text-secondary/50 mt-1">{level.desc}</div>
               </button>
             ))}
           </div>
@@ -224,7 +224,7 @@ const ClusterBiometrics = ({ onSubmit }: ClusterBiometricsProps) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
           onClick={handleContinue}
-          className="w-full glass-button py-4 rounded-full text-lg font-medium text-kaeva-sage hover:bg-kaeva-accent/20 transition-all"
+          className="w-full glass-button py-4 rounded-full text-lg font-medium text-secondary hover:bg-accent/20 transition-all"
         >
           CONTINUE
         </motion.button>

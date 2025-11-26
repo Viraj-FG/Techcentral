@@ -267,7 +267,7 @@ const NutritionTrackResult = ({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="p-4 bg-slate-800/60 rounded-xl border border-slate-700/50 hover:border-kaeva-sage/50 transition-colors cursor-pointer"
+              className="p-4 bg-slate-800/60 rounded-xl border border-slate-700/50 hover:border-secondary/50 transition-colors cursor-pointer"
             >
               <h4 className="text-lg font-semibold text-white mb-2">{recipe.name}</h4>
               <div className="flex items-center gap-4 text-sm text-slate-400 mb-3">
@@ -280,7 +280,7 @@ const NutritionTrackResult = ({
               </div>
               <div className="flex flex-wrap gap-2 mb-3">
                 {recipe.requiredAppliances.map(appliance => (
-                  <span key={appliance} className="text-xs px-2 py-1 bg-kaeva-sage/20 text-kaeva-sage rounded-full">
+                  <span key={appliance} className="text-xs px-2 py-1 bg-secondary/20 text-secondary rounded-full">
                     {appliance}
                   </span>
                 ))}
@@ -288,7 +288,7 @@ const NutritionTrackResult = ({
               <Button
                 onClick={() => handleOrderIngredients(recipe)}
                 disabled={orderingRecipe === recipe.name}
-                className="w-full bg-kaeva-sage hover:bg-kaeva-sage/90 text-kaeva-void font-semibold gap-2"
+                className="w-full bg-secondary hover:bg-secondary/90 text-background font-semibold gap-2"
                 size="sm"
               >
                 {orderingRecipe === recipe.name ? (
@@ -373,9 +373,9 @@ const NutritionTrackResult = ({
                     variant="ghost" 
                     size="sm"
                     onClick={() => handleEditItem(idx)}
-                    className="h-6 w-6 p-0 hover:bg-kaeva-sage/20"
+                    className="h-6 w-6 p-0 hover:bg-secondary/20"
                   >
-                    <Pencil className="w-3 h-3 text-kaeva-sage" />
+                    <Pencil className="w-3 h-3 text-secondary" />
                   </Button>
                 </div>
                 <span className="text-slate-400 text-sm">{item.quantity}</span>
@@ -450,7 +450,7 @@ const NutritionTrackResult = ({
           size="lg" 
           onClick={handleLogMeal}
           disabled={logging}
-          className="w-full bg-kaeva-sage hover:bg-kaeva-sage/90 text-kaeva-void font-semibold gap-2"
+          className="w-full bg-secondary hover:bg-secondary/90 text-background font-semibold gap-2"
         >
           {logging ? (
             <>

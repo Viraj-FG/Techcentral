@@ -48,18 +48,18 @@ const ClusterMission = ({ onSubmit }: ClusterMissionProps) => {
   return (
     <div className="space-y-8">
       <div className="text-center space-y-2">
-        <h2 className="text-2xl sm:text-3xl tracking-premium text-kaeva-sage">
+        <h2 className="text-2xl sm:text-3xl tracking-premium text-secondary">
           MISSION CALIBRATION
         </h2>
-        <div className="w-32 h-0.5 bg-kaeva-sage/50 mx-auto" />
-        <p className="text-sm text-kaeva-slate-400 tracking-wide">
+        <div className="w-32 h-0.5 bg-secondary/50 mx-auto" />
+        <p className="text-sm text-muted-foreground tracking-wide">
           Define your primary objectives
         </p>
       </div>
 
       {/* Medical Goals */}
       <div className="space-y-4">
-        <h3 className="text-lg tracking-wide text-kaeva-slate-300">Health Objectives</h3>
+        <h3 className="text-lg tracking-wide text-muted-foreground/70">Health Objectives</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {medicalGoals.map((goal) => (
             <motion.button
@@ -81,7 +81,7 @@ const ClusterMission = ({ onSubmit }: ClusterMissionProps) => {
 
       {/* Lifestyle Goals */}
       <div className="space-y-4">
-        <h3 className="text-lg tracking-wide text-kaeva-slate-300">Lifestyle Priorities</h3>
+        <h3 className="text-lg tracking-wide text-muted-foreground/70">Lifestyle Priorities</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {lifestyleGoals.map((goal) => (
             <motion.button
@@ -103,8 +103,8 @@ const ClusterMission = ({ onSubmit }: ClusterMissionProps) => {
 
       <motion.button
         onClick={handleContinue}
-        className="w-full py-4 bg-kaeva-sage/20 border border-kaeva-sage rounded-full
-                   hover:bg-kaeva-sage/30 transition-all tracking-wider text-kaeva-sage"
+        className="w-full py-4 bg-secondary/20 border border-secondary rounded-full
+                   hover:bg-secondary/30 transition-all tracking-wider text-secondary"
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         transition={springTransition}
