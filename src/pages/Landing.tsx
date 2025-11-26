@@ -1,12 +1,31 @@
 import { motion } from "framer-motion";
 import { Cpu, Scan, Activity, Camera, ShoppingBag, ShieldCheck, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import PublicShell from "@/components/layout/PublicShell";
+import { supabase } from "@/integrations/supabase/client";
 
 const Landing = () => {
   const navigate = useNavigate();
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  // Redirect authenticated users to /app
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/app', { replace: true });
+      } else {
+        setIsCheckingAuth(false);
+      }
+    };
+    checkAuth();
+  }, [navigate]);
+
+  if (isCheckingAuth) {
+    return <div className="fixed inset-0 bg-background" />;
+  }
 
   const toggleFaq = (index: number) => {
     setActiveFaq(activeFaq === index ? null : index);
@@ -192,27 +211,7 @@ const Landing = () => {
             Watch Demo
           </button>
         </motion.div>
-
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.7 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-          className="flex gap-4 opacity-70 hover:opacity-100 transition-opacity mt-6"
-        >
-          <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" className="h-11 invert" alt="App Store" />
-          <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" className="h-11 invert" alt="Play Store" />
-        </motion.div>
       </section>
-
-      {/* Trust Bar */}
-      <div className="w-full py-8 border-y border-border bg-black/30 backdrop-blur-sm">
-        <div className="flex justify-center gap-16 flex-wrap items-center max-w-5xl mx-auto px-8 opacity-50 grayscale">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/b/b9/TechCrunch_logo.svg" className="h-6 brightness-150" alt="TechCrunch" />
-          <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" className="h-6 brightness-150" alt="Google" />
-          <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg" className="h-5 brightness-150" alt="Netflix" />
-          <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" className="h-6 brightness-150 invert" alt="Apple" />
-        </div>
-      </div>
 
       {/* Features Bento Grid */}
       <section className="py-24 px-6 max-w-7xl mx-auto">
