@@ -214,22 +214,31 @@ All colors MUST be HSL.
     padding-top: max(0.5rem, env(safe-area-inset-top));
   }
 
-  /* Seattle Solstice Typography */
+  /* Engineered Organic Typography System */
   .text-display {
-    @apply font-light tracking-wider;
+    font-family: 'Space Grotesk', monospace;
     font-weight: 300;
+    letter-spacing: 0.05em;
   }
   
   .text-body {
-    @apply font-normal tracking-normal;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 400;
+    letter-spacing: normal;
   }
   
   .text-data {
-    @apply font-mono font-medium;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    letter-spacing: 0.02em;
   }
   
   .text-micro {
-    @apply font-semibold uppercase tracking-widest text-xs;
+    font-family: 'Space Grotesk', monospace;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.75rem;
   }
 
   /* Seattle Solstice Motion */
