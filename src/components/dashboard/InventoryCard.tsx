@@ -54,13 +54,13 @@ const InventoryCard = ({ title, icon: Icon, items, status = 'normal', onRefill, 
   const lowStockItems = items.filter(item => item.fillLevel < 20);
 
   // Status-based styling
-  const statusColor = status === 'good' ? 'text-emerald-400' : status === 'warning' ? 'text-[#D97757]' : 'text-slate-400';
-  const statusBg = status === 'good' ? 'bg-emerald-400/10' : status === 'warning' ? 'bg-[#D97757]/10' : 'bg-white/5';
+  const statusColor = status === 'good' ? 'text-secondary' : status === 'warning' ? 'text-destructive' : 'text-muted-foreground';
+  const statusBg = status === 'good' ? 'bg-secondary/10' : status === 'warning' ? 'bg-destructive/10' : 'bg-white/5';
 
   const getFillGradient = (level: number) => {
-    if (level <= 20) return "bg-gradient-to-r from-red-400 to-red-500";
-    if (level <= 50) return "bg-gradient-to-r from-amber-400 to-amber-500";
-    return "bg-gradient-to-r from-emerald-400 to-emerald-500";
+    if (level <= 20) return "bg-gradient-to-r from-destructive to-destructive/80";
+    if (level <= 50) return "bg-gradient-to-r from-primary to-primary/80";
+    return "bg-gradient-to-r from-secondary to-secondary/80";
   };
 
   const cardVariants = {
@@ -95,10 +95,10 @@ const InventoryCard = ({ title, icon: Icon, items, status = 'normal', onRefill, 
       
       {/* Title & Subtitle */}
       <div className="mb-3">
-        <h3 className="text-base font-medium text-slate-200 mb-1">
+        <h3 className="text-base font-medium text-slate-200 mb-1 truncate">
           {title}
         </h3>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-slate-400 truncate">
           {status === 'good' ? 'Stock Good' : status === 'warning' ? `${items[0]?.name || 'Item'} Low` : 'Routine Active'}
         </p>
       </div>
@@ -138,8 +138,8 @@ const InventoryCard = ({ title, icon: Icon, items, status = 'normal', onRefill, 
           {lowStockItems.slice(0, 2).map((item, idx) => (
             <div key={idx} className="relative">
               <div className="flex items-center justify-between text-xs mb-1">
-                <span className="text-white/70 truncate flex-1">{item.name}</span>
-                <span className="text-white/50">{item.fillLevel}%</span>
+                <span className="text-white/70 truncate flex-1 mr-2">{item.name}</span>
+                <span className="text-white/50 flex-shrink-0">{item.fillLevel}%</span>
               </div>
               {/* Visual Fill Bar */}
               <div className="h-1 w-full bg-slate-700/50 rounded-full overflow-hidden">
@@ -156,7 +156,7 @@ const InventoryCard = ({ title, icon: Icon, items, status = 'normal', onRefill, 
                   size="sm"
                   variant="ghost"
                   onClick={() => onRefill(item)}
-                  className="absolute -top-1 right-0 h-6 px-2 bg-red-500/20 hover:bg-red-500/40 text-red-400 text-xs"
+                  className="absolute -top-1 right-0 h-6 px-2 bg-destructive/20 hover:bg-destructive/40 text-destructive text-xs"
                 >
                   <RefreshCw className="w-3 h-3 mr-1" />
                   Refill

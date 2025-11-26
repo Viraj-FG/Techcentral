@@ -65,13 +65,13 @@ export default function NutritionWidget({ userId }: { userId: string }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      <Card className="backdrop-blur-xl bg-white/5 border-white/10 p-6 hover:bg-white/[0.07] transition-colors">
+      <Card className="backdrop-blur-xl bg-white/5 border-white/10 p-6 hover:bg-white/[0.07] transition-colors overflow-hidden">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Activity className="text-emerald-400" size={20} />
-            <h3 className="text-white font-semibold">Today's Calories</h3>
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <Activity className="text-secondary flex-shrink-0" size={20} />
+            <h3 className="text-white font-semibold truncate">Today's Calories</h3>
           </div>
-          <button className="text-emerald-400 hover:text-emerald-300 transition-colors">
+          <button className="text-secondary hover:text-secondary/80 transition-colors flex-shrink-0">
             <ChevronRight size={20} />
           </button>
         </div>
@@ -79,17 +79,17 @@ export default function NutritionWidget({ userId }: { userId: string }) {
         {/* Calorie Progress */}
         <div className="space-y-3">
           <div className="flex items-baseline justify-between">
-            <span className="text-4xl font-bold text-white">{todayCalories}</span>
-            <span className="text-slate-400 text-sm">/ {targetCalories} cal</span>
+            <span className="text-4xl font-bold text-white truncate">{todayCalories}</span>
+            <span className="text-slate-400 text-sm flex-shrink-0">/ {targetCalories} cal</span>
           </div>
           
           <Progress 
             value={Math.min(progress, 100)} 
-            className={`h-2 ${isOverTarget ? '[&>div]:bg-red-500' : '[&>div]:bg-emerald-500'}`}
+            className={`h-2 ${isOverTarget ? '[&>div]:bg-destructive' : '[&>div]:bg-secondary'}`}
           />
 
           {isOverTarget && (
-            <p className="text-red-400 text-xs">⚠️ Over target by {todayCalories - targetCalories} cal</p>
+            <p className="text-destructive text-xs truncate">⚠️ Over target by {todayCalories - targetCalories} cal</p>
           )}
         </div>
 

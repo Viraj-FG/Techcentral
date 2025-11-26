@@ -46,16 +46,16 @@ const SafetyShield = ({ profile }: SafetyShieldProps) => {
       animate="visible"
       transition={kaevaTransition}
       onClick={() => navigate('/settings')}
-      className="w-full rounded-2xl bg-slate-800/40 border border-white/5 p-4 flex items-center justify-between backdrop-blur-sm cursor-pointer hover:bg-slate-800/60 transition-colors active:scale-[0.98]"
+      className="w-full rounded-2xl bg-slate-800/40 border border-white/5 p-4 flex items-center justify-between backdrop-blur-sm cursor-pointer hover:bg-slate-800/60 transition-colors active:scale-[0.98] overflow-hidden"
       whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
     >
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center relative">
-          <ShieldCheck size={20} className="text-emerald-400" strokeWidth={1.5} />
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <div className="w-10 h-10 rounded-full bg-secondary/10 border border-secondary/20 flex items-center justify-center relative flex-shrink-0">
+          <ShieldCheck size={20} className="text-secondary" strokeWidth={1.5} />
           {/* Pulse Effect */}
           <motion.div 
-            className="absolute inset-0 rounded-full bg-emerald-400/20"
+            className="absolute inset-0 rounded-full bg-secondary/20"
             animate={{ 
               scale: [1, 1.5, 1],
               opacity: [0.5, 0, 0.5]
@@ -67,14 +67,14 @@ const SafetyShield = ({ profile }: SafetyShieldProps) => {
             }}
           />
         </div>
-        <div>
-          <h3 className="text-sm font-medium text-slate-200">Values Shield Active</h3>
-          <p className="text-xs text-slate-500">
+        <div className="min-w-0 flex-1">
+          <h3 className="text-sm font-medium text-slate-200 truncate">Values Shield Active</h3>
+          <p className="text-xs text-slate-500 truncate">
             Scanning for {activeFilters.map(f => f.label).join(' & ')}
           </p>
         </div>
       </div>
-      <div className="flex -space-x-2">
+      <div className="flex -space-x-2 flex-shrink-0">
         {activeFilters.map((filter, idx) => (
           <div 
             key={idx} 

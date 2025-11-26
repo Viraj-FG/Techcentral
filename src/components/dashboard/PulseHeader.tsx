@@ -113,7 +113,7 @@ const PulseHeader = ({ profile }: PulseHeaderProps) => {
 
   return (
     <motion.div
-      className="glass-card p-4 max-h-[140px]"
+      className="glass-card p-4 overflow-hidden"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={kaevaTransition}
@@ -131,35 +131,35 @@ const PulseHeader = ({ profile }: PulseHeaderProps) => {
           {/* Smaller Ring (64x64 instead of 96x96) */}
           <div className="relative w-16 h-16">
             <svg className="transform -rotate-90" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="45" stroke="hsl(var(--kaeva-slate-800))" strokeWidth="8" fill="none" />
+              <circle cx="50" cy="50" r="45" stroke="hsl(var(--muted))" strokeWidth="8" fill="none" />
               <motion.circle
                 cx="50" cy="50" r="45"
-                stroke="hsl(var(--kaeva-sage))"
+                stroke="hsl(var(--accent))"
                 strokeWidth="8" fill="none" strokeLinecap="round"
                 initial={{ strokeDashoffset: circumference }}
                 animate={{ strokeDashoffset }}
                 transition={{ duration: 1.5, ease: "easeOut" }}
                 style={{
                   strokeDasharray: circumference,
-                  filter: 'drop-shadow(0 0 8px rgba(112, 224, 152, 0.4))'
+                  filter: 'drop-shadow(0 0 8px rgba(56, 189, 248, 0.4))'
                 }}
               />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-data text-sm text-kaeva-sage">{healthScore}%</span>
+              <span className="text-data text-sm text-accent truncate">{healthScore}%</span>
             </div>
           </div>
 
           {/* Inline Insight (Next to Ring) */}
           <div className="max-w-[140px]">
-            <p className="text-micro text-kaeva-oatmeal text-[10px] mb-0.5">Health</p>
-            <p className={`flex items-center gap-1 text-[11px] ${
-              trendIcon === "up" ? "text-kaeva-sage" : 
-              trendIcon === "down" ? "text-kaeva-terracotta" : 
-              "text-kaeva-teal"
+            <p className="text-micro text-foreground text-[10px] mb-0.5 truncate">Health</p>
+            <p className={`flex items-center gap-1 text-[11px] truncate ${
+              trendIcon === "up" ? "text-secondary" : 
+              trendIcon === "down" ? "text-destructive" : 
+              "text-accent"
             }`}>
-              <TrendIconComponent size={12} strokeWidth={1.5} />
-              {healthInsight}
+              <TrendIconComponent size={12} strokeWidth={1.5} className="flex-shrink-0" />
+              <span className="truncate">{healthInsight}</span>
             </p>
           </div>
         </div>

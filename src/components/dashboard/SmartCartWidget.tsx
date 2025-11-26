@@ -360,12 +360,12 @@ const SmartCartWidget = ({ cartItems, showDeliveryEstimate = true }: SmartCartWi
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-emerald-400/10">
-              <ShoppingCart className="text-emerald-400" size={24} strokeWidth={1.5} />
+            <div className="p-3 rounded-lg bg-secondary/10">
+              <ShoppingCart className="text-secondary" size={24} strokeWidth={1.5} />
             </div>
-            <h2 className="text-xl font-light tracking-wider text-white">Smart Cart</h2>
+            <h2 className="text-xl font-light tracking-wider text-white truncate">Smart Cart</h2>
           </div>
-          <span className="text-emerald-400 text-sm tracking-widest">AUTO-ORDERING</span>
+          <span className="text-secondary text-sm tracking-widest">AUTO-ORDERING</span>
         </div>
         
         <div className="flex items-center justify-between mb-4">
@@ -466,7 +466,7 @@ const SmartCartWidget = ({ cartItems, showDeliveryEstimate = true }: SmartCartWi
             <Button
               onClick={handleReviewCart}
               disabled={loading}
-              className="w-full bg-emerald-400 hover:bg-emerald-500 text-kaeva-void font-semibold shadow-[0_0_20px_rgba(112,224,152,0.3)]"
+              className="w-full bg-secondary hover:bg-secondary/90 text-background font-semibold shadow-[0_0_20px_rgba(112,224,152,0.3)]"
             >
               {loading ? (
                 <>

@@ -12,7 +12,7 @@ export const UniversalShell = ({ children, className = "" }: UniversalShellProps
     // w-full: Full width
     // fixed: Prevents the whole page from scrolling/bouncing
     // overflow-hidden: Clips content outside the shell
-    <div className="fixed inset-0 w-full h-[100dvh] bg-kaeva-void text-foreground overflow-hidden font-sans selection:bg-kaeva-sage/30">
+    <div className="fixed inset-0 w-full h-[100dvh] bg-kaeva-void text-foreground overflow-hidden overflow-x-hidden font-sans selection:bg-kaeva-sage/30">
       
       {/* 2. THE SAFE AREA CONTAINER */}
       {/* pt-[env(safe-area-inset-top)]: Pushes content below The Notch */}
@@ -24,7 +24,7 @@ export const UniversalShell = ({ children, className = "" }: UniversalShellProps
         {/* overflow-y-auto: Allows internal scrolling */}
         {/* overscroll-none: Disables "Rubber Band" bounce on iOS */}
         {/* pb-32: Extra padding at bottom so content isn't hidden behind Floating Docks */}
-        <main className={`flex-1 overflow-y-auto overscroll-none scroll-smooth no-scrollbar px-4 pb-32 ${className}`}>
+        <main className={`flex-1 overflow-y-auto overflow-x-hidden overscroll-none scroll-smooth no-scrollbar px-4 pb-32 ${className}`}>
           <div className="max-w-screen-xl mx-auto w-full">
              {children}
           </div>

@@ -110,9 +110,9 @@ export default {
         'kaeva': 'cubic-bezier(0.2, 0.8, 0.2, 1)',
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "24px",
+        md: "12px",
+        sm: "8px",
       },
       keyframes: {
         "accordion-down": {
