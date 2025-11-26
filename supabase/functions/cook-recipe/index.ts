@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.84.0";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -39,7 +40,21 @@ serve(async (req) => {
       });
     }
 
+    // Rate limiting
+    const rateLimit = await checkRateLimit(user.id, 'cook-recipe');
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit.retryAfter!);
+    }
+
     const { recipe }: CookRecipeRequest = await req.json();
+    
+    if (!recipe || !recipe.name || !recipe.ingredients || recipe.ingredients.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'Recipe with ingredients required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     console.log('Processing recipe:', recipe.name, 'with', recipe.ingredients.length, 'ingredients');
 
     // Fetch user's inventory

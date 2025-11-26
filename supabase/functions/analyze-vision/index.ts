@@ -1,6 +1,7 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
+import { visionAnalysisSchema, validateRequest } from "../_shared/schemas.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -58,9 +59,31 @@ serve(async (req) => {
       );
     }
 
+    // Rate limiting
+    const rateLimit = await checkRateLimit(user.id, 'analyze-vision');
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit.retryAfter!);
+    }
+
     console.log('✅ Authenticated user:', user.id);
     
-    const { image, voiceCommand, mode }: VisionRequest = await req.json();
+    const requestBody = await req.json();
+    
+    // Validate request
+    const validation = validateRequest(visionAnalysisSchema, {
+      imageBase64: requestBody.image,
+      intent: requestBody.mode
+    });
+    
+    if (!validation.success) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid request', details: validation.error }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    const { imageBase64: image, intent: mode } = validation.data;
+    const voiceCommand = requestBody.voiceCommand;
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
@@ -99,7 +122,7 @@ CRITICAL RULES:
 4. For pets: Add metadata.species, metadata.breed, metadata.size
 5. If unsure, set confidence < 0.7`;
 
-    if (mode === 'pantry_sweep') {
+    if (mode === 'scan_inventory') {
       systemPrompt += '\n\nMODE: Pantry Sweep - Detect ALL visible items in the image. Include bounding boxes for each.';
     } else if (mode === 'pet_id') {
       systemPrompt += '\n\nMODE: Pet Identification - Focus on identifying the animal species, breed, and characteristics.';

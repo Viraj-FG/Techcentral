@@ -1,5 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { encodeBase64 } from 'https://deno.land/std@0.224.0/encoding/base64.ts';
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
+import { householdInviteSchema, validateRequest } from "../_shared/schemas.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -45,7 +47,29 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { household_id, expires_in_hours = 24, max_uses = 1 }: InviteRequest = await req.json();
+    // Rate limiting
+    const rateLimit = await checkRateLimit(user.id, 'create-household-invite');
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit.retryAfter!);
+    }
+
+    const requestBody = await req.json();
+    
+    // Validate request
+    const validation = validateRequest(householdInviteSchema, {
+      householdId: requestBody.household_id,
+      expiresInHours: requestBody.expires_in_hours,
+      maxUses: requestBody.max_uses
+    });
+
+    if (!validation.success) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid request', details: validation.error }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { householdId: household_id, expiresInHours: expires_in_hours, maxUses: max_uses } = validation.data;
 
     // Use SERVICE ROLE key for database operations
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);

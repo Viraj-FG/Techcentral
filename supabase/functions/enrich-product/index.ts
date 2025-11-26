@@ -3,6 +3,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { buildOAuth1Request } from "../_shared/oauth1.ts";
 import { processFood, processOpenFoodFactsProduct, processMakeupProduct, processOpenPetFoodFactsProduct } from "../_shared/productProcessors.ts";
 import { searchOpenFoodFacts, searchMakeupAPI, searchOpenPetFoodFacts } from "../_shared/apiClients.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
+import { productEnrichmentSchema, validateRequest } from "../_shared/schemas.ts";
+import { analyzeProductDeception } from "../_shared/deceptionAnalyzer.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -36,7 +39,37 @@ serve(async (req) => {
   }
 
   try {
-    const { name, brand, barcode, category }: EnrichRequest = await req.json();
+    const requestBody = await req.json();
+    
+    // Validate request with Zod
+    const validation = validateRequest(productEnrichmentSchema, requestBody);
+    if (!validation.success) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid request', details: validation.error }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { productName: name, category, barcode } = validation.data;
+    const brand = requestBody.brand; // Optional field not in strict schema
+    
+    // Rate limiting
+    const authHeader = req.headers.get('Authorization');
+    if (authHeader) {
+      const supabaseClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        { global: { headers: { Authorization: authHeader } } }
+      );
+      
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (user) {
+        const rateLimit = await checkRateLimit(user.id, 'enrich-product');
+        if (!rateLimit.allowed) {
+          return rateLimitResponse(rateLimit.retryAfter!);
+        }
+      }
+    }
     
     console.log('Enrichment request:', { name, brand, barcode, category });
     
@@ -240,14 +273,37 @@ serve(async (req) => {
     const topResult = processFood(foods[0]);
     const alternatives = foods.slice(1, 5).map(processFood);
 
-    await cacheResult(supabaseClient, searchTerm, searchData, topResult);
+    // Add deception analysis for food products
+    let deceptionFlags: any[] = [];
+    let dietaryConflicts: any[] = [];
+    
+    if (category === 'fridge' || category === 'pantry') {
+      const ingredients = foods[0].food_description || '';
+      const healthClaims = foods[0].food_type ? [foods[0].food_type] : [];
+      
+      const analysis = await analyzeProductDeception(
+        topResult.name,
+        ingredients,
+        topResult.nutrition,
+        healthClaims
+      );
+      
+      deceptionFlags = analysis.deceptionFlags;
+      dietaryConflicts = analysis.dietaryConflicts;
+    }
+
+    const enrichedResult = {
+      ...topResult,
+      alternatives,
+      deceptionFlags,
+      dietaryConflicts,
+      cached: false
+    };
+
+    await cacheResult(supabaseClient, searchTerm, searchData, enrichedResult);
 
     return new Response(
-      JSON.stringify({
-        ...topResult,
-        alternatives,
-        cached: false
-      }),
+      JSON.stringify(enrichedResult),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

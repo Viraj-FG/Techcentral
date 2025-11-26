@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
+import { instacartCartSchema, validateRequest } from "../_shared/schemas.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -40,13 +42,26 @@ serve(async (req) => {
 
     console.log('✅ Authenticated user:', user.id);
     
+    // Rate limiting
+    const rateLimit = await checkRateLimit(user.id, 'instacart-create-cart');
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit.retryAfter!);
+    }
+    
     console.log('📦 Instacart cart creation request received');
     
-    const { items } = await req.json();
+    const requestBody = await req.json();
     
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      throw new Error('No items provided');
+    // Validate request
+    const validation = validateRequest(instacartCartSchema, requestBody);
+    if (!validation.success) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid request', details: validation.error }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+    
+    const { items } = validation.data;
 
     console.log('🛒 Items to add:', items);
 
