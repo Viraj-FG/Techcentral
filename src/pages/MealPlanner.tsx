@@ -33,6 +33,7 @@ const MealPlanner = () => {
   const [weekOffset, setWeekOffset] = useState(0);
   const [shoppingPreviewOpen, setShoppingPreviewOpen] = useState(false);
   const [recipesForShopping, setRecipesForShopping] = useState<any[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
   
   const currentWeekStart = addWeeks(
     startOfWeek(new Date(), { weekStartsOn: 0 }), 
@@ -142,6 +143,30 @@ const MealPlanner = () => {
     setWeekOffset(0);
   };
 
+  const handleGenerateWeeklyPlan = async () => {
+    setIsGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-meal-plan', {
+        body: {
+          week_start_date: currentWeekStart.toISOString().split('T')[0],
+          preferences: {
+            cooking_time_max: 60,
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      toast.success(`Generated ${data.meals_created} meals and added ${data.shopping_items_added} items to shopping list!`);
+      fetchMealPlans();
+    } catch (error) {
+      console.error('Error generating meal plan:', error);
+      toast.error('Failed to generate meal plan');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleWeekChange = (direction: 'prev' | 'next') => {
     if (direction === 'prev') {
       goToPreviousWeek();
@@ -181,11 +206,21 @@ const MealPlanner = () => {
             <h2 className="text-xl font-semibold text-foreground">
               Week of {format(currentWeekStart, 'MMM d, yyyy')}
             </h2>
-            {weekOffset !== 0 && (
-              <Button variant="ghost" size="sm" onClick={goToThisWeek}>
-                Back to This Week
+            <div className="flex gap-2">
+              {weekOffset !== 0 && (
+                <Button variant="ghost" size="sm" onClick={goToThisWeek}>
+                  Back to This Week
+                </Button>
+              )}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleGenerateWeeklyPlan}
+                disabled={isGenerating}
+              >
+                {isGenerating ? 'Generating...' : 'AI Generate Week'}
               </Button>
-            )}
+            </div>
           </div>
 
           {/* Calendar Grid */}
