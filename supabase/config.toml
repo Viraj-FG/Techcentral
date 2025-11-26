@@ -6,6 +6,9 @@ verify_jwt = true
 [functions.daily-ai-digest]
 verify_jwt = true
 
+[functions.search-recipe-videos]
+verify_jwt = true
+
 [functions.create-household-invite]
 verify_jwt = true
 

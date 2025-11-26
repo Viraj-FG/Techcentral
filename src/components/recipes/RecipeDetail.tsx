@@ -11,7 +11,8 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CookingMode } from './CookingMode';
 import { RecipeShareSheet } from './RecipeShareSheet';
-import { 
+import { RecipeVideoSection } from './RecipeVideoSection';
+import {
   Clock, 
   Users, 
   ChefHat, 
@@ -287,6 +288,9 @@ export const RecipeDetail = ({ recipe, open, onClose, onRecipeDeleted }: Props) 
               </div>
             </div>
           )}
+
+          {/* Video Tutorials */}
+          <RecipeVideoSection recipeName={recipe.name} />
 
           {/* Actions */}
           <div className="flex gap-3 pt-4 border-t">
