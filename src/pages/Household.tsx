@@ -499,7 +499,7 @@ const Household = () => {
               <span><strong>Safety Alerts:</strong> Automatic warnings for allergies and toxic ingredients</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-kaeva-accent mt-0.5">•</span>
+              <span className="text-accent mt-0.5">•</span>
               <span><strong>Personalized Nutrition:</strong> Tailored meal plans and portion recommendations</span>
             </li>
             <li className="flex items-start gap-2">

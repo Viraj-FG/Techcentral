@@ -67,29 +67,6 @@ All colors MUST be HSL.
     --chart-4: 199 95% 60%;
     --chart-5: 21 59% 60%;
 
-    /* KAEVA - Seattle Solstice Palette */
-    --kaeva-void: 222 47% 11%;
-    --kaeva-sage: 142 70% 66%;
-    --kaeva-mint: 160 75% 72%;
-    --kaeva-cyan: 190 75% 60%;
-    --kaeva-teal: 173 68% 51%;
-    --kaeva-slate-400: 215 16% 47%;
-    --kaeva-slate-100: 220 15% 95%;
-    --kaeva-slate-300: 217 14% 70%;
-    
-    /* KAEVA - Cluster-specific atmospheres (Seattle Solstice) */
-    --kaeva-terracotta: 21 59% 60%;      /* #D97757 Terracotta (Beauty/Human) */
-    --kaeva-oatmeal: 210 40% 93%;        /* #E2E8F0 Oatmeal (Neutral/Pets) */
-    --kaeva-electric-sky: 199 95% 60%;   /* #38BDF8 Electric Sky (Medical/Data) */
-    --kaeva-electric-teal: 174 72% 56%;
-    
-    /* KAEVA - Multi-Vertical Atmosphere Colors (Seattle Solstice) */
-    --kaeva-atmosphere-food: 142 79% 71%;       /* #70E098 Sage Green */
-    --kaeva-atmosphere-beauty: 21 90% 48%;      /* #C2410C Terracotta */
-    --kaeva-atmosphere-pets: 199 95% 74%;       /* #38BDF8 Electric Sky */
-    --kaeva-atmosphere-neutral: 215 16% 47%;    /* Slate-400 */
-    --kaeva-seattle-slate: 222 47% 11%;         /* #0F172A Deep Slate */
-
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -150,29 +127,6 @@ All colors MUST be HSL.
     --chart-3: 338 80% 76%;
     --chart-4: 199 95% 60%;
     --chart-5: 21 59% 60%;
-
-    /* KAEVA - Seattle Solstice Palette */
-    --kaeva-void: 222 47% 11%;
-    --kaeva-sage: 142 70% 66%;
-    --kaeva-mint: 160 75% 72%;
-    --kaeva-cyan: 190 75% 60%;
-    --kaeva-teal: 173 68% 51%;
-    --kaeva-slate-400: 215 16% 47%;
-    --kaeva-slate-100: 220 15% 95%;
-    --kaeva-slate-300: 217 14% 70%;
-    
-    /* KAEVA - Cluster-specific atmospheres */
-    --kaeva-terracotta: 21 59% 60%;
-    --kaeva-oatmeal: 210 40% 93%;
-    --kaeva-electric-sky: 199 95% 60%;
-    --kaeva-electric-teal: 174 72% 56%;
-    
-    /* KAEVA - Multi-Vertical Atmosphere Colors */
-    --kaeva-atmosphere-food: 142 79% 71%;
-    --kaeva-atmosphere-beauty: 21 90% 48%;
-    --kaeva-atmosphere-pets: 199 95% 74%;
-    --kaeva-atmosphere-neutral: 215 16% 47%;
-    --kaeva-seattle-slate: 222 47% 11%;
   }
 }
 
