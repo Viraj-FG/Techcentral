@@ -50,7 +50,7 @@ function Badge({ className, variant, pulse, ...props }: BadgeProps) {
     
   return (
     <div 
-      className={cn(badgeVariants({ variant, pulse: pulse === true ? 'true' : pulse === 'urgent' ? 'urgent' : 'false' }), urgentGlow, className)} 
+      className={cn(badgeVariants({ variant, pulse: pulse === true ? true : pulse === 'urgent' ? 'urgent' : false }), urgentGlow, className)} 
       {...props} 
     />
   );
