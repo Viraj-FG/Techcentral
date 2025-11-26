@@ -107,7 +107,7 @@ const AppShell = ({
           {/* Center: The Living Aperture (Hero Button) - 64px touch target */}
           <button onClick={handleApertureClick} className="relative -my-8 cursor-pointer group min-w-[64px] min-h-[64px] flex items-center justify-center" aria-label="Open action menu - Voice or Scanner">
             <div className="w-16 h-16 transition-transform group-hover:scale-105 group-active:scale-95">
-              <KaevaAperture state="idle" size="sm" />
+              <KaevaAperture state="idle" size="sm" className="px-0 ml-0 pr-0 mr-0" />
             </div>
           </button>
 
