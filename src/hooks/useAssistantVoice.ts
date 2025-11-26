@@ -748,6 +748,7 @@ export const useAssistantVoice = ({ userProfile }: UseAssistantVoiceProps) => {
     status: conversation.status,
     isSpeaking: conversation.isSpeaking,
     startConversation,
-    endConversation
+    endConversation,
+    sendContextualUpdate: conversation.sendContextualUpdate
   };
 };

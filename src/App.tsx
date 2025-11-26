@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { RealtimeProvider } from "@/contexts/RealtimeContext";
+import { VoiceAssistantProvider } from "@/contexts/VoiceAssistantContext";
 import { SyncIndicator } from "@/components/ui/SyncIndicator";
 import { ErrorBoundary } from "@/lib/ErrorBoundary";
 import Landing from "./pages/Landing";
@@ -26,31 +27,33 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <RealtimeProvider>
-      <TooltipProvider>
-        <ErrorBoundary>
-          <Toaster />
-          <Sonner />
-          <SyncIndicator />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/app" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/household" element={<Household />} />
-              <Route path="/household/join" element={<HouseholdInviteAccept />} />
-              <Route path="/inventory" element={<Inventory />} />
-              <Route path="/recipes" element={<RecipeBook />} />
-              <Route path="/recipe/:shareToken" element={<SharedRecipe />} />
-              <Route path="/meal-planner" element={<MealPlanner />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </ErrorBoundary>
-      </TooltipProvider>
+      <VoiceAssistantProvider>
+        <TooltipProvider>
+          <ErrorBoundary>
+            <Toaster />
+            <Sonner />
+            <SyncIndicator />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/app" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/household" element={<Household />} />
+                <Route path="/household/join" element={<HouseholdInviteAccept />} />
+                <Route path="/inventory" element={<Inventory />} />
+                <Route path="/recipes" element={<RecipeBook />} />
+                <Route path="/recipe/:shareToken" element={<SharedRecipe />} />
+                <Route path="/meal-planner" element={<MealPlanner />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </ErrorBoundary>
+        </TooltipProvider>
+      </VoiceAssistantProvider>
     </RealtimeProvider>
   </QueryClientProvider>
 );
