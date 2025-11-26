@@ -29,69 +29,83 @@ const ActionPickerDialog = ({
     <AnimatePresence>
       {open && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop - tap to dismiss */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => onOpenChange(false)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/40 z-40"
           />
 
-          {/* Dialog */}
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] inset-x-4 z-50 max-w-80 mx-auto"
-            role="dialog"
-            aria-label="Choose an action"
-          >
-            <div className="glass-card p-4 space-y-3">
-              {/* Voice Option - 56px touch target */}
-              <button
+          {/* Floating Action Buttons Container */}
+          <div className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] inset-x-0 z-50 flex justify-center pointer-events-none">
+            <div className="relative w-full max-w-[320px] h-[72px]">
+              
+              {/* Left FAB - Voice */}
+              <motion.button
+                initial={{ x: 40, opacity: 0, scale: 0.5 }}
+                animate={{ x: 0, opacity: 1, scale: 1 }}
+                exit={{ x: 40, opacity: 0, scale: 0.5 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25, delay: 0.05 }}
                 onClick={handleVoice}
-                className="w-full glass-chip !rounded-2xl !px-6 !py-5 group hover:bg-secondary/10 hover:border-secondary/30 min-h-[56px]"
+                className="pointer-events-auto absolute left-0 -top-16 group"
                 aria-label="Start voice conversation with Kaeva"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center group-hover:bg-secondary/30 transition-all">
-                    <Mic size={24} className="text-secondary" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <div className="text-display text-sm font-medium text-foreground">
-                      Talk to Kaeva
-                    </div>
-                    <div className="text-body text-xs text-slate-400">
-                      Voice conversation
-                    </div>
-                  </div>
+                {/* Glow effect */}
+                <div className="absolute inset-0 rounded-full bg-secondary blur-lg opacity-40 group-hover:opacity-60 transition-opacity" />
+                
+                {/* Button */}
+                <div className="relative w-14 h-14 rounded-full bg-secondary/20 border border-secondary/40 backdrop-blur-xl flex items-center justify-center group-hover:bg-secondary/30 group-hover:border-secondary/60 transition-all shadow-lg">
+                  <Mic size={22} className="text-secondary" />
                 </div>
-              </button>
+                
+                {/* Label */}
+                <motion.div
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                  className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap"
+                >
+                  <span className="text-xs font-medium text-secondary bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full border border-secondary/20">
+                    Voice
+                  </span>
+                </motion.div>
+              </motion.button>
 
-              {/* Scan Option - 56px touch target */}
-              <button
+              {/* Right FAB - Scan */}
+              <motion.button
+                initial={{ x: -40, opacity: 0, scale: 0.5 }}
+                animate={{ x: 0, opacity: 1, scale: 1 }}
+                exit={{ x: -40, opacity: 0, scale: 0.5 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25, delay: 0.1 }}
                 onClick={handleScan}
-                className="w-full glass-chip !rounded-2xl !px-6 !py-5 group hover:bg-accent/10 hover:border-accent/30 min-h-[56px]"
+                className="pointer-events-auto absolute right-0 -top-16 group"
                 aria-label="Open camera scanner for product analysis"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center group-hover:bg-accent/30 transition-all">
-                    <Scan size={24} className="text-accent" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <div className="text-display text-sm font-medium text-foreground">
-                      Scan Something
-                    </div>
-                    <div className="text-body text-xs text-slate-400">
-                      Camera & vision analysis
-                    </div>
-                  </div>
+                {/* Glow effect */}
+                <div className="absolute inset-0 rounded-full bg-accent blur-lg opacity-40 group-hover:opacity-60 transition-opacity" />
+                
+                {/* Button */}
+                <div className="relative w-14 h-14 rounded-full bg-accent/20 border border-accent/40 backdrop-blur-xl flex items-center justify-center group-hover:bg-accent/30 group-hover:border-accent/60 transition-all shadow-lg">
+                  <Scan size={22} className="text-accent" />
                 </div>
-              </button>
+                
+                {/* Label */}
+                <motion.div
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap"
+                >
+                  <span className="text-xs font-medium text-accent bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full border border-accent/20">
+                    Scan
+                  </span>
+                </motion.div>
+              </motion.button>
+
             </div>
-          </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>
