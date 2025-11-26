@@ -45,13 +45,13 @@ const KaevaAperture = ({ state, size = "md", audioAmplitude = 0, audioElement, i
   return (
     <div className={`relative ${sizeClasses[size]} mx-auto`} style={{ willChange: 'transform', transform: 'translateZ(0)' }}>
       {/* Inner glow */}
-      <div className="absolute inset-0 rounded-full bg-kaeva-sage/20 blur-lg sm:blur-xl md:blur-2xl" />
-      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-kaeva-sage/40 to-kaeva-teal/40" />
+      <div className="absolute inset-0 rounded-full bg-primary/20 blur-lg sm:blur-xl md:blur-2xl" />
+      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/40 to-primary/20" />
       
       {/* IDLE: Slow breathing */}
       {state === 'idle' && (
         <motion.div
-          className="absolute inset-0 rounded-full border-3 sm:border-4 border-kaeva-sage"
+          className="absolute inset-0 rounded-full border-3 sm:border-4 border-primary"
           animate={{
             scale: [1, 1.05, 1],
             opacity: [0.6, 1, 0.6]
@@ -61,13 +61,16 @@ const KaevaAperture = ({ state, size = "md", audioAmplitude = 0, audioElement, i
             repeat: Infinity,
             ease: "easeInOut"
           }}
+          style={{
+            filter: 'drop-shadow(0 0 20px rgba(214, 158, 46, 0.4))'
+          }}
         />
       )}
       
       {/* WAKE WORD: Subtle waiting pulse */}
       {state === 'wakeword' && !isDetectingSound && (
         <motion.div
-          className="absolute inset-0 rounded-full border-3 sm:border-4 border-kaeva-sage"
+          className="absolute inset-0 rounded-full border-3 sm:border-4 border-primary"
           animate={{
             scale: [1, 1.08, 1],
             opacity: [0.4, 0.7, 0.4]
@@ -78,7 +81,7 @@ const KaevaAperture = ({ state, size = "md", audioAmplitude = 0, audioElement, i
             ease: "easeInOut"
           }}
           style={{
-            filter: 'drop-shadow(0 0 15px rgb(112 224 152 / 0.3))'
+            filter: 'drop-shadow(0 0 15px rgba(214, 158, 46, 0.3))'
           }}
         />
       )}
@@ -86,7 +89,7 @@ const KaevaAperture = ({ state, size = "md", audioAmplitude = 0, audioElement, i
       {/* WAKE WORD + SOUND DETECTED: Active pulse */}
       {state === 'wakeword' && isDetectingSound && (
         <motion.div
-          className="absolute inset-0 rounded-full border-3 sm:border-4 border-kaeva-sage"
+          className="absolute inset-0 rounded-full border-3 sm:border-4 border-primary"
           animate={{
             scale: [1, 1.15, 1.05],
             opacity: [0.6, 1, 0.8]
@@ -97,7 +100,7 @@ const KaevaAperture = ({ state, size = "md", audioAmplitude = 0, audioElement, i
             ease: "easeOut"
           }}
           style={{
-            filter: 'drop-shadow(0 0 25px rgb(112 224 152 / 0.8))'
+            filter: 'drop-shadow(0 0 25px rgba(214, 158, 46, 0.8))'
           }}
         />
       )}
@@ -105,7 +108,7 @@ const KaevaAperture = ({ state, size = "md", audioAmplitude = 0, audioElement, i
       {/* LISTENING: Reactive to user voice amplitude */}
       {state === 'listening' && (
         <motion.div
-          className="absolute inset-0 rounded-full border-3 sm:border-4 border-kaeva-sage"
+          className="absolute inset-0 rounded-full border-3 sm:border-4 border-primary"
           animate={{
             scale: [1, 1 + (audioAmplitude / 200), 1],
             opacity: [0.6, 0.8 + (audioAmplitude / 500), 0.6],
@@ -116,7 +119,7 @@ const KaevaAperture = ({ state, size = "md", audioAmplitude = 0, audioElement, i
             ease: "easeOut"
           }}
           style={{
-            filter: `drop-shadow(0 0 ${Math.max(15, audioAmplitude / 3)}px rgb(112 224 152 / ${Math.min(0.9, 0.4 + audioAmplitude / 500)}))`
+            filter: `drop-shadow(0 0 ${Math.max(15, audioAmplitude / 3)}px rgba(214, 158, 46, ${Math.min(0.9, 0.4 + audioAmplitude / 500)}))`
           }}
         />
       )}
@@ -124,7 +127,7 @@ const KaevaAperture = ({ state, size = "md", audioAmplitude = 0, audioElement, i
       {/* THINKING: Rapid pulsing with rotation */}
       {state === 'thinking' && (
         <motion.div
-          className="absolute inset-0 rounded-full border-3 sm:border-4 border-kaeva-sage"
+          className="absolute inset-0 rounded-full border-3 sm:border-4 border-primary"
           animate={{
             scale: [1, 1.15, 1, 1.1, 1],
             rotate: [0, 5, -5, 3, 0],
@@ -134,13 +137,16 @@ const KaevaAperture = ({ state, size = "md", audioAmplitude = 0, audioElement, i
             duration: 0.8,
             repeat: Infinity
           }}
+          style={{
+            filter: 'drop-shadow(0 0 20px rgba(214, 158, 46, 0.6))'
+          }}
         />
       )}
       
       {/* ACKNOWLEDGED: Quick pulse when user stops speaking */}
       {state === 'acknowledged' && (
         <motion.div
-          className="absolute inset-0 rounded-full border-3 sm:border-4 border-kaeva-sage"
+          className="absolute inset-0 rounded-full border-3 sm:border-4 border-primary"
           initial={{ scale: 1, opacity: 0.6 }}
           animate={{ scale: 1.2, opacity: 1 }}
           transition={{
@@ -148,7 +154,7 @@ const KaevaAperture = ({ state, size = "md", audioAmplitude = 0, audioElement, i
             ease: "easeOut"
           }}
           style={{
-            filter: 'drop-shadow(0 0 25px rgb(112 224 152 / 0.8))'
+            filter: 'drop-shadow(0 0 25px rgba(214, 158, 46, 0.8))'
           }}
         />
       )}
@@ -156,7 +162,7 @@ const KaevaAperture = ({ state, size = "md", audioAmplitude = 0, audioElement, i
       {/* SPEAKING: Rapid pulse (more energetic) */}
       {state === 'speaking' && (
         <motion.div
-          className="absolute inset-0 rounded-full border-3 sm:border-4 border-kaeva-sage"
+          className="absolute inset-0 rounded-full border-3 sm:border-4 border-primary"
           animate={{
             scale: [1, 1.25, 1.1, 1.3, 1],
             opacity: [0.8, 1, 0.9, 1, 0.8]
@@ -167,13 +173,13 @@ const KaevaAperture = ({ state, size = "md", audioAmplitude = 0, audioElement, i
             ease: "easeOut"
           }}
           style={{
-            filter: 'drop-shadow(0 0 30px rgb(112 224 152 / 0.9))'
+            filter: 'drop-shadow(0 0 30px rgba(214, 158, 46, 0.9))'
           }}
         />
       )}
       
       {/* Center core */}
-      <div className="absolute inset-[30%] rounded-full bg-kaeva-void border-2 border-kaeva-sage/50" />
+      <div className="absolute inset-[30%] rounded-full bg-background border-2 border-primary/50" />
     </div>
   );
 };

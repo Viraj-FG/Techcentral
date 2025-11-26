@@ -8,6 +8,8 @@ import TutorialOverlay from "./TutorialOverlay";
 import HouseholdMemberCard from "./HouseholdMemberCard";
 import OnboardingStatus from "./voice/OnboardingStatus";
 import KeywordFeedback from "./voice/KeywordFeedback";
+import { ConceptCard } from "./voice/ConceptCard";
+import { SmartChips } from "./voice/SmartChips";
 import { useOnboardingVoice } from "@/hooks/useOnboardingVoice";
 import { supabase } from "@/integrations/supabase/client";
 import { saveOnboardingData } from "@/lib/onboardingSave";
@@ -33,6 +35,8 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
   const [showSummary, setShowSummary] = useState(false);
   const [activeVertical, setActiveVertical] = useState<"food" | "beauty" | "pets" | null>(null);
   const [detectedKeywords, setDetectedKeywords] = useState<string[]>([]);
+  const [smartChips, setSmartChips] = useState<string[]>(["Yes", "No", "Tell me more"]);
+  const [conceptCards, setConceptCards] = useState<Array<{icon: string; label: string; value: string}>>([]);
   const [conversationState, setConversationState] = useState<ConversationState>({
     userName: null,
     userBiometrics: null,
@@ -186,6 +190,16 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
     localStorage.setItem("kaeva_tutorial_seen", "true");
   };
 
+  const handleChipClick = (chip: string) => {
+    if (sendContextualUpdate) {
+      sendContextualUpdate(`User selected quick reply: "${chip}"`);
+    }
+  };
+
+  const handleDismissConceptCard = (index: number) => {
+    setConceptCards(prev => prev.filter((_, i) => i !== index));
+  };
+
   if (showTutorial) {
     return <TutorialOverlay isOpen={showTutorial} onDismiss={handleDismissTutorial} />;
   }
@@ -212,7 +226,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
             }
             onExit?.();
           }}
-          className="absolute top-4 right-4 z-50 px-4 py-2 text-sm text-kaeva-slate-400 hover:text-kaeva-mint transition-colors underline-offset-4 hover:underline backdrop-blur-sm"
+          className="absolute top-4 right-4 z-50 px-4 py-2 text-sm text-muted-foreground hover:text-primary transition-colors underline-offset-4 hover:underline backdrop-blur-sm"
         >
           Skip to Dashboard →
         </motion.button>
@@ -246,7 +260,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
                     exit={{ opacity: 0 }}
                     className="mt-8 max-w-2xl w-full space-y-3 px-4"
                   >
-                    <div className="text-center text-sm text-kaeva-sage/70 mb-4">
+                    <div className="text-center text-sm text-secondary/70 mb-4">
                       Your Household Roster
                     </div>
                     {conversationState.householdMembers.map((member, idx) => (
@@ -258,6 +272,26 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
 
               <KeywordFeedback detectedKeywords={detectedKeywords} />
               <OnboardingStatus apertureState={apertureState} />
+              
+              {/* Concept Cards */}
+              <AnimatePresence>
+                {conceptCards.map((card, index) => (
+                  <ConceptCard
+                    key={`${card.label}-${index}`}
+                    icon={card.icon}
+                    label={card.label}
+                    value={card.value}
+                    onDismiss={() => handleDismissConceptCard(index)}
+                  />
+                ))}
+              </AnimatePresence>
+              
+              {/* Smart Chips (Quick Reply Buttons) */}
+              <AnimatePresence>
+                {status === 'connected' && smartChips.length > 0 && (
+                  <SmartChips chips={smartChips} onChipClick={handleChipClick} />
+                )}
+              </AnimatePresence>
               
               {/* Edit Last Answer Button */}
               <AnimatePresence>
@@ -271,7 +305,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
                         sendContextualUpdate("The user wants to edit or add to their previous answer. Please ask them what they'd like to change or add.");
                       }
                     }}
-                    className="mt-6 px-6 py-2 text-sm text-kaeva-mint/80 hover:text-kaeva-mint border border-kaeva-mint/30 hover:border-kaeva-mint/60 rounded-full transition-colors backdrop-blur-sm bg-kaeva-void/30"
+                    className="mt-6 px-6 py-2 text-sm text-primary/80 hover:text-primary border border-primary/30 hover:border-primary/60 rounded-full transition-colors backdrop-blur-sm bg-background/30"
                   >
                     ✏️ Edit Last Answer
                   </motion.button>

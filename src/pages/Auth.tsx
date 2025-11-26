@@ -175,7 +175,7 @@ const Auth = () => {
               {/* K Shape with Viewfinder Aesthetic */}
               <motion.path
                 d="M 20 20 L 20 80 M 20 50 L 60 20 M 20 50 L 60 80 M 15 15 L 15 25 M 15 15 L 25 15 M 15 85 L 15 75 M 15 85 L 25 85 M 85 15 L 85 25 M 85 15 L 75 15 M 85 85 L 85 75 M 85 85 L 75 85"
-                stroke="hsl(var(--kaeva-sage))"
+                stroke="hsl(var(--primary))"
                 strokeWidth="2.5"
                 fill="none"
                 strokeLinecap="round"
@@ -190,7 +190,7 @@ const Auth = () => {
                 cx="50"
                 cy="50"
                 r="3"
-                fill="hsl(var(--kaeva-sage))"
+                fill="hsl(var(--primary))"
                 initial={{ scale: 0 }}
                 animate={{ scale: [0, 1, 1, 0] }}
                 transition={{ 
@@ -221,8 +221,8 @@ const Auth = () => {
             <Button
               onClick={handleGoogleSignIn}
               disabled={isGoogleLoading}
-              variant="primary"
-              className="w-full py-6 mb-6 bg-white hover:bg-white/90 text-kaeva-void"
+              variant="outline"
+              className="w-full py-6 mb-6 bg-white hover:bg-white/90 text-background border-white/20"
             >
               {isGoogleLoading ? (
                 <>
@@ -265,7 +265,7 @@ const Auth = () => {
                   id="email"
                   type="email"
                   {...register("email")}
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-kaeva-sage"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-primary focus:ring-primary"
                   placeholder="you@example.com"
                 />
                 {errors.email && (
@@ -282,7 +282,7 @@ const Auth = () => {
                   id="password"
                   type="password"
                   {...register("password")}
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-kaeva-sage"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-primary focus:ring-primary"
                   placeholder="••••••••"
                 />
                 {errors.password && (
@@ -300,7 +300,7 @@ const Auth = () => {
                     id="confirmPassword"
                     type="password"
                     {...register("confirmPassword")}
-                    className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-kaeva-sage"
+                    className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-primary focus:ring-primary"
                     placeholder="••••••••"
                   />
                   {errors.confirmPassword && (
@@ -312,8 +312,7 @@ const Auth = () => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                variant="primary"
-                className="w-full py-6 shadow-lg shadow-kaeva-sage/20"
+                className="w-full py-6 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
               >
                 {isLoading ? (
                   <>
@@ -336,11 +335,11 @@ const Auth = () => {
               >
                 {isSignUp ? (
                   <>
-                    Already have an account? <span className="text-kaeva-sage font-semibold">Sign In</span>
+                    Already have an account? <span className="text-primary font-semibold">Sign In</span>
                   </>
                 ) : (
                   <>
-                    Don't have an account? <span className="text-kaeva-sage font-semibold">Sign Up</span>
+                    Don't have an account? <span className="text-primary font-semibold">Sign Up</span>
                   </>
                 )}
               </button>

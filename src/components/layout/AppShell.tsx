@@ -84,7 +84,7 @@ const AppShell = ({
     <>
       {/* Background atmosphere layer */}
       <motion.div 
-        className="fixed inset-0 bg-gradient-to-br from-kaeva-void via-kaeva-void to-kaeva-teal/5 z-0"
+        className="fixed inset-0 bg-gradient-to-br from-background via-background to-primary/5 z-0"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1.2 }}
@@ -105,7 +105,7 @@ const AppShell = ({
           {/* Left: Settings */}
           <button 
             onClick={() => navigate('/settings')} 
-            className="p-3 text-slate-400 hover:text-kaeva-oatmeal transition-colors rounded-full hover:bg-white/5"
+            className="p-3 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-white/5"
             aria-label="Settings"
           >
             <Settings size={22} strokeWidth={1.5} />
@@ -117,7 +117,7 @@ const AppShell = ({
             className="relative -my-8 cursor-pointer group"
             aria-label="Open action menu"
           >
-            <div className="w-20 h-20 transition-transform group-hover:scale-105 group-active:scale-95">
+            <div className="w-16 h-16 transition-transform group-hover:scale-105 group-active:scale-95">
               <KaevaAperture 
                 state="idle" 
                 size="sm"
@@ -131,9 +131,9 @@ const AppShell = ({
             className="p-1 hover:opacity-80 transition-opacity rounded-full hover:bg-white/5"
             aria-label="Household"
           >
-            <Avatar className="h-10 w-10 border-2 border-kaeva-sage/30">
+            <Avatar className="h-10 w-10 border-2 border-secondary/30">
               <AvatarImage src={undefined} />
-              <AvatarFallback className="bg-kaeva-sage/20 text-kaeva-sage text-xs font-medium">
+              <AvatarFallback className="bg-secondary/20 text-secondary text-xs font-medium">
                 {getUserInitials()}
               </AvatarFallback>
             </Avatar>

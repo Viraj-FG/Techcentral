@@ -17,37 +17,37 @@ const Landing = () => {
       icon: <Cpu className="w-6 h-6" />,
       title: "Vision Scanning",
       description: "Just point and capture. AI instantly reads barcodes, labels, and full ingredient panels.",
-      bgGradient: "from-teal-500/10 to-cyan-500/10"
+      bgGradient: "from-primary/10 to-secondary/10"
     },
     {
       icon: <Activity className="w-6 h-6" />,
       title: "Nutrition Autopilot",
       description: "Track every meal effortlessly. Get real-time macros tailored to your household.",
-      bgGradient: "from-violet-500/10 to-purple-500/10"
+      bgGradient: "from-accent/10 to-primary/10"
     },
     {
       icon: <Camera className="w-6 h-6" />,
       title: "Food Logging",
       description: "Snap your plate—AI logs calories, macros, and keeps your digital twin in sync.",
-      bgGradient: "from-pink-500/10 to-rose-500/10"
+      bgGradient: "from-destructive/10 to-primary/10"
     },
     {
       icon: <ShoppingBag className="w-6 h-6" />,
       title: "Smart Shopping",
       description: "Auto-refill items before they run out. Never forget essentials again.",
-      bgGradient: "from-orange-500/10 to-amber-500/10"
+      bgGradient: "from-primary/10 to-accent/10"
     },
     {
       icon: <ShieldCheck className="w-6 h-6" />,
       title: "Pet Safety",
       description: "Real-time toxicity alerts for your pets. Prevent accidents before they happen.",
-      bgGradient: "from-emerald-500/10 to-green-500/10"
+      bgGradient: "from-secondary/10 to-accent/10"
     },
     {
       icon: <Scan className="w-6 h-6" />,
       title: "Beauty Profile",
       description: "Know what's in your skincare and hair products. Personalized to your profile.",
-      bgGradient: "from-red-500/10 to-orange-500/10"
+      bgGradient: "from-destructive/10 to-primary/10"
     }
   ];
 
@@ -101,14 +101,14 @@ const Landing = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-lg"></div>
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg"></div>
             <span className="text-xl font-bold font-['Space_Grotesk']">KAEVA</span>
           </div>
           <div className="flex gap-4">
             <button onClick={() => navigate('/auth')} className="px-6 py-2 text-sm font-medium rounded-lg border border-white/20 hover:bg-white/10 transition">
               Login
             </button>
-            <button onClick={() => navigate('/auth')} className="px-6 py-2 text-sm font-medium rounded-lg bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 transition">
+            <button onClick={() => navigate('/auth')} className="px-6 py-2 text-sm font-medium rounded-lg bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 transition shadow-lg shadow-primary/30">
               Get App
             </button>
           </div>
@@ -125,7 +125,7 @@ const Landing = () => {
         >
           Your Home.
           <br />
-          <span className="bg-gradient-to-r from-teal-400 to-cyan-500 bg-clip-text text-transparent">On Autopilot.</span>
+          <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">On Autopilot.</span>
         </motion.h1>
 
         <motion.p 
@@ -143,7 +143,7 @@ const Landing = () => {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="flex gap-4 mt-8"
         >
-          <button onClick={() => navigate('/auth')} className="px-8 py-4 text-lg font-medium rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 transition shadow-lg shadow-teal-500/50">
+          <button onClick={() => navigate('/auth')} className="px-8 py-4 text-lg font-medium rounded-xl bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 transition shadow-lg shadow-primary/50">
             Start Free
           </button>
           <button className="px-8 py-4 text-lg font-medium rounded-xl border border-white/20 hover:bg-white/10 transition">
