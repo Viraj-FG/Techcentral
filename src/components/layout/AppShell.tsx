@@ -85,7 +85,7 @@ const AppShell = ({
         {children}
       </UniversalShell>
 
-      {/* The Floating Command Dock - Redesigned with Hero Aperture */}
+      {/* The Floating Command Dock - Satellite Architecture */}
       <motion.div initial={{
       y: 100,
       opacity: 0
@@ -97,29 +97,54 @@ const AppShell = ({
       type: "spring",
       stiffness: 260,
       damping: 20
-    }} className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] inset-x-0 z-50 flex justify-center pointer-events-none px-4">
-        <div className="relative sm:gap-6 md:gap-8 px-4 sm:px-6 md:px-8 py-4 bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-full pointer-events-auto items-start justify-start flex flex-row gap-[20px]">
-          {/* Left: Settings - 44px touch target */}
-          <button onClick={() => navigate('/settings')} className="p-3 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-white/5 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Open settings">
-            <Settings size={22} strokeWidth={1.5} />
-          </button>
+    }} className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] inset-x-0 z-50 flex justify-center pointer-events-none">
+        {/* CONTAINER: Width constrained to prevent spreading */}
+        <div className="relative w-full max-w-[320px] h-[72px] pointer-events-auto">
+          
+          {/* 1. THE GLASS CAPSULE (Background Layer) */}
+          <div className="absolute inset-0 bg-[#141416]/90 backdrop-blur-2xl border border-white/10 rounded-full shadow-2xl flex items-center justify-between px-8">
+            
+            {/* LEFT ACTION: Settings */}
+            <button onClick={() => navigate('/settings')} className="group p-2 rounded-full hover:bg-white/5 transition-colors active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Open settings">
+              <Settings size={24} strokeWidth={1.5} className="text-slate-400 group-hover:text-white transition-colors" />
+            </button>
 
-          {/* Center: The Living Aperture (Hero Button) - 64px touch target */}
-          <button onClick={handleApertureClick} className="relative -my-8 cursor-pointer group min-w-[64px] min-h-[64px] flex items-center justify-center" aria-label="Open action menu - Voice or Scanner">
-            <div className="w-16 h-16 transition-transform group-hover:scale-105 group-active:scale-95">
-              <KaevaAperture state="idle" size="sm" className="px-0 ml-0 pr-0 mr-0" />
-            </div>
-          </button>
+            {/* RIGHT ACTION: Profile/Household */}
+            <button onClick={() => navigate('/household')} className="group p-2 rounded-full hover:bg-white/5 transition-colors active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="View household">
+              <Avatar className="w-7 h-7 border border-secondary/30 group-hover:border-secondary/50 transition-colors">
+                <AvatarImage src={undefined} />
+                <AvatarFallback className="bg-secondary/20 text-secondary text-[10px] font-bold">
+                  {getUserInitials()}
+                </AvatarFallback>
+              </Avatar>
+            </button>
+          </div>
 
-          {/* Right: Profile/Household - 44px touch target */}
-          <button onClick={() => navigate('/household')} className="p-1 hover:opacity-80 transition-opacity rounded-full hover:bg-white/5 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="View household members and settings">
-            <Avatar className="h-10 w-10 border-2 border-secondary/30">
-              <AvatarImage src={undefined} />
-              <AvatarFallback className="bg-secondary/20 text-secondary text-xs font-medium">
-                {getUserInitials()}
-              </AvatarFallback>
-            </Avatar>
-          </button>
+          {/* 2. THE LIVING APERTURE (The Nucleus - Floats Above) */}
+          <div className="absolute -top-6 left-1/2 -translate-x-1/2">
+            <motion.button onClick={handleApertureClick} whileTap={{
+            scale: 0.95
+          }} className="relative group" aria-label="Open action menu - Voice or Scanner">
+              {/* The Glow Effect */}
+              <div className="absolute inset-0 rounded-full bg-primary blur-xl opacity-40 group-hover:opacity-60 transition-opacity" />
+              
+              {/* The Physical Button with Void Border */}
+              <div className="relative w-16 h-16 rounded-full bg-primary flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.4)] border-4 border-background z-10">
+                <KaevaAperture state="idle" size="sm" />
+              </div>
+              
+              {/* The "Breathing" Ring Animation */}
+              <motion.div className="absolute inset-0 rounded-full border border-primary" animate={{
+              scale: [1, 1.2, 1],
+              opacity: [1, 0, 1]
+            }} transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }} />
+            </motion.button>
+          </div>
+
         </div>
       </motion.div>
 
