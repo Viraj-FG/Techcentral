@@ -1,20 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
-import { Shield, AlertCircle, Package, Camera, Settings, ArrowRight, Search } from "lucide-react";
+import { motion, AnimatePresence, useMotionValue, PanInfo } from "framer-motion";
+import { Package, Camera, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Icon } from "@/components/ui/icon";
 import { useToast } from "@/hooks/use-toast";
 import AppShell from "./layout/AppShell";
 import { checkAdminStatus } from "@/lib/authUtils";
-import { groupInventoryByCategory, getInventoryStatus } from "@/lib/inventoryUtils";
+import { groupInventoryByCategory } from "@/lib/inventoryUtils";
 import VoiceAssistant, { VoiceAssistantRef } from "./voice/VoiceAssistant";
 import WelcomeBanner from "./dashboard/WelcomeBanner";
 import PulseHeader from "./dashboard/PulseHeader";
 import SmartCartWidget from "./dashboard/SmartCartWidget";
-import InventoryMatrix from "./dashboard/InventoryMatrix";
 import RecipeFeed from "./dashboard/RecipeFeed";
 import SocialImport from "./dashboard/SocialImport";
 import SafetyShield from "./dashboard/SafetyShield";
@@ -25,18 +22,21 @@ import InventoryMatrixSkeleton from "./dashboard/InventoryMatrixSkeleton";
 import NutritionWidget from "./dashboard/NutritionWidget";
 import { WaterTrackingWidget } from "./dashboard/WaterTrackingWidget";
 import { StreakWidget } from "./dashboard/StreakWidget";
-import { kaevaEntranceVariants } from "@/hooks/useKaevaMotion";
-import { ELEVENLABS_CONFIG } from "@/config/agent";
 import GlobalSearch from "./search/GlobalSearch";
 import { haptics } from "@/lib/haptics";
 import { ShareProgressSheet } from "./analytics/ShareProgressSheet";
 import { ExpiringItemsRecipes } from "./dashboard/ExpiringItemsRecipes";
+import { DashboardViewIndicator, DashboardViewMode, DASHBOARD_VIEWS } from "./dashboard/DashboardViewIndicator";
+import { DashboardHeader } from "./dashboard/DashboardHeader";
+import { BeautySummaryCard } from "./dashboard/BeautySummaryCard";
+import { BeautyInventoryList } from "./dashboard/BeautyInventoryList";
+import { PetRosterCard } from "./dashboard/PetRosterCard";
+import { PetSuppliesStatus } from "./dashboard/PetSuppliesStatus";
+import { ToxicFoodMonitor } from "./dashboard/ToxicFoodMonitor";
 
 interface DashboardProps {
   profile: any;
 }
-
-type ViewMode = 'dashboard' | 'cart';
 
 const Dashboard = ({ profile }: DashboardProps) => {
   const navigate = useNavigate();
@@ -52,9 +52,10 @@ const Dashboard = ({ profile }: DashboardProps) => {
   const [spotlightOpen, setSpotlightOpen] = useState(false);
   const [socialImportOpen, setSocialImportOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('dashboard');
+  const [viewMode, setViewMode] = useState<DashboardViewMode>('pulse');
   const [shareOpen, setShareOpen] = useState(false);
   const [shareData, setShareData] = useState({});
+  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right'>('right');
 
   // Voice assistant ref
   const voiceAssistantRef = useRef<VoiceAssistantRef>(null);
@@ -65,13 +66,28 @@ const Dashboard = ({ profile }: DashboardProps) => {
 
   const handleDragEnd = (_event: any, info: PanInfo) => {
     const threshold = 100;
-    if (info.offset.x > threshold && viewMode === 'cart') {
+    const currentIndex = DASHBOARD_VIEWS.findIndex(v => v.id === viewMode);
+    
+    if (info.offset.x > threshold) {
+      // Swipe right - go to previous view (circular)
       haptics.selection();
-      setViewMode('dashboard');
-    } else if (info.offset.x < -threshold && viewMode === 'dashboard') {
+      setSwipeDirection('right');
+      const prevIndex = currentIndex === 0 ? DASHBOARD_VIEWS.length - 1 : currentIndex - 1;
+      setViewMode(DASHBOARD_VIEWS[prevIndex].id as DashboardViewMode);
+    } else if (info.offset.x < -threshold) {
+      // Swipe left - go to next view (circular)
       haptics.selection();
-      setViewMode('cart');
+      setSwipeDirection('left');
+      const nextIndex = (currentIndex + 1) % DASHBOARD_VIEWS.length;
+      setViewMode(DASHBOARD_VIEWS[nextIndex].id as DashboardViewMode);
     }
+  };
+
+  const handleViewChange = (newView: DashboardViewMode) => {
+    const currentIndex = DASHBOARD_VIEWS.findIndex(v => v.id === viewMode);
+    const newIndex = DASHBOARD_VIEWS.findIndex(v => v.id === newView);
+    setSwipeDirection(newIndex > currentIndex ? 'left' : 'right');
+    setViewMode(newView);
   };
 
   // Add to cart handler for refill buttons
@@ -125,7 +141,6 @@ const Dashboard = ({ profile }: DashboardProps) => {
       title: "Finding Recipes...",
       description: `Looking for recipes using ${ingredients.join(', ')}`,
     });
-    // Recipe feed will auto-load with these ingredients
   };
 
   // Fetch inventory data
@@ -210,6 +225,204 @@ const Dashboard = ({ profile }: DashboardProps) => {
     category => category.length === 0
   );
 
+  // Render functions for each view
+  const renderPulseView = () => (
+    <motion.div
+      key="pulse"
+      initial={{ opacity: 0, x: swipeDirection === 'left' ? 100 : -100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-4"
+    >
+      <WelcomeBanner />
+      <PulseHeader profile={profile} />
+      <SafetyShield profile={profile} />
+    </motion.div>
+  );
+
+  const renderFuelView = () => (
+    <motion.div
+      key="fuel"
+      initial={{ opacity: 0, x: swipeDirection === 'left' ? 100 : -100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-4"
+    >
+      <NutritionWidget userId={profile.id} />
+      <WaterTrackingWidget userId={profile.id} />
+      <StreakWidget userId={profile.id} onShare={() => {
+        setShareData({ streak: 0 });
+        setShareOpen(true);
+      }} />
+    </motion.div>
+  );
+
+  const renderPantryView = () => (
+    <motion.div
+      key="pantry"
+      initial={{ opacity: 0, x: swipeDirection === 'left' ? 100 : -100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-4"
+    >
+      {isLoading ? (
+        <InventoryMatrixSkeleton />
+      ) : isInventoryEmpty ? (
+        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-12 text-center overflow-hidden">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-secondary/10 flex items-center justify-center">
+            <Package className="text-secondary" size={40} strokeWidth={1.5} />
+          </div>
+          <h3 className="text-2xl font-light text-white mb-3 truncate">
+            Your Pantry is Empty
+          </h3>
+          <p className="text-white/60 mb-6 max-w-md mx-auto">
+            Start building your digital twin by scanning your first item
+          </p>
+          <Button
+            size="lg"
+            onClick={() => setSpotlightOpen(true)}
+            className="gap-2 bg-secondary text-background hover:bg-secondary/90"
+          >
+            <Camera size={20} strokeWidth={1.5} />
+            Scan Your First Item
+          </Button>
+        </div>
+      ) : (
+        <>
+          <ExpiringItemsRecipes />
+          <section className="space-y-3">
+            <div className="flex justify-between items-center">
+              <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Food Inventory</h3>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/inventory')}
+                className="text-sm gap-2 text-muted-foreground hover:text-foreground"
+              >
+                View All Items
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {inventoryData.fridge.length > 0 && (
+                <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-4 overflow-hidden">
+                  <h4 className="text-sm font-bold text-white mb-2">Fridge</h4>
+                  <p className="text-2xl font-bold text-accent">{inventoryData.fridge.length}</p>
+                  <p className="text-xs text-slate-400">items</p>
+                </div>
+              )}
+              {inventoryData.pantry.length > 0 && (
+                <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-4 overflow-hidden">
+                  <h4 className="text-sm font-bold text-white mb-2">Pantry</h4>
+                  <p className="text-2xl font-bold text-destructive">{inventoryData.pantry.length}</p>
+                  <p className="text-xs text-slate-400">items</p>
+                </div>
+              )}
+            </div>
+          </section>
+          <section className="space-y-3">
+            <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Shopping Manifest</h3>
+            <SmartCartWidget cartItems={lowStockItems} />
+          </section>
+        </>
+      )}
+    </motion.div>
+  );
+
+  const renderGlowView = () => (
+    <motion.div
+      key="glow"
+      initial={{ opacity: 0, x: swipeDirection === 'left' ? 100 : -100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-4"
+    >
+      <BeautySummaryCard householdId={profile?.current_household_id || ''} />
+      <section className="space-y-3">
+        <div className="flex justify-between items-center">
+          <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Beauty Products</h3>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => navigate('/inventory')}
+            className="text-sm gap-2 text-muted-foreground hover:text-foreground"
+          >
+            View All
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+        </div>
+        <BeautyInventoryList householdId={profile?.current_household_id || ''} />
+      </section>
+    </motion.div>
+  );
+
+  const renderPetsView = () => (
+    <motion.div
+      key="pets"
+      initial={{ opacity: 0, x: swipeDirection === 'left' ? 100 : -100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-4"
+    >
+      <PetRosterCard userId={profile.id} />
+      <ToxicFoodMonitor userId={profile.id} />
+      <section className="space-y-3">
+        <div className="flex justify-between items-center">
+          <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Pet Supplies</h3>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => navigate('/inventory')}
+            className="text-sm gap-2 text-muted-foreground hover:text-foreground"
+          >
+            View All
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+        </div>
+        <PetSuppliesStatus householdId={profile?.current_household_id || ''} />
+      </section>
+    </motion.div>
+  );
+
+  const renderHomeView = () => (
+    <motion.div
+      key="home"
+      initial={{ opacity: 0, x: swipeDirection === 'left' ? 100 : -100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-4"
+    >
+      <HouseholdQuickAccess />
+      <section className="space-y-3">
+        <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Recipe Engine</h3>
+        <RecipeFeed userInventory={inventoryData} userProfile={profile} />
+      </section>
+      <section className="space-y-3">
+        <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Household Activity</h3>
+        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-6 overflow-hidden">
+          <HouseholdActivityFeed householdId={profile?.current_household_id || null} maxItems={10} />
+        </div>
+      </section>
+    </motion.div>
+  );
+
+  const renderCurrentView = () => {
+    switch (viewMode) {
+      case 'pulse': return renderPulseView();
+      case 'fuel': return renderFuelView();
+      case 'pantry': return renderPantryView();
+      case 'glow': return renderGlowView();
+      case 'pets': return renderPetsView();
+      case 'home': return renderHomeView();
+      default: return renderPulseView();
+    }
+  };
 
   return (
     <>
@@ -220,23 +433,11 @@ const Dashboard = ({ profile }: DashboardProps) => {
         {/* Voice Assistant Overlay */}
         <VoiceAssistant ref={voiceAssistantRef} userProfile={profile} onProfileUpdate={setInventoryData} />
 
+        {/* Sticky Search Header */}
+        <DashboardHeader onSearchOpen={() => setSearchOpen(true)} />
+
         {/* View Mode Indicator */}
-        <div className="flex justify-center gap-2 mb-4">
-          <button
-            onClick={() => { setViewMode('dashboard'); haptics.selection(); }}
-            className={`w-2 h-2 rounded-full transition-all ${
-              viewMode === 'dashboard' ? 'bg-primary w-6' : 'bg-slate-600'
-            }`}
-            aria-label="Dashboard view"
-          />
-          <button
-            onClick={() => { setViewMode('cart'); haptics.selection(); }}
-            className={`w-2 h-2 rounded-full transition-all ${
-              viewMode === 'cart' ? 'bg-primary w-6' : 'bg-slate-600'
-            }`}
-            aria-label="Cart view"
-          />
-        </div>
+        <DashboardViewIndicator currentView={viewMode} onViewChange={handleViewChange} />
 
         {/* Swipeable Container */}
         <motion.div
@@ -248,151 +449,15 @@ const Dashboard = ({ profile }: DashboardProps) => {
           className="relative"
         >
           <AnimatePresence mode="wait">
-            {viewMode === 'dashboard' ? (
-              <motion.div
-                key="dashboard"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                {/* Dashboard Content */}
-                <motion.div className="space-y-4">
-                  <WelcomeBanner />
-
-                  {/* Search Trigger Card */}
-                  <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 cursor-pointer hover:bg-slate-900/60 transition-all"
-                  onClick={() => setSearchOpen(true)}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="flex items-center gap-3">
-                    <Search className="w-5 h-5 text-slate-400" />
-                    <span className="text-slate-400 text-sm flex-1">
-                      Search inventory, recipes, pets...
-                    </span>
-                    <kbd className="px-2 py-1 bg-slate-800/50 border border-white/10 rounded text-xs text-slate-400">
-                      ⌘K
-                    </kbd>
-                  </div>
-                </motion.div>
-                
-                {isAdmin && (
-                  <motion.div 
-                    variants={kaevaEntranceVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="flex justify-end"
-                  >
-                    <Button
-                      variant="glass"
-                      onClick={() => navigate("/admin")}
-                      className="gap-2"
-                    >
-                      <Icon icon={Shield} size="sm" />
-                      <span className="text-micro">Admin Dashboard</span>
-                    </Button>
-                    </motion.div>
-                  )}
-
-                  <PulseHeader profile={profile} />
-                  <SafetyShield profile={profile} />
-                  <HouseholdQuickAccess />
-                  <NutritionWidget userId={profile.id} />
-                  <WaterTrackingWidget userId={profile.id} />
-                  <StreakWidget userId={profile.id} onShare={() => {
-                    setShareData({ streak: 0 }); // Will be populated dynamically
-                    setShareOpen(true);
-                  }} />
-                
-                  {isLoading ? (
-                    <InventoryMatrixSkeleton />
-                  ) : isInventoryEmpty ? (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-12 text-center overflow-hidden"
-                    >
-                      <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-secondary/10 flex items-center justify-center">
-                        <Package className="text-secondary" size={40} strokeWidth={1.5} />
-                      </div>
-                      <h3 className="text-2xl font-light text-white mb-3 truncate">
-                        Your Pantry is Empty
-                      </h3>
-                      <p className="text-white/60 mb-6 max-w-md mx-auto">
-                        Start building your digital twin by scanning your first item
-                      </p>
-                      <Button
-                        size="lg"
-                        onClick={() => setSpotlightOpen(true)}
-                        className="gap-2 bg-secondary text-background hover:bg-secondary/90"
-                      >
-                        <Camera size={20} strokeWidth={1.5} />
-                        Scan Your First Item
-                      </Button>
-                    </motion.div>
-                  ) : (
-                    <>
-                      <ExpiringItemsRecipes />
-                      <section className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Inventory Command</h3>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => navigate('/inventory')}
-                            className="text-sm gap-2 text-muted-foreground hover:text-foreground"
-                          >
-                            View All Items
-                            <ArrowRight className="w-4 h-4" />
-                          </Button>
-                        </div>
-                        <InventoryMatrix inventory={inventoryData} onRefill={handleAddToCart} onCookNow={handleCookNow} />
-                      </section>
-                      <section className="space-y-3">
-                        <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Recipe Engine</h3>
-                        <RecipeFeed userInventory={inventoryData} userProfile={profile} />
-                      </section>
-                    </>
-                  )}
-                  
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="space-y-3"
-                  >
-                    <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Household Activity</h3>
-                    <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-6 overflow-hidden">
-                      <HouseholdActivityFeed householdId={profile?.current_household_id || null} maxItems={10} />
-                    </div>
-                  </motion.div>
-                  
-                  <div className="w-full p-6 text-center opacity-30">
-                    <div className="w-2 h-2 rounded-full bg-slate-600 mx-auto mb-2"></div>
-                    <p className="text-[10px] text-slate-500 uppercase tracking-widest">End of Stream</p>
-                  </div>
-                </motion.div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="cart"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.3 }}
-              >
-                {/* Shopping Cart View */}
-                <h2 className="text-2xl text-display text-white mb-4">Shopping Manifest</h2>
-                <SmartCartWidget cartItems={lowStockItems} />
-              </motion.div>
-            )}
+            {renderCurrentView()}
           </AnimatePresence>
         </motion.div>
+
+        {/* End of Stream */}
+        <div className="w-full p-6 text-center opacity-30 mt-8">
+          <div className="w-2 h-2 rounded-full bg-slate-600 mx-auto mb-2"></div>
+          <p className="text-[10px] text-slate-500 uppercase tracking-widest">End of Stream</p>
+        </div>
       </AppShell>
 
       {/* Smart Scanner Overlay */}
