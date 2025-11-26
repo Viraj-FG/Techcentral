@@ -8,6 +8,7 @@ import VanitySweepResult from './result-modes/VanitySweepResult';
 import NutritionTrackResult from './result-modes/NutritionTrackResult';
 import ProductAnalysisResult from './result-modes/ProductAnalysisResult';
 import PetIdResult from './result-modes/PetIdResult';
+import { ScannerSummaryCard } from './ScannerSummaryCard';
 
 type Intent = 'INVENTORY_SWEEP' | 'APPLIANCE_SCAN' | 'VANITY_SWEEP' | 'NUTRITION_TRACK' | 'PRODUCT_ANALYSIS' | 'PET_ID';
 
@@ -140,14 +141,54 @@ const ScanResults = ({
     return titles[intent];
   };
 
+  const calculateSummary = () => {
+    const expiringSoon = items.filter(item => {
+      const days = item.metadata?.estimated_shelf_life_days || 30;
+      return days < 14 && days >= 0;
+    }).length;
+
+    const allergenAlerts = items.filter(item => 
+      item.metadata && 'allergens' in item.metadata
+    ).length;
+
+    const lowStock = items.filter(item => 
+      item.metadata && 'fill_level' in item.metadata && 
+      typeof item.metadata.fill_level === 'number' && 
+      item.metadata.fill_level <= 20
+    ).length;
+
+    return {
+      totalItems: items.length,
+      expiringSoon,
+      allergenAlerts,
+      lowStock
+    };
+  };
+
   const renderContent = () => {
+    const summary = calculateSummary();
+    
     switch (intent) {
       case 'INVENTORY_SWEEP':
-        return <InventorySweepResult items={items} />;
+        return (
+          <>
+            <ScannerSummaryCard summary={summary} />
+            <div className="mt-4">
+              <InventorySweepResult items={items} />
+            </div>
+          </>
+        );
       case 'APPLIANCE_SCAN':
         return <ApplianceScanResult items={items} unlockedRecipes={additionalData?.unlockedRecipes} />;
       case 'VANITY_SWEEP':
-        return <VanitySweepResult items={items} />;
+        return (
+          <>
+            <ScannerSummaryCard summary={summary} />
+            <div className="mt-4">
+              <VanitySweepResult items={items} />
+            </div>
+          </>
+        );
       case 'NUTRITION_TRACK':
         return <NutritionTrackResult 
           subtype={subtype} 
