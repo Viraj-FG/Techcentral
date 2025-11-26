@@ -14,6 +14,7 @@ import Household from "./pages/Household";
 import HouseholdInviteAccept from "./pages/HouseholdInviteAccept";
 import Inventory from "./pages/Inventory";
 import RecipeBook from "./pages/RecipeBook";
+import MealPlanner from "./pages/MealPlanner";
 import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 import { AdminRoute } from "./components/AdminRoute";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/household/join" element={<HouseholdInviteAccept />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/recipes" element={<RecipeBook />} />
+            <Route path="/meal-planner" element={<MealPlanner />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

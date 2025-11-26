@@ -30,6 +30,7 @@ import { ELEVENLABS_CONFIG } from "@/config/agent";
 import GlobalSearch from "./search/GlobalSearch";
 import { haptics } from "@/lib/haptics";
 import { ShareProgressSheet } from "./analytics/ShareProgressSheet";
+import { ExpiringItemsRecipes } from "./dashboard/ExpiringItemsRecipes";
 
 interface DashboardProps {
   profile: any;
@@ -336,6 +337,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
                     </motion.div>
                   ) : (
                     <>
+                      <ExpiringItemsRecipes />
                       <section className="space-y-3">
                         <div className="flex justify-between items-center">
                           <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Inventory Command</h3>

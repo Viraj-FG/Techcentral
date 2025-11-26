@@ -415,6 +415,57 @@ export type Database = {
         }
         Relationships: []
       }
+      meal_plans: {
+        Row: {
+          created_at: string | null
+          household_id: string
+          id: string
+          meal_type: string
+          notes: string | null
+          planned_date: string
+          recipe_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          household_id: string
+          id?: string
+          meal_type: string
+          notes?: string | null
+          planned_date: string
+          recipe_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          household_id?: string
+          id?: string
+          meal_type?: string
+          notes?: string | null
+          planned_date?: string
+          recipe_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_plans_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_plans_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meal_templates: {
         Row: {
           created_at: string
