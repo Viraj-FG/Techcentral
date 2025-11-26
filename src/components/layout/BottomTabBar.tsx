@@ -30,6 +30,8 @@ export const BottomTabBar = () => {
               <button
                 key={tab.id}
                 onClick={() => navigate(tab.path)}
+                aria-label={`Navigate to ${tab.label}`}
+                aria-current={isActive ? 'page' : undefined}
                 className={cn(
                   "flex flex-col items-center justify-center gap-1 transition-colors min-h-[44px]",
                   "hover:bg-secondary/5 rounded-lg",

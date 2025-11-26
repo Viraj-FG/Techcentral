@@ -72,6 +72,7 @@ export const CaptureButton = ({
         onMouseUp={handleTouchEnd}
         whileTap={{ scale: 0.9 }}
         disabled={isScanning}
+        aria-label={`Capture ${intentPreset || mode} scan`}
         className={cn(
           "absolute w-16 h-16 rounded-full transition-all duration-200 flex items-center justify-center",
           mode === 'photo' && "bg-white",

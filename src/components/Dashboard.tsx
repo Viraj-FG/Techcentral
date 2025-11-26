@@ -37,6 +37,7 @@ import { SwipeEdgeIndicator } from "./dashboard/SwipeEdgeIndicator";
 import { MealPlanWidget } from "./dashboard/MealPlanWidget";
 import { AIInsightsWidget } from "./dashboard/AIInsightsWidget";
 import { QuickActions } from "./dashboard/QuickActions";
+import { PetCareTipsWidget } from "./dashboard/PetCareTipsWidget";
 import { kaevaStaggerContainer, kaevaStaggerChild } from "@/hooks/useKaevaMotion";
 import { useModularOnboarding, OnboardingModule } from "@/hooks/useModularOnboarding";
 import { ModularOnboardingPrompt } from "./onboarding/ModularOnboardingPrompt";
@@ -577,6 +578,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
         className="space-y-4"
       >
         <motion.div variants={kaevaStaggerChild}><PetRosterCard userId={profile.id} /></motion.div>
+        <motion.div variants={kaevaStaggerChild}><PetCareTipsWidget /></motion.div>
         <motion.div variants={kaevaStaggerChild}><ToxicFoodMonitor userId={profile.id} /></motion.div>
         <motion.div variants={kaevaStaggerChild}>
           <section className="space-y-3">
