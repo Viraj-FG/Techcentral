@@ -6,6 +6,7 @@ import { searchOpenFoodFacts, searchMakeupAPI, searchOpenPetFoodFacts } from "..
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
 import { productEnrichmentSchema, validateRequest } from "../_shared/schemas.ts";
 import { analyzeProductDeception } from "../_shared/deceptionAnalyzer.ts";
+import { analyzeBeautyIngredients, analyzeSkinCompatibility } from "../_shared/beautyAnalyzer.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -110,7 +111,16 @@ serve(async (req) => {
       const makeupProduct = await searchMakeupAPI(name, brand);
       
       if (makeupProduct) {
-        const enriched = processMakeupProduct(makeupProduct);
+        const enriched: any = processMakeupProduct(makeupProduct);
+        
+        // Analyze beauty ingredients for warnings and skin compatibility
+        const ingredients = makeupProduct.description || '';
+        const warnings = analyzeBeautyIngredients(ingredients);
+        
+        // Add warnings to enriched data
+        enriched.beauty_warnings = warnings;
+        enriched.has_harmful_ingredients = warnings.some((w: any) => w.severity === 'high');
+        
         await cacheResult(supabaseClient, searchTerm, { source: 'makeup-api', data: makeupProduct }, enriched);
         return new Response(
           JSON.stringify(enriched),

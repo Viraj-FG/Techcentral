@@ -1,4 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.84.0";
+import { validateRequest, detectIntentSchema } from "../_shared/schemas.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -38,14 +41,18 @@ serve(async (req) => {
   }
 
   try {
-    const { image }: DetectIntentRequest = await req.json();
-
-    if (!image) {
+    // Validate request
+    const body = await req.json();
+    const validation = validateRequest(detectIntentSchema, body);
+    
+    if (!validation.success) {
       return new Response(
-        JSON.stringify({ error: 'Image data is required' }),
+        JSON.stringify({ error: validation.error }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const { image } = validation.data;
 
     const apiKey = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     if (!apiKey) {

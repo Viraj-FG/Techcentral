@@ -1,16 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { validateRequest, placeHoursSchema } from "../_shared/schemas.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-interface PlaceHoursRequest {
-  name: string;
-  address: string;
-  city: string;
-  state: string;
-}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -18,7 +12,18 @@ serve(async (req) => {
   }
 
   try {
-    const { name, address, city, state } = await req.json() as PlaceHoursRequest;
+    // Validate request
+    const body = await req.json();
+    const validation = validateRequest(placeHoursSchema, body);
+    
+    if (!validation.success) {
+      return new Response(
+        JSON.stringify({ error: validation.error }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { name, address, city, state } = validation.data;
     const apiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
 
     if (!apiKey) {
