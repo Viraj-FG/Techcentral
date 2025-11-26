@@ -17,6 +17,8 @@ import { format, subMonths, addMonths, startOfMonth, endOfMonth, subDays } from 
 import UniversalShell from "@/components/layout/UniversalShell";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { BottomTabBar } from "@/components/layout/BottomTabBar";
+import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
+import { PageTransition } from "@/components/layout/PageTransition";
 
 interface MealLog {
   id: string;
@@ -47,6 +49,9 @@ const Analytics = () => {
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState<DayData | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+
+  // Enable swipe navigation and get swipe state
+  const swipeState = useSwipeNavigation();
 
   useEffect(() => {
     fetchData();
@@ -210,7 +215,11 @@ const Analytics = () => {
         }
       />
 
-      <div className="relative z-10 p-4 sm:p-8 pb-24">
+      <PageTransition 
+        swipeProgress={swipeState.progress}
+        swipeDirection={swipeState.direction}
+      >
+        <div className="relative z-10 p-4 sm:p-8 pb-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -307,6 +316,7 @@ const Analytics = () => {
           )}
         </motion.div>
       </div>
+      </PageTransition>
 
       <BottomTabBar />
 

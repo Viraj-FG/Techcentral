@@ -7,6 +7,7 @@ import VoiceOnboarding from "@/components/VoiceOnboarding";
 import Dashboard from "@/components/Dashboard";
 import HouseholdSetup from "@/components/HouseholdSetup";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
+import { PageTransition } from "@/components/layout/PageTransition";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -14,8 +15,8 @@ const Index = () => {
   const [userProfile, setUserProfile] = useState(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  // Enable swipe navigation on dashboard
-  useSwipeNavigation({ enabled: appState === "dashboard" });
+  // Enable swipe navigation on dashboard and get swipe state
+  const swipeState = useSwipeNavigation({ enabled: appState === "dashboard" });
 
   useEffect(() => {
     const checkAuthAndProfile = async () => {
@@ -129,7 +130,12 @@ const Index = () => {
       )}
 
       {appState === "dashboard" && userProfile && (
-        <Dashboard key="dashboard" profile={userProfile} />
+        <PageTransition 
+          swipeProgress={swipeState.progress}
+          swipeDirection={swipeState.direction}
+        >
+          <Dashboard key="dashboard" profile={userProfile} />
+        </PageTransition>
       )}
     </AnimatePresence>
   );
