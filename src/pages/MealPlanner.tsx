@@ -4,9 +4,10 @@ import AppShell from '@/components/layout/AppShell';
 import { PageTransition } from '@/components/layout/PageTransition';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { Button } from '@/components/ui/button';
-import { Calendar, ShoppingCart } from 'lucide-react';
+import { Calendar, ShoppingCart, Sparkles } from 'lucide-react';
 import { WeeklyCalendar } from '@/components/meal-planner/WeeklyCalendar';
 import { ShoppingPreviewSheet } from '@/components/meal-planner/ShoppingPreviewSheet';
+import { MealPlanCustomizationDialog } from '@/components/meal-planner/MealPlanCustomizationDialog';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { startOfWeek, addWeeks, format } from 'date-fns';
@@ -34,6 +35,7 @@ const MealPlanner = () => {
   const [shoppingPreviewOpen, setShoppingPreviewOpen] = useState(false);
   const [recipesForShopping, setRecipesForShopping] = useState<any[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [customizationDialogOpen, setCustomizationDialogOpen] = useState(false);
   
   const currentWeekStart = addWeeks(
     startOfWeek(new Date(), { weekStartsOn: 0 }), 
@@ -143,15 +145,14 @@ const MealPlanner = () => {
     setWeekOffset(0);
   };
 
-  const handleGenerateWeeklyPlan = async () => {
+  const handleGenerateWeeklyPlan = async (preferences: any) => {
+    setCustomizationDialogOpen(false);
     setIsGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-meal-plan', {
         body: {
           week_start_date: currentWeekStart.toISOString().split('T')[0],
-          preferences: {
-            cooking_time_max: 60,
-          }
+          preferences
         }
       });
 
@@ -215,9 +216,11 @@ const MealPlanner = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={handleGenerateWeeklyPlan}
+                onClick={() => setCustomizationDialogOpen(true)}
                 disabled={isGenerating}
+                className="gap-2"
               >
+                <Sparkles className="w-4 h-4" />
                 {isGenerating ? 'Generating...' : 'AI Generate Week'}
               </Button>
             </div>
@@ -237,6 +240,13 @@ const MealPlanner = () => {
             open={shoppingPreviewOpen}
             onOpenChange={setShoppingPreviewOpen}
             recipes={recipesForShopping}
+          />
+
+          <MealPlanCustomizationDialog
+            open={customizationDialogOpen}
+            onClose={() => setCustomizationDialogOpen(false)}
+            onGenerate={handleGenerateWeeklyPlan}
+            isGenerating={isGenerating}
           />
         </div>
       </PageTransition>
