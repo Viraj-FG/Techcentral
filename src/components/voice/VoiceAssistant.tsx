@@ -10,6 +10,7 @@ interface VoiceAssistantProps {
 
 export interface VoiceAssistantRef {
   startConversation: () => Promise<void>;
+  sendContextualUpdate?: (context: string) => void;
 }
 
 const VoiceAssistant = forwardRef<VoiceAssistantRef, VoiceAssistantProps>(
@@ -21,13 +22,15 @@ const VoiceAssistant = forwardRef<VoiceAssistantRef, VoiceAssistantProps>(
       aiTranscript,
       showConversation,
       startConversation,
-      endConversation
+      endConversation,
+      sendContextualUpdate
     } = useAssistantVoice({ userProfile });
 
-    // Expose startConversation to parent via ref
+    // Expose startConversation and sendContextualUpdate to parent via ref
     useImperativeHandle(ref, () => ({
-      startConversation
-    }), [startConversation]);
+      startConversation,
+      sendContextualUpdate
+    }), [startConversation, sendContextualUpdate]);
 
     // Handle ESC key to close conversation
     useEffect(() => {

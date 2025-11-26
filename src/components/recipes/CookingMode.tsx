@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useVoiceCooking } from '@/hooks/useVoiceCooking';
+import { useVoiceAssistant } from '@/contexts/VoiceAssistantContext';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -14,7 +15,8 @@ import {
   Volume2,
   VolumeX,
   List,
-  Eye
+  Eye,
+  MessageCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -47,6 +49,8 @@ export const CookingMode = ({ recipe, onComplete, onBack }: Props) => {
   const [speechEnabled, setSpeechEnabled] = useState(false);
   const [viewMode, setViewMode] = useState<'single' | 'list'>('single');
   const [showPostCooking, setShowPostCooking] = useState(false);
+
+  const { startConversation } = useVoiceAssistant();
 
   const { 
     isListening, 
@@ -234,6 +238,16 @@ export const CookingMode = ({ recipe, onComplete, onBack }: Props) => {
     }
   };
 
+  const handleAskKaeva = () => {
+    const currentInstruction = instructions[currentStep];
+    const stepText = currentInstruction?.instruction || currentInstruction?.text || '';
+    
+    // Build contextual message for Kaeva
+    const context = `I'm cooking ${recipe.name}. I'm on step ${currentStep + 1}: ${stepText}`;
+    
+    startConversation(context);
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -253,6 +267,16 @@ export const CookingMode = ({ recipe, onComplete, onBack }: Props) => {
           </Button>
           
           <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleAskKaeva}
+              className="gap-2 bg-primary/10 hover:bg-primary/20 border-primary/30"
+            >
+              <MessageCircle className="w-4 h-4" />
+              Ask Kaeva
+            </Button>
+
             <Button
               variant={viewMode === 'list' ? "default" : "outline"}
               size="sm"
