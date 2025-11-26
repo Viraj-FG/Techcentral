@@ -45,12 +45,15 @@ const ActionPickerDialog = ({
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
             className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-50 w-80"
+            role="dialog"
+            aria-label="Choose an action"
           >
             <div className="glass-card p-4 space-y-3">
-              {/* Voice Option */}
+              {/* Voice Option - 56px touch target */}
               <button
                 onClick={handleVoice}
-                className="w-full glass-chip !rounded-2xl !px-6 !py-5 group hover:bg-secondary/10 hover:border-secondary/30"
+                className="w-full glass-chip !rounded-2xl !px-6 !py-5 group hover:bg-secondary/10 hover:border-secondary/30 min-h-[56px]"
+                aria-label="Start voice conversation with Kaeva"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center group-hover:bg-secondary/30 transition-all">
@@ -67,10 +70,11 @@ const ActionPickerDialog = ({
                 </div>
               </button>
 
-              {/* Scan Option */}
+              {/* Scan Option - 56px touch target */}
               <button
                 onClick={handleScan}
-                className="w-full glass-chip !rounded-2xl !px-6 !py-5 group hover:bg-accent/10 hover:border-accent/30"
+                className="w-full glass-chip !rounded-2xl !px-6 !py-5 group hover:bg-accent/10 hover:border-accent/30 min-h-[56px]"
+                aria-label="Open camera scanner for product analysis"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center group-hover:bg-accent/30 transition-all">

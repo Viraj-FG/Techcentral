@@ -16,6 +16,8 @@ export const SmartChips = ({ chips, onChipClick }: SmartChipsProps) => {
       exit={{ opacity: 0, y: 10 }}
       transition={kaevaTransition}
       className="flex flex-wrap gap-2 justify-center mt-6"
+      role="group"
+      aria-label="Quick reply options - Voice fallback buttons"
     >
       {chips.map((chip, index) => (
         <motion.button
@@ -24,7 +26,8 @@ export const SmartChips = ({ chips, onChipClick }: SmartChipsProps) => {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ ...kaevaTransition, delay: index * 0.1 }}
           onClick={() => onChipClick(chip)}
-          className="glass-chip text-sm"
+          className="glass-chip text-sm min-h-[44px]"
+          aria-label={`Quick reply: ${chip}`}
         >
           {chip}
         </motion.button>
