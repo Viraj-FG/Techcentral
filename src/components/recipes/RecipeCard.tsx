@@ -22,16 +22,16 @@ export const RecipeCard = ({ recipe, onClick }: Props) => {
   const matchScore = recipe.match_score || 0;
   
   const getMatchColor = (score: number) => {
-    if (score >= 80) return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
-    if (score >= 50) return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
+    if (score >= 80) return 'bg-secondary/10 text-secondary border-secondary/20';
+    if (score >= 50) return 'bg-primary/10 text-primary border-primary/20';
     return 'bg-destructive/10 text-destructive border-destructive/20';
   };
 
   const getDifficultyColor = (difficulty: string | null) => {
     switch (difficulty?.toLowerCase()) {
-      case 'easy': return 'bg-emerald-500/10 text-emerald-600';
-      case 'medium': return 'bg-amber-500/10 text-amber-600';
-      case 'hard': return 'bg-red-500/10 text-red-600';
+      case 'easy': return 'bg-secondary/10 text-secondary';
+      case 'medium': return 'bg-primary/10 text-primary';
+      case 'hard': return 'bg-destructive/10 text-destructive';
       default: return 'bg-muted text-muted-foreground';
     }
   };

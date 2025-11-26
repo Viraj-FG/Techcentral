@@ -178,14 +178,14 @@ const Analytics = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-kaeva-seattle-slate flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-kaeva-sage" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-secondary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-kaeva-seattle-slate overflow-y-auto">
+    <div className="min-h-screen bg-background overflow-y-auto">
       <AuroraBackground vertical="food" />
       
       <div className="relative z-10 p-4 sm:p-8">
