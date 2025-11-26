@@ -18,16 +18,16 @@ const PetIdResult = ({ data }: { data?: PetData }) => {
             className="w-full h-full object-cover rounded-2xl border-4 border-kaeva-sage/30"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-kaeva-sage/20 to-kaeva-mint/10 rounded-2xl border-4 border-kaeva-sage/30 flex items-center justify-center">
-            <PawPrint className="w-24 h-24 text-kaeva-sage" />
+          <div className="w-full h-full bg-gradient-to-br from-secondary/20 to-secondary/80 rounded-2xl border-4 border-secondary/30 flex items-center justify-center">
+            <PawPrint className="w-24 h-24 text-secondary" />
           </div>
         )}
         {/* Glow effect */}
-        <div className="absolute inset-0 bg-kaeva-sage/20 blur-3xl rounded-2xl -z-10" />
+        <div className="absolute inset-0 bg-secondary/20 blur-3xl rounded-2xl -z-10" />
       </div>
 
       {/* Pet info card */}
-      <div className="p-6 bg-gradient-to-br from-kaeva-sage/10 to-kaeva-mint/5 rounded-2xl border border-kaeva-sage/20">
+      <div className="p-6 bg-gradient-to-br from-secondary/10 to-secondary/80 rounded-2xl border border-secondary/20">
         <div className="space-y-4">
           <div>
             <label className="text-sm text-slate-400 uppercase tracking-wide">Species</label>
@@ -60,7 +60,7 @@ const PetIdResult = ({ data }: { data?: PetData }) => {
           value={petName}
           onChange={(e) => setPetName(e.target.value)}
           placeholder={`Enter your ${data.breed || data.species}'s name...`}
-          className="w-full px-4 py-3 bg-slate-800/60 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-kaeva-sage/50 focus:ring-2 focus:ring-kaeva-sage/20"
+          className="w-full px-4 py-3 bg-slate-800/60 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/20"
           autoFocus
         />
       </div>
@@ -68,7 +68,7 @@ const PetIdResult = ({ data }: { data?: PetData }) => {
       {/* Fun fact */}
       <div className="p-4 bg-slate-800/40 rounded-xl border border-slate-700/50">
         <p className="text-sm text-slate-300">
-          <span className="font-semibold text-kaeva-sage">💡 Guardian Mode:</span> We'll now monitor your inventory for foods toxic to {data.species}s and alert you before purchase!
+          <span className="font-semibold text-secondary">💡 Guardian Mode:</span> We'll now monitor your inventory for foods toxic to {data.species}s and alert you before purchase!
         </p>
       </div>
     </div>

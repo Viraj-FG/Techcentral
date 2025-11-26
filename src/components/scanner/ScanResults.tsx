@@ -166,9 +166,9 @@ const ScanResults = ({
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="max-h-[85vh] bg-slate-900/90 backdrop-blur-xl border-t-2 border-kaeva-sage/30">
+      <DrawerContent className="max-h-[85vh] bg-slate-900/90 backdrop-blur-xl border-t-2 border-primary/30">
         {/* Glow effect */}
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-kaeva-sage to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
         
         <DrawerHeader className="border-b border-slate-800/50">
           <motion.div
@@ -194,13 +194,13 @@ const ScanResults = ({
                 <span className="text-sm text-slate-400">Confidence:</span>
                 <div className="flex-1 max-w-xs h-2 bg-slate-800 rounded-full overflow-hidden">
                   <motion.div
-                    className="h-full bg-gradient-to-r from-kaeva-sage to-kaeva-mint"
+                    className="h-full bg-gradient-to-r from-secondary to-secondary/70"
                     initial={{ width: 0 }}
                     animate={{ width: `${confidence * 100}%` }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
                   />
                 </div>
-                <span className="text-sm font-semibold text-kaeva-sage">
+                <span className="text-sm font-semibold text-secondary">
                   {Math.round(confidence * 100)}%
                 </span>
               </div>
@@ -227,7 +227,7 @@ const ScanResults = ({
         <DrawerFooter className="border-t border-slate-800/50">
           <Button
             onClick={onConfirm}
-            className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-kaeva-sage to-kaeva-mint hover:opacity-90"
+            className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-secondary to-secondary/80 hover:opacity-90"
           >
             Confirm & Continue
           </Button>

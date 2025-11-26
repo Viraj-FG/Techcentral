@@ -51,15 +51,15 @@ const ClusterSafety = ({ onSubmit }: ClusterSafetyProps) => {
   return (
     <div className="space-y-8">
       <div className="text-center space-y-2">
-        <h2 className="text-2xl sm:text-3xl tracking-premium text-kaeva-sage">
+        <h2 className="text-2xl sm:text-3xl tracking-premium text-secondary">
           SAFETY PARAMETERS
         </h2>
-        <div className="w-32 h-0.5 bg-kaeva-sage/50 mx-auto" />
+        <div className="w-32 h-0.5 bg-secondary/50 mx-auto" />
       </div>
 
       {/* Dietary Values */}
       <div className="space-y-4">
-        <h3 className="text-lg tracking-wide text-kaeva-slate-300">Dietary Focus</h3>
+        <h3 className="text-lg tracking-wide text-muted-foreground/70">Dietary Focus</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {dietaryValues.map((item) => (
             <motion.button
@@ -81,7 +81,7 @@ const ClusterSafety = ({ onSubmit }: ClusterSafetyProps) => {
 
       {/* Allergies */}
       <div className="space-y-4">
-        <h3 className="text-lg tracking-wide text-kaeva-slate-300">Allergies & Restrictions</h3>
+        <h3 className="text-lg tracking-wide text-muted-foreground/70">Allergies & Restrictions</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {allergies.map((item) => (
             <motion.button
@@ -106,7 +106,7 @@ const ClusterSafety = ({ onSubmit }: ClusterSafetyProps) => {
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="flex items-center justify-center gap-2 text-kaeva-sage"
+          className="flex items-center justify-center gap-2 text-secondary"
         >
           <Shield className="w-6 h-6" style={{
             filter: 'drop-shadow(0 0 20px rgba(112, 224, 152, 0.6))'
@@ -118,8 +118,8 @@ const ClusterSafety = ({ onSubmit }: ClusterSafetyProps) => {
       {/* Continue Button */}
       <motion.button
         onClick={handleContinue}
-        className="w-full py-4 bg-kaeva-sage/20 border border-kaeva-sage rounded-full
-                   hover:bg-kaeva-sage/30 transition-all tracking-wider text-kaeva-sage"
+        className="w-full py-4 bg-secondary/20 border border-secondary rounded-full
+                   hover:bg-secondary/30 transition-all tracking-wider text-secondary"
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         transition={springTransition}

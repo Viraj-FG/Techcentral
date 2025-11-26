@@ -66,7 +66,7 @@ const InventorySweepResult = ({ items }: { items: DetectedItem[] }) => {
         <p className="text-slate-300">
           Found <span className="font-bold text-white">{items.length}</span> items
         </p>
-        <Button variant="ghost" size="sm" onClick={selectAll} className="text-kaeva-sage">
+        <Button variant="ghost" size="sm" onClick={selectAll} className="text-secondary">
           Select All
         </Button>
       </div>
@@ -85,7 +85,7 @@ const InventorySweepResult = ({ items }: { items: DetectedItem[] }) => {
               type="checkbox"
               checked={item.selected}
               onChange={() => toggleItem(index)}
-              className="w-5 h-5 rounded accent-kaeva-sage"
+              className="w-5 h-5 rounded accent-secondary"
             />
 
             {/* Thumbnail */}
