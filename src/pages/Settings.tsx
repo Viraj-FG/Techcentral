@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   User, Users, Heart, Sparkles, Store, BarChart3, 
-  Leaf, MessageSquare, Bell, Shield, Package, ChefHat, ShieldCheck
+  Leaf, MessageSquare, Bell, Shield, Package, ChefHat, ShieldCheck, Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -307,6 +307,12 @@ const Settings = () => {
               title="Notification Settings"
               description="Manage alerts and preferences"
               onClick={() => setNotificationSheetOpen(true)}
+            />
+            <SettingsRow 
+              icon={Download}
+              title="Install App"
+              description="Add KAEVA to your home screen"
+              onClick={() => navigate('/install')}
             />
             <SettingsRow 
               icon={Shield}
