@@ -158,11 +158,11 @@ export const RecipeDetail = ({ recipe, open, onClose, onRecipeDeleted }: Props) 
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="text-3xl font-bold flex items-center gap-3">
-            <ChefHat className="w-8 h-8 text-primary" />
-            {recipe.name}
+          <DialogTitle className="text-3xl font-bold flex items-center gap-3 truncate">
+            <ChefHat className="w-8 h-8 text-primary flex-shrink-0" />
+            <span className="truncate">{recipe.name}</span>
           </DialogTitle>
         </DialogHeader>
 

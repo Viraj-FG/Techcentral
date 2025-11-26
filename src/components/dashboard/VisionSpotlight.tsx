@@ -231,7 +231,7 @@ const VisionSpotlight = ({ isOpen, onClose, onItemsAdded }: VisionSpotlightProps
             animate={{ y: 0, scale: 1 }}
             exit={{ y: 100, scale: 0.95 }}
             transition={kaevaTransition}
-            className="w-full max-w-md bg-slate-900/80 border border-emerald-500/50 rounded-3xl shadow-[0_0_40px_rgba(112,224,152,0.15)] overflow-hidden"
+            className="w-full max-w-md bg-slate-900/80 border border-emerald-500/50 rounded-3xl shadow-[0_0_40px_rgba(112,224,152,0.15)] overflow-hidden space-y-0"
           >
             {/* Search Input Area */}
             <div className="flex items-center gap-4 p-4 border-b border-white/10">
@@ -241,7 +241,7 @@ const VisionSpotlight = ({ isOpen, onClose, onItemsAdded }: VisionSpotlightProps
                 placeholder="Ask Kaeva or scan an item..." 
                 value={transcript}
                 readOnly
-                className="flex-1 bg-transparent border-none outline-none text-lg text-white placeholder-slate-500 font-light"
+                className="flex-1 bg-transparent border-none outline-none text-lg text-white placeholder-slate-500 font-light truncate"
               />
               <motion.div 
                 className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400"

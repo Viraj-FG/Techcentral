@@ -52,7 +52,7 @@ const HouseholdMemberCard = ({ member, index }: HouseholdMemberCardProps) => {
         damping: 20,
         delay: index * 0.1
       }}
-      className="glass-card px-6 py-4 rounded-2xl hover:bg-kaeva-sage/5 transition-all"
+      className="glass-card px-6 py-4 rounded-2xl hover:bg-kaeva-sage/5 transition-all overflow-hidden"
     >
       <div className="flex items-center gap-4">
         {/* Avatar */}

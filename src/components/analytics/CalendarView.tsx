@@ -56,7 +56,7 @@ export const CalendarView = ({ month, year, mealLogs, tdee, onDayClick }: Calend
   };
 
   return (
-    <div>
+    <div className="overflow-hidden">
       {/* Days of week header */}
       <div className="grid grid-cols-7 gap-2 mb-2">
         {daysOfWeek.map(day => (

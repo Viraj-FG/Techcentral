@@ -56,7 +56,7 @@ const ShoppingManifest = ({ items }: ShoppingManifestProps) => {
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-white text-sm">{item.name}</span>
+                    <span className="text-white text-sm truncate">{item.name}</span>
                     {item.safetySwap && (
                       <Shield size={14} className="text-yellow-500 flex-shrink-0" />
                     )}
@@ -70,7 +70,7 @@ const ShoppingManifest = ({ items }: ShoppingManifestProps) => {
                   )}
                   
                   {item.source === 'recipe' && item.recipeName && (
-                    <p className="text-xs text-kaeva-teal mt-1">
+                    <p className="text-xs text-kaeva-teal mt-1 truncate">
                       For "{item.recipeName}"
                     </p>
                   )}

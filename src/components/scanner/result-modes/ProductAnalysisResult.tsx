@@ -50,15 +50,15 @@ const BetterAlternativeCard = ({ alternative }: { alternative: { name: string; b
   };
 
   return (
-    <div className="p-4 bg-gradient-to-br from-kaeva-sage/20 to-kaeva-mint/10 rounded-2xl border border-kaeva-sage/30">
+    <div className="p-4 bg-gradient-to-br from-kaeva-sage/20 to-kaeva-mint/10 rounded-2xl border border-kaeva-sage/30 overflow-hidden">
       <h4 className="text-sm font-semibold text-kaeva-sage uppercase tracking-wide mb-2">
         ✨ Better Alternative
       </h4>
-      <p className="text-white font-semibold mb-1">
+      <p className="text-white font-semibold mb-1 truncate">
         {alternative.name}
         {alternative.brand && <span className="text-slate-400 font-normal ml-2">by {alternative.brand}</span>}
       </p>
-      <p className="text-sm text-slate-300 mb-3">{alternative.reason}</p>
+      <p className="text-sm text-slate-300 mb-3 truncate">{alternative.reason}</p>
       <Button
         variant="outline"
         size="sm"
