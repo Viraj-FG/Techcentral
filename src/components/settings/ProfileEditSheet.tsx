@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface ProfileEditSheetProps {
   open: boolean;
@@ -20,6 +22,8 @@ interface ProfileEditSheetProps {
   currentActivityLevel: string;
   onSave: () => void;
 }
+
+type UnitSystem = "imperial" | "metric";
 
 export const ProfileEditSheet = ({
   open,
@@ -40,7 +44,66 @@ export const ProfileEditSheet = ({
   const [height, setHeight] = useState<string>(currentHeight?.toString() || "");
   const [gender, setGender] = useState<string>(currentGender || "");
   const [activityLevel, setActivityLevel] = useState<string>(currentActivityLevel || "");
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>("imperial");
   const [isSaving, setIsSaving] = useState(false);
+
+  // Conversion functions
+  const lbsToKg = (lbs: number) => lbs * 0.453592;
+  const kgToLbs = (kg: number) => kg / 0.453592;
+  const inchesToCm = (inches: number) => inches * 2.54;
+  const cmToInches = (cm: number) => cm / 2.54;
+
+  // Calculate BMI
+  const calculateBMI = (): number | null => {
+    const weightNum = parseFloat(weight);
+    const heightNum = parseFloat(height);
+    
+    if (!weightNum || !heightNum || weightNum <= 0 || heightNum <= 0) {
+      return null;
+    }
+
+    // Convert to metric for BMI calculation (kg and meters)
+    const weightKg = unitSystem === "imperial" ? lbsToKg(weightNum) : weightNum;
+    const heightM = unitSystem === "imperial" ? inchesToCm(heightNum) / 100 : heightNum / 100;
+    
+    return weightKg / (heightM * heightM);
+  };
+
+  const getBMICategory = (bmi: number): { label: string; color: string } => {
+    if (bmi < 18.5) return { label: "Underweight", color: "text-accent" };
+    if (bmi < 25) return { label: "Normal", color: "text-secondary" };
+    if (bmi < 30) return { label: "Overweight", color: "text-primary" };
+    return { label: "Obese", color: "text-destructive" };
+  };
+
+  const bmi = calculateBMI();
+  const bmiCategory = bmi ? getBMICategory(bmi) : null;
+
+  const toggleUnits = () => {
+    const newSystem: UnitSystem = unitSystem === "imperial" ? "metric" : "imperial";
+    
+    // Convert weight
+    if (weight) {
+      const weightNum = parseFloat(weight);
+      if (unitSystem === "imperial") {
+        setWeight(lbsToKg(weightNum).toFixed(1));
+      } else {
+        setWeight(kgToLbs(weightNum).toFixed(1));
+      }
+    }
+    
+    // Convert height
+    if (height) {
+      const heightNum = parseFloat(height);
+      if (unitSystem === "imperial") {
+        setHeight(inchesToCm(heightNum).toFixed(1));
+      } else {
+        setHeight(cmToInches(heightNum).toFixed(1));
+      }
+    }
+    
+    setUnitSystem(newSystem);
+  };
 
   useEffect(() => {
     setUserName(currentName);
@@ -49,6 +112,7 @@ export const ProfileEditSheet = ({
     setHeight(currentHeight?.toString() || "");
     setGender(currentGender || "");
     setActivityLevel(currentActivityLevel || "");
+    setUnitSystem("imperial"); // Reset to imperial on open
   }, [currentName, currentAge, currentWeight, currentHeight, currentGender, currentActivityLevel]);
 
   const handleSave = async () => {
@@ -91,13 +155,22 @@ export const ProfileEditSheet = ({
 
     setIsSaving(true);
     try {
+      // Convert to imperial (lbs and inches) for storage
+      let weightToSave = weight ? parseFloat(weight) : null;
+      let heightToSave = height ? parseFloat(height) : null;
+
+      if (unitSystem === "metric") {
+        if (weightToSave) weightToSave = kgToLbs(weightToSave);
+        if (heightToSave) heightToSave = cmToInches(heightToSave);
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({
           user_name: userName,
           user_age: age ? parseInt(age) : null,
-          user_weight: weight ? parseFloat(weight) : null,
-          user_height: height ? parseFloat(height) : null,
+          user_weight: weightToSave,
+          user_height: heightToSave,
           user_gender: gender || null,
           user_activity_level: activityLevel || null,
         })
@@ -128,12 +201,41 @@ export const ProfileEditSheet = ({
       <SheetContent side="bottom" className="h-[80vh]">
         <SheetHeader className="flex flex-row items-center justify-between border-b border-secondary/10 pb-4">
           <SheetTitle className="text-xl font-semibold text-secondary">Edit Profile</SheetTitle>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleUnits}
+              className="text-xs"
+            >
+              <Scale className="w-3 h-3 mr-1" />
+              {unitSystem === "imperial" ? "Imperial" : "Metric"}
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
         </SheetHeader>
 
         <div className="mt-6 space-y-6 overflow-y-auto h-[calc(80vh-140px)] pb-4">
+          {/* BMI Display */}
+          {bmi && (
+            <div className="glass-card p-4 rounded-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">Body Mass Index</p>
+                  <p className="text-2xl font-semibold text-secondary">{bmi.toFixed(1)}</p>
+                </div>
+                <Badge 
+                  variant="outline" 
+                  className={cn("text-sm", bmiCategory?.color)}
+                >
+                  {bmiCategory?.label}
+                </Badge>
+              </div>
+            </div>
+          )}
+
           <div>
             <Label htmlFor="userName" className="text-foreground">Full Name</Label>
             <Input
@@ -178,28 +280,32 @@ export const ProfileEditSheet = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="weight" className="text-foreground">Weight (lbs)</Label>
+              <Label htmlFor="weight" className="text-foreground">
+                Weight ({unitSystem === "imperial" ? "lbs" : "kg"})
+              </Label>
               <Input
                 id="weight"
                 type="number"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
                 className="mt-2"
-                placeholder="Weight"
+                placeholder={unitSystem === "imperial" ? "Weight in lbs" : "Weight in kg"}
                 min="0"
                 step="0.1"
               />
             </div>
 
             <div>
-              <Label htmlFor="height" className="text-foreground">Height (inches)</Label>
+              <Label htmlFor="height" className="text-foreground">
+                Height ({unitSystem === "imperial" ? "inches" : "cm"})
+              </Label>
               <Input
                 id="height"
                 type="number"
                 value={height}
                 onChange={(e) => setHeight(e.target.value)}
                 className="mt-2"
-                placeholder="Height"
+                placeholder={unitSystem === "imperial" ? "Height in inches" : "Height in cm"}
                 min="0"
                 step="0.1"
               />
