@@ -69,11 +69,27 @@ export const UniversalLibrary = ({
   standalone = true
 }: UniversalLibraryProps) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
   const tabs = domainTabs[domain];
 
-  // Filter items based on search and active tab
+  // Toggle filter selection
+  const toggleFilter = (filterId: string) => {
+    if (filterId === 'all') {
+      setActiveFilters([]);
+      return;
+    }
+
+    setActiveFilters(prev => {
+      if (prev.includes(filterId)) {
+        return prev.filter(id => id !== filterId);
+      } else {
+        return [...prev, filterId];
+      }
+    });
+  };
+
+  // Filter items based on search and active filters
   const filteredItems = useMemo(() => {
     let result = items;
 
@@ -83,25 +99,28 @@ export const UniversalLibrary = ({
       result = result.filter((item: any) => 
         item.name?.toLowerCase().includes(query) ||
         item.title?.toLowerCase().includes(query) ||
-        item.item_name?.toLowerCase().includes(query)
+        item.item_name?.toLowerCase().includes(query) ||
+        item.food_name?.toLowerCase().includes(query)
       );
     }
 
-    // Apply tab filter
-    if (activeTab !== 'all' && filters) {
-      const filter = filters.find(f => f.id === activeTab);
-      if (filter) {
-        result = filter.query(result);
-      }
+    // Apply all active filters sequentially (AND logic)
+    if (activeFilters.length > 0 && filters) {
+      activeFilters.forEach(filterId => {
+        const filter = filters.find(f => f.id === filterId);
+        if (filter) {
+          result = filter.query(result);
+        }
+      });
     }
 
     return result;
-  }, [items, searchQuery, activeTab, filters]);
+  }, [items, searchQuery, activeFilters, filters]);
 
   const handleItemSelect = (item: any) => {
     onSelect(item);
     setSearchQuery("");
-    setActiveTab('all');
+    setActiveFilters([]);
     if (standalone) {
       onClose();
     }
@@ -131,21 +150,50 @@ export const UniversalLibrary = ({
         )}
       </div>
 
-      {/* Tabs */}
+      {/* Filter Chips (Multi-Select) */}
       <div className="overflow-x-auto flex-shrink-0">
         <div className="flex gap-2 pb-2">
-          {tabs.map((tab) => (
-            <Button
-              key={tab.id}
-              variant={activeTab === tab.id ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => setActiveTab(tab.id)}
-              className="whitespace-nowrap"
-            >
-              <tab.icon size={14} />
-              {tab.label}
-            </Button>
-          ))}
+          {/* All/Clear Button */}
+          <button
+            onClick={() => toggleFilter('all')}
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all',
+              activeFilters.length === 0
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            )}
+          >
+            <Package size={14} />
+            All
+          </button>
+
+          {/* Filter Chips */}
+          {tabs.filter(tab => tab.id !== 'all').map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeFilters.includes(tab.id);
+            return (
+              <button
+                key={tab.id}
+                onClick={() => toggleFilter(tab.id)}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all',
+                  isActive
+                    ? 'bg-primary text-primary-foreground shadow-glow'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                )}
+              >
+                <Icon size={14} />
+                {tab.label}
+              </button>
+            );
+          })}
+
+          {/* Active Filter Count */}
+          {activeFilters.length > 0 && (
+            <div className="flex items-center px-3 py-1.5 rounded-full bg-accent/20 text-accent text-xs font-medium">
+              {activeFilters.length} filter{activeFilters.length > 1 ? 's' : ''} active
+            </div>
+          )}
         </div>
       </div>
 
