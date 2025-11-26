@@ -8,6 +8,7 @@ import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { OnboardingModuleSheet } from "@/components/onboarding/OnboardingModuleSheet";
 import { useModularOnboarding } from "@/hooks/useModularOnboarding";
+import { usePrefetch } from "@/hooks/usePrefetch";
 
 /**
  * App States:
@@ -31,6 +32,9 @@ const Index = () => {
 
   // Enable swipe navigation on dashboard
   const swipeState = useSwipeNavigation({ enabled: appState === "dashboard" });
+  
+  // Prefetch likely next routes when on dashboard
+  usePrefetch();
 
   // Determine user type on mount
   useEffect(() => {
