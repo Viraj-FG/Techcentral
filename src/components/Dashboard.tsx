@@ -219,14 +219,14 @@ const Dashboard = ({ profile }: DashboardProps) => {
           <button
             onClick={() => { setViewMode('dashboard'); haptics.selection(); }}
             className={`w-2 h-2 rounded-full transition-all ${
-              viewMode === 'dashboard' ? 'bg-kaeva-sage w-6' : 'bg-slate-600'
+              viewMode === 'dashboard' ? 'bg-primary w-6' : 'bg-slate-600'
             }`}
             aria-label="Dashboard view"
           />
           <button
             onClick={() => { setViewMode('cart'); haptics.selection(); }}
             className={`w-2 h-2 rounded-full transition-all ${
-              viewMode === 'cart' ? 'bg-kaeva-sage w-6' : 'bg-slate-600'
+              viewMode === 'cart' ? 'bg-primary w-6' : 'bg-slate-600'
             }`}
             aria-label="Cart view"
           />
@@ -251,10 +251,11 @@ const Dashboard = ({ profile }: DashboardProps) => {
                 transition={{ duration: 0.3 }}
               >
                 {/* Dashboard Content */}
-                <WelcomeBanner />
+                <motion.div className="space-y-4">
+                  <WelcomeBanner />
 
-                {/* Search Trigger Card */}
-                <motion.div
+                  {/* Search Trigger Card */}
+                  <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
@@ -289,77 +290,81 @@ const Dashboard = ({ profile }: DashboardProps) => {
                       <Icon icon={Shield} size="sm" />
                       <span className="text-micro">Admin Dashboard</span>
                     </Button>
-                  </motion.div>
-                )}
+                    </motion.div>
+                  )}
 
-                <PulseHeader profile={profile} />
-                <SafetyShield profile={profile} />
-                <HouseholdQuickAccess />
-                <NutritionWidget userId={profile.id} />
+                  <PulseHeader profile={profile} />
+                  <SafetyShield profile={profile} />
+                  <HouseholdQuickAccess />
+                  <NutritionWidget userId={profile.id} />
                 
-                {isLoading ? (
-                  <InventoryMatrixSkeleton />
-                ) : isInventoryEmpty ? (
+                  {isLoading ? (
+                    <InventoryMatrixSkeleton />
+                  ) : isInventoryEmpty ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-12 text-center overflow-hidden"
+                    >
+                      <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-secondary/10 flex items-center justify-center">
+                        <Package className="text-secondary" size={40} strokeWidth={1.5} />
+                      </div>
+                      <h3 className="text-2xl font-light text-white mb-3 truncate">
+                        Your Pantry is Empty
+                      </h3>
+                      <p className="text-white/60 mb-6 max-w-md mx-auto">
+                        Start building your digital twin by scanning your first item
+                      </p>
+                      <Button
+                        size="lg"
+                        onClick={() => setSpotlightOpen(true)}
+                        className="gap-2 bg-secondary text-background hover:bg-secondary/90"
+                      >
+                        <Camera size={20} strokeWidth={1.5} />
+                        Scan Your First Item
+                      </Button>
+                    </motion.div>
+                  ) : (
+                    <>
+                      <section className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Inventory Command</h3>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => navigate('/inventory')}
+                            className="text-sm gap-2 text-muted-foreground hover:text-foreground"
+                          >
+                            View All Items
+                            <ArrowRight className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <InventoryMatrix inventory={inventoryData} onRefill={handleAddToCart} onCookNow={handleCookNow} />
+                      </section>
+                      <section className="space-y-3">
+                        <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Recipe Engine</h3>
+                        <RecipeFeed userInventory={inventoryData} userProfile={profile} />
+                      </section>
+                    </>
+                  )}
+                  
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-12 text-center"
+                    transition={{ delay: 0.5 }}
+                    className="space-y-3"
                   >
-                    <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-kaeva-sage/10 flex items-center justify-center">
-                      <Package className="text-kaeva-sage" size={40} strokeWidth={1.5} />
+                    <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Household Activity</h3>
+                    <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-6 overflow-hidden">
+                      <HouseholdActivityFeed householdId={profile?.current_household_id || null} maxItems={10} />
                     </div>
-                    <h3 className="text-2xl font-light text-white mb-3">
-                      Your Pantry is Empty
-                    </h3>
-                    <p className="text-white/60 mb-6 max-w-md mx-auto">
-                      Start building your digital twin by scanning your first item
-                    </p>
-                    <Button
-                      size="lg"
-                      onClick={() => setSpotlightOpen(true)}
-                      className="gap-2 bg-kaeva-sage text-kaeva-seattle-slate hover:bg-kaeva-sage/90"
-                    >
-                      <Camera size={20} strokeWidth={1.5} />
-                      Scan Your First Item
-                    </Button>
                   </motion.div>
-                ) : (
-                  <>
-                    <div className="flex justify-between items-center mb-3">
-                      <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Inventory Command</h3>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => navigate('/inventory')}
-                        className="text-sm gap-2 text-muted-foreground hover:text-foreground"
-                      >
-                        View All Items
-                        <ArrowRight className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    <InventoryMatrix inventory={inventoryData} onRefill={handleAddToCart} onCookNow={handleCookNow} />
-                    <section>
-                      <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3">Recipe Engine</h3>
-                      <RecipeFeed userInventory={inventoryData} userProfile={profile} />
-                    </section>
-                  </>
-                )}
-                
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3">Household Activity</h3>
-                  <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-6">
-                    <HouseholdActivityFeed householdId={profile?.current_household_id || null} maxItems={10} />
+                  
+                  <div className="w-full p-6 text-center opacity-30">
+                    <div className="w-2 h-2 rounded-full bg-slate-600 mx-auto mb-2"></div>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest">End of Stream</p>
                   </div>
                 </motion.div>
-                
-                <div className="w-full p-6 text-center opacity-30">
-                  <div className="w-2 h-2 rounded-full bg-slate-600 mx-auto mb-2"></div>
-                  <p className="text-[10px] text-slate-500 uppercase tracking-widest">End of Stream</p>
-                </div>
               </motion.div>
             ) : (
               <motion.div

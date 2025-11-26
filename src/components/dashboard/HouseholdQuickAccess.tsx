@@ -34,30 +34,30 @@ const HouseholdQuickAccess = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
       onClick={() => navigate('/household')}
-      className="glass-card p-4 rounded-2xl cursor-pointer hover:bg-kaeva-sage/5 transition-all group"
+      className="glass-card p-4 rounded-2xl cursor-pointer hover:bg-secondary/5 transition-all group overflow-hidden"
     >
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-kaeva-accent/20 flex items-center justify-center group-hover:bg-kaeva-accent/30 transition-colors">
-            <Users className="w-5 h-5 text-kaeva-accent" />
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center group-hover:bg-accent/30 transition-colors flex-shrink-0">
+            <Users className="w-5 h-5 text-accent" />
           </div>
-          <div>
-            <h3 className="text-sm font-medium text-kaeva-sage">Household Roster</h3>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm font-medium text-secondary truncate">Household Roster</h3>
             {isLoading ? (
-              <p className="text-xs text-kaeva-sage/50 animate-pulse">Loading...</p>
+              <p className="text-xs text-secondary/50 animate-pulse truncate">Loading...</p>
             ) : memberCount > 0 ? (
-              <p className="text-xs text-kaeva-sage/70">
+              <p className="text-xs text-secondary/70 truncate">
                 {memberCount} {memberCount === 1 ? 'member' : 'members'} registered
               </p>
             ) : (
-              <p className="text-xs text-kaeva-sage/70 flex items-center gap-1">
-                <Plus className="w-3 h-3" />
-                Add family members
+              <p className="text-xs text-secondary/70 flex items-center gap-1">
+                <Plus className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">Add family members</span>
               </p>
             )}
           </div>
         </div>
-        <ArrowRight className="w-5 h-5 text-kaeva-sage/30 group-hover:text-kaeva-accent group-hover:translate-x-1 transition-all" />
+        <ArrowRight className="w-5 h-5 text-secondary/30 group-hover:text-accent group-hover:translate-x-1 transition-all flex-shrink-0" />
       </div>
     </motion.div>
   );
