@@ -223,6 +223,18 @@ Focus on what's MOST important NOW. Be conversational but concise.`;
     }
 
     const data = await response.json();
+    
+    // Validate response structure
+    if (!data.candidates || data.candidates.length === 0) {
+      console.error('No candidates in Gemini response:', JSON.stringify(data));
+      throw new Error('Gemini API returned no candidates');
+    }
+    
+    if (!data.candidates[0].content || !data.candidates[0].content.parts || data.candidates[0].content.parts.length === 0) {
+      console.error('Invalid candidate structure:', JSON.stringify(data.candidates[0]));
+      throw new Error('Gemini API response missing content');
+    }
+    
     const text = data.candidates[0].content.parts[0].text;
 
     // Extract JSON
