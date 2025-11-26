@@ -576,6 +576,7 @@ export type Database = {
           calculated_tdee: number | null
           created_at: string
           current_household_id: string | null
+          current_streak: number | null
           daily_calorie_goal: number | null
           daily_carbs_goal: number | null
           daily_fat_goal: number | null
@@ -586,12 +587,15 @@ export type Database = {
           household_kids: number | null
           id: string
           language: string | null
+          last_log_date: string | null
           last_retailer_refresh: string | null
           lifestyle_goals: Json | null
+          longest_streak: number | null
           onboarding_completed: boolean
           permissions_granted: boolean | null
           preferred_retailer_id: string | null
           preferred_retailer_name: string | null
+          streak_start_date: string | null
           updated_at: string
           user_activity_level: string | null
           user_age: number | null
@@ -612,6 +616,7 @@ export type Database = {
           calculated_tdee?: number | null
           created_at?: string
           current_household_id?: string | null
+          current_streak?: number | null
           daily_calorie_goal?: number | null
           daily_carbs_goal?: number | null
           daily_fat_goal?: number | null
@@ -622,12 +627,15 @@ export type Database = {
           household_kids?: number | null
           id: string
           language?: string | null
+          last_log_date?: string | null
           last_retailer_refresh?: string | null
           lifestyle_goals?: Json | null
+          longest_streak?: number | null
           onboarding_completed?: boolean
           permissions_granted?: boolean | null
           preferred_retailer_id?: string | null
           preferred_retailer_name?: string | null
+          streak_start_date?: string | null
           updated_at?: string
           user_activity_level?: string | null
           user_age?: number | null
@@ -648,6 +656,7 @@ export type Database = {
           calculated_tdee?: number | null
           created_at?: string
           current_household_id?: string | null
+          current_streak?: number | null
           daily_calorie_goal?: number | null
           daily_carbs_goal?: number | null
           daily_fat_goal?: number | null
@@ -658,12 +667,15 @@ export type Database = {
           household_kids?: number | null
           id?: string
           language?: string | null
+          last_log_date?: string | null
           last_retailer_refresh?: string | null
           lifestyle_goals?: Json | null
+          longest_streak?: number | null
           onboarding_completed?: boolean
           permissions_granted?: boolean | null
           preferred_retailer_id?: string | null
           preferred_retailer_name?: string | null
+          streak_start_date?: string | null
           updated_at?: string
           user_activity_level?: string | null
           user_age?: number | null

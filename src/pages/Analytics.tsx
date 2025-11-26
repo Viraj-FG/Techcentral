@@ -12,6 +12,8 @@ import { MacroChart } from "@/components/analytics/MacroChart";
 import { CalorieChart } from "@/components/analytics/CalorieChart";
 import { DayDetailModal } from "@/components/analytics/DayDetailModal";
 import { BMIGaugeCard } from "@/components/analytics/BMIGaugeCard";
+import { WeeklyReportCard } from "@/components/analytics/WeeklyReportCard";
+import { NutritionInsights } from "@/components/analytics/NutritionInsights";
 import { exportMealLogsToCSV } from "@/lib/exportUtils";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
 import { format, subMonths, addMonths, startOfMonth, endOfMonth, subDays } from "date-fns";
@@ -52,6 +54,12 @@ const Analytics = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [userId, setUserId] = useState<string>("");
   const [timePeriod, setTimePeriod] = useState<"thisWeek" | "lastWeek" | "2weeksAgo" | "3weeksAgo">("thisWeek");
+  const [nutritionGoals, setNutritionGoals] = useState({
+    calories: 2000,
+    protein: 150,
+    carbs: 200,
+    fat: 65
+  });
 
   // Enable swipe navigation and get swipe state
   const swipeState = useSwipeNavigation();
@@ -71,15 +79,24 @@ const Analytics = () => {
 
       setUserId(session.user.id);
 
-      // Fetch user's TDEE
+      // Fetch user's TDEE and nutrition goals
       const { data: profile } = await supabase
         .from('profiles')
-        .select('calculated_tdee')
+        .select('calculated_tdee, daily_calorie_goal, daily_protein_goal, daily_carbs_goal, daily_fat_goal')
         .eq('id', session.user.id)
         .single();
 
       if (profile?.calculated_tdee) {
         setTdee(profile.calculated_tdee);
+      }
+      
+      if (profile?.daily_calorie_goal) {
+        setNutritionGoals({
+          calories: profile.daily_calorie_goal,
+          protein: profile.daily_protein_goal || 150,
+          carbs: profile.daily_carbs_goal || 200,
+          fat: profile.daily_fat_goal || 65
+        });
       }
 
       // Fetch meal logs for selected month
@@ -257,6 +274,22 @@ const Analytics = () => {
 
           {/* BMI Gauge Card */}
           {userId && <BMIGaugeCard userId={userId} />}
+
+          {/* Weekly Report */}
+          <WeeklyReportCard 
+            mealLogs={mealLogs}
+            calorieGoal={nutritionGoals.calories}
+            proteinGoal={nutritionGoals.protein}
+            carbsGoal={nutritionGoals.carbs}
+            fatGoal={nutritionGoals.fat}
+          />
+
+          {/* AI Insights */}
+          <NutritionInsights 
+            mealLogs={mealLogs}
+            calorieGoal={nutritionGoals.calories}
+            proteinGoal={nutritionGoals.protein}
+          />
 
           {/* Calendar View */}
           <Card className="backdrop-blur-xl bg-white/5 border-white/10 p-6 mb-6">
