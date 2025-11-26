@@ -245,27 +245,58 @@ export const HouseholdPreferencesSection = ({
           />
         </div>
 
-        {/* Invite Members Row */}
-        <button
-          onClick={onGenerateInvite}
-          disabled={!householdId || isCreatingInvite}
-          className="w-full px-6 py-4 flex items-center gap-4 hover:bg-secondary/5 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+        {/* Invite Members Section */}
+        <div className="px-6 py-6 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="flex -space-x-2">
+              {memberships.slice(0, 3).map((member, idx) => (
+                <div
+                  key={member.id}
+                  className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary border-2 border-background flex items-center justify-center text-xs font-bold text-background"
+                >
+                  {member.profiles?.user_name?.[0]?.toUpperCase() || '?'}
+                </div>
+              ))}
+              {memberships.length > 3 && (
+                <div className="w-8 h-8 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs text-muted-foreground">
+                  +{memberships.length - 3}
+                </div>
+              )}
+            </div>
+            <div className="flex-1">
+              <p className="text-base font-medium text-secondary">Invite Members</p>
+              <p className="text-sm text-muted-foreground">Share household access</p>
+            </div>
+          </div>
+          
+          <Button
+            onClick={onGenerateInvite}
+            disabled={!householdId || isCreatingInvite}
+            className="w-full gap-2"
+            variant="default"
+          >
             {isCreatingInvite ? (
-              <Loader2 className="w-5 h-5 text-primary animate-spin" />
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Generating...
+              </>
             ) : (
-              <Share2 className="w-5 h-5 text-primary" />
+              <>
+                <Share2 className="w-4 h-4" />
+                Generate Invite Link
+              </>
             )}
+          </Button>
+
+          <div className="space-y-2 pt-2 border-t border-secondary/10">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">How it works</p>
+            <div className="space-y-1.5 text-xs text-muted-foreground">
+              <p>• Share inventory across devices</p>
+              <p>• Coordinate shopping lists</p>
+              <p>• Sync dietary restrictions</p>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-base font-medium text-secondary">Invite Members</p>
-            <p className="text-sm text-muted-foreground">
-              {isCreatingInvite ? 'Generating link...' : 'Share household access with others'}
-            </p>
-          </div>
-          <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-        </button>
+        </div>
 
       </div>
 

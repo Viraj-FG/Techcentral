@@ -4,11 +4,12 @@ import { Activity, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
+import { MealLogCard } from './MealLogCard';
 
 export default function NutritionWidget({ userId }: { userId: string }) {
   const [todayCalories, setTodayCalories] = useState(0);
   const [targetCalories, setTargetCalories] = useState(2000);
-  const [mealPhotos, setMealPhotos] = useState<string[]>([]);
+  const [recentMeals, setRecentMeals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,15 +25,17 @@ export default function NutritionWidget({ userId }: { userId: string }) {
     const today = new Date().toISOString().split('T')[0];
     const { data } = await supabase
       .from('meal_logs')
-      .select('calories, image_url')
+      .select('*')
       .eq('user_id', userId)
       .gte('logged_at', `${today}T00:00:00`)
-      .lte('logged_at', `${today}T23:59:59`);
+      .lte('logged_at', `${today}T23:59:59`)
+      .order('logged_at', { ascending: false })
+      .limit(3);
 
     if (data) {
       const total = data.reduce((sum, meal) => sum + (meal.calories || 0), 0);
       setTodayCalories(Math.round(total));
-      setMealPhotos(data.map(m => m.image_url).filter(Boolean) as string[]);
+      setRecentMeals(data);
     }
   };
 
@@ -93,33 +96,27 @@ export default function NutritionWidget({ userId }: { userId: string }) {
           )}
         </div>
 
-        {/* Meal Photos */}
-        {mealPhotos.length > 0 && (
-          <div className="mt-4">
-            <p className="text-slate-400 text-xs mb-2">Today's Meals</p>
-            <div className="flex gap-2">
-              {mealPhotos.slice(0, 3).map((photo, idx) => (
-                <motion.img
-                  key={idx}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: idx * 0.1 }}
-                  src={photo} 
-                  alt={`Meal ${idx + 1}`}
-                  className="w-16 h-16 object-cover rounded-lg border border-white/10"
-                />
-              ))}
-              {mealPhotos.length > 3 && (
-                <div className="w-16 h-16 bg-slate-800 rounded-lg flex items-center justify-center text-white/60 text-xs border border-white/10">
-                  +{mealPhotos.length - 3}
-                </div>
-              )}
-            </div>
+        {/* Meal Cards */}
+        {recentMeals.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {recentMeals.map((meal) => (
+              <MealLogCard
+                key={meal.id}
+                mealType={meal.meal_type}
+                loggedAt={meal.logged_at}
+                calories={meal.calories || 0}
+                protein={meal.protein || 0}
+                carbs={meal.carbs || 0}
+                fat={meal.fat || 0}
+                imageUrl={meal.image_url}
+                items={meal.items}
+              />
+            ))}
           </div>
         )}
 
         {/* Empty State */}
-        {mealPhotos.length === 0 && (
+        {recentMeals.length === 0 && (
           <div className="mt-4 text-center py-4">
             <p className="text-slate-400 text-sm">No meals logged yet today</p>
             <p className="text-slate-500 text-xs mt-1">Scan your first meal to start tracking</p>

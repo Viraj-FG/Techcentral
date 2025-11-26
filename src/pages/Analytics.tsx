@@ -11,6 +11,7 @@ import { CalendarView } from "@/components/analytics/CalendarView";
 import { MacroChart } from "@/components/analytics/MacroChart";
 import { CalorieChart } from "@/components/analytics/CalorieChart";
 import { DayDetailModal } from "@/components/analytics/DayDetailModal";
+import { BMIGaugeCard } from "@/components/analytics/BMIGaugeCard";
 import { exportMealLogsToCSV } from "@/lib/exportUtils";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
 import { format, subMonths, addMonths, startOfMonth, endOfMonth, subDays } from "date-fns";
@@ -49,6 +50,8 @@ const Analytics = () => {
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState<DayData | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [userId, setUserId] = useState<string>("");
+  const [timePeriod, setTimePeriod] = useState<"thisWeek" | "lastWeek" | "2weeksAgo" | "3weeksAgo">("thisWeek");
 
   // Enable swipe navigation and get swipe state
   const swipeState = useSwipeNavigation();
@@ -65,6 +68,8 @@ const Analytics = () => {
         navigate('/auth');
         return;
       }
+
+      setUserId(session.user.id);
 
       // Fetch user's TDEE
       const { data: profile } = await supabase
@@ -104,9 +109,26 @@ const Analytics = () => {
     }
   };
 
+  // Calculate period start date based on selected time period
+  const getPeriodStartDate = () => {
+    const today = new Date();
+    switch (timePeriod) {
+      case "thisWeek":
+        return subDays(today, 6);
+      case "lastWeek":
+        return subDays(today, 13);
+      case "2weeksAgo":
+        return subDays(today, 20);
+      case "3weeksAgo":
+        return subDays(today, 27);
+      default:
+        return subDays(today, 6);
+    }
+  };
+
   // Calculate last 7 days macro data
   const last7DaysMacros = useMemo(() => {
-    const sevenDaysAgo = subDays(new Date(), 6);
+    const sevenDaysAgo = getPeriodStartDate();
     const recentMeals = mealLogs.filter(m => 
       new Date(m.logged_at) >= sevenDaysAgo
     );
@@ -128,11 +150,11 @@ const Analytics = () => {
       date,
       ...macros
     }));
-  }, [mealLogs]);
+  }, [mealLogs, timePeriod]);
 
   // Calculate last 7 days calorie data
   const last7DaysCalories = useMemo(() => {
-    const sevenDaysAgo = subDays(new Date(), 6);
+    const sevenDaysAgo = getPeriodStartDate();
     const recentMeals = mealLogs.filter(m => 
       new Date(m.logged_at) >= sevenDaysAgo
     );
@@ -152,7 +174,7 @@ const Analytics = () => {
       date,
       calories
     }));
-  }, [mealLogs]);
+  }, [mealLogs, timePeriod]);
 
   const handleDayClick = (dayData: DayData) => {
     setSelectedDay(dayData);
@@ -233,6 +255,9 @@ const Analytics = () => {
             </p>
           </div>
 
+          {/* BMI Gauge Card */}
+          {userId && <BMIGaugeCard userId={userId} />}
+
           {/* Calendar View */}
           <Card className="backdrop-blur-xl bg-white/5 border-white/10 p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
@@ -280,12 +305,34 @@ const Analytics = () => {
             </div>
           </Card>
 
+          {/* Time Period Tabs */}
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {[
+              { id: "thisWeek", label: "This week" },
+              { id: "lastWeek", label: "Last week" },
+              { id: "2weeksAgo", label: "2 wks. ago" },
+              { id: "3weeksAgo", label: "3 wks. ago" },
+            ].map((period) => (
+              <button
+                key={period.id}
+                onClick={() => setTimePeriod(period.id as any)}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap transition-all ${
+                  timePeriod === period.id
+                    ? "bg-primary text-background"
+                    : "backdrop-blur-xl bg-white/5 border border-white/10 text-foreground hover:bg-white/10"
+                }`}
+              >
+                {period.label}
+              </button>
+            ))}
+          </div>
+
           {/* Trend Charts */}
           <div className="grid md:grid-cols-2 gap-6">
             {/* Macro Split */}
             <Card className="backdrop-blur-xl bg-white/5 border-white/10 p-6">
               <h2 className="text-xl text-white font-semibold mb-4">
-                Macro Split (Last 7 Days)
+                Macro Split
               </h2>
               <MacroChart data={last7DaysMacros} />
             </Card>
