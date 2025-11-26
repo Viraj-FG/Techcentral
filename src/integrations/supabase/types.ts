@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookmarks: {
+        Row: {
+          created_at: string | null
+          id: string
+          item_id: string
+          item_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          item_id: string
+          item_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          item_id?: string
+          item_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversation_events: {
         Row: {
           agent_type: string
@@ -812,6 +836,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      saved_foods: {
+        Row: {
+          created_at: string | null
+          food_name: string
+          id: string
+          last_used_at: string | null
+          nutrition_data: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          food_name: string
+          id?: string
+          last_used_at?: string | null
+          nutrition_data: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          food_name?: string
+          id?: string
+          last_used_at?: string | null
+          nutrition_data?: Json
+          user_id?: string
+        }
+        Relationships: []
       }
       shopping_list: {
         Row: {

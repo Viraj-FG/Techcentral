@@ -102,6 +102,7 @@ export default function NutritionWidget({ userId }: { userId: string }) {
             {recentMeals.map((meal) => (
               <MealLogCard
                 key={meal.id}
+                id={meal.id}
                 mealType={meal.meal_type}
                 loggedAt={meal.logged_at}
                 calories={meal.calories || 0}

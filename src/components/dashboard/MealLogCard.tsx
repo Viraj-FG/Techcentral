@@ -2,8 +2,10 @@ import { motion } from "framer-motion";
 import { Flame, Share2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { BookmarkButton } from "@/components/ui/BookmarkButton";
 
 interface MealLogCardProps {
+  id: string;
   mealType: string;
   loggedAt: string;
   calories: number;
@@ -16,6 +18,7 @@ interface MealLogCardProps {
 }
 
 export const MealLogCard = ({
+  id,
   mealType,
   loggedAt,
   calories,
@@ -59,16 +62,24 @@ export const MealLogCard = ({
             <span className="text-xs text-muted-foreground whitespace-nowrap">
               {timeAgo}
             </span>
-            {onShare && (
-              <Button
+            <div className="flex items-center gap-1">
+              <BookmarkButton
+                itemId={id}
+                itemType="food"
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6"
-                onClick={onShare}
-              >
-                <Share2 className="w-3 h-3" />
-              </Button>
-            )}
+              />
+              {onShare && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={onShare}
+                >
+                  <Share2 className="w-3 h-3" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
