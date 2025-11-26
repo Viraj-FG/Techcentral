@@ -5,8 +5,11 @@ import { cn } from '@/lib/utils';
 import { UniversalFixSheet } from '@/components/ui/UniversalFixSheet';
 import { BookmarkButton } from '@/components/ui/BookmarkButton';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
+import { BeautyInspirationSheet } from '../BeautyInspirationSheet';
+import { toast } from 'sonner';
 
 // Inline skin compatibility analyzer to avoid import issues
 const analyzeSkinCompatibility = (ingredients: string, skinType: string) => {
@@ -60,6 +63,9 @@ interface DetectedItem {
 
 const VanitySweepResult = ({ items }: { items: DetectedItem[] }) => {
   const [userSkinType, setUserSkinType] = useState<string>('');
+  const [inspirationSheetOpen, setInspirationSheetOpen] = useState(false);
+  const [inspiration, setInspiration] = useState<any>(null);
+  const [isLoadingInspiration, setIsLoadingInspiration] = useState(false);
 
   useEffect(() => {
     fetchUserSkinType();
@@ -85,6 +91,33 @@ const VanitySweepResult = ({ items }: { items: DetectedItem[] }) => {
     console.log("Re-analyzing beauty products with correction:", correction);
   };
 
+  const handleGetInspiration = async () => {
+    setIsLoadingInspiration(true);
+    try {
+      const products = items.map(item => ({
+        name: item.name,
+        brand: item.brand || '',
+        category: item.metadata?.pao_symbol ? 'beauty' : '',
+        ingredients: item.metadata?.ingredients || '',
+      }));
+
+      const { data, error } = await supabase.functions.invoke('generate-beauty-inspiration', {
+        body: { products }
+      });
+
+      if (error) throw error;
+
+      setInspiration(data);
+      setInspirationSheetOpen(true);
+      toast.success('Beauty inspiration generated!');
+    } catch (error) {
+      console.error('Error generating inspiration:', error);
+      toast.error('Failed to generate beauty inspiration');
+    } finally {
+      setIsLoadingInspiration(false);
+    }
+  };
+
   const getCompatibilityColor = (score: number) => {
     if (score >= 80) return 'bg-secondary/10 text-secondary border-secondary/20';
     if (score >= 50) return 'bg-primary/10 text-primary border-primary/20';
@@ -93,9 +126,22 @@ const VanitySweepResult = ({ items }: { items: DetectedItem[] }) => {
 
   return (
     <div className="space-y-4">
-      <p className="text-muted-foreground">
-        Found <span className="font-bold text-foreground">{items.length}</span> beauty products
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-muted-foreground">
+          Found <span className="font-bold text-foreground">{items.length}</span> beauty products
+        </p>
+        {items.length >= 2 && (
+          <Button
+            onClick={handleGetInspiration}
+            disabled={isLoadingInspiration}
+            size="sm"
+            className="gap-2"
+          >
+            <Sparkles className="w-4 h-4" />
+            {isLoadingInspiration ? 'Generating...' : 'Get Inspiration'}
+          </Button>
+        )}
+      </div>
 
       {/* Fix Products Info */}
       <UniversalFixSheet
@@ -238,6 +284,12 @@ const VanitySweepResult = ({ items }: { items: DetectedItem[] }) => {
           );
         })}
       </div>
+
+      <BeautyInspirationSheet
+        isOpen={inspirationSheetOpen}
+        onClose={() => setInspirationSheetOpen(false)}
+        inspiration={inspiration}
+      />
     </div>
   );
 };
