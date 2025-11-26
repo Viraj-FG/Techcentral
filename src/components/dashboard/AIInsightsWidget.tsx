@@ -114,18 +114,8 @@ export const AIInsightsWidget: React.FC<AIInsightsWidgetProps> = ({ userId }) =>
   const generateDigest = async () => {
     setIsGenerating(true);
     try {
-      // Refresh session to get a valid token
-      const { data: { session }, error: sessionError } = await supabase.auth.refreshSession();
-      
-      if (sessionError || !session) {
-        throw new Error('Not authenticated');
-      }
-
-      const { data, error } = await supabase.functions.invoke('daily-ai-digest', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
-      });
+      // Supabase automatically includes auth headers
+      const { data, error } = await supabase.functions.invoke('daily-ai-digest');
 
       if (error) throw error;
 
