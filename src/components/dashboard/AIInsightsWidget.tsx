@@ -114,7 +114,17 @@ export const AIInsightsWidget: React.FC<AIInsightsWidgetProps> = ({ userId }) =>
   const generateDigest = async () => {
     setIsGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke('daily-ai-digest');
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
+
+      const { data, error } = await supabase.functions.invoke('daily-ai-digest', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
 
       if (error) throw error;
 
