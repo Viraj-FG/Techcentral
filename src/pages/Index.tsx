@@ -36,7 +36,7 @@ const Index = () => {
   // Prefetch likely next routes when on dashboard
   usePrefetch();
 
-  // Determine user type on mount
+  // Determine user type on mount - skip splash for returning users
   useEffect(() => {
     const determineUserType = async () => {
       try {
@@ -45,7 +45,7 @@ const Index = () => {
 
         const { data: profile } = await supabase
           .from('profiles')
-          .select('onboarding_modules, current_household_id, created_at')
+          .select('*')
           .eq('id', session.user.id)
           .single();
 
@@ -56,15 +56,10 @@ const Index = () => {
         // First-time user = hasn't completed core onboarding
         setIsFirstTimeUser(!hasCompletedCore);
         
-        // Store profile reference for later
+        // OPTIMIZATION: Skip splash for returning users with complete profiles
         if (hasCompletedCore && hasHousehold) {
-          // Fetch full profile for dashboard
-          const { data: fullProfile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-          setUserProfile(fullProfile);
+          setUserProfile(profile);
+          setAppState("dashboard"); // Skip directly to dashboard
         }
       } catch (error) {
         console.error("Error determining user type:", error);
