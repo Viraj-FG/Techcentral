@@ -6,6 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ProductSelector from "./ProductSelector";
 import StoreSelector from "./StoreSelector";
+import ShoppingManifest from "./ShoppingManifest";
+import { BuildingCartOverlay } from "./BuildingCartOverlay";
 import Webcam from "react-webcam";
 import {
   Dialog,
@@ -571,29 +573,7 @@ const SmartCartWidget = ({ cartItems, showDeliveryEstimate = true }: SmartCartWi
       </Dialog>
       
       {/* Building Cart Overlay */}
-      <AnimatePresence>
-        {showBuildingCart && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-kaeva-void/95 backdrop-blur-md flex items-center justify-center"
-          >
-            <div className="flex flex-col items-center gap-6">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              >
-                <ShoppingCart className="w-16 h-16 text-kaeva-mint" />
-              </motion.div>
-              <div className="text-center">
-                <h3 className="text-2xl font-light text-white mb-2">Building Cart...</h3>
-                <p className="text-white/60 text-sm">Preparing your personalized shopping experience</p>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <BuildingCartOverlay isOpen={showBuildingCart} />
     </>
   );
 };
