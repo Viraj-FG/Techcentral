@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   User, Users, Heart, Sparkles, Store, BarChart3, 
-  Leaf, MessageSquare, Bell, Shield, Package, ChefHat
+  Leaf, MessageSquare, Bell, Shield, Package, ChefHat, ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +25,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { BottomTabBar } from "@/components/layout/BottomTabBar";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { checkAdminStatus } from "@/lib/authUtils";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -58,13 +59,20 @@ const Settings = () => {
   const [accountSheetOpen, setAccountSheetOpen] = useState(false);
   const [historySheetOpen, setHistorySheetOpen] = useState(false);
   const [storeSelectorOpen, setStoreSelectorOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Enable swipe navigation and get swipe state
   const swipeState = useSwipeNavigation();
 
   useEffect(() => {
     loadProfile();
+    checkAdmin();
   }, []);
+
+  const checkAdmin = async () => {
+    const adminStatus = await checkAdminStatus();
+    setIsAdmin(adminStatus);
+  };
 
   const loadProfile = async () => {
     try {
@@ -252,6 +260,15 @@ const Settings = () => {
               description="Password, email, sign out"
               onClick={() => setAccountSheetOpen(true)}
             />
+            {isAdmin && (
+              <SettingsRow 
+                icon={ShieldCheck}
+                title="Admin Dashboard"
+                description="System management & monitoring"
+                onClick={() => navigate('/admin')}
+                iconColor="text-primary"
+              />
+            )}
           </motion.div>
 
           {/* 5. App Info Footer */}

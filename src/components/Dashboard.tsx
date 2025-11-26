@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence, useMotionValue, PanInfo } from "framer-motion";
-import { Package, Camera, ArrowRight } from "lucide-react";
+import { Package, Camera, ArrowRight, Heart, Sparkles, PawPrint, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -33,6 +33,8 @@ import { BeautyInventoryList } from "./dashboard/BeautyInventoryList";
 import { PetRosterCard } from "./dashboard/PetRosterCard";
 import { PetSuppliesStatus } from "./dashboard/PetSuppliesStatus";
 import { ToxicFoodMonitor } from "./dashboard/ToxicFoodMonitor";
+import { SwipeEdgeIndicator } from "./dashboard/SwipeEdgeIndicator";
+import { kaevaStaggerContainer, kaevaStaggerChild } from "@/hooks/useKaevaMotion";
 
 interface DashboardProps {
   profile: any;
@@ -226,20 +228,55 @@ const Dashboard = ({ profile }: DashboardProps) => {
   );
 
   // Render functions for each view
-  const renderPulseView = () => (
-    <motion.div
-      key="pulse"
-      initial={{ opacity: 0, x: swipeDirection === 'left' ? 100 : -100 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-4"
-    >
-      <WelcomeBanner />
-      <PulseHeader profile={profile} />
-      <SafetyShield profile={profile} />
-    </motion.div>
-  );
+  const renderPulseView = () => {
+    const hasHealthData = profile?.user_age && profile?.user_weight && profile?.user_height;
+    
+    if (!hasHealthData) {
+      return (
+        <motion.div
+          key="pulse"
+          initial={{ opacity: 0, x: swipeDirection === 'left' ? 100 : -100 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-4"
+        >
+          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-12 text-center overflow-hidden">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-secondary/10 flex items-center justify-center">
+              <Heart className="text-secondary" size={40} strokeWidth={1.5} />
+            </div>
+            <h3 className="text-2xl font-light text-white mb-3">Start Your Wellness Journey</h3>
+            <p className="text-white/60 mb-6 max-w-md mx-auto">
+              Complete your health profile to unlock personalized wellness insights
+            </p>
+            <Button
+              size="lg"
+              onClick={() => navigate('/settings')}
+              className="gap-2 bg-secondary text-background hover:bg-secondary/90"
+            >
+              Complete Health Profile
+            </Button>
+          </div>
+        </motion.div>
+      );
+    }
+
+    return (
+      <motion.div
+        key="pulse"
+        initial={{ opacity: 0, x: swipeDirection === 'left' ? 100 : -100 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
+        transition={{ duration: 0.3 }}
+        variants={kaevaStaggerContainer}
+        className="space-y-4"
+      >
+        <motion.div variants={kaevaStaggerChild}><WelcomeBanner /></motion.div>
+        <motion.div variants={kaevaStaggerChild}><PulseHeader profile={profile} /></motion.div>
+        <motion.div variants={kaevaStaggerChild}><SafetyShield profile={profile} /></motion.div>
+      </motion.div>
+    );
+  };
 
   const renderFuelView = () => (
     <motion.div
@@ -248,14 +285,17 @@ const Dashboard = ({ profile }: DashboardProps) => {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
       transition={{ duration: 0.3 }}
+      variants={kaevaStaggerContainer}
       className="space-y-4"
     >
-      <NutritionWidget userId={profile.id} />
-      <WaterTrackingWidget userId={profile.id} />
-      <StreakWidget userId={profile.id} onShare={() => {
-        setShareData({ streak: 0 });
-        setShareOpen(true);
-      }} />
+      <motion.div variants={kaevaStaggerChild}><NutritionWidget userId={profile.id} /></motion.div>
+      <motion.div variants={kaevaStaggerChild}><WaterTrackingWidget userId={profile.id} /></motion.div>
+      <motion.div variants={kaevaStaggerChild}>
+        <StreakWidget userId={profile.id} onShare={() => {
+          setShareData({ streak: 0 });
+          setShareOpen(true);
+        }} />
+      </motion.div>
     </motion.div>
   );
 
@@ -332,62 +372,140 @@ const Dashboard = ({ profile }: DashboardProps) => {
     </motion.div>
   );
 
-  const renderGlowView = () => (
-    <motion.div
-      key="glow"
-      initial={{ opacity: 0, x: swipeDirection === 'left' ? 100 : -100 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-4"
-    >
-      <BeautySummaryCard householdId={profile?.current_household_id || ''} />
-      <section className="space-y-3">
-        <div className="flex justify-between items-center">
-          <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Beauty Products</h3>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => navigate('/inventory')}
-            className="text-sm gap-2 text-muted-foreground hover:text-foreground"
-          >
-            View All
-            <ArrowRight className="w-4 h-4" />
-          </Button>
-        </div>
-        <BeautyInventoryList householdId={profile?.current_household_id || ''} />
-      </section>
-    </motion.div>
-  );
+  const renderGlowView = () => {
+    const hasBeautyItems = inventoryData.beauty.length > 0;
 
-  const renderPetsView = () => (
-    <motion.div
-      key="pets"
-      initial={{ opacity: 0, x: swipeDirection === 'left' ? 100 : -100 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-4"
-    >
-      <PetRosterCard userId={profile.id} />
-      <ToxicFoodMonitor userId={profile.id} />
-      <section className="space-y-3">
-        <div className="flex justify-between items-center">
-          <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Pet Supplies</h3>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => navigate('/inventory')}
-            className="text-sm gap-2 text-muted-foreground hover:text-foreground"
-          >
-            View All
-            <ArrowRight className="w-4 h-4" />
-          </Button>
-        </div>
-        <PetSuppliesStatus householdId={profile?.current_household_id || ''} />
-      </section>
-    </motion.div>
-  );
+    if (!hasBeautyItems) {
+      return (
+        <motion.div
+          key="glow"
+          initial={{ opacity: 0, x: swipeDirection === 'left' ? 100 : -100 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-4"
+        >
+          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-12 text-center overflow-hidden">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
+              <Sparkles className="text-primary" size={40} strokeWidth={1.5} />
+            </div>
+            <h3 className="text-2xl font-light text-white mb-3">No Beauty Products Yet</h3>
+            <p className="text-white/60 mb-6 max-w-md mx-auto">
+              Start tracking your skincare and beauty routine
+            </p>
+            <Button
+              size="lg"
+              onClick={() => setSpotlightOpen(true)}
+              className="gap-2 bg-primary text-background hover:bg-primary/90"
+            >
+              <Camera size={20} strokeWidth={1.5} />
+              Scan Beauty Products
+            </Button>
+          </div>
+        </motion.div>
+      );
+    }
+
+    return (
+      <motion.div
+        key="glow"
+        initial={{ opacity: 0, x: swipeDirection === 'left' ? 100 : -100 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
+        transition={{ duration: 0.3 }}
+        variants={kaevaStaggerContainer}
+        className="space-y-4"
+      >
+        <motion.div variants={kaevaStaggerChild}>
+          <BeautySummaryCard householdId={profile?.current_household_id || ''} />
+        </motion.div>
+        <motion.div variants={kaevaStaggerChild}>
+          <section className="space-y-3">
+            <div className="flex justify-between items-center">
+              <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Beauty Products</h3>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/inventory')}
+                className="text-sm gap-2 text-muted-foreground hover:text-foreground"
+              >
+                View All
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
+            <BeautyInventoryList householdId={profile?.current_household_id || ''} />
+          </section>
+        </motion.div>
+      </motion.div>
+    );
+  };
+
+  const renderPetsView = () => {
+    const hasPets = inventoryData.pets.length > 0;
+
+    if (!hasPets) {
+      return (
+        <motion.div
+          key="pets"
+          initial={{ opacity: 0, x: swipeDirection === 'left' ? 100 : -100 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-4"
+        >
+          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-12 text-center overflow-hidden">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-secondary/10 flex items-center justify-center">
+              <PawPrint className="text-secondary" size={40} strokeWidth={1.5} />
+            </div>
+            <h3 className="text-2xl font-light text-white mb-3">No Pets in Household</h3>
+            <p className="text-white/60 mb-6 max-w-md mx-auto">
+              Add your furry friends to enable pet safety monitoring
+            </p>
+            <Button
+              size="lg"
+              onClick={() => navigate('/household')}
+              className="gap-2 bg-secondary text-background hover:bg-secondary/90"
+            >
+              <Users size={20} strokeWidth={1.5} />
+              Add Your First Pet
+            </Button>
+          </div>
+        </motion.div>
+      );
+    }
+
+    return (
+      <motion.div
+        key="pets"
+        initial={{ opacity: 0, x: swipeDirection === 'left' ? 100 : -100 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
+        transition={{ duration: 0.3 }}
+        variants={kaevaStaggerContainer}
+        className="space-y-4"
+      >
+        <motion.div variants={kaevaStaggerChild}><PetRosterCard userId={profile.id} /></motion.div>
+        <motion.div variants={kaevaStaggerChild}><ToxicFoodMonitor userId={profile.id} /></motion.div>
+        <motion.div variants={kaevaStaggerChild}>
+          <section className="space-y-3">
+            <div className="flex justify-between items-center">
+              <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Pet Supplies</h3>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/inventory')}
+                className="text-sm gap-2 text-muted-foreground hover:text-foreground"
+              >
+                View All
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
+            <PetSuppliesStatus householdId={profile?.current_household_id || ''} />
+          </section>
+        </motion.div>
+      </motion.div>
+    );
+  };
 
   const renderHomeView = () => (
     <motion.div
@@ -396,19 +514,24 @@ const Dashboard = ({ profile }: DashboardProps) => {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: swipeDirection === 'left' ? -100 : 100 }}
       transition={{ duration: 0.3 }}
+      variants={kaevaStaggerContainer}
       className="space-y-4"
     >
-      <HouseholdQuickAccess />
-      <section className="space-y-3">
-        <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Recipe Engine</h3>
-        <RecipeFeed userInventory={inventoryData} userProfile={profile} />
-      </section>
-      <section className="space-y-3">
-        <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Household Activity</h3>
-        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-6 overflow-hidden">
-          <HouseholdActivityFeed householdId={profile?.current_household_id || null} maxItems={10} />
-        </div>
-      </section>
+      <motion.div variants={kaevaStaggerChild}><HouseholdQuickAccess /></motion.div>
+      <motion.div variants={kaevaStaggerChild}>
+        <section className="space-y-3">
+          <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Recipe Engine</h3>
+          <RecipeFeed userInventory={inventoryData} userProfile={profile} />
+        </section>
+      </motion.div>
+      <motion.div variants={kaevaStaggerChild}>
+        <section className="space-y-3">
+          <h3 className="text-xs font-bold tracking-widest text-slate-500 uppercase">Household Activity</h3>
+          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-6 overflow-hidden">
+            <HouseholdActivityFeed householdId={profile?.current_household_id || null} maxItems={10} />
+          </div>
+        </section>
+      </motion.div>
     </motion.div>
   );
 
@@ -438,6 +561,9 @@ const Dashboard = ({ profile }: DashboardProps) => {
 
         {/* View Mode Indicator */}
         <DashboardViewIndicator currentView={viewMode} onViewChange={handleViewChange} />
+
+        {/* Swipe Edge Indicators */}
+        <SwipeEdgeIndicator dragX={dragX} currentView={viewMode} />
 
         {/* Swipeable Container */}
         <motion.div
