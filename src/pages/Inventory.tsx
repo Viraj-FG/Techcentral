@@ -8,6 +8,7 @@ import { InventoryItemCard } from '@/components/inventory/InventoryItemCard';
 import { Package, Trash2, ShoppingCart, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 
 type InventoryCategory = 'fridge' | 'pantry' | 'beauty' | 'pets';
 
@@ -35,6 +36,9 @@ const Inventory = () => {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+
+  // Enable swipe navigation
+  useSwipeNavigation();
 
   useEffect(() => {
     fetchInventory();

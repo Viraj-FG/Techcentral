@@ -9,6 +9,7 @@ import { ChefHat, Filter, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 
 interface Recipe {
   id: string;
@@ -31,6 +32,9 @@ const RecipeBook = () => {
   const [loading, setLoading] = useState(true);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [filterTab, setFilterTab] = useState<'all' | 'ready' | 'wishlist'>('all');
+
+  // Enable swipe navigation
+  useSwipeNavigation();
 
   useEffect(() => {
     fetchRecipes();
