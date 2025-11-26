@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
 
     // Create expiration timestamp
     const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + expires_in_hours);
+    expiresAt.setHours(expiresAt.getHours() + (expires_in_hours ?? 24));
 
     // Create JWT payload
     const payload = {
