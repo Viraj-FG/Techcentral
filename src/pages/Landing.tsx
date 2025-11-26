@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Cpu, Scan, Activity, Camera, ShoppingBag, ShieldCheck, ChevronDown } from "lucide-react";
+import { Cpu, Scan, Activity, Camera, ShoppingBag, ShieldCheck, ChevronDown, Download } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PublicShell from "@/components/layout/PublicShell";
@@ -152,12 +152,19 @@ const Landing = () => {
             </svg>
             <span className="text-xl font-bold font-['Space_Grotesk']">KAEVA</span>
           </div>
-          <div className="flex gap-4">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate('/install')} 
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary hover:text-primary/80 transition"
+            >
+              <Download className="w-4 h-4" />
+              Install App
+            </button>
             <button onClick={() => navigate('/auth')} className="px-6 py-2 text-sm font-medium rounded-lg border border-white/20 hover:bg-white/10 transition">
               Login
             </button>
             <button onClick={() => navigate('/auth')} className="px-6 py-2 text-sm font-medium rounded-lg bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 transition shadow-lg shadow-primary/30">
-              Get App
+              Get Started
             </button>
           </div>
         </div>
