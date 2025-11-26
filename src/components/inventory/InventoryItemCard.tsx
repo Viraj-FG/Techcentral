@@ -40,6 +40,12 @@ interface InventoryItem {
   reorder_threshold: number | null;
   product_image_url: string | null;
   household_id: string;
+  nutrition_data?: {
+    calories?: number;
+    protein?: number;
+    carbs?: number;
+    fat?: number;
+  } | null;
 }
 
 interface Props {
@@ -274,6 +280,14 @@ export const InventoryItemCard = ({
             <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
               <RefreshCw className="w-3 h-3 mr-1" />
               Auto-order
+            </Badge>
+          )}
+          {/* Nutrition Preview Badges */}
+          {item.nutrition_data && (item.nutrition_data.calories || item.nutrition_data.protein) && (
+            <Badge variant="outline" className="bg-accent/10 text-accent border-accent/20">
+              {item.nutrition_data.calories && `${item.nutrition_data.calories} cal`}
+              {item.nutrition_data.calories && item.nutrition_data.protein && ' | '}
+              {item.nutrition_data.protein && `${item.nutrition_data.protein}g protein`}
             </Badge>
           )}
         </div>
