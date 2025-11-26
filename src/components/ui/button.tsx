@@ -3,6 +3,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
+import { haptics } from "@/lib/haptics";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-all duration-500 ease-kaeva focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
@@ -24,10 +25,11 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-12 px-6 py-3",
-        sm: "h-10 px-4",
-        lg: "h-14 px-8",
-        icon: "h-12 w-12",
+        // All sizes enforce 44px minimum touch target (iOS/Android accessibility)
+        default: "h-12 px-6 py-3 min-h-[44px] min-w-[44px]",
+        sm: "h-11 px-4 min-h-[44px] min-w-[44px]",
+        lg: "h-14 px-8 min-h-[44px] min-w-[44px]",
+        icon: "h-12 w-12 min-h-[44px] min-w-[44px]",
       },
     },
     defaultVariants: {
@@ -41,12 +43,41 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  /** Enable haptic feedback on press. Defaults to true for primary/destructive variants */
+  haptic?: boolean | 'success' | 'warning' | 'selection';
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, haptic, onClick, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;
+    
+    // Determine haptic type based on variant if not explicitly set
+    const getHapticType = () => {
+      if (haptic === false) return null;
+      if (typeof haptic === 'string') return haptic;
+      if (haptic === true) return 'selection';
+      // Default haptics based on variant
+      if (variant === 'destructive') return 'warning';
+      if (variant === 'primary' || variant === 'default') return 'success';
+      return null;
+    };
+
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      const hapticType = getHapticType();
+      if (hapticType) {
+        haptics[hapticType]?.();
+      }
+      onClick?.(e);
+    };
+
+    return (
+      <Comp 
+        className={cn(buttonVariants({ variant, size, className }))} 
+        ref={ref} 
+        onClick={handleClick}
+        {...props} 
+      />
+    );
   },
 );
 Button.displayName = "Button";
