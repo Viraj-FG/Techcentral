@@ -35,6 +35,9 @@ import { PetSuppliesStatus } from "./dashboard/PetSuppliesStatus";
 import { ToxicFoodMonitor } from "./dashboard/ToxicFoodMonitor";
 import { SwipeEdgeIndicator } from "./dashboard/SwipeEdgeIndicator";
 import { kaevaStaggerContainer, kaevaStaggerChild } from "@/hooks/useKaevaMotion";
+import { useModularOnboarding, OnboardingModule } from "@/hooks/useModularOnboarding";
+import { ModularOnboardingPrompt } from "./onboarding/ModularOnboardingPrompt";
+import { OnboardingModuleSheet } from "./onboarding/OnboardingModuleSheet";
 
 interface DashboardProps {
   profile: any;
@@ -58,6 +61,18 @@ const Dashboard = ({ profile }: DashboardProps) => {
   const [shareOpen, setShareOpen] = useState(false);
   const [shareData, setShareData] = useState({});
   const [swipeDirection, setSwipeDirection] = useState<'left' | 'right'>('right');
+
+  // Modular onboarding state
+  const { isModuleComplete, isDismissedThisSession, dismissPrompt } = useModularOnboarding();
+  const [showOnboardingPrompt, setShowOnboardingPrompt] = useState<{
+    module: OnboardingModule;
+    open: boolean;
+    message: string;
+  } | null>(null);
+  const [showModuleSheet, setShowModuleSheet] = useState<{
+    module: OnboardingModule;
+    open: boolean;
+  } | null>(null);
 
   // Voice assistant ref
   const voiceAssistantRef = useRef<VoiceAssistantRef>(null);
@@ -200,6 +215,37 @@ const Dashboard = ({ profile }: DashboardProps) => {
     checkAdmin();
     fetchInventory();
   }, []);
+
+  // Contextual onboarding prompts based on current view
+  useEffect(() => {
+    const checkPrompt = (module: OnboardingModule, message: string) => {
+      if (!isModuleComplete(module) && !isDismissedThisSession(module)) {
+        setShowOnboardingPrompt({ module, open: true, message });
+      } else {
+        setShowOnboardingPrompt(null);
+      }
+    };
+
+    switch (viewMode) {
+      case 'fuel':
+        checkPrompt('nutrition', 'Want personalized meal recommendations? Share your nutrition goals.');
+        break;
+      case 'glow':
+        checkPrompt('beauty', 'Get product recommendations tailored to your skin and hair type.');
+        break;
+      case 'pets':
+        checkPrompt('pets', 'Keep your pets safe! Tell us about your furry friends.');
+        break;
+      case 'home':
+        checkPrompt('household', 'Share household members to get personalized meal plans.');
+        break;
+      case 'pantry':
+        checkPrompt('pantry', 'Set your shopping preferences for smarter auto-refills.');
+        break;
+      default:
+        setShowOnboardingPrompt(null);
+    }
+  }, [viewMode, isModuleComplete, isDismissedThisSession]);
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -619,6 +665,38 @@ const Dashboard = ({ profile }: DashboardProps) => {
         onClose={() => setShareOpen(false)} 
         data={shareData} 
       />
+
+      {/* Modular Onboarding Components */}
+      {showOnboardingPrompt && (
+        <ModularOnboardingPrompt
+          open={showOnboardingPrompt.open}
+          module={showOnboardingPrompt.module}
+          message={showOnboardingPrompt.message}
+          onStart={() => {
+            setShowOnboardingPrompt(null);
+            setShowModuleSheet({
+              module: showOnboardingPrompt.module,
+              open: true,
+            });
+          }}
+          onDismiss={() => {
+            dismissPrompt(showOnboardingPrompt.module);
+            setShowOnboardingPrompt(null);
+          }}
+        />
+      )}
+
+      {showModuleSheet && (
+        <OnboardingModuleSheet
+          open={showModuleSheet.open}
+          module={showModuleSheet.module}
+          onClose={() => setShowModuleSheet(null)}
+          onComplete={() => {
+            setShowModuleSheet(null);
+            fetchInventory(); // Refresh data after onboarding
+          }}
+        />
+      )}
     </>
   );
 };

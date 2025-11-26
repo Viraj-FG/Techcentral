@@ -27,6 +27,10 @@ import { BottomTabBar } from "@/components/layout/BottomTabBar";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { checkAdminStatus } from "@/lib/authUtils";
+import { useModularOnboarding } from "@/hooks/useModularOnboarding";
+import { OnboardingModuleSheet } from "@/components/onboarding/OnboardingModuleSheet";
+import type { OnboardingModule } from "@/hooks/useModularOnboarding";
+import { CheckCircle2, Circle } from "lucide-react";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -62,6 +66,12 @@ const Settings = () => {
   const [notificationSheetOpen, setNotificationSheetOpen] = useState(false);
   const [storeSelectorOpen, setStoreSelectorOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  
+  const { modules, isModuleComplete, completionPercentage } = useModularOnboarding();
+  const [showModuleSheet, setShowModuleSheet] = useState<{
+    module: OnboardingModule;
+    open: boolean;
+  } | null>(null);
 
   // Enable swipe navigation and get swipe state
   const swipeState = useSwipeNavigation();
@@ -163,11 +173,61 @@ const Settings = () => {
             <p className="text-3xl font-semibold text-secondary">{userName || "User"}</p>
           </motion.div>
 
-          {/* 2. Quick Action Cards */}
+          {/* 2. Profile Completion Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ ...kaevaTransition, delay: 0.1 }}
+          >
+            <h3 className="text-sm font-medium text-muted-foreground mb-3">Profile Completion</h3>
+            <div className="glass-card rounded-3xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-lg font-semibold text-foreground">
+                  {completionPercentage()}% Complete
+                </span>
+                <div className="h-2 flex-1 ml-4 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-primary transition-all duration-500"
+                    style={{ width: `${completionPercentage()}%` }}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { module: 'core' as OnboardingModule, label: 'Core Profile', icon: User },
+                  { module: 'nutrition' as OnboardingModule, label: 'Nutrition', icon: Heart },
+                  { module: 'pantry' as OnboardingModule, label: 'Pantry', icon: Store },
+                  { module: 'beauty' as OnboardingModule, label: 'Beauty', icon: Sparkles },
+                  { module: 'pets' as OnboardingModule, label: 'Pets', icon: Heart },
+                  { module: 'household' as OnboardingModule, label: 'Household', icon: Users },
+                ].map(({ module, label, icon: Icon }) => {
+                  const complete = isModuleComplete(module);
+                  return (
+                    <button
+                      key={module}
+                      onClick={() => setShowModuleSheet({ module, open: true })}
+                      className="flex items-center gap-3 p-3 rounded-2xl bg-background/50 border border-border/50 hover:border-primary/50 transition-all"
+                    >
+                      {complete ? (
+                        <CheckCircle2 className="w-5 h-5 text-secondary" />
+                      ) : (
+                        <Circle className="w-5 h-5 text-muted-foreground" />
+                      )}
+                      <Icon className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-foreground">{label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* 3. Quick Action Cards */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...kaevaTransition, delay: 0.15 }}
             className="grid grid-cols-3 gap-3"
           >
             <QuickActionCard 
@@ -187,7 +247,7 @@ const Settings = () => {
             />
           </motion.div>
 
-          {/* 3. Settings List */}
+          {/* 4. Settings List */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -232,7 +292,7 @@ const Settings = () => {
             />
           </motion.div>
 
-          {/* 4. Additional Settings */}
+          {/* 5. Additional Settings */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -268,13 +328,25 @@ const Settings = () => {
             )}
           </motion.div>
 
-          {/* 5. App Info Footer */}
+          {/* 6. App Info Footer */}
           <div className="text-center py-4">
             <p className="text-xs text-muted-foreground">KAEVA v1.0.0</p>
             <p className="text-xs text-muted-foreground mt-1">Your home, on autopilot</p>
           </div>
         </div>
         </PageTransition>
+
+        {showModuleSheet && (
+          <OnboardingModuleSheet
+            open={showModuleSheet.open}
+            module={showModuleSheet.module}
+            onClose={() => setShowModuleSheet(null)}
+            onComplete={() => {
+              // Reload profile to refresh module completion state
+              loadProfile();
+            }}
+          />
+        )}
 
         {/* All Sheet Components */}
         <ProfileEditSheet 

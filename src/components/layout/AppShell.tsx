@@ -9,6 +9,8 @@ import KaevaAperture from '@/components/KaevaAperture';
 import ActionPickerDialog from './ActionPickerDialog';
 import GlobalSearch from '@/components/search/GlobalSearch';
 import UniversalShell from './UniversalShell';
+import { useWakeWordDetection } from '@/hooks/useWakeWordDetection';
+import { WakeWordIndicator } from '../onboarding/voice/WakeWordIndicator';
 interface AppShellProps {
   children: ReactNode;
   onScan: () => void;
@@ -27,6 +29,19 @@ const AppShell = ({
   const [profile, setProfile] = useState<any>(null);
   const [actionPickerOpen, setActionPickerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [voiceActive, setVoiceActive] = useState(false);
+
+  const { isListening, isActivated } = useWakeWordDetection({
+    enabled: true,
+    onActivated: () => {
+      if (onVoiceActivate && !voiceActive) {
+        onVoiceActivate();
+        setVoiceActive(true);
+        // Reset after 2 seconds
+        setTimeout(() => setVoiceActive(false), 2000);
+      }
+    },
+  });
 
   // Fetch user and profile data
   useEffect(() => {
@@ -153,6 +168,12 @@ const AppShell = ({
 
       {/* Global Search */}
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
+
+      {/* Wake Word Indicator */}
+      <WakeWordIndicator 
+        isListening={isListening} 
+        isActivated={isActivated} 
+      />
     </>;
 };
 export default AppShell;
