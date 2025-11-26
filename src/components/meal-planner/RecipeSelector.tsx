@@ -10,6 +10,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, ChefHat } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { EmojiGridSelector } from '@/components/ui/EmojiGridSelector';
+
+const FOOD_MOODS = [
+  { emoji: '🥗', label: 'Light', value: 'light' },
+  { emoji: '🍕', label: 'Comfort', value: 'comfort' },
+  { emoji: '💪', label: 'Protein', value: 'protein' },
+  { emoji: '🌱', label: 'Veggie', value: 'veggie' },
+];
 
 interface Recipe {
   id: string;
@@ -30,6 +38,7 @@ export const RecipeSelector = ({ open, onClose, onSelect, mealType }: RecipeSele
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,17 +48,37 @@ export const RecipeSelector = ({ open, onClose, onSelect, mealType }: RecipeSele
   }, [open]);
 
   useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredRecipes(recipes);
-    } else {
+    let filtered = recipes;
+
+    // Filter by mood
+    if (selectedMood) {
+      filtered = filtered.filter(recipe => {
+        const name = recipe.name.toLowerCase();
+        switch (selectedMood) {
+          case 'light':
+            return (recipe.estimated_calories || 0) < 400;
+          case 'comfort':
+            return name.includes('pasta') || name.includes('pizza') || name.includes('burger');
+          case 'protein':
+            return (recipe.estimated_calories || 0) > 300 && name.includes('chicken');
+          case 'veggie':
+            return name.includes('salad') || name.includes('vegetable');
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Filter by search query
+    if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase();
-      setFilteredRecipes(
-        recipes.filter(recipe => 
-          recipe.name.toLowerCase().includes(query)
-        )
+      filtered = filtered.filter(recipe => 
+        recipe.name.toLowerCase().includes(query)
       );
     }
-  }, [searchQuery, recipes]);
+
+    setFilteredRecipes(filtered);
+  }, [searchQuery, selectedMood, recipes]);
 
   const fetchRecipes = async () => {
     setLoading(true);
@@ -94,6 +123,16 @@ export const RecipeSelector = ({ open, onClose, onSelect, mealType }: RecipeSele
             Choose Recipe for {mealType}
           </DialogTitle>
         </DialogHeader>
+
+        {/* Food Mood Selector */}
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-muted-foreground">What are you craving?</p>
+          <EmojiGridSelector
+            moods={FOOD_MOODS}
+            selectedMood={selectedMood}
+            onSelect={setSelectedMood}
+          />
+        </div>
 
         {/* Search */}
         <div className="relative">
