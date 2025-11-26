@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { PackageOpen, Plus, Minus } from 'lucide-react';
+import { PackageOpen, Plus, Minus, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface DetectedItem {
   name: string;
@@ -11,6 +14,10 @@ interface DetectedItem {
   product_image_url?: string;
   metadata?: {
     estimated_shelf_life_days?: number;
+  };
+  nutrition?: {
+    calories?: number;
+    protein?: number;
   };
 }
 
@@ -60,11 +67,45 @@ const InventorySweepResult = ({ items }: { items: DetectedItem[] }) => {
     setEditableItems(prev => prev.map(item => ({ ...item, selected: true })));
   };
 
+  const handleAddToCart = async (item: EditableItem) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('current_household_id')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile?.current_household_id) {
+      toast.error('No household found');
+      return;
+    }
+
+    const { error } = await supabase
+      .from('shopping_list')
+      .insert({
+        household_id: profile.current_household_id,
+        item_name: item.name,
+        quantity: item.quantity,
+        unit: 'units',
+        source: 'scan',
+        priority: 'normal',
+        status: 'pending'
+      });
+
+    if (!error) {
+      toast.success(`${item.name} added to cart`);
+    } else {
+      toast.error('Failed to add to cart');
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-slate-300">
-          Found <span className="font-bold text-white">{items.length}</span> items
+        <p className="text-muted-foreground">
+          Found <span className="font-bold text-foreground">{items.length}</span> items
         </p>
         <Button variant="ghost" size="sm" onClick={selectAll} className="text-secondary">
           Select All
@@ -78,7 +119,7 @@ const InventorySweepResult = ({ items }: { items: DetectedItem[] }) => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="flex items-center gap-3 p-3 bg-slate-800/40 rounded-xl border border-slate-700/50"
+            className="flex items-center gap-3 p-3 bg-card/40 rounded-xl border border-border/50"
           >
             {/* Checkbox */}
             <input
@@ -89,41 +130,61 @@ const InventorySweepResult = ({ items }: { items: DetectedItem[] }) => {
             />
 
             {/* Thumbnail */}
-            <div className="w-14 h-14 bg-slate-700 rounded-lg flex items-center justify-center flex-shrink-0">
+            <div className="w-14 h-14 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
               {item.product_image_url ? (
                 <img src={item.product_image_url} alt={item.name} className="w-full h-full object-cover rounded-lg" />
               ) : (
-                <PackageOpen className="w-6 h-6 text-slate-400" />
+                <PackageOpen className="w-6 h-6 text-muted-foreground" />
               )}
             </div>
 
             {/* Name & badges */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 space-y-2">
               <input
                 type="text"
                 value={item.name}
                 onChange={(e) => updateName(index, e.target.value)}
-                className="w-full bg-transparent text-white font-medium outline-none"
+                className="w-full bg-transparent text-foreground font-medium outline-none"
               />
               {item.brand && (
-                <p className="text-xs text-slate-400 mt-0.5">{item.brand}</p>
+                <p className="text-xs text-muted-foreground">{item.brand}</p>
               )}
-              <div className="flex gap-2 mt-1">
+              
+              {/* Nutrition Preview Badge */}
+              {item.nutrition && (item.nutrition.calories || item.nutrition.protein) && (
+                <Badge variant="outline" className="text-xs">
+                  {item.nutrition.calories && `${item.nutrition.calories} cal`}
+                  {item.nutrition.calories && item.nutrition.protein && ' | '}
+                  {item.nutrition.protein && `${item.nutrition.protein}g protein`}
+                </Badge>
+              )}
+              
+              <div className="flex gap-2">
                 {item.isExpired && (
-                  <span className="text-xs px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full border border-red-500/30">
+                  <span className="text-xs px-2 py-0.5 bg-destructive/20 text-destructive rounded-full border border-destructive/30">
                     Expired
                   </span>
                 )}
                 {item.isExpiringSoon && !item.isExpired && (
-                  <span className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded-full border border-yellow-500/30">
+                  <span className="text-xs px-2 py-0.5 bg-primary/20 text-primary rounded-full border border-primary/30">
                     Expiring Soon
                   </span>
                 )}
               </div>
             </div>
 
+            {/* Add to Cart Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleAddToCart(item)}
+              className="flex-shrink-0"
+            >
+              <ShoppingCart className="w-4 h-4" />
+            </Button>
+
             {/* Quantity stepper */}
-            <div className="flex items-center gap-2 bg-slate-700/50 rounded-lg px-2">
+            <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-2">
               <Button
                 variant="ghost"
                 size="icon"
@@ -132,7 +193,7 @@ const InventorySweepResult = ({ items }: { items: DetectedItem[] }) => {
               >
                 <Minus className="w-4 h-4" />
               </Button>
-              <span className="w-8 text-center font-semibold text-white">{item.quantity}</span>
+              <span className="w-8 text-center font-semibold text-foreground">{item.quantity}</span>
               <Button
                 variant="ghost"
                 size="icon"

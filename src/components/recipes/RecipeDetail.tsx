@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CookingMode } from './CookingMode';
+import { RecipeShareSheet } from './RecipeShareSheet';
 import { 
   Clock, 
   Users, 
@@ -17,7 +18,8 @@ import {
   ShoppingCart, 
   Play,
   Trash2,
-  TrendingUp
+  TrendingUp,
+  Share2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -45,6 +47,7 @@ interface Props {
 
 export const RecipeDetail = ({ recipe, open, onClose, onRecipeDeleted }: Props) => {
   const [showCookingMode, setShowCookingMode] = useState(false);
+  const [showShareSheet, setShowShareSheet] = useState(false);
   const [checkedIngredients, setCheckedIngredients] = useState<Set<number>>(new Set());
   const [inventory, setInventory] = useState<any[]>([]);
 
@@ -296,6 +299,14 @@ export const RecipeDetail = ({ recipe, open, onClose, onRecipeDeleted }: Props) 
               Start Cooking
             </Button>
             <Button
+              variant="outline"
+              onClick={() => setShowShareSheet(true)}
+              className="gap-2"
+            >
+              <Share2 className="w-4 h-4" />
+              Share
+            </Button>
+            <Button
               variant="destructive"
               onClick={handleDelete}
               className="gap-2"
@@ -306,6 +317,18 @@ export const RecipeDetail = ({ recipe, open, onClose, onRecipeDeleted }: Props) 
           </div>
         </div>
       </DialogContent>
+
+      {/* Share Sheet */}
+      {showShareSheet && (
+        <RecipeShareSheet
+          open={showShareSheet}
+          onClose={() => setShowShareSheet(false)}
+          recipeId={recipe.id}
+          recipeName={recipe.name}
+          isPublic={false}
+          shareToken={null}
+        />
+      )}
     </Dialog>
   );
 };
