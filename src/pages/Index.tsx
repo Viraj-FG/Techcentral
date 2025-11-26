@@ -14,6 +14,7 @@ const Index = () => {
   const [appState, setAppState] = useState<"splash" | "onboarding" | "household-setup" | "dashboard" | null>(null);
   const [userProfile, setUserProfile] = useState(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [session, setSession] = useState<any>(null);
 
   // Enable swipe navigation on dashboard and get swipe state
   const swipeState = useSwipeNavigation({ enabled: appState === "dashboard" });
@@ -29,25 +30,11 @@ const Index = () => {
           return;
         }
 
-        // Check if profile exists and onboarding is complete
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        if (profile?.onboarding_completed) {
-          // Check if user has a household
-          if (!profile.current_household_id) {
-            setUserProfile(profile);
-            setAppState("household-setup"); // Missing household → Setup
-          } else {
-            setUserProfile(profile);
-            setAppState("dashboard"); // Returning user → Dashboard
-          }
-        } else {
-          setAppState("onboarding"); // New user → Onboarding
-        }
+        // Store session for use after splash
+        setSession(session);
+        
+        // Always show splash first for authenticated users
+        setAppState("splash");
       } catch (error) {
         console.error("Error checking auth:", error);
         navigate('/auth');
@@ -68,6 +55,37 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  const handleSplashComplete = async () => {
+    if (!session?.user) {
+      navigate('/auth');
+      return;
+    }
+    
+    try {
+      // Check profile after splash animation completes
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profile?.onboarding_completed) {
+        if (!profile.current_household_id) {
+          setUserProfile(profile);
+          setAppState("household-setup");
+        } else {
+          setUserProfile(profile);
+          setAppState("dashboard");
+        }
+      } else {
+        setAppState("onboarding");
+      }
+    } catch (error) {
+      console.error("Error loading profile after splash:", error);
+      setAppState("onboarding");
+    }
+  };
+
   if (isCheckingAuth || appState === null) {
     return (
       <div className="fixed inset-0 bg-background flex items-center justify-center">
@@ -78,6 +96,10 @@ const Index = () => {
 
   return (
     <AnimatePresence mode="wait">
+      {appState === "splash" && (
+        <Splash key="splash" onComplete={handleSplashComplete} />
+      )}
+
       {appState === "onboarding" && (
         <VoiceOnboarding 
           key="voice-onboarding"
