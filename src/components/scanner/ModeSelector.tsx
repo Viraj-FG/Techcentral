@@ -31,13 +31,13 @@ export const ModeSelector = ({ mode, onChange }: ModeSelectorProps) => {
             className={cn(
               "w-10 h-10 rounded-full backdrop-blur-md flex items-center justify-center transition-colors",
               isActive 
-                ? "bg-kaeva-sage/20 border border-kaeva-sage" 
+                ? "bg-secondary/20 border border-secondary" 
                 : "bg-white/10"
             )}
           >
             <Icon className={cn(
               "w-5 h-5",
-              isActive ? "text-kaeva-sage" : "text-white"
+              isActive ? "text-secondary" : "text-white"
             )} />
           </motion.button>
         );

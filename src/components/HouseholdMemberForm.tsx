@@ -66,31 +66,31 @@ const HouseholdMemberForm = ({ initialData, onSubmit, onCancel }: HouseholdMembe
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Basic Info */}
       <div className="space-y-4">
-        <h3 className="text-sm font-medium text-kaeva-sage">Basic Information</h3>
+        <h3 className="text-sm font-medium text-secondary">Basic Information</h3>
         
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-kaeva-sage/70">Name *</Label>
+            <Label htmlFor="name" className="text-secondary/70">Name *</Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder="e.g., Mom, Emma, Dad"
-              className="bg-kaeva-void/50 border-kaeva-sage/20 text-kaeva-sage"
+              className="bg-background/50 border-secondary/20 text-secondary"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="type" className="text-kaeva-sage/70">Type *</Label>
+            <Label htmlFor="type" className="text-secondary/70">Type *</Label>
             <Select
               value={formData.type}
               onValueChange={(value: any) => setFormData(prev => ({ ...prev, type: value }))}
             >
-              <SelectTrigger className="bg-kaeva-void/50 border-kaeva-sage/20 text-kaeva-sage">
+              <SelectTrigger className="bg-background/50 border-secondary/20 text-secondary">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-kaeva-void border-kaeva-sage/20">
+              <SelectContent className="bg-background border-secondary/20">
                 <SelectItem value="adult">Adult</SelectItem>
                 <SelectItem value="elderly">Elderly</SelectItem>
                 <SelectItem value="child">Child</SelectItem>
@@ -102,27 +102,27 @@ const HouseholdMemberForm = ({ initialData, onSubmit, onCancel }: HouseholdMembe
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="age" className="text-kaeva-sage/70">Age</Label>
+            <Label htmlFor="age" className="text-secondary/70">Age</Label>
             <Input
               id="age"
               type="number"
               value={formData.age || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, age: parseInt(e.target.value) || undefined }))}
               placeholder="e.g., 8"
-              className="bg-kaeva-void/50 border-kaeva-sage/20 text-kaeva-sage"
+              className="bg-background/50 border-secondary/20 text-secondary"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="ageGroup" className="text-kaeva-sage/70">Age Group</Label>
+            <Label htmlFor="ageGroup" className="text-secondary/70">Age Group</Label>
             <Select
               value={formData.ageGroup}
               onValueChange={(value: any) => setFormData(prev => ({ ...prev, ageGroup: value }))}
             >
-              <SelectTrigger className="bg-kaeva-void/50 border-kaeva-sage/20 text-kaeva-sage">
+              <SelectTrigger className="bg-background/50 border-secondary/20 text-secondary">
                 <SelectValue placeholder="Select..." />
               </SelectTrigger>
-              <SelectContent className="bg-kaeva-void border-kaeva-sage/20">
+              <SelectContent className="bg-background border-secondary/20">
                 <SelectItem value="infant">Infant</SelectItem>
                 <SelectItem value="toddler">Toddler</SelectItem>
                 <SelectItem value="child">Child</SelectItem>
@@ -137,11 +137,11 @@ const HouseholdMemberForm = ({ initialData, onSubmit, onCancel }: HouseholdMembe
 
       {/* Biometrics (Optional) */}
       <div className="space-y-4">
-        <h3 className="text-sm font-medium text-kaeva-sage">Biometrics (Optional)</h3>
+        <h3 className="text-sm font-medium text-secondary">Biometrics (Optional)</h3>
         
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="weight" className="text-kaeva-sage/70">Weight (kg)</Label>
+            <Label htmlFor="weight" className="text-secondary/70">Weight (kg)</Label>
             <Input
               id="weight"
               type="number"
@@ -151,12 +151,12 @@ const HouseholdMemberForm = ({ initialData, onSubmit, onCancel }: HouseholdMembe
                 biometrics: { ...prev.biometrics, weight: parseFloat(e.target.value) || undefined }
               }))}
               placeholder="e.g., 65"
-              className="bg-kaeva-void/50 border-kaeva-sage/20 text-kaeva-sage"
+              className="bg-background/50 border-secondary/20 text-secondary"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="height" className="text-kaeva-sage/70">Height (cm)</Label>
+            <Label htmlFor="height" className="text-secondary/70">Height (cm)</Label>
             <Input
               id="height"
               type="number"
@@ -166,14 +166,14 @@ const HouseholdMemberForm = ({ initialData, onSubmit, onCancel }: HouseholdMembe
                 biometrics: { ...prev.biometrics, height: parseFloat(e.target.value) || undefined }
               }))}
               placeholder="e.g., 165"
-              className="bg-kaeva-void/50 border-kaeva-sage/20 text-kaeva-sage"
+              className="bg-background/50 border-secondary/20 text-secondary"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="gender" className="text-kaeva-sage/70">Gender</Label>
+            <Label htmlFor="gender" className="text-secondary/70">Gender</Label>
             <Select
               value={formData.biometrics?.gender}
               onValueChange={(value) => setFormData(prev => ({
@@ -181,10 +181,10 @@ const HouseholdMemberForm = ({ initialData, onSubmit, onCancel }: HouseholdMembe
                 biometrics: { ...prev.biometrics, gender: value }
               }))}
             >
-              <SelectTrigger className="bg-kaeva-void/50 border-kaeva-sage/20 text-kaeva-sage">
+              <SelectTrigger className="bg-background/50 border-secondary/20 text-secondary">
                 <SelectValue placeholder="Select..." />
               </SelectTrigger>
-              <SelectContent className="bg-kaeva-void border-kaeva-sage/20">
+              <SelectContent className="bg-background border-secondary/20">
                 <SelectItem value="male">Male</SelectItem>
                 <SelectItem value="female">Female</SelectItem>
                 <SelectItem value="other">Other</SelectItem>
@@ -193,7 +193,7 @@ const HouseholdMemberForm = ({ initialData, onSubmit, onCancel }: HouseholdMembe
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="activityLevel" className="text-kaeva-sage/70">Activity Level</Label>
+            <Label htmlFor="activityLevel" className="text-secondary/70">Activity Level</Label>
             <Select
               value={formData.biometrics?.activityLevel}
               onValueChange={(value) => setFormData(prev => ({
@@ -201,10 +201,10 @@ const HouseholdMemberForm = ({ initialData, onSubmit, onCancel }: HouseholdMembe
                 biometrics: { ...prev.biometrics, activityLevel: value }
               }))}
             >
-              <SelectTrigger className="bg-kaeva-void/50 border-kaeva-sage/20 text-kaeva-sage">
+              <SelectTrigger className="bg-background/50 border-secondary/20 text-secondary">
                 <SelectValue placeholder="Select..." />
               </SelectTrigger>
-              <SelectContent className="bg-kaeva-void border-kaeva-sage/20">
+              <SelectContent className="bg-background border-secondary/20">
                 <SelectItem value="sedentary">Sedentary</SelectItem>
                 <SelectItem value="light">Lightly Active</SelectItem>
                 <SelectItem value="moderate">Moderately Active</SelectItem>
@@ -218,7 +218,7 @@ const HouseholdMemberForm = ({ initialData, onSubmit, onCancel }: HouseholdMembe
 
       {/* Allergies */}
       <div className="space-y-3">
-        <Label className="text-kaeva-sage/70">Allergies</Label>
+        <Label className="text-secondary/70">Allergies</Label>
         <div className="flex gap-2">
           <Input
             value={currentAllergy}
@@ -231,7 +231,7 @@ const HouseholdMemberForm = ({ initialData, onSubmit, onCancel }: HouseholdMembe
               }
             }}
             placeholder="e.g., Peanuts, Dairy..."
-            className="bg-kaeva-void/50 border-kaeva-sage/20 text-kaeva-sage"
+            className="bg-background/50 border-secondary/20 text-secondary"
           />
           <Button
             type="button"
@@ -240,7 +240,7 @@ const HouseholdMemberForm = ({ initialData, onSubmit, onCancel }: HouseholdMembe
               setCurrentAllergy('');
             }}
             variant="outline"
-            className="border-kaeva-sage/20"
+            className="border-secondary/20"
           >
             Add
           </Button>
@@ -263,7 +263,7 @@ const HouseholdMemberForm = ({ initialData, onSubmit, onCancel }: HouseholdMembe
 
       {/* Dietary Restrictions */}
       <div className="space-y-3">
-        <Label className="text-kaeva-sage/70">Dietary Restrictions</Label>
+        <Label className="text-secondary/70">Dietary Restrictions</Label>
         <div className="flex gap-2">
           <Input
             value={currentRestriction}
@@ -276,7 +276,7 @@ const HouseholdMemberForm = ({ initialData, onSubmit, onCancel }: HouseholdMembe
               }
             }}
             placeholder="e.g., Vegan, Low Sodium..."
-            className="bg-kaeva-void/50 border-kaeva-sage/20 text-kaeva-sage"
+            className="bg-background/50 border-secondary/20 text-secondary"
           />
           <Button
             type="button"
@@ -285,7 +285,7 @@ const HouseholdMemberForm = ({ initialData, onSubmit, onCancel }: HouseholdMembe
               setCurrentRestriction('');
             }}
             variant="outline"
-            className="border-kaeva-sage/20"
+            className="border-secondary/20"
           >
             Add
           </Button>
@@ -308,7 +308,7 @@ const HouseholdMemberForm = ({ initialData, onSubmit, onCancel }: HouseholdMembe
 
       {/* Health Conditions */}
       <div className="space-y-3">
-        <Label className="text-kaeva-sage/70">Health Conditions</Label>
+        <Label className="text-secondary/70">Health Conditions</Label>
         <div className="flex gap-2">
           <Input
             value={currentCondition}
@@ -321,7 +321,7 @@ const HouseholdMemberForm = ({ initialData, onSubmit, onCancel }: HouseholdMembe
               }
             }}
             placeholder="e.g., Diabetes, Hypertension..."
-            className="bg-kaeva-void/50 border-kaeva-sage/20 text-kaeva-sage"
+            className="bg-background/50 border-secondary/20 text-secondary"
           />
           <Button
             type="button"
@@ -330,19 +330,19 @@ const HouseholdMemberForm = ({ initialData, onSubmit, onCancel }: HouseholdMembe
               setCurrentCondition('');
             }}
             variant="outline"
-            className="border-kaeva-sage/20"
+            className="border-secondary/20"
           >
             Add
           </Button>
         </div>
         <div className="flex flex-wrap gap-2">
           {formData.healthConditions?.map((condition, idx) => (
-            <Badge key={idx} className="gap-1 bg-kaeva-accent/20 text-kaeva-accent hover:bg-kaeva-accent/30">
+            <Badge key={idx} className="gap-1 bg-accent/20 text-accent hover:bg-accent/30">
               {condition}
               <button
                 type="button"
                 onClick={() => removeItem('healthConditions', condition)}
-                className="hover:bg-kaeva-accent/20 rounded-full"
+                className="hover:bg-accent/20 rounded-full"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -357,13 +357,13 @@ const HouseholdMemberForm = ({ initialData, onSubmit, onCancel }: HouseholdMembe
           type="button"
           variant="outline"
           onClick={onCancel}
-          className="border-kaeva-sage/20 text-kaeva-sage hover:bg-kaeva-sage/10"
+          className="border-secondary/20 text-secondary hover:bg-secondary/10"
         >
           Cancel
         </Button>
         <Button
           type="submit"
-          className="bg-kaeva-accent hover:bg-kaeva-accent/90 text-kaeva-void"
+          className="bg-accent hover:bg-accent/90 text-background"
         >
           {initialData ? 'Update Member' : 'Add Member'}
         </Button>

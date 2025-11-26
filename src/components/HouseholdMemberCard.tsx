@@ -52,7 +52,7 @@ const HouseholdMemberCard = ({ member, index }: HouseholdMemberCardProps) => {
         damping: 20,
         delay: index * 0.1
       }}
-      className="glass-card px-6 py-4 rounded-2xl hover:bg-kaeva-sage/5 transition-all overflow-hidden"
+      className="glass-card px-6 py-4 rounded-2xl hover:bg-secondary/5 transition-all overflow-hidden"
     >
       <div className="flex items-center gap-4">
         {/* Avatar */}
@@ -61,11 +61,11 @@ const HouseholdMemberCard = ({ member, index }: HouseholdMemberCardProps) => {
         {/* Member Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-lg font-medium text-kaeva-sage truncate">
+            <span className="text-lg font-medium text-secondary truncate">
               {member.name || member.type.charAt(0).toUpperCase() + member.type.slice(1)}
             </span>
             {member.age && (
-              <span className="text-xs text-kaeva-sage/50">Age {member.age}</span>
+              <span className="text-xs text-secondary/50">Age {member.age}</span>
             )}
           </div>
           
@@ -74,7 +74,7 @@ const HouseholdMemberCard = ({ member, index }: HouseholdMemberCardProps) => {
             {member.dietaryRestrictions?.map((restriction, idx) => (
               <span 
                 key={`diet-${idx}`}
-                className="text-xs px-2 py-1 rounded-full bg-kaeva-sage/10 text-kaeva-sage/70"
+                className="text-xs px-2 py-1 rounded-full bg-secondary/10 text-secondary/70"
               >
                 {restriction}
               </span>
@@ -93,7 +93,7 @@ const HouseholdMemberCard = ({ member, index }: HouseholdMemberCardProps) => {
             {member.healthConditions?.map((condition, idx) => (
               <span 
                 key={`health-${idx}`}
-                className="text-xs px-2 py-1 rounded-full bg-kaeva-accent/20 text-kaeva-accent"
+                className="text-xs px-2 py-1 rounded-full bg-accent/20 text-accent"
               >
                 {condition}
               </span>
