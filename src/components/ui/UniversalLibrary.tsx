@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, X, Apple, Package, BookOpen, PawPrint, Sparkles, Clock, Bookmark, AlertCircle, Dumbbell, Leaf, ShieldAlert, TrendingDown, Zap } from "lucide-react";
+import { Search, X, Apple, Package, BookOpen, PawPrint, Sparkles, Clock, Bookmark, AlertCircle, Dumbbell, Leaf, ShieldAlert, TrendingDown, Zap, Dog, Cat, Heart, Shield, Box, Calendar, Star, Palette, Droplet } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -50,16 +50,26 @@ const domainTabs = {
     { id: 'quick', label: 'Quick (<30min)', icon: Zap }
   ],
   pets: [
-    { id: 'all', label: 'All Products', icon: Package },
-    { id: 'safe', label: 'Safe Foods', icon: Bookmark },
-    { id: 'toxic', label: 'Toxic Foods', icon: AlertCircle },
-    { id: 'schedule', label: 'Schedule', icon: Clock }
+    { id: 'all', label: 'All Pets', icon: PawPrint },
+    { id: 'dogs', label: 'Dogs', icon: Dog },
+    { id: 'cats', label: 'Cats', icon: Cat },
+    { id: 'senior', label: 'Senior Pets', icon: Heart },
+    { id: 'toxic_monitoring', label: 'Toxic Monitoring', icon: Shield },
+    { id: 'supplies', label: 'Pet Supplies', icon: Box },
+    { id: 'low_stock_supplies', label: 'Low Stock', icon: TrendingDown },
+    { id: 'expiring_food', label: 'Expiring Food', icon: AlertCircle }
   ],
   beauty: [
     { id: 'all', label: 'All Products', icon: Sparkles },
-    { id: 'expiring', label: 'Expiring Soon', icon: AlertCircle },
-    { id: 'morning', label: 'Morning', icon: Clock },
-    { id: 'bookmarked', label: 'Repurchase', icon: Bookmark }
+    { id: 'expiring_soon', label: 'Expiring Soon', icon: AlertCircle },
+    { id: 'expired', label: 'Expired', icon: Calendar },
+    { id: 'low_stock', label: 'Low Stock', icon: TrendingDown },
+    { id: 'fresh', label: 'Fresh', icon: Star },
+    { id: 'skincare', label: 'Skincare', icon: Droplet },
+    { id: 'haircare', label: 'Haircare', icon: Sparkles },
+    { id: 'makeup', label: 'Makeup', icon: Palette },
+    { id: 'allergen_free', label: 'Allergen-Free', icon: ShieldAlert },
+    { id: 'repurchase', label: 'Repurchase', icon: Bookmark }
   ]
 };
 
