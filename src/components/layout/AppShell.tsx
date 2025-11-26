@@ -121,7 +121,7 @@ const AppShell = ({
           </div>
 
           {/* 2. THE LIVING APERTURE (The Nucleus - Floats Above) */}
-          <div className="absolute -top-6 left-1/2 -translate-x-1/2">
+          <div className="absolute -top-8 left-1/2 -translate-x-1/2">
             <motion.button onClick={handleApertureClick} whileTap={{
             scale: 0.95
           }} className="relative group" aria-label="Open action menu - Voice or Scanner">
@@ -129,7 +129,7 @@ const AppShell = ({
               <div className="absolute inset-0 rounded-full bg-primary blur-xl opacity-40 group-hover:opacity-60 transition-opacity" />
               
               {/* The Physical Button with Void Border */}
-              <div className="relative w-16 h-16 rounded-full bg-primary flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.4)] border-4 border-background z-10">
+              <div className="relative w-20 h-20 rounded-full bg-primary flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.4)] border-4 border-background z-10">
                 <KaevaAperture state="idle" size="sm" />
               </div>
               
