@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
+import { PageTransition } from '@/components/layout/PageTransition';
 
 interface Recipe {
   id: string;
@@ -33,8 +34,8 @@ const RecipeBook = () => {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [filterTab, setFilterTab] = useState<'all' | 'ready' | 'wishlist'>('all');
 
-  // Enable swipe navigation
-  useSwipeNavigation();
+  // Enable swipe navigation and get swipe state
+  const swipeState = useSwipeNavigation();
 
   useEffect(() => {
     fetchRecipes();
@@ -73,7 +74,11 @@ const RecipeBook = () => {
 
   return (
     <AppShell onScan={() => navigate('/')}>
-      <div className="container mx-auto px-4 py-8 max-w-7xl pb-16">
+      <PageTransition 
+        swipeProgress={swipeState.progress}
+        swipeDirection={swipeState.direction}
+      >
+        <div className="container mx-auto px-4 py-8 max-w-7xl pb-16">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -164,6 +169,7 @@ const RecipeBook = () => {
             />
           )}
         </div>
+      </PageTransition>
     </AppShell>
   );
 };

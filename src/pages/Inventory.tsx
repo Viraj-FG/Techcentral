@@ -9,6 +9,7 @@ import { Package, Trash2, ShoppingCart, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
+import { PageTransition } from '@/components/layout/PageTransition';
 
 type InventoryCategory = 'fridge' | 'pantry' | 'beauty' | 'pets';
 
@@ -37,8 +38,8 @@ const Inventory = () => {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
-  // Enable swipe navigation
-  useSwipeNavigation();
+  // Enable swipe navigation and get swipe state
+  const swipeState = useSwipeNavigation();
 
   useEffect(() => {
     fetchInventory();
@@ -196,7 +197,11 @@ const Inventory = () => {
 
   return (
     <AppShell onScan={() => navigate('/')}>
-      <div className="container mx-auto px-4 py-8 max-w-7xl pb-16">
+      <PageTransition 
+        swipeProgress={swipeState.progress}
+        swipeDirection={swipeState.direction}
+      >
+        <div className="container mx-auto px-4 py-8 max-w-7xl pb-16">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-foreground mb-2">Inventory Manager</h1>
@@ -311,6 +316,7 @@ const Inventory = () => {
             )}
         </AnimatePresence>
       </div>
+      </PageTransition>
     </AppShell>
   );
 };

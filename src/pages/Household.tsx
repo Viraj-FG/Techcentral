@@ -34,6 +34,8 @@ import { MemberDetailSheet } from "@/components/household/MemberDetailSheet";
 import { HouseholdPreferencesSection } from "@/components/household/HouseholdPreferencesSection";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { BottomTabBar } from "@/components/layout/BottomTabBar";
+import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
+import { PageTransition } from "@/components/layout/PageTransition";
 
 interface StoredHouseholdMember extends HouseholdMember {
   id: string;
@@ -53,6 +55,9 @@ const Household = () => {
   const [selectedMember, setSelectedMember] = useState<StoredHouseholdMember | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isCreatingInvite, setIsCreatingInvite] = useState(false);
+
+  // Enable swipe navigation and get swipe state
+  const swipeState = useSwipeNavigation();
 
   useEffect(() => {
     fetchMembers();
@@ -285,8 +290,12 @@ const Household = () => {
     <UniversalShell>
       <PageHeader title="Household" showHomeButton />
 
-      {/* Scrollable Content */}
-      <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-24">
+      <PageTransition 
+        swipeProgress={swipeState.progress}
+        swipeDirection={swipeState.direction}
+      >
+        {/* Scrollable Content */}
+        <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-24">
         
         {/* Hero Header Banner */}
         <HeroHeaderBanner />
@@ -380,6 +389,7 @@ const Household = () => {
           </ul>
         </motion.div>
       </div>
+      </PageTransition>
 
       <BottomTabBar />
 

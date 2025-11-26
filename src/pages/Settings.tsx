@@ -23,6 +23,7 @@ import { ConversationHistorySheet } from "@/components/settings/ConversationHist
 import { PageHeader } from "@/components/layout/PageHeader";
 import { BottomTabBar } from "@/components/layout/BottomTabBar";
 import { useSwipeNavigation } from "@/hooks/useSwipeNavigation";
+import { PageTransition } from "@/components/layout/PageTransition";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -52,8 +53,8 @@ const Settings = () => {
   const [historySheetOpen, setHistorySheetOpen] = useState(false);
   const [storeSelectorOpen, setStoreSelectorOpen] = useState(false);
 
-  // Enable swipe navigation
-  useSwipeNavigation();
+  // Enable swipe navigation and get swipe state
+  const swipeState = useSwipeNavigation();
 
   useEffect(() => {
     loadProfile();
@@ -126,7 +127,11 @@ const Settings = () => {
       <UniversalShell className="overflow-x-hidden">
         <PageHeader title="My Account" showHomeButton />
 
-        <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-24">
+        <PageTransition 
+          swipeProgress={swipeState.progress}
+          swipeDirection={swipeState.direction}
+        >
+          <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-24">
           {/* 1. Greeting Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -244,6 +249,7 @@ const Settings = () => {
             <p className="text-xs text-muted-foreground mt-1">Your home, on autopilot</p>
           </div>
         </div>
+        </PageTransition>
 
         {/* All Sheet Components */}
         <ProfileEditSheet 
