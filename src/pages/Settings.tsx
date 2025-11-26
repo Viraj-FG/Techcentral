@@ -27,6 +27,11 @@ const Settings = () => {
   const [userId, setUserId] = useState<string>("");
   const [userEmail, setUserEmail] = useState<string>("");
   const [userName, setUserName] = useState<string>("");
+  const [userAge, setUserAge] = useState<number | null>(null);
+  const [userWeight, setUserWeight] = useState<number | null>(null);
+  const [userHeight, setUserHeight] = useState<number | null>(null);
+  const [userGender, setUserGender] = useState<string>("");
+  const [userActivityLevel, setUserActivityLevel] = useState<string>("");
   const [dietaryValues, setDietaryValues] = useState<string>("");
   const [allergies, setAllergies] = useState<string>("");
   const [skinType, setSkinType] = useState<string>("");
@@ -67,6 +72,11 @@ const Settings = () => {
 
       if (profile) {
         setUserName(profile.user_name || "");
+        setUserAge(profile.user_age || null);
+        setUserWeight(profile.user_weight || null);
+        setUserHeight(profile.user_height || null);
+        setUserGender(profile.user_gender || "");
+        setUserActivityLevel(profile.user_activity_level || "");
         setDietaryValues(Array.isArray(profile.dietary_preferences) 
           ? profile.dietary_preferences.join(", ") 
           : "");
@@ -243,6 +253,11 @@ const Settings = () => {
           onClose={() => setProfileSheetOpen(false)}
           userId={userId}
           currentName={userName}
+          currentAge={userAge}
+          currentWeight={userWeight}
+          currentHeight={userHeight}
+          currentGender={userGender}
+          currentActivityLevel={userActivityLevel}
           onSave={loadProfile}
         />
         
