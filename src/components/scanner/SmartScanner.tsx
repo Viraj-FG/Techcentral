@@ -889,7 +889,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
               transition={{ duration: 0.5 }}
               className="absolute top-24 left-0 right-0 flex justify-center pointer-events-none z-10"
             >
-              <div className="bg-kaeva-void/80 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20">
+              <div className="bg-background/80 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20">
                 <p className="text-white/90 text-sm">
                   Point at a product, barcode, or shelf
                 </p>
@@ -900,9 +900,9 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
 
         {/* Scanning Loader */}
         {isScanning && (
-          <div className="absolute inset-0 bg-kaeva-void/50 backdrop-blur-sm flex items-center justify-center">
+          <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center">
             <div className="flex flex-col items-center gap-4">
-              <Loader2 className="w-12 h-12 text-kaeva-sage animate-spin" />
+              <Loader2 className="w-12 h-12 text-secondary animate-spin" />
               <p className="text-white font-medium">Analyzing...</p>
             </div>
           </div>

@@ -34,7 +34,7 @@ export const DayDetailModal = ({ dayData, tdee, open, onClose }: DayDetailModalP
 
   return (
     <Drawer open={open} onOpenChange={onClose}>
-      <DrawerContent className="bg-kaeva-seattle-slate border-white/10">
+      <DrawerContent className="bg-background border-white/10">
         <DrawerHeader>
           <DrawerTitle className="text-white text-2xl">
             {format(dayData.date, 'EEEE, MMM d')}

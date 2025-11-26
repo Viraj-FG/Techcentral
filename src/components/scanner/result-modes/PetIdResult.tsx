@@ -15,7 +15,7 @@ const PetIdResult = ({ data }: { data?: PetData }) => {
           <img 
             src={data.detectedImage} 
             alt="Detected pet" 
-            className="w-full h-full object-cover rounded-2xl border-4 border-kaeva-sage/30"
+            className="w-full h-full object-cover rounded-2xl border-4 border-secondary/30"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-secondary/20 to-secondary/80 rounded-2xl border-4 border-secondary/30 flex items-center justify-center">

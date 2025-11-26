@@ -50,14 +50,14 @@ const ActionPickerDialog = ({
               {/* Voice Option */}
               <button
                 onClick={handleVoice}
-                className="w-full glass-chip !rounded-2xl !px-6 !py-5 group hover:bg-kaeva-sage/10 hover:border-kaeva-sage/30"
+                className="w-full glass-chip !rounded-2xl !px-6 !py-5 group hover:bg-secondary/10 hover:border-secondary/30"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-kaeva-sage/20 flex items-center justify-center group-hover:bg-kaeva-sage/30 transition-all">
-                    <Mic size={24} className="text-kaeva-sage" />
+                  <div className="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center group-hover:bg-secondary/30 transition-all">
+                    <Mic size={24} className="text-secondary" />
                   </div>
                   <div className="flex-1 text-left">
-                    <div className="text-display text-sm font-medium text-kaeva-oatmeal">
+                    <div className="text-display text-sm font-medium text-foreground">
                       Talk to Kaeva
                     </div>
                     <div className="text-body text-xs text-slate-400">
@@ -70,14 +70,14 @@ const ActionPickerDialog = ({
               {/* Scan Option */}
               <button
                 onClick={handleScan}
-                className="w-full glass-chip !rounded-2xl !px-6 !py-5 group hover:bg-kaeva-electric-sky/10 hover:border-kaeva-electric-sky/30"
+                className="w-full glass-chip !rounded-2xl !px-6 !py-5 group hover:bg-accent/10 hover:border-accent/30"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-kaeva-electric-sky/20 flex items-center justify-center group-hover:bg-kaeva-electric-sky/30 transition-all">
-                    <Scan size={24} className="text-kaeva-electric-sky" />
+                  <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center group-hover:bg-accent/30 transition-all">
+                    <Scan size={24} className="text-accent" />
                   </div>
                   <div className="flex-1 text-left">
-                    <div className="text-display text-sm font-medium text-kaeva-oatmeal">
+                    <div className="text-display text-sm font-medium text-foreground">
                       Scan Something
                     </div>
                     <div className="text-body text-xs text-slate-400">

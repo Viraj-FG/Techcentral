@@ -386,7 +386,7 @@ const VisionSpotlight = ({ isOpen, onClose, onItemsAdded }: VisionSpotlightProps
                                 </span>
                               )}
                             </div>
-                            <div className="text-micro text-kaeva-oatmeal">
+                            <div className="text-micro text-foreground">
                               {obj.category} • {Math.round(obj.confidence * 100)}% confidence
                               {obj.metadata?.species && ` • ${obj.metadata.species}`}
                               {obj.metadata?.breed && ` (${obj.metadata.breed})`}

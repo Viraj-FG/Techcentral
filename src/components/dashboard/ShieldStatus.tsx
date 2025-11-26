@@ -41,8 +41,8 @@ const ShieldStatus = ({ profile }: ShieldStatusProps) => {
       transition={{ duration: 0.5, delay: 0.75 }}
     >
       <div className="flex items-center gap-2 mb-4">
-        <Shield className="text-kaeva-teal" size={22} />
-        <h3 className="text-lg font-semibold text-kaeva-slate-200">
+        <Shield className="text-accent" size={22} />
+        <h3 className="text-lg font-semibold text-foreground/90">
           Active Protection
         </h3>
       </div>
@@ -51,7 +51,7 @@ const ShieldStatus = ({ profile }: ShieldStatusProps) => {
         {activeFilters.map((filter, idx) => (
           <motion.div
             key={filter}
-            className="glass-chip px-3 py-1.5 text-sm flex items-center gap-2 border border-kaeva-sage/30"
+            className="glass-chip px-3 py-1.5 text-sm flex items-center gap-2 border border-secondary/30"
             animate={{
               scale: [1, 1.05, 1],
               boxShadow: [
@@ -66,8 +66,8 @@ const ShieldStatus = ({ profile }: ShieldStatusProps) => {
               delay: idx * 0.3
             }}
           >
-            <CheckCircle2 size={14} className="text-kaeva-sage" />
-            <span className="text-kaeva-slate-300">{filter}</span>
+            <CheckCircle2 size={14} className="text-secondary" />
+            <span className="text-muted-foreground/70">{filter}</span>
           </motion.div>
         ))}
       </div>

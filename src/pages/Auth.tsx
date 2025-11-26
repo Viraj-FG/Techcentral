@@ -148,7 +148,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-kaeva-void overflow-y-auto">
+    <div className="min-h-screen bg-background overflow-y-auto">
       <AuroraBackground vertical="food" />
 
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
@@ -248,7 +248,7 @@ const Auth = () => {
                 <div className="w-full border-t border-white/10" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-kaeva-void px-4 text-white/50">
+                <span className="bg-background px-4 text-white/50">
                   or continue with email
                 </span>
               </div>

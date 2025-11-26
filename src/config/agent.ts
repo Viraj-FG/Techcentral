@@ -20,26 +20,26 @@ export const AGENT_FEATURES = [
   {
     name: "The Palate",
     description: "Food preferences & allergies",
-    color: "kaeva-sage"
+    color: "secondary"
   },
   {
     name: "The Mirror",
     description: "Skin type & hair type",
-    color: "kaeva-terracotta"
+    color: "destructive"
   },
   {
     name: "The Tribe",
     description: "Household & pet details",
-    color: "kaeva-electric-sky"
+    color: "accent"
   },
   {
     name: "The Biome",
     description: "Health metrics & TDEE",
-    color: "kaeva-sage"
+    color: "secondary"
   },
   {
     name: "The Mission",
     description: "Health & lifestyle goals",
-    color: "kaeva-electric-sky"
+    color: "accent"
   }
 ] as const;

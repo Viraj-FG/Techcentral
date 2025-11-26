@@ -82,7 +82,7 @@ export const CaptureButton = ({
         )}
       >
         {mode === 'barcode' && !isRecording ? (
-          <div className="w-8 h-8 border-2 border-kaeva-void rounded" />
+          <div className="w-8 h-8 border-2 border-background rounded" />
         ) : (
           <AnimatePresence mode="wait">
             <motion.div
@@ -92,7 +92,7 @@ export const CaptureButton = ({
               exit={{ scale: 0.5, opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
-              <ModeIcon size={28} strokeWidth={1.5} className="text-kaeva-void" />
+              <ModeIcon size={28} strokeWidth={1.5} className="text-background" />
             </motion.div>
           </AnimatePresence>
         )}

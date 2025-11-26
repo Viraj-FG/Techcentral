@@ -213,7 +213,7 @@ const VoiceOnboarding = ({ onComplete, onExit }: VoiceOnboardingProps) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-kaeva-void overflow-hidden"
+      className="fixed inset-0 bg-background overflow-hidden"
     >
       {onExit && (
         <motion.button

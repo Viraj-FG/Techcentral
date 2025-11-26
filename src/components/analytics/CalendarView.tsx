@@ -86,12 +86,12 @@ export const CalendarView = ({ month, year, mealLogs, tdee, onDayClick }: Calend
               disabled={!hasMeals}
               className={`aspect-square bg-white/5 rounded-lg relative flex items-center justify-center
                 ${hasMeals ? 'cursor-pointer hover:bg-white/10' : 'cursor-default opacity-50'}
-                ${isToday ? 'ring-2 ring-kaeva-sage' : ''}
+                ${isToday ? 'ring-2 ring-secondary' : ''}
                 transition-colors`}
               whileHover={hasMeals ? { scale: 1.05 } : {}}
               whileTap={hasMeals ? { scale: 0.95 } : {}}
             >
-              <span className={`text-sm ${isToday ? 'text-kaeva-sage font-bold' : 'text-foreground'}`}>
+              <span className={`text-sm ${isToday ? 'text-secondary font-bold' : 'text-foreground'}`}>
                 {format(date, 'd')}
               </span>
               
