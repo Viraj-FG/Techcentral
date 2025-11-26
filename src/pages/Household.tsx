@@ -2,17 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
   Plus, 
-  Users, 
-  Share2, 
-  Edit, 
-  Trash2, 
-  AlertTriangle,
-  Copy,
-  Check,
-  ArrowLeft
+  ArrowLeft,
+  Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +15,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -33,10 +26,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import HouseholdMemberCard from "@/components/HouseholdMemberCard";
 import { HouseholdMember } from "@/components/HouseholdMemberCard";
 import HouseholdMemberForm from "@/components/HouseholdMemberForm";
 import UniversalShell from "@/components/layout/UniversalShell";
+import { HeroHeaderBanner } from "@/components/household/HeroHeaderBanner";
+import { CompactMemberRow } from "@/components/household/CompactMemberRow";
+import { MemberDetailSheet } from "@/components/household/MemberDetailSheet";
+import { HouseholdPreferencesSection } from "@/components/household/HouseholdPreferencesSection";
 
 interface StoredHouseholdMember extends HouseholdMember {
   id: string;
@@ -53,17 +49,14 @@ const Household = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<StoredHouseholdMember | null>(null);
   const [deletingMember, setDeletingMember] = useState<StoredHouseholdMember | null>(null);
-  const [inviteLinkCopied, setInviteLinkCopied] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<StoredHouseholdMember | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isCreatingInvite, setIsCreatingInvite] = useState(false);
-  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
 
-  // Fetch household members
   useEffect(() => {
     fetchMembers();
     fetchUserProfile();
     
-    // Set up realtime subscription
     const channel = supabase
       .channel('household-members-changes')
       .on(
@@ -269,15 +262,11 @@ const Household = () => {
 
       if (data?.invite_url) {
         await navigator.clipboard.writeText(data.invite_url);
-        setInviteLinkCopied(true);
         
         toast({
           title: "Invite Link Created",
           description: "Link copied to clipboard. Share it with household members!",
         });
-
-        setTimeout(() => setInviteLinkCopied(false), 3000);
-        setInviteDialogOpen(false);
       }
     } catch (err: any) {
       console.error("Error creating invite:", err);
@@ -293,246 +282,183 @@ const Household = () => {
 
   return (
     <UniversalShell>
-      {/* Header */}
-      <div className="border-b border-secondary/10 bg-background/95 backdrop-blur-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate('/')}
-                className="hover:bg-secondary/10"
-              >
-                <ArrowLeft className="w-5 h-5 text-secondary" />
-              </Button>
-              <div className="flex items-center gap-3">
-                <Users className="w-6 h-6 text-accent" />
-                <h1 className="text-2xl font-light text-secondary">Household Roster</h1>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                onClick={generateInviteLink}
-                className="gap-2 border-secondary/20 hover:bg-accent/10"
-              >
-                {inviteLinkCopied ? (
-                  <>
-                    <Check className="w-4 h-4" />
-                    Copied
-                  </>
-                ) : (
-                  <>
-                    <Share2 className="w-4 h-4" />
-                    Invite Link
-                  </>
-                )}
-              </Button>
-
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="gap-2 bg-accent hover:bg-accent/90 text-background">
-                    <Plus className="w-4 h-4" />
-                    Add Member
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-2xl bg-background border-secondary/20 max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle className="text-secondary">Add Household Member</DialogTitle>
-                    <DialogDescription className="text-secondary/70">
-                      Create a detailed profile for your family member
-                    </DialogDescription>
-                  </DialogHeader>
-                  <HouseholdMemberForm
-                    onSubmit={handleAddMember}
-                    onCancel={() => setIsAddDialogOpen(false)}
-                  />
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
+      {/* Simplified Header */}
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-secondary/10">
+        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/app')}
+            className="hover:bg-secondary/10"
+          >
+            <ArrowLeft className="w-5 h-5 text-secondary" />
+          </Button>
+          <h1 className="text-lg font-medium text-secondary">Household</h1>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16 space-y-6">
-        {/* User Profile Summary */}
-        {userProfile && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="glass-card p-6 rounded-2xl overflow-hidden"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="text-4xl">👤</div>
-              <div>
-                <h3 className="text-xl font-medium text-secondary truncate">
-                  {userProfile.user_name || 'You'} (Primary User)
-                </h3>
-                {userProfile.calculated_tdee && (
-                  <p className="text-sm text-secondary/70">
-                    Baseline: {userProfile.calculated_tdee} cal/day
-                    {userProfile.user_age && ` • Age ${userProfile.user_age}`}
-                  </p>
-                )}
-              </div>
-            </div>
-            
-            <div className="flex flex-wrap gap-2">
-              {Array.isArray(userProfile.dietary_preferences) && userProfile.dietary_preferences.map((pref: string, idx: number) => (
-                <span key={idx} className="text-xs px-3 py-1 rounded-full bg-secondary/10 text-secondary/70">
-                  {pref}
-                </span>
-              ))}
-              {Array.isArray(userProfile.allergies) && userProfile.allergies.map((allergy: string, idx: number) => (
-                <span key={idx} className="text-xs px-3 py-1 rounded-full bg-destructive/20 text-destructive flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" />
-                  {allergy}
-                </span>
-              ))}
-            </div>
-          </motion.div>
-        )}
+      {/* Scrollable Content */}
+      <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-32">
+        
+        {/* Hero Header Banner */}
+        <HeroHeaderBanner />
 
-        {/* Household Members */}
-        {isLoading ? (
-          <div className="text-center py-12">
-            <div className="text-secondary/50 animate-pulse">Loading household members...</div>
-          </div>
-        ) : members.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="glass-card p-12 rounded-2xl text-center overflow-hidden"
-          >
-            <Users className="w-16 h-16 text-secondary/30 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-secondary mb-2">No Household Members Yet</h3>
-            <p className="text-secondary/70 mb-6 max-w-md mx-auto">
-              Add family members to enable personalized safety alerts, dietary filtering, and precise nutritional recommendations for everyone.
-            </p>
-            <Button
-              onClick={() => setIsAddDialogOpen(true)}
-              className="gap-2 bg-accent hover:bg-accent/90 text-background"
-            >
-              <Plus className="w-4 h-4" />
-              Add Your First Member
-            </Button>
-          </motion.div>
-        ) : (
-          <div className="space-y-4">
-            <AnimatePresence mode="popLayout">
-              {members.map((member, index) => (
-                <motion.div
-                  key={member.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="group"
-                >
-                  <div className="glass-card p-6 rounded-2xl hover:bg-secondary/5 transition-all overflow-hidden">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <HouseholdMemberCard member={member} index={index} />
-                      </div>
-                      
-                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Dialog open={editingMember?.id === member.id} onOpenChange={(open) => !open && setEditingMember(null)}>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setEditingMember(member)}
-                              className="hover:bg-accent/20"
-                            >
-                              <Edit className="w-4 h-4 text-secondary" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-2xl bg-background border-secondary/20 max-h-[90vh] overflow-y-auto">
-                            <DialogHeader>
-                              <DialogTitle className="text-secondary">Edit Household Member</DialogTitle>
-                              <DialogDescription className="text-secondary/70">
-                                Update {member.name || 'this member'}'s profile
-                              </DialogDescription>
-                            </DialogHeader>
-                            <HouseholdMemberForm
-                              initialData={member}
-                              onSubmit={handleUpdateMember}
-                              onCancel={() => setEditingMember(null)}
-                            />
-                          </DialogContent>
-                        </Dialog>
-
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeletingMember(member)}
-                          className="hover:bg-destructive/20"
-                        >
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      </div>
+        {/* MEMBERS Section */}
+        <section>
+          <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+            Members
+          </h2>
+          {isLoading ? (
+            <div className="glass-card rounded-3xl p-12 text-center">
+              <div className="text-secondary/50 animate-pulse">Loading members...</div>
+            </div>
+          ) : (
+            <div className="glass-card rounded-3xl overflow-hidden divide-y divide-secondary/10">
+              {members.length === 0 ? (
+                <div className="p-12 text-center">
+                  <Users className="w-12 h-12 text-secondary/30 mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground mb-4">No household members yet</p>
+                  <Button
+                    onClick={() => setIsAddDialogOpen(true)}
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 border-secondary/20"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add First Member
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {members.map((member) => (
+                    <CompactMemberRow
+                      key={member.id}
+                      member={member}
+                      onClick={() => setSelectedMember(member)}
+                    />
+                  ))}
+                  
+                  {/* Add New Member Row */}
+                  <button
+                    onClick={() => setIsAddDialogOpen(true)}
+                    className="w-full px-6 py-4 flex items-center gap-4 hover:bg-secondary/5 transition-colors"
+                  >
+                    <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Plus className="w-6 h-6 text-primary" />
                     </div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        )}
+                    <div className="flex-1 text-left">
+                      <p className="text-base font-medium text-primary">Add New Member</p>
+                      <p className="text-sm text-muted-foreground">
+                        You have {members.length} {members.length === 1 ? 'member' : 'members'}
+                      </p>
+                    </div>
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* PREFERENCES Section */}
+        <HouseholdPreferencesSection
+          householdId={userProfile?.current_household_id}
+          onGenerateInvite={generateInviteLink}
+          isCreatingInvite={isCreatingInvite}
+        />
 
         {/* Info Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mt-8 glass-card p-6 rounded-2xl border-2 border-accent/20"
+          transition={{ delay: 0.2 }}
+          className="glass-card p-6 rounded-3xl border border-accent/20"
         >
-          <h3 className="text-lg font-medium text-secondary mb-2 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-accent" />
-            Why Add Household Members?
+          <h3 className="text-lg font-medium text-secondary mb-2">
+            Why add household members?
           </h3>
-          <ul className="space-y-2 text-sm text-secondary/70">
+          <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-start gap-2">
               <span className="text-accent mt-0.5">•</span>
-              <span><strong>Safety Alerts:</strong> Automatic warnings for allergies and toxic ingredients</span>
+              <span>Get personalized safety alerts for each family member's allergies and conditions</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-accent mt-0.5">•</span>
-              <span><strong>Personalized Nutrition:</strong> Tailored meal plans and portion recommendations</span>
+              <span>Filter products and recipes based on everyone's dietary needs</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-kaeva-accent mt-0.5">•</span>
-              <span><strong>Medical-Grade Accuracy:</strong> TDEE calculations and health-condition-specific filtering</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-kaeva-accent mt-0.5">•</span>
-              <span><strong>Smart Shopping:</strong> Member-specific shopping lists and budget planning</span>
+              <span className="text-accent mt-0.5">•</span>
+              <span>Track nutrition goals customized for each person's activity level and health</span>
             </li>
           </ul>
         </motion.div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Member Detail Sheet */}
+      <MemberDetailSheet
+        member={selectedMember}
+        open={!!selectedMember}
+        onClose={() => setSelectedMember(null)}
+        onEdit={(member) => {
+          setEditingMember(member as StoredHouseholdMember);
+          setSelectedMember(null);
+        }}
+        onDelete={(member) => {
+          setDeletingMember(member as StoredHouseholdMember);
+          setSelectedMember(null);
+        }}
+      />
+
+      {/* Add/Edit Member Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="sm:max-w-2xl bg-background border-secondary/20 max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-secondary">Add Household Member</DialogTitle>
+            <DialogDescription className="text-secondary/70">
+              Create a detailed profile for your family member
+            </DialogDescription>
+          </DialogHeader>
+          <HouseholdMemberForm
+            onSubmit={handleAddMember}
+            onCancel={() => setIsAddDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editingMember} onOpenChange={(open) => !open && setEditingMember(null)}>
+        <DialogContent className="sm:max-w-2xl bg-background border-secondary/20 max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-secondary">Edit Household Member</DialogTitle>
+            <DialogDescription className="text-secondary/70">
+              Update {editingMember?.name || 'this member'}'s profile
+            </DialogDescription>
+          </DialogHeader>
+          {editingMember && (
+            <HouseholdMemberForm
+              initialData={editingMember}
+              onSubmit={handleUpdateMember}
+              onCancel={() => setEditingMember(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
       <AlertDialog open={!!deletingMember} onOpenChange={(open) => !open && setDeletingMember(null)}>
-        <AlertDialogContent className="bg-kaeva-void border-kaeva-sage/20">
+        <AlertDialogContent className="bg-background border-secondary/20">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-kaeva-sage">Remove Household Member</AlertDialogTitle>
-            <AlertDialogDescription className="text-kaeva-sage/70">
+            <AlertDialogTitle className="text-secondary">Delete Household Member</AlertDialogTitle>
+            <AlertDialogDescription className="text-secondary/70">
               Are you sure you want to remove {deletingMember?.name || 'this member'} from your household? 
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-kaeva-sage/20 text-kaeva-sage hover:bg-kaeva-sage/10">
-              Cancel
-            </AlertDialogCancel>
+            <AlertDialogCancel className="border-secondary/20">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteMember}
-              className="bg-destructive hover:bg-destructive/90 text-white"
+              className="bg-destructive hover:bg-destructive/90 text-background"
             >
-              Remove
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
