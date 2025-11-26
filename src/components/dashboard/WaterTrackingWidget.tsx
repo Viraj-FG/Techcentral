@@ -1,17 +1,20 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Droplets, Plus } from "lucide-react";
+import { Droplets, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { CircularDialPicker } from "@/components/ui/CircularDialPicker";
+import { calculateWaterGoal } from "@/lib/goalCalculators";
 import { toast } from "sonner";
+import { haptics } from "@/lib/haptics";
 
 export const WaterTrackingWidget = ({ userId }: { userId: string }) => {
   const [todayIntake, setTodayIntake] = useState(0);
   const [goalMl, setGoalMl] = useState(2000);
-  const [customAmount, setCustomAmount] = useState("");
+  const [customAmount, setCustomAmount] = useState(250);
   const [isLoading, setIsLoading] = useState(true);
+  const [showDialPicker, setShowDialPicker] = useState(false);
 
   useEffect(() => {
     fetchWaterData();
@@ -63,17 +66,46 @@ export const WaterTrackingWidget = ({ userId }: { userId: string }) => {
 
       setTodayIntake((prev) => prev + amount);
       toast.success(`Added ${amount}ml water`);
+      haptics.success();
     } catch (error) {
       console.error("Error logging water:", error);
       toast.error("Failed to log water");
+      haptics.warning();
+    }
+  };
+
+  const handleAutoCalculate = async () => {
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("user_weight")
+        .eq("id", userId)
+        .single();
+
+      if (!profile?.user_weight) {
+        toast.error("Please set your weight in profile first");
+        return;
+      }
+
+      const calculatedGoal = calculateWaterGoal(profile.user_weight);
+      
+      await supabase
+        .from("profiles")
+        .update({ water_goal_ml: calculatedGoal })
+        .eq("id", userId);
+
+      setGoalMl(calculatedGoal);
+      toast.success(`Goal set to ${calculatedGoal}ml based on your weight`);
+    } catch (error) {
+      console.error("Error auto-calculating water goal:", error);
+      toast.error("Failed to calculate water goal");
     }
   };
 
   const handleCustomAmount = () => {
-    const amount = parseInt(customAmount);
-    if (amount > 0 && amount <= 5000) {
-      logWater(amount);
-      setCustomAmount("");
+    if (customAmount > 0 && customAmount <= 5000) {
+      logWater(customAmount);
+      setShowDialPicker(false);
     }
   };
 
@@ -113,6 +145,17 @@ export const WaterTrackingWidget = ({ userId }: { userId: string }) => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Auto-Calculate Button */}
+          <Button
+            onClick={handleAutoCalculate}
+            variant="outline"
+            size="sm"
+            className="w-full"
+          >
+            <Sparkles size={16} className="mr-2" />
+            Auto-calculate goal
+          </Button>
+
           {/* Circular Progress Ring */}
           <div className="flex justify-center">
             <div className="relative w-40 h-40">
@@ -180,21 +223,42 @@ export const WaterTrackingWidget = ({ userId }: { userId: string }) => {
             </Button>
           </div>
 
-          {/* Custom Amount */}
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              placeholder="Custom amount (ml)"
-              value={customAmount}
-              onChange={(e) => setCustomAmount(e.target.value)}
-              className="flex-1"
-              min="1"
-              max="5000"
-            />
-            <Button onClick={handleCustomAmount} size="icon">
-              <Plus className="w-4 h-4" />
+          {/* Custom Amount with Dial Picker */}
+          {!showDialPicker ? (
+            <Button
+              onClick={() => setShowDialPicker(true)}
+              variant="outline"
+              className="w-full"
+            >
+              Custom Amount
             </Button>
-          </div>
+          ) : (
+            <div className="space-y-4">
+              <CircularDialPicker
+                min={50}
+                max={1000}
+                value={customAmount}
+                onChange={setCustomAmount}
+                unit="ml"
+                step={10}
+                label="Custom Amount"
+              />
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleCustomAmount}
+                  className="flex-1"
+                >
+                  Add {customAmount}ml
+                </Button>
+                <Button
+                  onClick={() => setShowDialPicker(false)}
+                  variant="outline"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </motion.div>
