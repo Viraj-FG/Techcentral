@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Target, Flame, Drumstick, Wheat, Droplet } from "lucide-react";
+import { Target, Flame, Drumstick, Wheat, Droplet, Sparkles } from "lucide-react";
+import { ProgressRing } from "@/components/ui/ProgressRing";
+import { calculateNutritionGoals } from "@/lib/goalCalculators";
 
 interface NutritionGoalsSheetProps {
   open: boolean;
@@ -25,6 +27,45 @@ export const NutritionGoalsSheet = ({ open, onOpenChange, currentGoals, userId }
   const [carbsGoal, setCarbsGoal] = useState(currentGoals.daily_carbs_goal);
   const [fatGoal, setFatGoal] = useState(currentGoals.daily_fat_goal);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    setCalorieGoal(currentGoals.daily_calorie_goal);
+    setProteinGoal(currentGoals.daily_protein_goal);
+    setCarbsGoal(currentGoals.daily_carbs_goal);
+    setFatGoal(currentGoals.daily_fat_goal);
+  }, [currentGoals]);
+
+  const handleAutoCalculate = async () => {
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("user_age, user_weight, user_height, user_gender, user_activity_level")
+        .eq("id", userId)
+        .single();
+
+      if (!profile || !profile.user_age || !profile.user_weight || !profile.user_height) {
+        toast.error("Please complete your profile biometrics first");
+        return;
+      }
+
+      const goals = calculateNutritionGoals({
+        age: profile.user_age,
+        weight: profile.user_weight,
+        height: profile.user_height,
+        gender: profile.user_gender as 'male' | 'female',
+        activityLevel: (profile.user_activity_level || 'moderate') as any
+      });
+
+      setCalorieGoal(goals.calories);
+      setProteinGoal(goals.protein);
+      setCarbsGoal(goals.carbs);
+      setFatGoal(goals.fat);
+      toast.success("Goals calculated based on your profile");
+    } catch (error) {
+      console.error("Auto-calculate error:", error);
+      toast.error("Failed to calculate goals");
+    }
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -61,6 +102,44 @@ export const NutritionGoalsSheet = ({ open, onOpenChange, currentGoals, userId }
         </SheetHeader>
 
         <div className="space-y-6 mt-6">
+          {/* Auto-Calculate Button */}
+          <Button
+            onClick={handleAutoCalculate}
+            variant="outline"
+            className="w-full"
+          >
+            <Sparkles size={18} className="mr-2" />
+            Auto-calculate based on profile
+          </Button>
+
+          {/* Progress Rings Preview */}
+          <div className="grid grid-cols-3 gap-4">
+            <ProgressRing
+              value={proteinGoal}
+              max={proteinGoal}
+              label="Protein"
+              color="hsl(var(--secondary))"
+              size="sm"
+              unit="g"
+            />
+            <ProgressRing
+              value={carbsGoal}
+              max={carbsGoal}
+              label="Carbs"
+              color="hsl(var(--accent))"
+              size="sm"
+              unit="g"
+            />
+            <ProgressRing
+              value={fatGoal}
+              max={fatGoal}
+              label="Fat"
+              color="hsl(var(--primary))"
+              size="sm"
+              unit="g"
+            />
+          </div>
+
           {/* Daily Calorie Goal */}
           <div className="glass-card p-4 space-y-3">
             <div className="flex items-center gap-2">
