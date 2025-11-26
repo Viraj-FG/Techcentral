@@ -15,6 +15,9 @@ verify_jwt = true
 [functions.generate-meal-plan]
 verify_jwt = true
 
+[functions.generate-beauty-inspiration]
+verify_jwt = true
+
 [functions.create-household-invite]
 verify_jwt = true
 
