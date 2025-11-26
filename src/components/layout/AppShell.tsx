@@ -1,11 +1,12 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Scan, LogOut, Users, Mic, Bell, Search } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { kaevaTransition } from '@/hooks/useKaevaMotion';
-import { NotificationBell } from '@/components/ui/NotificationBell';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import KaevaAperture from '@/components/KaevaAperture';
+import ActionPickerDialog from './ActionPickerDialog';
 import GlobalSearch from '@/components/search/GlobalSearch';
 import UniversalShell from './UniversalShell';
 
@@ -22,7 +23,31 @@ const AppShell = ({
 }: AppShellProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [userId, setUserId] = useState<string | null>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [actionPickerOpen, setActionPickerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+
+  // Fetch user and profile data
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+        
+        // Fetch profile
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        setProfile(profileData);
+      }
+    };
+
+    fetchUser();
+  }, []);
   
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -30,6 +55,29 @@ const AppShell = ({
       title: "Logged out successfully"
     });
     navigate('/auth');
+  };
+
+  const handleApertureClick = () => {
+    setActionPickerOpen(true);
+  };
+
+  const handleVoiceActivate = () => {
+    if (onVoiceActivate) {
+      onVoiceActivate();
+    }
+  };
+
+  // Get user initials for avatar fallback
+  const getUserInitials = () => {
+    if (profile?.user_name) {
+      return profile.user_name
+        .split(' ')
+        .map((n: string) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    }
+    return 'KA';
   };
 
   return (
@@ -46,56 +94,60 @@ const AppShell = ({
         {children}
       </UniversalShell>
 
-      {/* Navigation Dock - positioned with safe area support */}
+      {/* The Floating Command Dock - Redesigned with Hero Aperture */}
       <motion.div
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3, type: "spring", stiffness: 260, damping: 20 }}
-        className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-50 pointer-events-auto"
+        className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-50 pointer-events-auto"
       >
-        <div className="mx-auto max-w-sm h-[72px] bg-slate-900/80 border border-white/10 rounded-full flex items-center justify-between px-6">
-          {/* Left Group - 3 Buttons */}
-          <div className="flex items-center gap-0.5">
-            <NotificationBell />
-            
-            <button 
-              onClick={() => setSearchOpen(true)}
-              className="p-2 text-slate-400 hover:text-white transition-colors rounded-full"
-            >
-              <Search size={22} strokeWidth={1.5} />
-            </button>
+        <div className="relative flex items-center gap-8 px-8 py-4 bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-full">
+          {/* Left: Settings */}
+          <button 
+            onClick={() => navigate('/settings')} 
+            className="p-3 text-slate-400 hover:text-kaeva-oatmeal transition-colors rounded-full hover:bg-white/5"
+            aria-label="Settings"
+          >
+            <Settings size={22} strokeWidth={1.5} />
+          </button>
 
-            <button onClick={() => navigate('/settings')} className="p-2 text-slate-400 hover:text-white transition-colors rounded-full">
-              <Settings size={22} strokeWidth={1.5} />
-            </button>
-          </div>
-          
-          {/* Center - Scan Button */}
-          <button onClick={onScan} className="p-2">
-            <div className="w-16 h-16 rounded-full bg-kaeva-sage border-4 border-[#0F172A] flex items-center justify-center">
-              <Scan size={28} className="text-slate-900" strokeWidth={2} />
+          {/* Center: The Living Aperture (Hero Button) */}
+          <button 
+            onClick={handleApertureClick}
+            className="relative -my-8 cursor-pointer group"
+            aria-label="Open action menu"
+          >
+            <div className="w-20 h-20 transition-transform group-hover:scale-105 group-active:scale-95">
+              <KaevaAperture 
+                state="idle" 
+                size="sm"
+              />
             </div>
           </button>
 
-          {/* Right Group - 3 Buttons */}
-          <div className="flex items-center gap-0.5">
-            <button onClick={() => navigate('/household')} className="p-2 text-slate-400 hover:text-kaeva-accent transition-colors rounded-full">
-              <Users size={22} strokeWidth={1.5} />
-            </button>
-
-            <button 
-              onClick={onVoiceActivate} 
-              className="p-2 text-slate-400 hover:text-kaeva-accent transition-colors rounded-full"
-            >
-              <Mic size={22} strokeWidth={1.5} />
-            </button>
-
-            <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-white transition-colors rounded-full">
-              <LogOut size={24} strokeWidth={1.5} />
-            </button>
-          </div>
+          {/* Right: Profile/Household */}
+          <button 
+            onClick={() => navigate('/household')} 
+            className="p-1 hover:opacity-80 transition-opacity rounded-full hover:bg-white/5"
+            aria-label="Household"
+          >
+            <Avatar className="h-10 w-10 border-2 border-kaeva-sage/30">
+              <AvatarImage src={undefined} />
+              <AvatarFallback className="bg-kaeva-sage/20 text-kaeva-sage text-xs font-medium">
+                {getUserInitials()}
+              </AvatarFallback>
+            </Avatar>
+          </button>
         </div>
       </motion.div>
+
+      {/* Action Picker Dialog */}
+      <ActionPickerDialog
+        open={actionPickerOpen}
+        onOpenChange={setActionPickerOpen}
+        onVoiceActivate={handleVoiceActivate}
+        onScanActivate={onScan}
+      />
 
       {/* Global Search */}
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
