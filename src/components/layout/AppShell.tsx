@@ -9,20 +9,20 @@ import KaevaAperture from '@/components/KaevaAperture';
 import ActionPickerDialog from './ActionPickerDialog';
 import GlobalSearch from '@/components/search/GlobalSearch';
 import UniversalShell from './UniversalShell';
-
 interface AppShellProps {
   children: ReactNode;
   onScan: () => void;
   onVoiceActivate?: () => void;
 }
-
 const AppShell = ({
   children,
   onScan,
   onVoiceActivate
 }: AppShellProps) => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [userId, setUserId] = useState<string | null>(null);
   const [profile, setProfile] = useState<any>(null);
   const [actionPickerOpen, setActionPickerOpen] = useState(false);
@@ -31,24 +31,23 @@ const AppShell = ({
   // Fetch user and profile data
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (user) {
         setUserId(user.id);
-        
+
         // Fetch profile
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        
+        const {
+          data: profileData
+        } = await supabase.from('profiles').select('*').eq('id', user.id).single();
         setProfile(profileData);
       }
     };
-
     fetchUser();
   }, []);
-  
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast({
@@ -56,11 +55,9 @@ const AppShell = ({
     });
     navigate('/auth');
   };
-
   const handleApertureClick = () => {
     setActionPickerOpen(true);
   };
-
   const handleVoiceActivate = () => {
     if (onVoiceActivate) {
       onVoiceActivate();
@@ -70,67 +67,52 @@ const AppShell = ({
   // Get user initials for avatar fallback
   const getUserInitials = () => {
     if (profile?.user_name) {
-      return profile.user_name
-        .split(' ')
-        .map((n: string) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2);
+      return profile.user_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
     }
     return 'KA';
   };
-
-  return (
-    <>
+  return <>
       {/* Background atmosphere layer */}
-      <motion.div 
-        className="fixed inset-0 bg-gradient-to-br from-background via-background to-primary/5 z-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1.2 }}
-      />
+      <motion.div className="fixed inset-0 bg-gradient-to-br from-background via-background to-primary/5 z-0" initial={{
+      opacity: 0
+    }} animate={{
+      opacity: 1
+    }} transition={{
+      duration: 1.2
+    }} />
       
       <UniversalShell className="pt-6">
         {children}
       </UniversalShell>
 
       {/* The Floating Command Dock - Redesigned with Hero Aperture */}
-      <motion.div
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.3, type: "spring", stiffness: 260, damping: 20 }}
-        className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] inset-x-0 z-50 flex justify-center pointer-events-none px-4"
-      >
-        <div className="relative flex items-center gap-4 sm:gap-6 md:gap-8 px-4 sm:px-6 md:px-8 py-4 bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-full pointer-events-auto">
+      <motion.div initial={{
+      y: 100,
+      opacity: 0
+    }} animate={{
+      y: 0,
+      opacity: 1
+    }} transition={{
+      delay: 0.3,
+      type: "spring",
+      stiffness: 260,
+      damping: 20
+    }} className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] inset-x-0 z-50 flex justify-center pointer-events-none px-4">
+        <div className="relative sm:gap-6 md:gap-8 px-4 sm:px-6 md:px-8 py-4 bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-full pointer-events-auto items-start justify-start flex flex-row gap-[20px]">
           {/* Left: Settings - 44px touch target */}
-          <button 
-            onClick={() => navigate('/settings')} 
-            className="p-3 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-white/5 min-w-[44px] min-h-[44px] flex items-center justify-center"
-            aria-label="Open settings"
-          >
+          <button onClick={() => navigate('/settings')} className="p-3 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-white/5 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Open settings">
             <Settings size={22} strokeWidth={1.5} />
           </button>
 
           {/* Center: The Living Aperture (Hero Button) - 64px touch target */}
-          <button 
-            onClick={handleApertureClick}
-            className="relative -my-8 cursor-pointer group min-w-[64px] min-h-[64px] flex items-center justify-center"
-            aria-label="Open action menu - Voice or Scanner"
-          >
+          <button onClick={handleApertureClick} className="relative -my-8 cursor-pointer group min-w-[64px] min-h-[64px] flex items-center justify-center" aria-label="Open action menu - Voice or Scanner">
             <div className="w-16 h-16 transition-transform group-hover:scale-105 group-active:scale-95">
-              <KaevaAperture 
-                state="idle" 
-                size="sm"
-              />
+              <KaevaAperture state="idle" size="sm" />
             </div>
           </button>
 
           {/* Right: Profile/Household - 44px touch target */}
-          <button 
-            onClick={() => navigate('/household')} 
-            className="p-1 hover:opacity-80 transition-opacity rounded-full hover:bg-white/5 min-w-[44px] min-h-[44px] flex items-center justify-center"
-            aria-label="View household members and settings"
-          >
+          <button onClick={() => navigate('/household')} className="p-1 hover:opacity-80 transition-opacity rounded-full hover:bg-white/5 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="View household members and settings">
             <Avatar className="h-10 w-10 border-2 border-secondary/30">
               <AvatarImage src={undefined} />
               <AvatarFallback className="bg-secondary/20 text-secondary text-xs font-medium">
@@ -142,17 +124,10 @@ const AppShell = ({
       </motion.div>
 
       {/* Action Picker Dialog */}
-      <ActionPickerDialog
-        open={actionPickerOpen}
-        onOpenChange={setActionPickerOpen}
-        onVoiceActivate={handleVoiceActivate}
-        onScanActivate={onScan}
-      />
+      <ActionPickerDialog open={actionPickerOpen} onOpenChange={setActionPickerOpen} onVoiceActivate={handleVoiceActivate} onScanActivate={onScan} />
 
       {/* Global Search */}
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
-    </>
-  );
+    </>;
 };
-
 export default AppShell;
