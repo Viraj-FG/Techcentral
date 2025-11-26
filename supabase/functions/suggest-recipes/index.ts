@@ -1,4 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
+import { recipeSuggestionSchema, validateRequest } from "../_shared/schemas.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,6 +23,30 @@ serve(async (req) => {
   }
 
   try {
+    // Authentication
+    const authHeader = req.headers.get('Authorization');
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader! } } }
+    );
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Rate limiting
+    const rateLimit = await checkRateLimit(user.id, 'suggest-recipes');
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit.retryAfter!);
+    }
+
+    const requestBody = await req.json();
+    
     const { 
       ingredients, 
       appliances, 
@@ -27,7 +54,15 @@ serve(async (req) => {
       inventory_match, 
       user_id,
       health_goal 
-    }: RecipeRequest = await req.json();
+    }: RecipeRequest = requestBody;
+
+    // Validate required fields
+    if (!appliances || appliances.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'Appliances array required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const apiKey = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     if (!apiKey) {

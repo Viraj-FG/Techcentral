@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,20 +17,42 @@ serve(async (req) => {
   }
 
   try {
-    const { image }: IdentifyRequest = await req.json();
-    
-    console.log('Product identification request received');
-    
+    const authHeader = req.headers.get('Authorization');
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader! },
         },
       }
     );
 
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Rate limiting
+    const rateLimit = await checkRateLimit(user.id, 'identify-product');
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit.retryAfter!);
+    }
+
+    const { image }: IdentifyRequest = await req.json();
+    
+    if (!image || image.length < 100) {
+      return new Response(
+        JSON.stringify({ error: 'Valid image data required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    console.log('Product identification request received');
+    
     const geminiApiKey = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     
     if (!geminiApiKey) {

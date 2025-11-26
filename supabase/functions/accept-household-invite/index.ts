@@ -1,5 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { decodeBase64 } from 'https://deno.land/std@0.224.0/encoding/base64.ts';
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
+import { acceptInviteSchema, validateRequest } from "../_shared/schemas.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -40,7 +42,27 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { invite_code }: AcceptInviteRequest = await req.json();
+    // Rate limiting
+    const rateLimit = await checkRateLimit(user.id, 'accept-household-invite');
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit.retryAfter!);
+    }
+
+    const requestBody = await req.json();
+    
+    // Validate request
+    const validation = validateRequest(acceptInviteSchema, {
+      inviteCode: requestBody.invite_code
+    });
+
+    if (!validation.success) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid request', details: validation.error }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { inviteCode: invite_code } = validation.data;
 
     // Verify JWT signature
     const parts = invite_code.split('.');

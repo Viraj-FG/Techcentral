@@ -24,6 +24,7 @@ import { IntentPresetPicker, type IntentPreset } from './IntentPresetPicker';
 import ToxicityAlert from './ToxicityAlert';
 import { ScannerHUD } from './ScannerHUD';
 import { haptics } from '@/lib/haptics';
+import { DuplicateItemModal } from './DuplicateItemModal';
 
 type Intent = 'INVENTORY_SWEEP' | 'APPLIANCE_SCAN' | 'VANITY_SWEEP' | 'NUTRITION_TRACK' | 'PRODUCT_ANALYSIS' | 'PET_ID' | 'EMPTY_PACKAGE';
 
@@ -85,6 +86,12 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
   const [showHint, setShowHint] = useState(true);
   const [showEmptyPackageConfirm, setShowEmptyPackageConfirm] = useState(false);
   const [pendingEmptyPackageData, setPendingEmptyPackageData] = useState<{ item: any; householdId: string } | null>(null);
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [duplicateItemData, setDuplicateItemData] = useState<{
+    existingItem: any;
+    newItem: any;
+    householdId: string;
+  } | null>(null);
 
   // Hide hint after 3 seconds
   useEffect(() => {
@@ -349,7 +356,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
             try {
               const { data } = await supabase.functions.invoke('enrich-product', {
                 body: {
-                  name: item.name,
+                  productName: item.name,
                   brand: item.brand,
                   category: item.category
                 }
@@ -381,7 +388,38 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
           })
         );
 
-        const { error } = await supabase.from('inventory').insert(enrichedItems);
+        // Check for duplicates before inserting
+        const itemsToInsert: any[] = [];
+        
+        for (const enrichedItem of enrichedItems) {
+          const { data: existing } = await supabase
+            .from('inventory')
+            .select('*')
+            .eq('household_id', profileData.current_household_id)
+            .eq('name', enrichedItem.name)
+            .maybeSingle();
+
+          if (existing) {
+            // Found duplicate - show modal for this item
+            toast.dismiss();
+            setDuplicateItemData({
+              existingItem: existing,
+              newItem: enrichedItem,
+              householdId: profileData.current_household_id
+            });
+            setShowDuplicateModal(true);
+            return; // Stop processing and wait for user decision
+          } else {
+            itemsToInsert.push(enrichedItem);
+          }
+        }
+
+        if (itemsToInsert.length === 0) {
+          toast.dismiss();
+          return;
+        }
+
+        const { error } = await supabase.from('inventory').insert(itemsToInsert);
 
         toast.dismiss();
 
@@ -390,7 +428,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
           toast.error('Failed to add items to inventory');
         } else {
           haptics.success(); // Success vibration
-          toast.success(`Added ${enrichedItems.length} items to inventory`);
+          toast.success(`Added ${itemsToInsert.length} items to inventory`);
           onItemsAdded?.();
           setResultData(null);
         }
@@ -813,17 +851,91 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
           inventory_id: item.id
         });
 
-      toast.success(`${item.name} marked empty. Added to Smart Cart.`, {
-        duration: 4000
-      });
-      
+      haptics.success();
+      toast.success(`${item.name} marked as out of stock and added to shopping list`);
       setShowEmptyPackageConfirm(false);
       setPendingEmptyPackageData(null);
       onItemsAdded?.();
-      
     } catch (error) {
       console.error('Error confirming empty package:', error);
       toast.error("Failed to update inventory");
+    }
+  };
+
+  const handleDuplicateMerge = async () => {
+    if (!duplicateItemData) return;
+    const { existingItem, newItem } = duplicateItemData;
+
+    try {
+      const { error } = await supabase
+        .from('inventory')
+        .update({
+          quantity: (existingItem.quantity || 0) + (newItem.quantity || 1),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existingItem.id);
+
+      if (error) throw error;
+
+      haptics.success();
+      toast.success(`Added to existing ${existingItem.name}`);
+      setShowDuplicateModal(false);
+      setDuplicateItemData(null);
+      onItemsAdded?.();
+      setResultData(null);
+    } catch (error) {
+      console.error('Error merging items:', error);
+      toast.error('Failed to update inventory');
+    }
+  };
+
+  const handleDuplicateReplace = async () => {
+    if (!duplicateItemData) return;
+    const { existingItem, newItem } = duplicateItemData;
+
+    try {
+      const { error } = await supabase
+        .from('inventory')
+        .update({
+          quantity: newItem.quantity || 1,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existingItem.id);
+
+      if (error) throw error;
+
+      haptics.success();
+      toast.success(`Updated ${existingItem.name} quantity`);
+      setShowDuplicateModal(false);
+      setDuplicateItemData(null);
+      onItemsAdded?.();
+      setResultData(null);
+    } catch (error) {
+      console.error('Error replacing item:', error);
+      toast.error('Failed to update inventory');
+    }
+  };
+
+  const handleDuplicateAddNew = async () => {
+    if (!duplicateItemData) return;
+    const { newItem } = duplicateItemData;
+
+    try {
+      const { error } = await supabase
+        .from('inventory')
+        .insert(newItem);
+
+      if (error) throw error;
+
+      haptics.success();
+      toast.success(`Added ${newItem.name} as separate item`);
+      setShowDuplicateModal(false);
+      setDuplicateItemData(null);
+      onItemsAdded?.();
+      setResultData(null);
+    } catch (error) {
+      console.error('Error adding duplicate:', error);
+      toast.error('Failed to add item');
     }
   };
 
@@ -1073,6 +1185,23 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Duplicate Item Modal */}
+      {duplicateItemData && (
+        <DuplicateItemModal
+          open={showDuplicateModal}
+          onClose={() => {
+            setShowDuplicateModal(false);
+            setDuplicateItemData(null);
+          }}
+          itemName={duplicateItemData.newItem.name}
+          existingQuantity={duplicateItemData.existingItem.quantity || 0}
+          newQuantity={duplicateItemData.newItem.quantity || 1}
+          onMerge={handleDuplicateMerge}
+          onReplace={handleDuplicateReplace}
+          onAddNew={handleDuplicateAddNew}
+        />
+      )}
     </div>
   );
 };

@@ -1,4 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
+import { mealAnalysisSchema, validateRequest } from "../_shared/schemas.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -154,7 +157,45 @@ serve(async (req) => {
   }
 
   try {
-    const { items: providedItems, image }: MealAnalysisRequest = await req.json();
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader! } } }
+    );
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Rate limiting
+    const rateLimit = await checkRateLimit(user.id, 'analyze-meal');
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit.retryAfter!);
+    }
+
+    const requestBody = await req.json();
+    
+    // Validate request
+    const validation = validateRequest(mealAnalysisSchema, {
+      imageBase64: requestBody.image,
+      textDescription: requestBody.items?.join(', '),
+      mealType: 'snack' // Default, not critical for this endpoint
+    });
+
+    if (!validation.success) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid request', details: validation.error }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { items: providedItems, image }: MealAnalysisRequest = requestBody;
 
     if (!image) {
       return new Response(
