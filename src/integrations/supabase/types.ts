@@ -432,6 +432,42 @@ export type Database = {
           },
         ]
       }
+      learned_preferences: {
+        Row: {
+          confidence: number | null
+          created_at: string | null
+          id: string
+          last_updated: string | null
+          learned_from: string | null
+          occurrences: number | null
+          preference_type: string
+          preference_value: string
+          user_id: string
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          last_updated?: string | null
+          learned_from?: string | null
+          occurrences?: number | null
+          preference_type: string
+          preference_value: string
+          user_id: string
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          last_updated?: string | null
+          learned_from?: string | null
+          occurrences?: number | null
+          preference_type?: string
+          preference_value?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       meal_logs: {
         Row: {
           calories: number | null

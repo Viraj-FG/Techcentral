@@ -36,6 +36,7 @@ import { ToxicFoodMonitor } from "./dashboard/ToxicFoodMonitor";
 import { SwipeEdgeIndicator } from "./dashboard/SwipeEdgeIndicator";
 import { MealPlanWidget } from "./dashboard/MealPlanWidget";
 import { AIInsightsWidget } from "./dashboard/AIInsightsWidget";
+import { QuickActions } from "./dashboard/QuickActions";
 import { kaevaStaggerContainer, kaevaStaggerChild } from "@/hooks/useKaevaMotion";
 import { useModularOnboarding, OnboardingModule } from "@/hooks/useModularOnboarding";
 import { ModularOnboardingPrompt } from "./onboarding/ModularOnboardingPrompt";
@@ -332,6 +333,36 @@ const Dashboard = ({ profile }: DashboardProps) => {
         className="space-y-4"
       >
         <motion.div variants={kaevaStaggerChild}><WelcomeBanner /></motion.div>
+        <motion.div variants={kaevaStaggerChild}>
+          <QuickActions
+            onScan={() => setSpotlightOpen(true)}
+            onVoice={() => voiceAssistantRef.current?.startConversation()}
+            onRestock={async () => {
+              try {
+                const { data, error } = await supabase.functions.invoke('check-auto-restock');
+                if (error) throw error;
+                if (data.itemsAdded > 0) {
+                  toast({
+                    title: "Auto-Restock Complete",
+                    description: `${data.itemsAdded} items added to your shopping list`,
+                  });
+                } else {
+                  toast({
+                    title: "All Stocked Up",
+                    description: "No items need restocking right now",
+                  });
+                }
+              } catch (error) {
+                toast({
+                  title: "Error",
+                  description: "Failed to check restock items",
+                  variant: "destructive"
+                });
+              }
+            }}
+            onPlanWeek={() => navigate('/meal-planner')}
+          />
+        </motion.div>
         <motion.div variants={kaevaStaggerChild}><AIInsightsWidget userId={profile.id} /></motion.div>
         <motion.div variants={kaevaStaggerChild}><PulseHeader profile={profile} /></motion.div>
         <motion.div variants={kaevaStaggerChild}><SafetyShield profile={profile} /></motion.div>
