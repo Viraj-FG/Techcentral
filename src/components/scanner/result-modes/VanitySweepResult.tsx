@@ -1,7 +1,15 @@
 import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, AlertTriangle, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UniversalFixSheet } from '@/components/ui/UniversalFixSheet';
+import { Badge } from '@/components/ui/badge';
+
+interface BeautyWarning {
+  ingredient: string;
+  category: 'harmful' | 'irritant' | 'comedogenic' | 'allergen';
+  severity: 'low' | 'medium' | 'high';
+  description: string;
+}
 
 interface DetectedItem {
   name: string;
@@ -10,6 +18,8 @@ interface DetectedItem {
   metadata?: {
     pao_symbol?: string;
   };
+  beauty_warnings?: BeautyWarning[];
+  has_harmful_ingredients?: boolean;
 }
 
 const VanitySweepResult = ({ items }: { items: DetectedItem[] }) => {
@@ -70,18 +80,41 @@ const VanitySweepResult = ({ items }: { items: DetectedItem[] }) => {
               {/* Product info */}
               <h4 className="font-semibold text-white text-sm leading-tight mb-1">{item.name}</h4>
               {item.brand && (
-                <p className="text-xs text-slate-400 mb-2">{item.brand}</p>
+                <p className="text-xs text-muted-foreground mb-2">{item.brand}</p>
+              )}
+
+              {/* Beauty Warnings */}
+              {item.beauty_warnings && item.beauty_warnings.length > 0 && (
+                <div className="space-y-1 mb-2">
+                  {item.has_harmful_ingredients && (
+                    <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                      <AlertTriangle className="w-3 h-3 mr-1" />
+                      Harmful ingredients
+                    </Badge>
+                  )}
+                  <div className="flex flex-wrap gap-1">
+                    {item.beauty_warnings.slice(0, 2).map((warning, idx) => (
+                      <Badge
+                        key={idx}
+                        variant={warning.severity === 'high' ? 'destructive' : 'secondary'}
+                        className="text-[10px] px-1.5 py-0"
+                      >
+                        {warning.ingredient}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
               )}
 
               {/* Expiry info */}
               <div className="space-y-1">
                 {item.metadata?.pao_symbol && (
-                  <div className="flex items-center gap-1 text-xs text-slate-400">
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <span>PAO: {item.metadata.pao_symbol}</span>
                   </div>
                 )}
                 {isExpired ? (
-                  <span className="inline-block px-2 py-0.5 bg-red-500/20 text-red-400 text-xs rounded-full">
+                  <span className="inline-block px-2 py-0.5 bg-destructive/20 text-destructive text-xs rounded-full">
                     Expired
                   </span>
                 ) : isExpiringSoon ? (
@@ -90,6 +123,7 @@ const VanitySweepResult = ({ items }: { items: DetectedItem[] }) => {
                   </span>
                 ) : (
                   <span className="inline-block px-2 py-0.5 bg-secondary/20 text-secondary text-xs rounded-full">
+                    <Shield className="w-3 h-3 inline mr-1" />
                     Fresh
                   </span>
                 )}

@@ -56,6 +56,72 @@ export const socialRecipeSchema = z.object({
   url: z.string().url(),
 });
 
+// Detect Intent Schema
+export const detectIntentSchema = z.object({
+  image: z.string().min(100, "Image data required"),
+});
+
+// Social Recipe Extract Schema (already exists, enhanced)
+export const socialRecipeEnhancedSchema = z.object({
+  url: z.string().url().optional(),
+  image: z.string().optional(),
+  user_id: z.string().uuid(),
+}).refine(data => data.url || data.image, {
+  message: "Either url or image is required"
+}).refine(data => !(data.url && data.image), {
+  message: "Provide either url OR image, not both"
+});
+
+// Signed URL Schema
+export const signedUrlSchema = z.object({
+  agentId: z.string().min(1, "Agent ID required"),
+});
+
+// Place Hours Schema
+export const placeHoursSchema = z.object({
+  name: z.string().min(1, "Place name required"),
+  address: z.string().min(1, "Address required"),
+  city: z.string().min(1, "City required"),
+  state: z.string().length(2, "State must be 2 characters"),
+});
+
+// Instacart Service Schema
+export const instacartServiceSchema = z.object({
+  action: z.enum(['create_cart', 'create_recipe', 'swap_product', 'get_nearby_retailers']),
+  userId: z.string().uuid().optional(),
+  items: z.array(z.object({
+    name: z.string(),
+    brand: z.string().optional(),
+    quantity: z.number().positive(),
+    unit: z.string(),
+  })).optional(),
+  recipeData: z.object({
+    name: z.string(),
+    ingredients: z.array(z.any()),
+    servings: z.number().optional(),
+    image_url: z.string().optional(),
+    description: z.string().optional(),
+  }).optional(),
+  swapData: z.object({
+    productName: z.string(),
+    brand: z.string().optional(),
+  }).optional(),
+  zipCode: z.string().optional(),
+  retailerId: z.string().optional(),
+});
+
+// Cook Recipe Schema
+export const cookRecipeSchema = z.object({
+  recipe: z.object({
+    name: z.string().min(1, "Recipe name required"),
+    ingredients: z.array(z.object({
+      name: z.string().min(1),
+      quantity: z.number().positive(),
+      unit: z.string().optional(),
+    })).min(1, "At least one ingredient required"),
+  }),
+});
+
 // Generic validation helper
 export function validateRequest<T>(
   schema: z.ZodSchema<T>,

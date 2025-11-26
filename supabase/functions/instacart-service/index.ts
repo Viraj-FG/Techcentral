@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { validateRequest, instacartServiceSchema } from "../_shared/schemas.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -56,16 +58,41 @@ serve(async (req) => {
   }
 
   try {
-    const { action, userId, items, recipeData, swapData, zipCode, retailerId } = await req.json();
+    // Validate request
+    const body = await req.json();
+    const validation = validateRequest(instacartServiceSchema, body);
+    
+    if (!validation.success) {
+      return new Response(
+        JSON.stringify({ error: validation.error }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { action, userId, items, recipeData, swapData, zipCode, retailerId } = validation.data;
     
     console.log('🚀 Instacart service request:', action);
 
     // For get_nearby_retailers, we don't need user profile
     if (action === 'get_nearby_retailers') {
+      if (!zipCode) {
+        return new Response(
+          JSON.stringify({ error: 'zipCode is required for get_nearby_retailers' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
       const result = await getNearbyRetailers(zipCode);
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
+    }
+
+    // For all other actions, userId is required
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: 'userId is required for this action' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // For all other actions, fetch user profile
@@ -95,12 +122,21 @@ serve(async (req) => {
     let result;
     switch (action) {
       case 'create_cart':
+        if (!items) {
+          throw new Error('items required for create_cart');
+        }
         result = await createSmartCart(items, filters, cachedRetailerId);
         break;
       case 'create_recipe':
+        if (!recipeData) {
+          throw new Error('recipeData required for create_recipe');
+        }
         result = await createRecipePage(recipeData, filters, cachedRetailerId, profile, supabase);
         break;
       case 'swap_product':
+        if (!swapData) {
+          throw new Error('swapData required for swap_product');
+        }
         result = await swapProduct(swapData, filters, cachedRetailerId);
         break;
       default:

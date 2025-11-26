@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { validateRequest, signedUrlSchema } from "../_shared/schemas.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -58,18 +60,31 @@ serve(async (req) => {
     }
 
     console.log('✅ [SignedURL] Authenticated user:', user.id);
+
+    // Rate limiting
+    const rateLimit = await checkRateLimit(user.id, 'generate-signed-url');
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit.retryAfter!);
+    }
     
-    // Original function logic continues...
+    // Validate request body
+    const body = await req.json();
+    const validation = validateRequest(signedUrlSchema, body);
+    
+    if (!validation.success) {
+      console.error('❌ [SignedURL] Validation failed:', validation.error);
+      return new Response(
+        JSON.stringify({ error: validation.error }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { agentId } = validation.data;
+    
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
     if (!ELEVENLABS_API_KEY) {
       console.error('❌ [SignedURL] ELEVENLABS_API_KEY not configured');
       throw new Error('ELEVENLABS_API_KEY is not set');
-    }
-
-    const { agentId } = await req.json();
-    if (!agentId) {
-      console.error('❌ [SignedURL] Missing agentId in request body');
-      throw new Error('agentId is required');
     }
 
     console.log('🤖 [SignedURL] Generating signed URL for agent:', agentId, {

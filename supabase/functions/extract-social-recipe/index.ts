@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { validateRequest, socialRecipeEnhancedSchema } from "../_shared/schemas.ts";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -53,29 +55,23 @@ serve(async (req) => {
   }
 
   try {
+    // Validate request
     const body = await req.json();
-    const { url, image, user_id } = body;
-
-    // Validate input
-    if (!user_id) {
+    const validation = validateRequest(socialRecipeEnhancedSchema, body);
+    
+    if (!validation.success) {
       return new Response(
-        JSON.stringify({ error: 'user_id is required' }),
+        JSON.stringify({ error: validation.error }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (!url && !image) {
-      return new Response(
-        JSON.stringify({ error: 'Either url or image is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const { url, image, user_id } = validation.data;
 
-    if (url && image) {
-      return new Response(
-        JSON.stringify({ error: 'Provide either url OR image, not both' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // Rate limiting
+    const rateLimit = await checkRateLimit(user_id, 'extract-social-recipe');
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit.retryAfter!);
     }
 
     const apiKey = Deno.env.get('GOOGLE_GEMINI_API_KEY');
@@ -147,9 +143,12 @@ Important rules:
           maxOutputTokens: 2048,
         }
       };
-    } else {
       // Image Processing Mode
       console.log('Analyzing recipe screenshot');
+      
+      if (!image) {
+        throw new Error('Image is required for screenshot mode');
+      }
       
       // Extract base64 data
       const base64Data = image.split(',')[1] || image;
