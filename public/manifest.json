@@ -1,0 +1,35 @@
+{
+  "name": "KAEVA - Your Home. On Autopilot",
+  "short_name": "KAEVA",
+  "description": "AI-powered household management with vision scanning, nutrition tracking, and smart shopping",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#08080A",
+  "theme_color": "#D69E2E",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["lifestyle", "utilities", "productivity"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Scan Item",
+      "short_name": "Scan",
+      "description": "Open scanner to add items",
+      "url": "/app?action=scan",
+      "icons": []
+    },
+    {
+      "name": "View Inventory",
+      "short_name": "Inventory",
+      "description": "View household inventory",
+      "url": "/inventory",
+      "icons": []
+    }
+  ]
+}
