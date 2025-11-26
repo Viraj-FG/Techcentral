@@ -71,6 +71,32 @@ serve(async (req) => {
 
     let availableIngredients = ingredients || [];
     let inventoryContext = '';
+    let learnedPreferencesContext = '';
+
+    // Fetch learned preferences
+    const { data: learnedPrefs } = await supabaseClient
+      .from('learned_preferences')
+      .select('preference_type, preference_value, confidence')
+      .eq('user_id', user.id)
+      .gte('confidence', 0.5)
+      .order('confidence', { ascending: false })
+      .limit(15);
+
+    if (learnedPrefs && learnedPrefs.length > 0) {
+      const cuisinePrefs = learnedPrefs.filter(p => p.preference_type === 'cuisine').map(p => `${p.preference_value} (${Math.round(p.confidence * 100)}%)`);
+      const ingredientPrefs = learnedPrefs.filter(p => p.preference_type === 'ingredient').slice(0, 8).map(p => p.preference_value);
+      const timePrefs = learnedPrefs.filter(p => p.preference_type === 'cooking_time').map(p => p.preference_value);
+      
+      if (cuisinePrefs.length > 0) {
+        learnedPreferencesContext += `\nUser prefers these cuisines: ${cuisinePrefs.join(', ')}`;
+      }
+      if (ingredientPrefs.length > 0) {
+        learnedPreferencesContext += `\nUser frequently uses: ${ingredientPrefs.join(', ')}`;
+      }
+      if (timePrefs.some(p => p === 'quick')) {
+        learnedPreferencesContext += `\nUser often cooks quick meals (under 30 minutes)`;
+      }
+    }
 
     // If inventory_match mode, fetch user's actual inventory
     if (inventory_match && user_id) {
@@ -113,7 +139,7 @@ serve(async (req) => {
       ? `IMPORTANT: User should have at least 80% of ingredients. Mark any missing ingredients separately.`
       : '';
 
-    const prompt = `You are a helpful recipe assistant. ${inventoryContext}
+    const prompt = `You are a helpful recipe assistant. ${inventoryContext}${learnedPreferencesContext}
 Available appliances: ${appliances.join(', ')}
 ${dietaryInfo}
 ${healthInfo}
