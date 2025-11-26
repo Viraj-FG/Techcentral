@@ -24,6 +24,7 @@ const RecipeBook = lazy(() => import("./pages/RecipeBook"));
 const SharedRecipe = lazy(() => import("./pages/SharedRecipe"));
 const MealPlanner = lazy(() => import("./pages/MealPlanner"));
 const Analytics = lazy(() => import("./pages/Analytics"));
+const Install = lazy(() => import("./pages/Install"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Lazy load authenticated layout with voice provider - reduces initial bundle by ~100KB
@@ -84,6 +85,7 @@ const App = () => (
                 } />
                 
                 {/* PUBLIC ROUTES - Accessible to everyone */}
+                <Route path="/install" element={<Install />} />
                 <Route path="/recipe/:shareToken" element={<SharedRecipe />} />
                 <Route path="/household/join" element={<HouseholdInviteAccept />} />
                 
