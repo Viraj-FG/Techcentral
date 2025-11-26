@@ -415,6 +415,48 @@ export type Database = {
         }
         Relationships: []
       }
+      meal_templates: {
+        Row: {
+          created_at: string
+          id: string
+          items: Json
+          template_name: string
+          total_calories: number | null
+          total_carbs: number | null
+          total_fat: number | null
+          total_fiber: number | null
+          total_protein: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          items: Json
+          template_name: string
+          total_calories?: number | null
+          total_carbs?: number | null
+          total_fat?: number | null
+          total_fiber?: number | null
+          total_protein?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          items?: Json
+          template_name?: string
+          total_calories?: number | null
+          total_carbs?: number | null
+          total_fat?: number | null
+          total_fiber?: number | null
+          total_protein?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -534,6 +576,10 @@ export type Database = {
           calculated_tdee: number | null
           created_at: string
           current_household_id: string | null
+          daily_calorie_goal: number | null
+          daily_carbs_goal: number | null
+          daily_fat_goal: number | null
+          daily_protein_goal: number | null
           dietary_preferences: Json | null
           health_goals: Json | null
           household_adults: number | null
@@ -566,6 +612,10 @@ export type Database = {
           calculated_tdee?: number | null
           created_at?: string
           current_household_id?: string | null
+          daily_calorie_goal?: number | null
+          daily_carbs_goal?: number | null
+          daily_fat_goal?: number | null
+          daily_protein_goal?: number | null
           dietary_preferences?: Json | null
           health_goals?: Json | null
           household_adults?: number | null
@@ -598,6 +648,10 @@ export type Database = {
           calculated_tdee?: number | null
           created_at?: string
           current_household_id?: string | null
+          daily_calorie_goal?: number | null
+          daily_carbs_goal?: number | null
+          daily_fat_goal?: number | null
+          daily_protein_goal?: number | null
           dietary_preferences?: Json | null
           health_goals?: Json | null
           household_adults?: number | null

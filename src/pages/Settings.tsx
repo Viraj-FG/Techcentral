@@ -18,6 +18,7 @@ import { ProfileEditSheet } from "@/components/settings/ProfileEditSheet";
 import { DietarySheet } from "@/components/settings/DietarySheet";
 import { BeautySheet } from "@/components/settings/BeautySheet";
 import { GoalsSheet } from "@/components/settings/GoalsSheet";
+import { NutritionGoalsSheet } from "@/components/settings/NutritionGoalsSheet";
 import { AccountSheet } from "@/components/settings/AccountSheet";
 import { ConversationHistorySheet } from "@/components/settings/ConversationHistorySheet";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -36,6 +37,10 @@ const Settings = () => {
   const [userHeight, setUserHeight] = useState<number | null>(null);
   const [userGender, setUserGender] = useState<string>("");
   const [userActivityLevel, setUserActivityLevel] = useState<string>("");
+  const [calorieGoal, setCalorieGoal] = useState<number>(2000);
+  const [proteinGoal, setProteinGoal] = useState<number>(150);
+  const [carbsGoal, setCarbsGoal] = useState<number>(200);
+  const [fatGoal, setFatGoal] = useState<number>(65);
   const [dietaryValues, setDietaryValues] = useState<string>("");
   const [allergies, setAllergies] = useState<string>("");
   const [skinType, setSkinType] = useState<string>("");
@@ -49,6 +54,7 @@ const Settings = () => {
   const [dietarySheetOpen, setDietarySheetOpen] = useState(false);
   const [beautySheetOpen, setBeautySheetOpen] = useState(false);
   const [goalsSheetOpen, setGoalsSheetOpen] = useState(false);
+  const [nutritionGoalsSheetOpen, setNutritionGoalsSheetOpen] = useState(false);
   const [accountSheetOpen, setAccountSheetOpen] = useState(false);
   const [historySheetOpen, setHistorySheetOpen] = useState(false);
   const [storeSelectorOpen, setStoreSelectorOpen] = useState(false);
@@ -101,6 +107,11 @@ const Settings = () => {
         setLifestyleGoals(Array.isArray(profile.lifestyle_goals) 
           ? profile.lifestyle_goals.join(", ") 
           : "");
+        
+        setCalorieGoal(profile.daily_calorie_goal || 2000);
+        setProteinGoal(profile.daily_protein_goal || 150);
+        setCarbsGoal(profile.daily_carbs_goal || 200);
+        setFatGoal(profile.daily_fat_goal || 65);
         
         setSelectedStore(profile.preferred_retailer_id ? {
           retailer_id: profile.preferred_retailer_id,
@@ -180,16 +191,16 @@ const Settings = () => {
               onClick={() => setDietarySheetOpen(true)}
             />
             <SettingsRow 
+              icon={Heart}
+              title="Nutrition Goals"
+              description="Daily calorie and macro targets"
+              onClick={() => setNutritionGoalsSheetOpen(true)}
+            />
+            <SettingsRow 
               icon={Sparkles}
               title="Beauty Profile"
               description="Skin and hair preferences"
               onClick={() => setBeautySheetOpen(true)}
-            />
-            <SettingsRow 
-              icon={Store}
-              title="Preferred Store"
-              description={selectedStore?.name || "Select your store"}
-              onClick={() => setStoreSelectorOpen(true)}
             />
             <SettingsRow 
               icon={Heart}
@@ -301,6 +312,18 @@ const Settings = () => {
         <ConversationHistorySheet 
           open={historySheetOpen}
           onClose={() => setHistorySheetOpen(false)}
+        />
+
+        <NutritionGoalsSheet
+          open={nutritionGoalsSheetOpen}
+          onOpenChange={setNutritionGoalsSheetOpen}
+          currentGoals={{
+            daily_calorie_goal: calorieGoal,
+            daily_protein_goal: proteinGoal,
+            daily_carbs_goal: carbsGoal,
+            daily_fat_goal: fatGoal,
+          }}
+          userId={userId}
         />
 
         <StoreSelector

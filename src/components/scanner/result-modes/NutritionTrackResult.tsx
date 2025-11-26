@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, ShoppingCart, Loader2, Check, Pencil, Search, MoreVertical, Trash2, Flag, Download } from 'lucide-react';
+import { Clock, ShoppingCart, Loader2, Check, Pencil, Search, MoreVertical, Trash2, Flag, Download, Undo, Redo, BookmarkPlus, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -8,6 +8,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { FixResultSheet } from './FixResultSheet';
+import { PhotoEditModal } from '../PhotoEditModal';
+import { MealTemplateSheet } from '../MealTemplateSheet';
+import { SaveTemplateDialog } from '../SaveTemplateDialog';
 import type { Recipe } from '../ScanResults';
 
 interface DetectedItem {
@@ -56,7 +59,56 @@ const NutritionTrackResult = ({
   const [servingUnit, setServingUnit] = useState<'serving' | 'package' | 'grams'>('serving');
   const [servingCount, setServingCount] = useState(1);
   const [editingServingCount, setEditingServingCount] = useState(false);
+  const [editedImage, setEditedImage] = useState<string | undefined>(imageUrl);
+  const [showPhotoEdit, setShowPhotoEdit] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+  const [history, setHistory] = useState<DetectedItem[][]>([items]);
+  const [historyIndex, setHistoryIndex] = useState(0);
+  const [userId, setUserId] = useState<string>("");
   const { toast } = useToast();
+
+  // Fetch user ID on mount
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) setUserId(data.user.id);
+    });
+  }, []);
+
+  // Save to history
+  const saveToHistory = (newItems: DetectedItem[]) => {
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push(newItems);
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+    setEditedItems(newItems);
+  };
+
+  // Undo
+  const handleUndo = () => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      setEditedItems(history[newIndex]);
+      toast({ title: "Undone" });
+    }
+  };
+
+  // Redo
+  const handleRedo = () => {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      setEditedItems(history[newIndex]);
+      toast({ title: "Redone" });
+    }
+  };
+
+  // Load template
+  const handleLoadTemplate = (template: any) => {
+    saveToHistory(template.items);
+    toast({ title: `Loaded "${template.template_name}"` });
+  };
 
   const handleFixIssue = async (correction: string) => {
     // Placeholder for AI re-analysis
@@ -68,7 +120,7 @@ const NutritionTrackResult = ({
 
   const handleDeleteFood = (index: number) => {
     const newItems = editedItems.filter((_, i) => i !== index);
-    setEditedItems(newItems);
+    saveToHistory(newItems);
     toast({
       title: "Item removed",
       description: "Food item deleted from meal",
@@ -208,7 +260,7 @@ const NutritionTrackResult = ({
         fiber: newItem.fiber
       }
     };
-    setEditedItems(updated);
+    saveToHistory(updated);
     setEditingIndex(null);
     toast({
       title: "Item Updated",
@@ -372,23 +424,52 @@ const NutritionTrackResult = ({
     return (
       <div className="space-y-6">
         {/* Captured Photo */}
-        {imageUrl && (
+        {editedImage && (
           <motion.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }}
             className="relative overflow-hidden rounded-xl"
           >
             <img 
-              src={imageUrl} 
+              src={editedImage} 
               alt="Meal" 
               className="w-full h-48 object-cover" 
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent" />
+            <Button
+              variant="outline"
+              size="sm"
+              className="absolute top-2 right-2"
+              onClick={() => setShowPhotoEdit(true)}
+            >
+              <ImageIcon className="w-4 h-4 mr-2" />
+              Edit Photo
+            </Button>
           </motion.div>
         )}
 
         {/* Serving Controls & Actions */}
         <div className="flex items-center justify-between gap-2 flex-wrap">
+          {/* Undo/Redo Buttons */}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleUndo}
+              disabled={historyIndex === 0}
+            >
+              <Undo className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRedo}
+              disabled={historyIndex === history.length - 1}
+            >
+              <Redo className="w-4 h-4" />
+            </Button>
+          </div>
+
           {/* Serving Unit Toggle */}
           <div className="flex gap-2">
             {['serving', 'package', 'grams'].map((unit) => (
@@ -404,6 +485,26 @@ const NutritionTrackResult = ({
                 {unit.charAt(0).toUpperCase() + unit.slice(1)}
               </button>
             ))}
+          </div>
+
+          {/* Template Actions */}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowTemplates(true)}
+            >
+              <BookmarkPlus className="w-4 h-4 mr-2" />
+              Load
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSaveTemplate(true)}
+            >
+              <BookmarkPlus className="w-4 h-4 mr-2" />
+              Save
+            </Button>
           </div>
 
           {/* Fix Issue & 3-Dot Menu */}
@@ -634,6 +735,37 @@ const NutritionTrackResult = ({
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Photo Edit Modal */}
+        {editedImage && (
+          <PhotoEditModal
+            open={showPhotoEdit}
+            onOpenChange={setShowPhotoEdit}
+            imageUrl={editedImage}
+            onSave={(newImageUrl) => setEditedImage(newImageUrl)}
+          />
+        )}
+
+        {/* Meal Templates Sheet */}
+        <MealTemplateSheet
+          open={showTemplates}
+          onOpenChange={setShowTemplates}
+          userId={userId}
+          onLoadTemplate={handleLoadTemplate}
+        />
+
+        {/* Save Template Dialog */}
+        <SaveTemplateDialog
+          open={showSaveTemplate}
+          onOpenChange={setShowSaveTemplate}
+          userId={userId}
+          items={editedItems}
+          totalCalories={currentTotals.calories}
+          totalProtein={currentTotals.protein}
+          totalCarbs={currentTotals.carbs}
+          totalFat={currentTotals.fat}
+          totalFiber={currentTotals.fiber || 0}
+        />
       </div>
     );
   }
