@@ -57,8 +57,8 @@ const DigitalTwinSummary = ({ profile, onComplete }: DigitalTwinSummaryProps) =>
 
   const ProfileItem = ({ label, value }: { label: string; value: string }) => (
     <div className="glass-card p-4">
-      <div className="text-xs text-kaeva-slate-400 tracking-wide mb-1">{label}</div>
-      <div className="text-sm text-kaeva-sage tracking-wide">{value || "None"}</div>
+      <div className="text-xs text-muted-foreground tracking-wide mb-1">{label}</div>
+      <div className="text-sm text-secondary tracking-wide">{value || "None"}</div>
     </div>
   );
 
@@ -69,11 +69,11 @@ const DigitalTwinSummary = ({ profile, onComplete }: DigitalTwinSummaryProps) =>
       className="glass-card p-8 max-w-2xl mx-auto"
     >
       <div className="text-center mb-8 space-y-2">
-        <h2 className="text-3xl sm:text-4xl tracking-premium text-kaeva-sage">
+        <h2 className="text-3xl sm:text-4xl tracking-premium text-secondary">
           PROFILE GENERATED
         </h2>
-        <div className="w-32 h-0.5 bg-kaeva-sage mx-auto" />
-        <p className="text-sm text-kaeva-slate-400 tracking-wide">
+        <div className="w-32 h-0.5 bg-secondary mx-auto" />
+        <p className="text-sm text-muted-foreground tracking-wide">
           All systems calibrated
         </p>
       </div>
@@ -113,7 +113,7 @@ const DigitalTwinSummary = ({ profile, onComplete }: DigitalTwinSummaryProps) =>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="mb-6 text-center text-xs text-kaeva-teal tracking-wide"
+          className="mb-6 text-center text-xs text-accent tracking-wide"
         >
           🛡️ Canine safety protocols active
         </motion.div>
@@ -121,8 +121,8 @@ const DigitalTwinSummary = ({ profile, onComplete }: DigitalTwinSummaryProps) =>
 
       <motion.button
         onClick={handleEnterKaeva}
-        className="w-full py-4 bg-kaeva-sage/20 border border-kaeva-sage rounded-full
-                   hover:bg-kaeva-sage/30 transition-all tracking-wider text-kaeva-sage"
+        className="w-full py-4 bg-secondary/20 border border-secondary rounded-full
+                   hover:bg-secondary/30 transition-all tracking-wider text-secondary"
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         transition={springTransition}

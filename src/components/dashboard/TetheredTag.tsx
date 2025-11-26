@@ -23,7 +23,7 @@ export const TetheredTag = ({ label, position, targetPosition, confidence }: Tet
       transition={kaevaTransition}
     >
       {/* Dot at object center */}
-      <div className="absolute w-3 h-3 bg-kaeva-sage rounded-full shadow-lg shadow-kaeva-sage/50 -translate-x-1/2 -translate-y-1/2" />
+      <div className="absolute w-3 h-3 bg-secondary rounded-full shadow-lg shadow-secondary/50 -translate-x-1/2 -translate-y-1/2" />
       
       {/* Connecting line */}
       <svg 
@@ -56,7 +56,7 @@ export const TetheredTag = ({ label, position, targetPosition, confidence }: Tet
       >
         <span className="text-sm font-medium text-white whitespace-nowrap">{label}</span>
         {confidence && (
-          <span className="text-xs text-kaeva-sage text-data">
+          <span className="text-xs text-secondary text-data">
             {Math.round(confidence * 100)}%
           </span>
         )}
