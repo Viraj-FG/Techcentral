@@ -66,6 +66,11 @@ const Dashboard = ({ profile }: DashboardProps) => {
   const dragX = useMotionValue(0);
   const dragConstraints = { left: 0, right: 0 };
 
+  // Pre-compute opacity transforms for swipe preview (MUST be at top level)
+  const prevViewOpacity = useTransform(dragX, [0, 200], [0.3, 1]);
+  const currentViewOpacity = useTransform(dragX, [-200, 0, 200], [0.3, 1, 0.3]);
+  const nextViewOpacity = useTransform(dragX, [-200, 0], [1, 0.3]);
+
   // Calculate adjacent views for preview
   const getAdjacentViews = () => {
     const currentIndex = DASHBOARD_VIEWS.findIndex(v => v.id === viewMode);
@@ -599,9 +604,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
               {/* Previous View Preview (left) */}
               <motion.div 
                 className="w-screen flex-shrink-0 px-6"
-                style={{
-                  opacity: useTransform(dragX, [0, 200], [0.3, 1])
-                }}
+                style={{ opacity: prevViewOpacity }}
               >
                 {renderViewByMode(getAdjacentViews().prev)}
               </motion.div>
@@ -609,9 +612,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
               {/* Current View (center) */}
               <motion.div 
                 className="w-screen flex-shrink-0 px-6"
-                style={{
-                  opacity: useTransform(dragX, [-200, 0, 200], [0.5, 1, 0.5])
-                }}
+                style={{ opacity: currentViewOpacity }}
               >
                 <AnimatePresence mode="wait">
                   {renderViewByMode(viewMode)}
@@ -621,9 +622,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
               {/* Next View Preview (right) */}
               <motion.div 
                 className="w-screen flex-shrink-0 px-6"
-                style={{
-                  opacity: useTransform(dragX, [-200, 0], [1, 0.3])
-                }}
+                style={{ opacity: nextViewOpacity }}
               >
                 {renderViewByMode(getAdjacentViews().next)}
               </motion.div>
