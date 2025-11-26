@@ -1,11 +1,21 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Webcam from 'react-webcam';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Loader2, ImagePlus } from 'lucide-react';
+import { X, Loader2, ImagePlus, PackageX } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import ScanResults, { type ScanResultsProps } from './ScanResults';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { ModeSelector, type CaptureMode } from './ModeSelector';
 import { CaptureButton } from './CaptureButton';
 import { ScannerToolbar } from './ScannerToolbar';
@@ -73,6 +83,8 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
   const [showToxicityAlert, setShowToxicityAlert] = useState(false);
   const [pendingToxicProduct, setPendingToxicProduct] = useState<string>('');
   const [showHint, setShowHint] = useState(true);
+  const [showEmptyPackageConfirm, setShowEmptyPackageConfirm] = useState(false);
+  const [pendingEmptyPackageData, setPendingEmptyPackageData] = useState<{ item: any; householdId: string } | null>(null);
 
   // Hide hint after 3 seconds
   useEffect(() => {
@@ -388,36 +400,66 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
 
   const handleApplianceScan = async (items: DetectedItem[]) => {
     const appliances = items.filter(i => i.category === 'appliance');
+    const applianceNames = appliances.map(i => i.name);
+
+    // Fetch recipes that use these appliances
+    toast.loading('Finding recipes for your appliances...');
+    
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('lifestyle_goals, dietary_preferences, current_household_id')
+      .eq('id', userId)
+      .single();
+
+    const lifestyleGoals = (profile?.lifestyle_goals as any) || {};
+    const dietaryPreferences = (profile?.dietary_preferences as any) || {};
+    const existingAppliances = lifestyleGoals.appliances || [];
+    const allAppliances = [...new Set([...existingAppliances, ...applianceNames])];
+
+    // Fetch inventory to suggest recipes
+    const { data: inventoryData } = await supabase
+      .from('inventory')
+      .select('name')
+      .eq('household_id', profile?.current_household_id)
+      .gt('quantity', 0);
+
+    const availableIngredients = inventoryData?.map(item => item.name) || [];
+
+    const { data: recipes, error: recipeError } = await supabase.functions.invoke('suggest-recipes', {
+      body: {
+        ingredients: availableIngredients.slice(0, 15), // Limit to prevent huge prompts
+        appliances: applianceNames,
+        dietary_preferences: dietaryPreferences,
+        inventory_match: availableIngredients.length > 0
+      }
+    });
+
+    toast.dismiss();
+
+    if (recipeError) {
+      console.error('Failed to fetch recipes:', recipeError);
+    }
 
     setResultData({
       intent: 'APPLIANCE_SCAN',
       confidence,
       items: appliances,
+      additionalData: {
+        unlockedRecipes: recipes || []
+      },
       onConfirm: async () => {
-        const applianceNames = appliances.map(i => i.name);
-        
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('lifestyle_goals')
-          .eq('id', userId)
-          .single();
-
-        const lifestyleGoals = (profile?.lifestyle_goals as any) || {};
-        const existingAppliances = lifestyleGoals.appliances || [];
-        const newAppliances = [...new Set([...existingAppliances, ...applianceNames])];
-
         await supabase
           .from('profiles')
           .update({
             lifestyle_goals: {
               ...lifestyleGoals,
-              appliances: newAppliances
+              appliances: allAppliances
             }
           })
           .eq('id', userId);
 
         toast.success(`${applianceNames.length} Appliance${applianceNames.length > 1 ? 's' : ''} Added`, {
-          description: `New recipe capabilities unlocked!`
+          description: `${recipes?.length || 0} recipes unlocked!`
         });
         
         setResultData(null);
@@ -728,6 +770,25 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
         return;
       }
 
+      // Show confirmation modal via state
+      setPendingEmptyPackageData({
+        item: inventory,
+        householdId: profileData.current_household_id
+      });
+      setShowEmptyPackageConfirm(true);
+      
+    } catch (error) {
+      console.error('Error handling empty package:', error);
+      toast.error("Failed to update inventory");
+    }
+  };
+
+  const confirmEmptyPackage = async () => {
+    if (!pendingEmptyPackageData) return;
+
+    const { item, householdId } = pendingEmptyPackageData;
+
+    try {
       // Set quantity to 0 and mark as out of stock
       const { error: updateError } = await supabase
         .from('inventory')
@@ -735,7 +796,7 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
           quantity: 0,
           status: 'out_of_stock'
         })
-        .eq('id', inventory.id);
+        .eq('id', item.id);
 
       if (updateError) throw updateError;
 
@@ -743,23 +804,25 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
       await supabase
         .from('shopping_list')
         .insert({
-          household_id: profileData.current_household_id,
-          item_name: inventory.name,
+          household_id: householdId,
+          item_name: item.name,
           quantity: 1,
-          unit: inventory.unit,
+          unit: item.unit,
           source: 'replenishment',
           priority: 'high',
-          inventory_id: inventory.id
+          inventory_id: item.id
         });
 
-      toast.success(`${inventory.name} empty. Added to Smart Cart.`, {
+      toast.success(`${item.name} marked empty. Added to Smart Cart.`, {
         duration: 4000
       });
       
+      setShowEmptyPackageConfirm(false);
+      setPendingEmptyPackageData(null);
       onItemsAdded?.();
       
     } catch (error) {
-      console.error('Error handling empty package:', error);
+      console.error('Error confirming empty package:', error);
       toast.error("Failed to update inventory");
     }
   };
@@ -974,6 +1037,42 @@ const SmartScanner = ({ userId, onClose, onItemsAdded, isOpen, onSocialImport }:
         productName={pendingToxicProduct}
         warnings={toxicityWarnings}
       />
+
+      {/* Empty Package Confirmation Modal */}
+      <AlertDialog open={showEmptyPackageConfirm} onOpenChange={setShowEmptyPackageConfirm}>
+        <AlertDialogContent className="bg-slate-900/95 backdrop-blur-xl border border-destructive/30">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 rounded-full bg-destructive/20 flex items-center justify-center">
+                <PackageX className="w-6 h-6 text-destructive" />
+              </div>
+              <AlertDialogTitle className="text-xl text-white">
+                Mark as Empty?
+              </AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-slate-300">
+              This will mark <span className="font-semibold text-white">{pendingEmptyPackageData?.item?.name}</span> as out of stock and add it to your Smart Cart for replenishment.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => {
+                setShowEmptyPackageConfirm(false);
+                setPendingEmptyPackageData(null);
+              }}
+              className="bg-slate-800 text-white hover:bg-slate-700"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmEmptyPackage}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              Confirm Empty
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
