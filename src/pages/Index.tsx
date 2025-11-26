@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Splash from "@/components/Splash";
 import Dashboard from "@/components/Dashboard";
@@ -10,62 +9,74 @@ import { PageTransition } from "@/components/layout/PageTransition";
 import { OnboardingModuleSheet } from "@/components/onboarding/OnboardingModuleSheet";
 import { useModularOnboarding } from "@/hooks/useModularOnboarding";
 
-const Index = () => {
-  const navigate = useNavigate();
-  const [appState, setAppState] = useState<"splash" | "core-onboarding" | "household-setup" | "dashboard" | null>(null);
-  const [userProfile, setUserProfile] = useState(null);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [session, setSession] = useState<any>(null);
-  const [coreOnboardingOpen, setCoreOnboardingOpen] = useState(false);
-  const { modules, completeModule, reloadModules } = useModularOnboarding();
+/**
+ * App States:
+ * - splash: Initial branded loading (both first-time and returning users)
+ * - core-onboarding: First-time user - collect basic profile info
+ * - household-setup: First-time user - create/join household
+ * - dashboard: Returning user - main app experience
+ * 
+ * Flow:
+ * First-time user: splash → core-onboarding → household-setup → dashboard
+ * Returning user: splash (shorter) → dashboard
+ */
+type AppState = "splash" | "core-onboarding" | "household-setup" | "dashboard";
 
-  // Enable swipe navigation on dashboard and get swipe state
+const Index = () => {
+  const [appState, setAppState] = useState<AppState>("splash");
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [isFirstTimeUser, setIsFirstTimeUser] = useState<boolean | null>(null);
+  const [coreOnboardingOpen, setCoreOnboardingOpen] = useState(false);
+  const { reloadModules } = useModularOnboarding();
+
+  // Enable swipe navigation on dashboard
   const swipeState = useSwipeNavigation({ enabled: appState === "dashboard" });
 
+  // Determine user type on mount
   useEffect(() => {
-    const checkAuthAndProfile = async () => {
+    const determineUserType = async () => {
       try {
-        // Check authentication
         const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          navigate('/auth');
-          return;
-        }
+        if (!session?.user) return;
 
-        // Store session for use after splash
-        setSession(session);
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_modules, current_household_id, created_at')
+          .eq('id', session.user.id)
+          .single();
+
+        const onboardingModules = profile?.onboarding_modules as any || {};
+        const hasCompletedCore = !!onboardingModules.core;
+        const hasHousehold = !!profile?.current_household_id;
+
+        // First-time user = hasn't completed core onboarding
+        setIsFirstTimeUser(!hasCompletedCore);
         
-        // Always show splash first for authenticated users
-        setAppState("splash");
+        // Store profile reference for later
+        if (hasCompletedCore && hasHousehold) {
+          // Fetch full profile for dashboard
+          const { data: fullProfile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          setUserProfile(fullProfile);
+        }
       } catch (error) {
-        console.error("Error checking auth:", error);
-        navigate('/auth');
-      } finally {
-        setIsCheckingAuth(false);
+        console.error("Error determining user type:", error);
+        setIsFirstTimeUser(true); // Fail-safe to onboarding
       }
     };
 
-    checkAuthAndProfile();
+    determineUserType();
+  }, []);
 
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!session) {
-        navigate('/auth');
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-
-  const handleSplashComplete = async () => {
-    if (!session?.user) {
-      navigate('/auth');
-      return;
-    }
-    
+  // Handle splash completion
+  const handleSplashComplete = useCallback(async () => {
     try {
-      // Check profile after splash animation completes
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
@@ -74,88 +85,115 @@ const Index = () => {
 
       await reloadModules();
 
-      // Check if core module is complete (new modular onboarding)
       const onboardingModules = profile?.onboarding_modules as any || {};
-      
-      if (!onboardingModules.core) {
-        // Core module not complete - show core onboarding
+      const hasCompletedCore = !!onboardingModules.core;
+      const hasHousehold = !!profile?.current_household_id;
+
+      if (!hasCompletedCore) {
+        // FIRST-TIME USER: Start core onboarding
         setAppState("core-onboarding");
         setCoreOnboardingOpen(true);
-      } else if (!profile.current_household_id) {
-        // Core complete but no household - show household setup
+      } else if (!hasHousehold) {
+        // PARTIALLY COMPLETE: Needs household
         setUserProfile(profile);
         setAppState("household-setup");
       } else {
-        // Everything complete - show dashboard
+        // RETURNING USER: Go to dashboard
         setUserProfile(profile);
         setAppState("dashboard");
       }
     } catch (error) {
-      console.error("Error loading profile after splash:", error);
+      console.error("Error after splash:", error);
+      // Fail-safe: start onboarding
       setAppState("core-onboarding");
       setCoreOnboardingOpen(true);
     }
-  };
+  }, [reloadModules]);
 
-  const handleCoreComplete = async () => {
+  // Handle core onboarding completion
+  const handleCoreComplete = useCallback(async () => {
     setCoreOnboardingOpen(false);
-    await handleSplashComplete(); // Re-check state after core completion
-  };
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
 
-  if (isCheckingAuth || appState === null) {
-    return (
-      <div className="fixed inset-0 bg-background flex items-center justify-center">
-        <div className="text-secondary text-lg animate-pulse">Loading Kaeva...</div>
-      </div>
-    );
-  }
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      if (!profile?.current_household_id) {
+        setUserProfile(profile);
+        setAppState("household-setup");
+      } else {
+        setUserProfile(profile);
+        setAppState("dashboard");
+      }
+    } catch (error) {
+      console.error("Error after core onboarding:", error);
+    }
+  }, []);
+
+  // Handle household setup completion
+  const handleHouseholdComplete = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      setUserProfile(profile);
+      setAppState("dashboard");
+    } catch (error) {
+      console.error("Error after household setup:", error);
+    }
+  }, []);
 
   return (
     <>
       <AnimatePresence mode="wait">
         {appState === "splash" && (
-          <Splash key="splash" onComplete={handleSplashComplete} />
-      )}
+          <Splash 
+            key="splash" 
+            onComplete={handleSplashComplete}
+            // Shorter splash for returning users
+            duration={isFirstTimeUser === false ? 1500 : 2500}
+          />
+        )}
 
-      {appState === "core-onboarding" && (
-        <div key="core-onboarding" />
-      )}
-      
-      {appState === "household-setup" && (
-        <HouseholdSetup
-          key="household-setup"
-          onComplete={async (householdId) => {
-            // Fetch updated profile with household_id
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) {
-              const { data: profile } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
-              
-              setUserProfile(profile);
-            }
-            setAppState("dashboard");
-          }}
-        />
-      )}
+        {appState === "core-onboarding" && (
+          <div key="core-onboarding" className="fixed inset-0 bg-background" />
+        )}
+        
+        {appState === "household-setup" && (
+          <HouseholdSetup
+            key="household-setup"
+            onComplete={handleHouseholdComplete}
+          />
+        )}
 
-      {appState === "dashboard" && userProfile && (
-        <PageTransition 
-          swipeProgress={swipeState.progress}
-          swipeDirection={swipeState.direction}
-        >
-          <Dashboard key="dashboard" profile={userProfile} />
-        </PageTransition>
-      )}
+        {appState === "dashboard" && userProfile && (
+          <PageTransition 
+            key="dashboard"
+            swipeProgress={swipeState.progress}
+            swipeDirection={swipeState.direction}
+          >
+            <Dashboard profile={userProfile} />
+          </PageTransition>
+        )}
       </AnimatePresence>
 
-      {/* Core onboarding sheet */}
+      {/* Core onboarding sheet - controlled externally */}
       <OnboardingModuleSheet
         open={coreOnboardingOpen}
         module="core"
-        onClose={() => {}}
+        onClose={() => {}} // Prevent closing without completing
         onComplete={handleCoreComplete}
       />
     </>

@@ -7,6 +7,8 @@ import { RealtimeProvider } from "@/contexts/RealtimeContext";
 import { VoiceAssistantProvider } from "@/contexts/VoiceAssistantContext";
 import { SyncIndicator } from "@/components/ui/SyncIndicator";
 import { ErrorBoundary } from "@/lib/ErrorBoundary";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { PublicRoute } from "./components/PublicRoute";
 import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -24,6 +26,25 @@ import { AdminRoute } from "./components/AdminRoute";
 
 const queryClient = new QueryClient();
 
+/**
+ * Route Configuration:
+ * 
+ * PUBLIC ROUTES (no auth required):
+ * - / (Landing) - Marketing page, redirects to /app if authenticated
+ * - /auth - Login/signup, redirects to /app if authenticated
+ * - /recipe/:shareToken - Public shared recipes
+ * - /household/join - Invite acceptance (handles both auth states)
+ * 
+ * PROTECTED ROUTES (auth required):
+ * - /app - Main dashboard (handles first-time vs returning user)
+ * - /settings - User settings
+ * - /household - Household management
+ * - /inventory - Inventory management
+ * - /recipes - Recipe book
+ * - /meal-planner - Meal planning
+ * - /analytics - Analytics dashboard
+ * - /admin - Admin panel (requires admin role)
+ */
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <RealtimeProvider>
@@ -35,19 +56,67 @@ const App = () => (
           <BrowserRouter>
             <VoiceAssistantProvider>
               <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/app" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/household" element={<Household />} />
-                <Route path="/household/join" element={<HouseholdInviteAccept />} />
-                <Route path="/inventory" element={<Inventory />} />
-                <Route path="/recipes" element={<RecipeBook />} />
+                {/* PUBLIC ROUTES - Redirect authenticated users */}
+                <Route path="/" element={
+                  <PublicRoute redirectIfAuthenticated>
+                    <Landing />
+                  </PublicRoute>
+                } />
+                <Route path="/auth" element={
+                  <PublicRoute redirectIfAuthenticated>
+                    <Auth />
+                  </PublicRoute>
+                } />
+                
+                {/* PUBLIC ROUTES - Accessible to everyone */}
                 <Route path="/recipe/:shareToken" element={<SharedRecipe />} />
-                <Route path="/meal-planner" element={<MealPlanner />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="/household/join" element={<HouseholdInviteAccept />} />
+                
+                {/* PROTECTED ROUTES - Require authentication */}
+                <Route path="/app" element={
+                  <ProtectedRoute>
+                    <Index />
+                  </ProtectedRoute>
+                } />
+                <Route path="/settings" element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                } />
+                <Route path="/household" element={
+                  <ProtectedRoute>
+                    <Household />
+                  </ProtectedRoute>
+                } />
+                <Route path="/inventory" element={
+                  <ProtectedRoute>
+                    <Inventory />
+                  </ProtectedRoute>
+                } />
+                <Route path="/recipes" element={
+                  <ProtectedRoute>
+                    <RecipeBook />
+                  </ProtectedRoute>
+                } />
+                <Route path="/meal-planner" element={
+                  <ProtectedRoute>
+                    <MealPlanner />
+                  </ProtectedRoute>
+                } />
+                <Route path="/analytics" element={
+                  <ProtectedRoute>
+                    <Analytics />
+                  </ProtectedRoute>
+                } />
+                
+                {/* ADMIN ROUTE - Requires admin role */}
+                <Route path="/admin" element={
+                  <AdminRoute>
+                    <Admin />
+                  </AdminRoute>
+                } />
+                
+                {/* CATCH-ALL - 404 */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </VoiceAssistantProvider>

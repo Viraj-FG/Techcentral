@@ -40,12 +40,20 @@ const Auth = () => {
     resolver: zodResolver(authSchema),
   });
 
+  // Get the redirect path after auth (from sessionStorage)
+  const getRedirectPath = () => {
+    const storedPath = sessionStorage.getItem('kaeva_redirect_after_auth');
+    sessionStorage.removeItem('kaeva_redirect_after_auth');
+    return storedPath || '/app';
+  };
+
   // Check if user is already authenticated
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate('/app');
+        const redirectPath = getRedirectPath();
+        navigate(redirectPath, { replace: true });
       }
     };
     checkAuth();
@@ -53,7 +61,8 @@ const Auth = () => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate('/app');
+        const redirectPath = getRedirectPath();
+        navigate(redirectPath, { replace: true });
       }
     });
 
@@ -77,7 +86,11 @@ const Auth = () => {
     
     setIsGoogleLoading(true);
     try {
-      const redirectUrl = `${window.location.origin}/`;
+      // Store the redirect path so we can use it after OAuth callback
+      const storedRedirect = sessionStorage.getItem('kaeva_redirect_after_auth');
+      
+      // OAuth redirects to /app which will then check sessionStorage
+      const redirectUrl = `${window.location.origin}/app`;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -101,8 +114,8 @@ const Auth = () => {
 
     try {
       if (isSignUp) {
-        // Sign up
-        const redirectUrl = `${window.location.origin}/`;
+        // Sign up - email verification redirects to /app
+        const redirectUrl = `${window.location.origin}/app`;
         const { error } = await supabase.auth.signUp({
           email: data.email,
           password: data.password,

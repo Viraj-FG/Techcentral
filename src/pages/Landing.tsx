@@ -1,31 +1,14 @@
 import { motion } from "framer-motion";
 import { Cpu, Scan, Activity, Camera, ShoppingBag, ShieldCheck, ChevronDown } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PublicShell from "@/components/layout/PublicShell";
-import { supabase } from "@/integrations/supabase/client";
 
 const Landing = () => {
   const navigate = useNavigate();
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  // Redirect authenticated users to /app
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/app', { replace: true });
-      } else {
-        setIsCheckingAuth(false);
-      }
-    };
-    checkAuth();
-  }, [navigate]);
-
-  if (isCheckingAuth) {
-    return <div className="fixed inset-0 bg-background" />;
-  }
+  // Note: PublicRoute wrapper handles redirect for authenticated users
 
   const toggleFaq = (index: number) => {
     setActiveFaq(activeFaq === index ? null : index);

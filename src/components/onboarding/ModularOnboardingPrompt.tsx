@@ -25,29 +25,29 @@ export const ModularOnboardingPrompt = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
-          className="fixed bottom-28 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-md"
+          className="fixed bottom-28 left-4 right-4 z-40 max-w-md mx-auto"
         >
-          <div className="relative bg-background/95 backdrop-blur-xl border border-primary/20 rounded-2xl p-5 shadow-lg shadow-primary/10">
+          <div className="relative bg-background/95 backdrop-blur-xl border border-primary/20 rounded-2xl p-4 shadow-lg shadow-primary/10">
             <button
               onClick={onDismiss}
-              className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
+              className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground"
             >
-              <X size={18} />
+              <X size={16} />
             </button>
 
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-primary" />
+            <div className="flex items-start gap-3 pr-6">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-primary" />
               </div>
 
-              <div className="flex-1 space-y-3">
-                <p className="text-sm text-foreground/90">{message}</p>
+              <div className="flex-1 min-w-0 space-y-2">
+                <p className="text-sm text-foreground/90 leading-snug">{message}</p>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button
                     onClick={onStart}
                     size="sm"
-                    className="bg-primary text-background hover:bg-primary/90"
+                    className="bg-primary text-background hover:bg-primary/90 text-xs px-3 h-8"
                   >
                     Let's Go! (30s)
                   </Button>
@@ -55,7 +55,7 @@ export const ModularOnboardingPrompt = ({
                     onClick={onDismiss}
                     size="sm"
                     variant="ghost"
-                    className="text-muted-foreground"
+                    className="text-muted-foreground text-xs px-3 h-8"
                   >
                     Maybe Later
                   </Button>

@@ -89,10 +89,7 @@ const Settings = () => {
   const loadProfile = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) {
-        navigate('/auth');
-        return;
-      }
+      if (!session?.user) return; // ProtectedRoute handles redirect
 
       setUserId(session.user.id);
       setUserEmail(session.user.email || "");

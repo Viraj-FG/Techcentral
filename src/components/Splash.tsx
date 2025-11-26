@@ -4,20 +4,33 @@ import ValuePropCarousel from "./ValuePropCarousel";
 
 interface SplashProps {
   onComplete: () => void;
+  /** Duration in ms before showing the button. Default 2500 for first-time, 1500 for returning */
+  duration?: number;
 }
 
-const Splash = ({ onComplete }: SplashProps) => {
+const Splash = ({ onComplete, duration = 2500 }: SplashProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
   const [showValueProps, setShowValueProps] = useState(false);
+  
+  // For returning users with short duration, auto-proceed
+  const isQuickSplash = duration < 2000;
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2500);
+      
+      // For returning users, auto-proceed without button click
+      if (isQuickSplash) {
+        setTimeout(() => {
+          setShowSplash(false);
+          setTimeout(onComplete, 500);
+        }, 500);
+      }
+    }, duration);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [duration, isQuickSplash, onComplete]);
 
   const handleGetStarted = () => {
     setShowSplash(false);
