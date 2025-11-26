@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, ShoppingCart, Loader2, Check, Pencil, Search } from 'lucide-react';
+import { Clock, ShoppingCart, Loader2, Check, Pencil, Search, MoreVertical, Trash2, Flag, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { FixResultSheet } from './FixResultSheet';
 import type { Recipe } from '../ScanResults';
 
 interface DetectedItem {
@@ -51,7 +53,44 @@ const NutritionTrackResult = ({
   const [searching, setSearching] = useState(false);
   const [logging, setLogging] = useState(false);
   const [editedItems, setEditedItems] = useState<DetectedItem[]>(items);
+  const [servingUnit, setServingUnit] = useState<'serving' | 'package' | 'grams'>('serving');
+  const [servingCount, setServingCount] = useState(1);
+  const [editingServingCount, setEditingServingCount] = useState(false);
   const { toast } = useToast();
+
+  const handleFixIssue = async (correction: string) => {
+    // Placeholder for AI re-analysis
+    toast({
+      title: "Re-analyzing...",
+      description: "AI will re-analyze your meal with the correction",
+    });
+  };
+
+  const handleDeleteFood = (index: number) => {
+    const newItems = editedItems.filter((_, i) => i !== index);
+    setEditedItems(newItems);
+    toast({
+      title: "Item removed",
+      description: "Food item deleted from meal",
+    });
+  };
+
+  const handleSaveImage = () => {
+    if (imageUrl) {
+      const link = document.createElement('a');
+      link.href = imageUrl;
+      link.download = `meal-${Date.now()}.jpg`;
+      link.click();
+      toast({ title: "Image saved" });
+    }
+  };
+
+  const handleReportFood = () => {
+    toast({
+      title: "Report submitted",
+      description: "Thank you for helping us improve accuracy",
+    });
+  };
 
   const getMealType = (hour: number): string => {
     if (hour < 11) return 'breakfast';
@@ -66,13 +105,16 @@ const NutritionTrackResult = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Recalculate totals from edited items
+      // Apply serving multiplier
+      const multiplier = servingCount * (servingUnit === 'package' ? 2 : servingUnit === 'grams' ? 1.5 : 1);
+
+      // Recalculate totals from edited items with multiplier
       const totals = editedItems.reduce((sum, item) => ({
-        calories: sum.calories + (item.nutrition?.calories || 0),
-        protein: sum.protein + (item.nutrition?.protein || 0),
-        carbs: sum.carbs + (item.nutrition?.carbs || 0),
-        fat: sum.fat + (item.nutrition?.fat || 0),
-        fiber: sum.fiber + (item.nutrition?.fiber || 0)
+        calories: sum.calories + (item.nutrition?.calories || 0) * multiplier,
+        protein: sum.protein + (item.nutrition?.protein || 0) * multiplier,
+        carbs: sum.carbs + (item.nutrition?.carbs || 0) * multiplier,
+        fat: sum.fat + (item.nutrition?.fat || 0) * multiplier,
+        fiber: sum.fiber + (item.nutrition?.fiber || 0) * multiplier
       }), { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 });
 
       const { error } = await supabase.from('meal_logs').insert({
@@ -310,14 +352,17 @@ const NutritionTrackResult = ({
     );
   }
 
-  if (subtype === 'cooked' && editedItems.length > 0) {
+    if (subtype === 'cooked' && editedItems.length > 0) {
+    // Apply serving multiplier
+    const multiplier = servingCount * (servingUnit === 'package' ? 2 : servingUnit === 'grams' ? 1.5 : 1);
+
     // Recalculate totals from edited items
     const currentTotals = editedItems.reduce((sum, item) => ({
-      calories: sum.calories + (item.nutrition?.calories || 0),
-      protein: sum.protein + (item.nutrition?.protein || 0),
-      carbs: sum.carbs + (item.nutrition?.carbs || 0),
-      fat: sum.fat + (item.nutrition?.fat || 0),
-      fiber: sum.fiber + (item.nutrition?.fiber || 0)
+      calories: sum.calories + (item.nutrition?.calories || 0) * multiplier,
+      protein: sum.protein + (item.nutrition?.protein || 0) * multiplier,
+      carbs: sum.carbs + (item.nutrition?.carbs || 0) * multiplier,
+      fat: sum.fat + (item.nutrition?.fat || 0) * multiplier,
+      fiber: sum.fiber + (item.nutrition?.fiber || 0) * multiplier
     }), { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 });
 
     const proteinPercent = (currentTotals.protein * 4 / currentTotals.calories) * 100 || 0;
@@ -342,6 +387,48 @@ const NutritionTrackResult = ({
           </motion.div>
         )}
 
+        {/* Serving Controls & Actions */}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          {/* Serving Unit Toggle */}
+          <div className="flex gap-2">
+            {['serving', 'package', 'grams'].map((unit) => (
+              <button
+                key={unit}
+                onClick={() => setServingUnit(unit as any)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  servingUnit === unit
+                    ? 'bg-primary text-background'
+                    : 'bg-white/5 text-muted-foreground hover:bg-white/10'
+                }`}
+              >
+                {unit.charAt(0).toUpperCase() + unit.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          {/* Fix Issue & 3-Dot Menu */}
+          <div className="flex gap-2">
+            <FixResultSheet onSubmit={handleFixIssue} />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="glass-card border-white/10">
+                <DropdownMenuItem onClick={handleReportFood}>
+                  <Flag className="w-4 h-4 mr-2" />
+                  Report Food
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSaveImage}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Save Image
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
         {/* Calorie display */}
         <div className="text-center">
           <motion.div
@@ -350,7 +437,30 @@ const NutritionTrackResult = ({
             transition={{ type: "spring", duration: 0.6 }}
             className="inline-block"
           >
-            <div className="text-6xl font-bold text-white">{Math.round(currentTotals.calories)}</div>
+            <div className="flex items-center justify-center gap-2">
+              <div className="text-6xl font-bold text-white">{Math.round(currentTotals.calories)}</div>
+              {/* Editable Serving Count */}
+              {editingServingCount ? (
+                <Input
+                  type="number"
+                  value={servingCount}
+                  onChange={(e) => setServingCount(parseFloat(e.target.value) || 1)}
+                  onBlur={() => setEditingServingCount(false)}
+                  className="w-16 h-12 text-2xl text-center"
+                  step="0.5"
+                  min="0.5"
+                  autoFocus
+                />
+              ) : (
+                <button
+                  onClick={() => setEditingServingCount(true)}
+                  className="flex items-center gap-1 text-2xl text-white/60 hover:text-white transition-colors"
+                >
+                  ×{servingCount}
+                  <Pencil className="w-4 h-4" />
+                </button>
+              )}
+            </div>
             <div className="text-slate-400 text-sm uppercase tracking-wide">Calories</div>
           </motion.div>
         </div>

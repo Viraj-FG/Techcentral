@@ -554,6 +554,7 @@ export type Database = {
           user_name: string | null
           user_weight: number | null
           user_zip_code: string | null
+          water_goal_ml: number | null
         }
         Insert: {
           agent_configured?: boolean | null
@@ -585,6 +586,7 @@ export type Database = {
           user_name?: string | null
           user_weight?: number | null
           user_zip_code?: string | null
+          water_goal_ml?: number | null
         }
         Update: {
           agent_configured?: boolean | null
@@ -616,6 +618,7 @@ export type Database = {
           user_name?: string | null
           user_weight?: number | null
           user_zip_code?: string | null
+          water_goal_ml?: number | null
         }
         Relationships: [
           {
@@ -767,6 +770,30 @@ export type Database = {
           created_at?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      water_logs: {
+        Row: {
+          amount_ml: number
+          created_at: string
+          id: string
+          logged_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_ml: number
+          created_at?: string
+          id?: string
+          logged_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_ml?: number
+          created_at?: string
+          id?: string
+          logged_at?: string
           user_id?: string
         }
         Relationships: []

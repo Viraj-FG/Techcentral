@@ -23,6 +23,7 @@ import { HouseholdActivityFeed } from "./dashboard/HouseholdActivityFeed";
 import SmartScanner from "./scanner/SmartScanner";
 import InventoryMatrixSkeleton from "./dashboard/InventoryMatrixSkeleton";
 import NutritionWidget from "./dashboard/NutritionWidget";
+import { WaterTrackingWidget } from "./dashboard/WaterTrackingWidget";
 import { kaevaEntranceVariants } from "@/hooks/useKaevaMotion";
 import { ELEVENLABS_CONFIG } from "@/config/agent";
 import GlobalSearch from "./search/GlobalSearch";
@@ -297,6 +298,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
                   <SafetyShield profile={profile} />
                   <HouseholdQuickAccess />
                   <NutritionWidget userId={profile.id} />
+                  <WaterTrackingWidget userId={profile.id} />
                 
                   {isLoading ? (
                     <InventoryMatrixSkeleton />
