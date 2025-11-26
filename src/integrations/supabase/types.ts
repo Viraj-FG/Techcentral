@@ -666,6 +666,7 @@ export type Database = {
           last_retailer_refresh: string | null
           lifestyle_goals: Json | null
           longest_streak: number | null
+          notification_preferences: Json | null
           onboarding_completed: boolean
           permissions_granted: boolean | null
           preferred_retailer_id: string | null
@@ -706,6 +707,7 @@ export type Database = {
           last_retailer_refresh?: string | null
           lifestyle_goals?: Json | null
           longest_streak?: number | null
+          notification_preferences?: Json | null
           onboarding_completed?: boolean
           permissions_granted?: boolean | null
           preferred_retailer_id?: string | null
@@ -746,6 +748,7 @@ export type Database = {
           last_retailer_refresh?: string | null
           lifestyle_goals?: Json | null
           longest_streak?: number | null
+          notification_preferences?: Json | null
           onboarding_completed?: boolean
           permissions_granted?: boolean | null
           preferred_retailer_id?: string | null
@@ -771,6 +774,33 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          created_at: string | null
+          endpoint: string
+          id: string
+          request_count: number
+          user_id: string
+          window_start: string
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          request_count?: number
+          user_id: string
+          window_start?: string
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          request_count?: number
+          user_id?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       recipes: {
         Row: {
           cached_at: string | null
@@ -782,11 +812,15 @@ export type Database = {
           id: string
           ingredients: Json
           instructions: Json
+          is_public: boolean | null
           match_score: number | null
           name: string
           required_appliances: string[] | null
           servings: number | null
+          share_token: string | null
+          shared_at: string | null
           user_id: string
+          view_count: number | null
         }
         Insert: {
           cached_at?: string | null
@@ -798,11 +832,15 @@ export type Database = {
           id?: string
           ingredients: Json
           instructions: Json
+          is_public?: boolean | null
           match_score?: number | null
           name: string
           required_appliances?: string[] | null
           servings?: number | null
+          share_token?: string | null
+          shared_at?: string | null
           user_id: string
+          view_count?: number | null
         }
         Update: {
           cached_at?: string | null
@@ -814,11 +852,15 @@ export type Database = {
           id?: string
           ingredients?: Json
           instructions?: Json
+          is_public?: boolean | null
           match_score?: number | null
           name?: string
           required_appliances?: string[] | null
           servings?: number | null
+          share_token?: string | null
+          shared_at?: string | null
           user_id?: string
+          view_count?: number | null
         }
         Relationships: [
           {
@@ -980,6 +1022,7 @@ export type Database = {
           item_name: string
         }[]
       }
+      clean_old_rate_limits: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

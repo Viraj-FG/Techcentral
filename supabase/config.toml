@@ -35,3 +35,6 @@ verify_jwt = true
 
 [functions.get-place-hours]
 verify_jwt = false
+
+[functions.delete-account]
+verify_jwt = true
