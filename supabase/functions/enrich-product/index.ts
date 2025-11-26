@@ -7,6 +7,7 @@ import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
 import { productEnrichmentSchema, validateRequest } from "../_shared/schemas.ts";
 import { analyzeProductDeception } from "../_shared/deceptionAnalyzer.ts";
 import { analyzeBeautyIngredients, analyzeSkinCompatibility } from "../_shared/beautyAnalyzer.ts";
+import { searchUSDA, processUSDAFood } from "../_shared/usdaApi.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -259,7 +260,24 @@ serve(async (req) => {
         );
       }
       
-      console.log('No products found in either FatSecret or Open Food Facts');
+      // Try USDA FoodData Central as final fallback
+      console.log('No products found in Open Food Facts, trying USDA FoodData Central...');
+      const usdaApiKey = Deno.env.get('USDA_API_KEY');
+      
+      if (usdaApiKey) {
+        const usdaFood = await searchUSDA(name, usdaApiKey);
+        
+        if (usdaFood) {
+          const enriched = processUSDAFood(usdaFood);
+          await cacheResult(supabaseClient, searchTerm, { source: 'usda', data: usdaFood }, enriched);
+          return new Response(
+            JSON.stringify(enriched),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+      
+      console.log('No products found in FatSecret, Open Food Facts, or USDA');
       // Return graceful response with basic info, no enrichment
       return new Response(
         JSON.stringify({ 
