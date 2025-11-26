@@ -19,7 +19,8 @@ Deno.serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const jwtSecret = Deno.env.get('INVITE_JWT_SECRET')!;
 
     const authHeader = req.headers.get('Authorization');
@@ -30,12 +31,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey, {
+    // Use ANON key for user authentication
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { data: { user }, error: userError } = await authClient.auth.getUser();
     if (userError || !user) {
+      console.error('User auth error:', userError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -44,14 +47,18 @@ Deno.serve(async (req) => {
 
     const { household_id, expires_in_hours = 24, max_uses = 1 }: InviteRequest = await req.json();
 
+    // Use SERVICE ROLE key for database operations
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+
     // Verify user is owner of the household
-    const { data: household, error: householdError } = await supabase
+    const { data: household, error: householdError } = await adminClient
       .from('households')
       .select('owner_id, name')
       .eq('id', household_id)
       .single();
 
     if (householdError || !household) {
+      console.error('Household fetch error:', householdError);
       return new Response(
         JSON.stringify({ error: 'Household not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -100,7 +107,7 @@ Deno.serve(async (req) => {
     const inviteCode = `${encodedHeader}.${encodedPayload}.${encodedSignature}`;
 
     // Store invite in database
-    const { data: invite, error: insertError } = await supabase
+    const { data: invite, error: insertError } = await adminClient
       .from('household_invites')
       .insert({
         household_id,
