@@ -1,4 +1,4 @@
-import { Home, Package, BookOpen, Settings } from "lucide-react";
+import { Home, Package, BookOpen, Calendar, Settings } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { PageIndicator } from "./PageIndicator";
@@ -7,6 +7,7 @@ const tabs = [
   { id: 'home', label: 'Home', icon: Home, path: '/app' },
   { id: 'inventory', label: 'Inventory', icon: Package, path: '/inventory' },
   { id: 'recipes', label: 'Recipes', icon: BookOpen, path: '/recipes' },
+  { id: 'planner', label: 'Planner', icon: Calendar, path: '/meal-planner' },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
 ];
 
@@ -20,7 +21,7 @@ export const BottomTabBar = () => {
         {/* Page Indicator */}
         <PageIndicator className="pt-3 pb-2" />
         
-        <div className="grid grid-cols-4 gap-2 h-16">
+        <div className="grid grid-cols-5 gap-2 h-16">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = location.pathname === tab.path;
