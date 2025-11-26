@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
-import { Flame } from "lucide-react";
+import { Flame, Share2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { Button } from "@/components/ui/button";
 
 interface MealLogCardProps {
   mealType: string;
@@ -11,6 +12,7 @@ interface MealLogCardProps {
   fat: number;
   imageUrl?: string;
   items?: any;
+  onShare?: () => void;
 }
 
 export const MealLogCard = ({
@@ -22,6 +24,7 @@ export const MealLogCard = ({
   fat,
   imageUrl,
   items,
+  onShare,
 }: MealLogCardProps) => {
   const timeAgo = formatDistanceToNow(new Date(loggedAt), { addSuffix: true });
 
@@ -52,9 +55,21 @@ export const MealLogCard = ({
           <h4 className="font-medium text-foreground truncate capitalize">
             {displayName}
           </h4>
-          <span className="text-xs text-muted-foreground whitespace-nowrap">
-            {timeAgo}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground whitespace-nowrap">
+              {timeAgo}
+            </span>
+            {onShare && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={onShare}
+              >
+                <Share2 className="w-3 h-3" />
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Calories */}

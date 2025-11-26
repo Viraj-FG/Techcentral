@@ -24,10 +24,12 @@ import SmartScanner from "./scanner/SmartScanner";
 import InventoryMatrixSkeleton from "./dashboard/InventoryMatrixSkeleton";
 import NutritionWidget from "./dashboard/NutritionWidget";
 import { WaterTrackingWidget } from "./dashboard/WaterTrackingWidget";
+import { StreakWidget } from "./dashboard/StreakWidget";
 import { kaevaEntranceVariants } from "@/hooks/useKaevaMotion";
 import { ELEVENLABS_CONFIG } from "@/config/agent";
 import GlobalSearch from "./search/GlobalSearch";
 import { haptics } from "@/lib/haptics";
+import { ShareProgressSheet } from "./analytics/ShareProgressSheet";
 
 interface DashboardProps {
   profile: any;
@@ -50,6 +52,8 @@ const Dashboard = ({ profile }: DashboardProps) => {
   const [socialImportOpen, setSocialImportOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard');
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareData, setShareData] = useState({});
 
   // Voice assistant ref
   const voiceAssistantRef = useRef<VoiceAssistantRef>(null);
@@ -299,6 +303,10 @@ const Dashboard = ({ profile }: DashboardProps) => {
                   <HouseholdQuickAccess />
                   <NutritionWidget userId={profile.id} />
                   <WaterTrackingWidget userId={profile.id} />
+                  <StreakWidget userId={profile.id} onShare={() => {
+                    setShareData({ streak: 0 }); // Will be populated dynamically
+                    setShareOpen(true);
+                  }} />
                 
                   {isLoading ? (
                     <InventoryMatrixSkeleton />
@@ -397,6 +405,13 @@ const Dashboard = ({ profile }: DashboardProps) => {
       
       {/* Global Search */}
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
+      
+      {/* Share Progress Sheet */}
+      <ShareProgressSheet 
+        open={shareOpen} 
+        onClose={() => setShareOpen(false)} 
+        data={shareData} 
+      />
     </>
   );
 };

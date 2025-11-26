@@ -11,6 +11,8 @@ import { FixResultSheet } from './FixResultSheet';
 import { PhotoEditModal } from '../PhotoEditModal';
 import { MealTemplateSheet } from '../MealTemplateSheet';
 import { SaveTemplateDialog } from '../SaveTemplateDialog';
+import { VoiceMealInput } from '../VoiceMealInput';
+import { updateStreak } from '@/lib/streakUtils';
 import type { Recipe } from '../ScanResults';
 
 interface DetectedItem {
@@ -66,6 +68,8 @@ const NutritionTrackResult = ({
   const [history, setHistory] = useState<DetectedItem[][]>([items]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [userId, setUserId] = useState<string>("");
+  const [voiceTranscript, setVoiceTranscript] = useState("");
+  const [showVoiceInput, setShowVoiceInput] = useState(false);
   const { toast } = useToast();
 
   // Fetch user ID on mount
@@ -187,6 +191,14 @@ const NutritionTrackResult = ({
       });
 
       if (error) throw error;
+
+      // Update streak after successful meal log
+      try {
+        await updateStreak(userId);
+      } catch (streakError) {
+        console.error('Error updating streak:', streakError);
+        // Don't fail meal log if streak update fails
+      }
 
       toast({
         title: "Meal Logged!",
@@ -670,24 +682,49 @@ const NutritionTrackResult = ({
         </div>
 
         {/* Log Meal Button */}
-        <Button 
-          size="lg" 
-          onClick={handleLogMeal}
-          disabled={logging}
-          className="w-full bg-secondary hover:bg-secondary/90 text-background font-semibold gap-2"
-        >
-          {logging ? (
-            <>
-              <Loader2 className="animate-spin" size={20} />
-              Logging Meal...
-            </>
-          ) : (
-            <>
-              <Check size={20} />
-              Log Meal
-            </>
+        <div className="space-y-3">
+          {/* Voice Input */}
+          {showVoiceInput && (
+            <VoiceMealInput 
+              onTranscript={(text) => setVoiceTranscript(text)}
+              onComplete={() => {
+                setShowVoiceInput(false);
+                toast({ title: "Voice input captured" });
+              }}
+              disabled={logging}
+            />
           )}
-        </Button>
+          
+          {!showVoiceInput && (
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => setShowVoiceInput(true)}
+              className="w-full gap-2"
+            >
+              Voice Input
+            </Button>
+          )}
+
+          <Button 
+            size="lg" 
+            onClick={handleLogMeal}
+            disabled={logging}
+            className="w-full bg-secondary hover:bg-secondary/90 text-background font-semibold gap-2"
+          >
+            {logging ? (
+              <>
+                <Loader2 className="animate-spin" size={20} />
+                Logging Meal...
+              </>
+            ) : (
+              <>
+                <Check size={20} />
+                Log Meal
+              </>
+            )}
+          </Button>
+        </div>
 
         {/* Edit Modal */}
         <Dialog open={editingIndex !== null} onOpenChange={() => setEditingIndex(null)}>
