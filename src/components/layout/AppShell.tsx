@@ -99,7 +99,7 @@ const AppShell = ({
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3, type: "spring", stiffness: 260, damping: 20 }}
-        className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-50 pointer-events-auto"
+        className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-50 pointer-events-auto"
       >
         <div className="relative flex items-center gap-8 px-8 py-4 bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-full">
           {/* Left: Settings */}

@@ -12,7 +12,7 @@ export const UniversalShell = ({ children, className = "" }: UniversalShellProps
     // w-full: Full width
     // fixed: Prevents the whole page from scrolling/bouncing
     // overflow-hidden: Clips content outside the shell
-    <div className="fixed inset-0 w-full h-[100dvh] bg-kaeva-void text-foreground overflow-hidden overflow-x-hidden font-sans selection:bg-kaeva-sage/30">
+    <div className="fixed inset-0 w-full h-[100dvh] bg-background text-foreground overflow-hidden overflow-x-hidden font-sans selection:bg-secondary/30">
       
       {/* 2. THE SAFE AREA CONTAINER */}
       {/* pt-[env(safe-area-inset-top)]: Pushes content below The Notch */}
