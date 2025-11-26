@@ -3,6 +3,9 @@ project_id = "btgmvuieishjiybgcmpj"
 [functions.analyze-vision]
 verify_jwt = true
 
+[functions.daily-ai-digest]
+verify_jwt = true
+
 [functions.create-household-invite]
 verify_jwt = true
 

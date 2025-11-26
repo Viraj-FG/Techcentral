@@ -35,6 +35,7 @@ import { PetSuppliesStatus } from "./dashboard/PetSuppliesStatus";
 import { ToxicFoodMonitor } from "./dashboard/ToxicFoodMonitor";
 import { SwipeEdgeIndicator } from "./dashboard/SwipeEdgeIndicator";
 import { MealPlanWidget } from "./dashboard/MealPlanWidget";
+import { AIInsightsWidget } from "./dashboard/AIInsightsWidget";
 import { kaevaStaggerContainer, kaevaStaggerChild } from "@/hooks/useKaevaMotion";
 import { useModularOnboarding, OnboardingModule } from "@/hooks/useModularOnboarding";
 import { ModularOnboardingPrompt } from "./onboarding/ModularOnboardingPrompt";
@@ -331,6 +332,7 @@ const Dashboard = ({ profile }: DashboardProps) => {
         className="space-y-4"
       >
         <motion.div variants={kaevaStaggerChild}><WelcomeBanner /></motion.div>
+        <motion.div variants={kaevaStaggerChild}><AIInsightsWidget userId={profile.id} /></motion.div>
         <motion.div variants={kaevaStaggerChild}><PulseHeader profile={profile} /></motion.div>
         <motion.div variants={kaevaStaggerChild}><SafetyShield profile={profile} /></motion.div>
       </motion.div>
