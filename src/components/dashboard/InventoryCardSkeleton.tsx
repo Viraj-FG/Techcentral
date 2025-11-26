@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const InventoryCardSkeleton = () => {
   return (
-    <div className="aspect-square rounded-xl backdrop-blur-xl bg-white/5 border border-white/10 p-4 flex flex-col">
+    <div className="aspect-square min-h-[180px] rounded-xl backdrop-blur-xl bg-white/5 border border-white/10 p-4 flex flex-col">
       {/* Icon skeleton */}
       <Skeleton className="w-10 h-10 rounded-lg mb-3" />
       

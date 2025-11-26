@@ -35,7 +35,9 @@ import { PetSuppliesStatus } from "./dashboard/PetSuppliesStatus";
 import { ToxicFoodMonitor } from "./dashboard/ToxicFoodMonitor";
 import { SwipeEdgeIndicator } from "./dashboard/SwipeEdgeIndicator";
 import { MealPlanWidget } from "./dashboard/MealPlanWidget";
-import { AIInsightsWidget } from "./dashboard/AIInsightsWidget";
+import { lazy, Suspense } from "react";
+const AIInsightsWidget = lazy(() => import("./dashboard/AIInsightsWidget").then(m => ({ default: m.AIInsightsWidget })));
+import AIInsightsWidgetSkeleton from "./dashboard/AIInsightsWidgetSkeleton";
 import { QuickActions } from "./dashboard/QuickActions";
 import { PetCareTipsWidget } from "./dashboard/PetCareTipsWidget";
 import { kaevaStaggerContainer, kaevaStaggerChild } from "@/hooks/useKaevaMotion";
@@ -180,46 +182,62 @@ const Dashboard = ({
     });
   };
 
-  // Fetch inventory data
+  // OPTIMIZATION: Parallelize database queries on mount
+  useEffect(() => {
+    const initializeDashboard = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Parallel queries for faster initial load
+        const [adminStatus, inventoryData] = await Promise.all([
+          checkAdminStatus(),
+          (async () => {
+            if (!profile?.current_household_id) return null;
+            
+            const { data, error } = await supabase
+              .from('inventory')
+              .select('*')
+              .eq('household_id', profile.current_household_id);
+            
+            if (error) throw error;
+            return data;
+          })()
+        ]);
+
+        setIsAdmin(adminStatus);
+        
+        if (inventoryData) {
+          const grouped = groupInventoryByCategory(inventoryData);
+          setInventoryData(grouped);
+        }
+      } catch (error) {
+        console.error('Error initializing dashboard:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeDashboard();
+  }, [profile?.current_household_id]);
+
+  // Refresh inventory data (used by scanner/social import callbacks)
   const fetchInventory = async () => {
     try {
-      setIsLoading(true);
-      const {
-        data: {
-          user
-        }
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Get household_id from profile
-      const {
-        data: profileData
-      } = await supabase.from('profiles').select('current_household_id').eq('id', user.id).single();
-      if (!profileData?.current_household_id) {
-        setIsLoading(false);
-        return;
-      }
-      const {
-        data,
-        error
-      } = await supabase.from('inventory').select('*').eq('household_id', profileData.current_household_id);
+      if (!profile?.current_household_id) return;
+      
+      const { data, error } = await supabase
+        .from('inventory')
+        .select('*')
+        .eq('household_id', profile.current_household_id);
+      
       if (error) throw error;
+      
       const grouped = groupInventoryByCategory(data || []);
       setInventoryData(grouped);
     } catch (error) {
-      console.error('Error fetching inventory:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('Error refreshing inventory:', error);
     }
   };
-  useEffect(() => {
-    const checkAdmin = async () => {
-      const isAdmin = await checkAdminStatus();
-      setIsAdmin(isAdmin);
-    };
-    checkAdmin();
-    fetchInventory();
-  }, []);
 
   // Contextual onboarding prompts based on current view
   useEffect(() => {
@@ -301,7 +319,7 @@ const Dashboard = ({
         x: swipeDirection === 'left' ? -100 : 100
       }} transition={{
         duration: 0.3
-      }} className="space-y-4">
+      }} className="space-y-4 min-h-[300px]">
           <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-12 text-center overflow-hidden">
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-secondary/10 flex items-center justify-center">
               <Heart className="text-secondary" size={40} strokeWidth={1.5} />
@@ -358,7 +376,11 @@ const Dashboard = ({
           }
         }} onPlanWeek={() => navigate('/meal-planner')} />
         </motion.div>
-        <motion.div variants={kaevaStaggerChild}><AIInsightsWidget userId={profile.id} /></motion.div>
+        <motion.div variants={kaevaStaggerChild}>
+          <Suspense fallback={<AIInsightsWidgetSkeleton />}>
+            <AIInsightsWidget userId={profile.id} />
+          </Suspense>
+        </motion.div>
         <motion.div variants={kaevaStaggerChild}><SafetyShield profile={profile} /></motion.div>
       </motion.div>;
   };
@@ -389,7 +411,7 @@ const Dashboard = ({
     x: swipeDirection === 'left' ? -100 : 100
   }} transition={{
     duration: 0.3
-  }} className="space-y-4">
+  }} className="space-y-4 min-h-[400px]">
       {isLoading ? <InventoryMatrixSkeleton /> : isInventoryEmpty ? <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-12 text-center overflow-hidden">
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-secondary/10 flex items-center justify-center">
             <Package className="text-secondary" size={40} strokeWidth={1.5} />

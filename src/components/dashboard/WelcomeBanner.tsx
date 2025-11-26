@@ -56,17 +56,17 @@ const WelcomeBanner = () => {
     navigate('/settings');
   };
 
-  if (isLoading || isDismissed || !showBanner) return null;
-
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.5 }}
-        className="relative backdrop-blur-xl bg-gradient-to-r from-violet-400/10 to-purple-400/10 border border-violet-400/30 rounded-xl p-6 overflow-hidden"
-      >
+    <div className="min-h-[120px]">
+      <AnimatePresence>
+        {!isLoading && !isDismissed && showBanner && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+            className="relative backdrop-blur-xl bg-gradient-to-r from-violet-400/10 to-purple-400/10 border border-violet-400/30 rounded-xl p-6 overflow-hidden"
+          >
         {/* Dismiss Button */}
         <button
           onClick={handleDismiss}
@@ -120,8 +120,10 @@ const WelcomeBanner = () => {
             </div>
           </div>
         </div>
-      </motion.div>
-    </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 
