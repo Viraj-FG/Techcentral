@@ -101,7 +101,49 @@ const Landing = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg"></div>
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 100 100"
+              className="w-8 h-8"
+            >
+              {/* K Shape with Viewfinder Aesthetic */}
+              <motion.path
+                d="M 20 20 L 20 80 M 20 50 L 60 20 M 20 50 L 60 80 M 15 15 L 15 25 M 15 15 L 25 15 M 15 85 L 15 75 M 15 85 L 25 85 M 85 15 L 85 25 M 85 15 L 75 15 M 85 85 L 85 75 M 85 85 L 75 85"
+                stroke="url(#navbarKaevaGradient)"
+                strokeWidth="2.5"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 1.5, ease: "easeInOut" }}
+              />
+              
+              {/* Focus Dot */}
+              <motion.circle
+                cx="50"
+                cy="50"
+                r="3"
+                fill="url(#navbarKaevaGradient)"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ 
+                  delay: 1.6, 
+                  type: "spring", 
+                  stiffness: 500, 
+                  damping: 15 
+                }}
+              />
+              
+              {/* Gradient Definition */}
+              <defs>
+                <linearGradient id="navbarKaevaGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" />
+                  <stop offset="100%" stopColor="hsl(var(--secondary))" />
+                </linearGradient>
+              </defs>
+            </svg>
             <span className="text-xl font-bold font-['Space_Grotesk']">KAEVA</span>
           </div>
           <div className="flex gap-4">
