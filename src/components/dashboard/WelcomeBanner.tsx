@@ -65,7 +65,7 @@ const WelcomeBanner = () => {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.5 }}
-        className="relative backdrop-blur-xl bg-gradient-to-r from-violet-400/10 to-purple-400/10 border border-violet-400/30 rounded-xl p-6 mb-6"
+        className="relative backdrop-blur-xl bg-gradient-to-r from-violet-400/10 to-purple-400/10 border border-violet-400/30 rounded-xl p-6 overflow-hidden"
       >
         {/* Dismiss Button */}
         <button
@@ -93,7 +93,7 @@ const WelcomeBanner = () => {
           </motion.div>
           
           <div className="flex-1">
-            <h3 className="text-lg font-light tracking-wider text-white mb-1">
+            <h3 className="text-lg font-light tracking-wider text-white mb-1 truncate">
               Welcome to Kaeva Command Center!
             </h3>
             <p className="text-white/70 text-sm mb-3">

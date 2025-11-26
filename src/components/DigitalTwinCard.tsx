@@ -49,7 +49,7 @@ const DigitalTwinCard = ({ profile, onUpdate, onComplete }: DigitalTwinCardProps
       transition={{ type: "spring", duration: 0.6 }}
       className="w-full max-w-2xl mx-4 sm:mx-6 md:mx-8"
     >
-      <div className="glass-card p-4 sm:p-6 md:p-8 backdrop-blur-xl bg-white/5 border border-white/10">
+      <div className="glass-card p-4 sm:p-6 md:p-8 backdrop-blur-xl bg-white/5 border border-white/10 overflow-hidden">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -76,7 +76,7 @@ const DigitalTwinCard = ({ profile, onUpdate, onComplete }: DigitalTwinCardProps
               <User className="text-emerald-400" strokeWidth={1.5} size={20} />
               <div>
                 <p className="text-xs text-emerald-400 uppercase tracking-wider mb-1">Name</p>
-                <p className="text-white font-light">{profile.userName}</p>
+                <p className="text-white font-light truncate">{profile.userName}</p>
               </div>
             </motion.div>
           )}

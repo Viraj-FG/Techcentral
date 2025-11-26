@@ -357,18 +357,18 @@ const Household = () => {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16 space-y-6">
         {/* User Profile Summary */}
         {userProfile && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-card p-6 rounded-2xl mb-8"
+            className="glass-card p-6 rounded-2xl overflow-hidden"
           >
             <div className="flex items-center gap-3 mb-4">
               <div className="text-4xl">👤</div>
               <div>
-                <h3 className="text-xl font-medium text-kaeva-sage">
+                <h3 className="text-xl font-medium text-kaeva-sage truncate">
                   {userProfile.user_name || 'You'} (Primary User)
                 </h3>
                 {userProfile.calculated_tdee && (
@@ -405,7 +405,7 @@ const Household = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="glass-card p-12 rounded-2xl text-center"
+            className="glass-card p-12 rounded-2xl text-center overflow-hidden"
           >
             <Users className="w-16 h-16 text-kaeva-sage/30 mx-auto mb-4" />
             <h3 className="text-xl font-medium text-kaeva-sage mb-2">No Household Members Yet</h3>
@@ -432,7 +432,7 @@ const Household = () => {
                   transition={{ delay: index * 0.05 }}
                   className="group"
                 >
-                  <div className="glass-card p-6 rounded-2xl hover:bg-kaeva-sage/5 transition-all">
+                  <div className="glass-card p-6 rounded-2xl hover:bg-kaeva-sage/5 transition-all overflow-hidden">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <HouseholdMemberCard member={member} index={index} />

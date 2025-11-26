@@ -94,7 +94,7 @@ export const HouseholdActivityFeed = ({ householdId, maxItems = 10 }: HouseholdA
             {getActivityIcon(activity.activity_type)}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-foreground">
+            <p className="text-sm text-foreground truncate">
               {getActivityDescription(
                 activity.activity_type,
                 activity.actor_name,

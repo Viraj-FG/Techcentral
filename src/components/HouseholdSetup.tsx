@@ -109,7 +109,7 @@ const HouseholdSetup = ({ onComplete }: HouseholdSetupProps) => {
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-background flex items-center justify-center p-6"
     >
-      <div className="w-full max-w-md space-y-8">
+      <div className="w-full max-w-md space-y-8 overflow-hidden">
         <div className="flex justify-center">
           <KaevaAperture size="lg" state="idle" />
         </div>

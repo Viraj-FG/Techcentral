@@ -248,10 +248,10 @@ const RecipeFeed = ({ userInventory, userProfile }: RecipeFeedProps) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
             >
-              <Card className="p-4 bg-white/5 border-white/10 hover:bg-white/10 transition-colors">
+              <Card className="p-4 bg-white/5 border-white/10 hover:bg-white/10 transition-colors overflow-hidden">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <h3 className="text-lg font-medium text-white mb-1">{recipe.name}</h3>
+                    <h3 className="text-lg font-medium text-white mb-1 truncate">{recipe.name}</h3>
                     <div className="flex items-center gap-3 text-sm text-white/60">
                       <span className="flex items-center gap-1">
                         <Clock size={14} strokeWidth={1.5} />
