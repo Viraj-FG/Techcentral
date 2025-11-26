@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { PawPrint } from 'lucide-react';
+import { PawPrint, Heart, Scissors, Activity, Apple } from 'lucide-react';
 import { MultiModalInput } from '@/components/ui/MultiModalInput';
 import { UniversalFixSheet } from '@/components/ui/UniversalFixSheet';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { getPetCareTips } from '@/lib/petCareData';
 import type { PetData } from '../ScanResults';
 
 const PetIdResult = ({ data }: { data?: PetData }) => {
@@ -11,6 +13,16 @@ const PetIdResult = ({ data }: { data?: PetData }) => {
 
   const handleFixPet = async (correction: string) => {
     console.log("Re-analyzing pet with correction:", correction);
+  };
+
+  const careTips = getPetCareTips(data.species, data.breed);
+
+  const getCategoryIcon = (category: string) => {
+    if (category.toLowerCase().includes('health')) return <Heart className="w-4 h-4" />;
+    if (category.toLowerCase().includes('grooming')) return <Scissors className="w-4 h-4" />;
+    if (category.toLowerCase().includes('exercise')) return <Activity className="w-4 h-4" />;
+    if (category.toLowerCase().includes('diet')) return <Apple className="w-4 h-4" />;
+    return <PawPrint className="w-4 h-4" />;
   };
 
   return (
@@ -78,9 +90,36 @@ const PetIdResult = ({ data }: { data?: PetData }) => {
         triggerLabel="Fix Pet Details"
       />
 
-      {/* Fun fact */}
-      <div className="p-4 bg-slate-800/40 rounded-xl border border-slate-700/50">
-        <p className="text-sm text-slate-300">
+      {/* Pet Care Tips */}
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="care-guide">
+          <AccordionTrigger className="text-lg font-semibold">
+            <div className="flex items-center gap-2">
+              <PawPrint className="w-5 h-5 text-secondary" />
+              Care Guide
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-3 pt-2">
+              {careTips.map((tip, idx) => (
+                <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-card/30 border border-border/50">
+                  <div className="flex-shrink-0 mt-0.5 text-secondary">
+                    {getCategoryIcon(tip.category)}
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm text-foreground">{tip.category}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{tip.tip}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
+      {/* Guardian Mode Notice */}
+      <div className="p-4 bg-card/30 rounded-xl border border-border/50">
+        <p className="text-sm text-muted-foreground">
           <span className="font-semibold text-secondary">💡 Guardian Mode:</span> We'll now monitor your inventory for foods toxic to {data.species}s and alert you before purchase!
         </p>
       </div>

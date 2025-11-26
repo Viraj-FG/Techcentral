@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Users, TrendingUp, ChefHat } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Clock, Users, TrendingUp, ChefHat, Share2 } from 'lucide-react';
+import { RecipeShareSheet } from './RecipeShareSheet';
 import { cn } from '@/lib/utils';
 
 interface Recipe {
@@ -19,6 +22,7 @@ interface Props {
 }
 
 export const RecipeCard = ({ recipe, onClick }: Props) => {
+  const [showShareSheet, setShowShareSheet] = useState(false);
   const matchScore = recipe.match_score || 0;
   
   const getMatchColor = (score: number) => {
@@ -54,8 +58,21 @@ export const RecipeCard = ({ recipe, onClick }: Props) => {
             {recipe.name}
           </h3>
         </div>
-        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <ChefHat className="w-6 h-6 text-primary" />
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowShareSheet(true);
+            }}
+            className="opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <Share2 className="w-4 h-4" />
+          </Button>
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <ChefHat className="w-6 h-6 text-primary" />
+          </div>
         </div>
       </div>
 
@@ -93,6 +110,18 @@ export const RecipeCard = ({ recipe, onClick }: Props) => {
         <Badge variant="outline" className={cn("capitalize", getDifficultyColor(recipe.difficulty))}>
           {recipe.difficulty}
         </Badge>
+      )}
+
+      {/* Share Sheet */}
+      {showShareSheet && (
+        <RecipeShareSheet
+          open={showShareSheet}
+          onClose={() => setShowShareSheet(false)}
+          recipeId={recipe.id}
+          recipeName={recipe.name}
+          isPublic={false}
+          shareToken={null}
+        />
       )}
     </motion.div>
   );
