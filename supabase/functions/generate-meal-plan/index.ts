@@ -12,6 +12,7 @@ interface GenerateMealPlanRequest {
     cuisines?: string[];
     avoid_ingredients?: string[];
     cooking_time_max?: number;
+    dietary_preferences?: string[];
   };
 }
 
@@ -133,7 +134,8 @@ ${expiringInventory?.map(i => `- ${i.name} (expires: ${i.expiry_date}, qty: ${i.
 
 ${preferences?.cuisines ? `Preferred Cuisines: ${preferences.cuisines.join(', ')}` : ''}
 ${preferences?.avoid_ingredients ? `Avoid Ingredients: ${preferences.avoid_ingredients.join(', ')}` : ''}
-${preferences?.cooking_time_max ? `Max Cooking Time: ${preferences.cooking_time_max} minutes` : ''}`;
+${preferences?.cooking_time_max ? `Max Cooking Time: ${preferences.cooking_time_max} minutes` : ''}
+${preferences?.dietary_preferences ? `Additional Dietary Preferences: ${preferences.dietary_preferences.join(', ')}` : ''}`;
 
     const GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     const response = await fetch(
