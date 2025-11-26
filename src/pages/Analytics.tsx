@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Download, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Download, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import AuroraBackground from "@/components/AuroraBackground";
@@ -14,6 +14,9 @@ import { DayDetailModal } from "@/components/analytics/DayDetailModal";
 import { exportMealLogsToCSV } from "@/lib/exportUtils";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
 import { format, subMonths, addMonths, startOfMonth, endOfMonth, subDays } from "date-fns";
+import UniversalShell from "@/components/layout/UniversalShell";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { BottomTabBar } from "@/components/layout/BottomTabBar";
 
 interface MealLog {
   id: string;
@@ -178,46 +181,47 @@ const Analytics = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-secondary" />
-      </div>
+      <UniversalShell>
+        <div className="flex items-center justify-center h-full">
+          <Loader2 className="w-8 h-8 animate-spin text-secondary" />
+        </div>
+      </UniversalShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background overflow-y-auto">
+    <UniversalShell>
       <AuroraBackground vertical="food" />
       
-      <div className="relative z-10 p-4 sm:p-8">
+      <PageHeader 
+        title="Analytics" 
+        showHomeButton
+        rightAction={
+          <Button 
+            onClick={handleExport}
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            disabled={mealLogs.length === 0}
+          >
+            <Download size={18} />
+            Export
+          </Button>
+        }
+      />
+
+      <div className="relative z-10 p-4 sm:p-8 pb-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={kaevaTransition}
-          className="max-w-6xl mx-auto pb-16"
+          className="max-w-6xl mx-auto space-y-6"
         >
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <Button onClick={() => navigate(-1)} variant="glass" size="icon">
-                <ArrowLeft size={20} strokeWidth={1.5} />
-              </Button>
-              <div>
-                <h1 className="text-display text-3xl text-white">ANALYTICS</h1>
-                <p className="text-body text-white/60 mt-1">
-                  Your quantified self
-                </p>
-              </div>
-            </div>
-            
-            <Button 
-              onClick={handleExport}
-              variant="outline"
-              className="gap-2"
-              disabled={mealLogs.length === 0}
-            >
-              <Download size={18} />
-              Export CSV
-            </Button>
+          {/* Page Description */}
+          <div>
+            <p className="text-body text-foreground/60">
+              Your quantified self
+            </p>
           </div>
 
           {/* Calendar View */}
@@ -296,13 +300,15 @@ const Analytics = () => {
               <p className="text-muted-foreground mb-4">
                 No meal logs for this month. Start logging to see your trends!
               </p>
-              <Button onClick={() => navigate('/')} variant="default">
+              <Button onClick={() => navigate('/app')} variant="default">
                 Go to Dashboard
               </Button>
             </motion.div>
           )}
         </motion.div>
       </div>
+
+      <BottomTabBar />
 
       {/* Day Detail Modal */}
       <DayDetailModal 
@@ -311,7 +317,7 @@ const Analytics = () => {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
       />
-    </div>
+    </UniversalShell>
   );
 };
 

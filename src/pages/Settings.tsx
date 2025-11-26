@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   User, Users, Heart, Sparkles, Store, BarChart3, 
-  Leaf, MessageSquare, Bell, Shield, X, Package, ChefHat
+  Leaf, MessageSquare, Bell, Shield, Package, ChefHat
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +20,8 @@ import { BeautySheet } from "@/components/settings/BeautySheet";
 import { GoalsSheet } from "@/components/settings/GoalsSheet";
 import { AccountSheet } from "@/components/settings/AccountSheet";
 import { ConversationHistorySheet } from "@/components/settings/ConversationHistorySheet";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { BottomTabBar } from "@/components/layout/BottomTabBar";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -118,17 +120,9 @@ const Settings = () => {
       <AuroraBackground vertical="food" />
       
       <UniversalShell className="overflow-x-hidden">
-        {/* Simplified Header */}
-        <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-secondary/10">
-          <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-            <h1 className="text-lg font-medium text-secondary">My Account</h1>
-            <Button variant="ghost" size="icon" onClick={() => navigate('/app')}>
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
-        </header>
+        <PageHeader title="My Account" showHomeButton />
 
-        <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-32">
+        <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-24">
           {/* 1. Greeting Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -311,6 +305,8 @@ const Settings = () => {
             loadProfile();
           }}
         />
+        
+        <BottomTabBar />
       </UniversalShell>
     </>
   );
