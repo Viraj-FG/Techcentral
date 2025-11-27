@@ -48,7 +48,7 @@ export const DatabaseInspector = () => {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="profiles">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 gap-1">
             <TabsTrigger value="profiles">Profiles ({profiles.length})</TabsTrigger>
             <TabsTrigger value="pets">Pets ({pets.length})</TabsTrigger>
             <TabsTrigger value="inventory">Inventory ({inventory.length})</TabsTrigger>
@@ -57,8 +57,8 @@ export const DatabaseInspector = () => {
           <TabsContent value="profiles" className="space-y-4">
             <ScrollArea className="h-[400px]">
               {profiles.map((profile) => (
-                <div key={profile.id} className="mb-4 p-4 rounded-lg border bg-card">
-                  <pre className="text-xs overflow-x-auto">
+                <div key={profile.id} className="mb-4 p-3 sm:p-4 rounded-lg border bg-card">
+                  <pre className="text-[10px] sm:text-xs overflow-x-auto">
                     {JSON.stringify(profile, null, 2)}
                   </pre>
                 </div>
@@ -69,8 +69,8 @@ export const DatabaseInspector = () => {
           <TabsContent value="pets" className="space-y-4">
             <ScrollArea className="h-[400px]">
               {pets.map((pet) => (
-                <div key={pet.id} className="mb-4 p-4 rounded-lg border bg-card">
-                  <pre className="text-xs overflow-x-auto">
+                <div key={pet.id} className="mb-4 p-3 sm:p-4 rounded-lg border bg-card">
+                  <pre className="text-[10px] sm:text-xs overflow-x-auto">
                     {JSON.stringify(pet, null, 2)}
                   </pre>
                 </div>
@@ -81,8 +81,8 @@ export const DatabaseInspector = () => {
           <TabsContent value="inventory" className="space-y-4">
             <ScrollArea className="h-[400px]">
               {inventory.map((item) => (
-                <div key={item.id} className="mb-4 p-4 rounded-lg border bg-card">
-                  <pre className="text-xs overflow-x-auto">
+                <div key={item.id} className="mb-4 p-3 sm:p-4 rounded-lg border bg-card">
+                  <pre className="text-[10px] sm:text-xs overflow-x-auto">
                     {JSON.stringify(item, null, 2)}
                   </pre>
                 </div>

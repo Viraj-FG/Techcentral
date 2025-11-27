@@ -271,11 +271,11 @@ export const AgentHealthDashboard = () => {
             <CardDescription>Last 20 agent responses</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={200} className="sm:h-[300px]">
               <LineChart data={responseTimeData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="timestamp" />
-                <YAxis label={{ value: 'Seconds', angle: -90, position: 'insideLeft' }} />
+                <XAxis dataKey="timestamp" className="text-xs" />
+                <YAxis label={{ value: 'Seconds', angle: -90, position: 'insideLeft' }} className="text-xs" />
                 <Tooltip />
                 <Line 
                   type="monotone" 
@@ -296,11 +296,11 @@ export const AgentHealthDashboard = () => {
             <CardDescription>Success vs failure breakdown</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={200} className="sm:h-[300px]">
               <BarChart data={completionData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
+                <XAxis dataKey="name" className="text-xs" />
+                <YAxis className="text-xs" />
                 <Tooltip />
                 <Bar dataKey="value" fill="hsl(var(--primary))" />
               </BarChart>
@@ -321,15 +321,15 @@ export const AgentHealthDashboard = () => {
               <p className="text-sm text-muted-foreground text-center py-4">No conversations yet</p>
             ) : (
               recentConversations.map((conv) => (
-                <div key={conv.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <div key={conv.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 p-3 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-3">
                     {conv.completed ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
                     ) : (
-                      <XCircle className="h-4 w-4 text-orange-500" />
+                      <XCircle className="h-4 w-4 text-orange-500 flex-shrink-0" />
                     )}
-                    <div>
-                      <p className="text-sm font-medium">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">
                         Conversation {conv.id.substring(0, 8)}...
                       </p>
                       <p className="text-xs text-muted-foreground">
@@ -337,9 +337,9 @@ export const AgentHealthDashboard = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">{conv.message_count} messages</p>
-                    <p className="text-xs text-muted-foreground">{conv.duration}s duration</p>
+                  <div className="flex gap-3 text-sm sm:text-right ml-7 sm:ml-0">
+                    <p className="font-medium">{conv.message_count} msgs</p>
+                    <p className="text-muted-foreground">{conv.duration}s</p>
                   </div>
                 </div>
               ))
