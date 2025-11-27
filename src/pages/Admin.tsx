@@ -25,46 +25,46 @@ const Admin = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex flex-col safe-top safe-bottom">
       <ScrollArea className="flex-1">
         <motion.div 
-          className="max-w-7xl mx-auto space-y-6 p-6 pb-16"
+          className="max-w-7xl mx-auto space-y-4 sm:space-y-6 p-4 sm:p-6 pb-16"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={kaevaTransition}
         >
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Shield size={24} strokeWidth={1.5} className="text-secondary" />
-              <h1 className="text-display text-3xl text-white">ADMIN DASHBOARD</h1>
+              <h1 className="text-display text-xl sm:text-2xl md:text-3xl text-white">ADMIN DASHBOARD</h1>
             </div>
-            <p className="text-body text-white/60">
+            <p className="text-body text-sm sm:text-base text-white/60">
               Manage agent configuration, testing, and system monitoring
             </p>
           </div>
-          <Button variant="glass" onClick={() => navigate("/")}>
+          <Button variant="glass" onClick={() => navigate("/")} className="self-start sm:self-auto">
             <ArrowLeft size={20} strokeWidth={1.5} />
-            <span className="text-micro ml-2">Back to Dashboard</span>
+            <span className="text-micro ml-2 hidden sm:inline">Back to Dashboard</span>
           </Button>
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="health" className="space-y-6">
+        <Tabs defaultValue="health" className="space-y-4 sm:space-y-6">
           <ScrollArea className="w-full">
-            <TabsList className="inline-flex h-12 w-max gap-1 p-1 glass-card">
-              <TabsTrigger value="health" className="text-micro px-4 min-w-[80px]">Health</TabsTrigger>
-              <TabsTrigger value="agent" className="text-micro px-4 min-w-[80px]">Agent</TabsTrigger>
-              <TabsTrigger value="monitor" className="text-micro px-4 min-w-[80px]">Monitor</TabsTrigger>
-              <TabsTrigger value="testing" className="text-micro px-4 min-w-[80px]">Testing</TabsTrigger>
-              <TabsTrigger value="users" className="text-micro px-4 min-w-[80px]">Users</TabsTrigger>
-              <TabsTrigger value="database" className="text-micro px-4 min-w-[80px]">Database</TabsTrigger>
-              <TabsTrigger value="logs" className="text-micro px-4 min-w-[80px]">Logs</TabsTrigger>
-              <TabsTrigger value="tool-logs" className="text-micro px-4 min-w-[80px]">Tools</TabsTrigger>
-              <TabsTrigger value="context" className="text-micro px-4 min-w-[80px]">Context</TabsTrigger>
-              <TabsTrigger value="analytics" className="text-micro px-4 min-w-[80px]">Analytics</TabsTrigger>
-              <TabsTrigger value="accessibility" className="text-micro px-4 min-w-[120px]">Accessibility</TabsTrigger>
+            <TabsList className="inline-flex h-10 sm:h-12 w-max gap-1 p-1 glass-card">
+              <TabsTrigger value="health" className="text-micro px-2 sm:px-4 min-w-[60px] sm:min-w-[80px]">Health</TabsTrigger>
+              <TabsTrigger value="agent" className="text-micro px-2 sm:px-4 min-w-[60px] sm:min-w-[80px]">Agent</TabsTrigger>
+              <TabsTrigger value="monitor" className="text-micro px-2 sm:px-4 min-w-[60px] sm:min-w-[80px]">Monitor</TabsTrigger>
+              <TabsTrigger value="testing" className="text-micro px-2 sm:px-4 min-w-[60px] sm:min-w-[80px]">Testing</TabsTrigger>
+              <TabsTrigger value="users" className="text-micro px-2 sm:px-4 min-w-[60px] sm:min-w-[80px]">Users</TabsTrigger>
+              <TabsTrigger value="database" className="text-micro px-2 sm:px-4 min-w-[60px] sm:min-w-[80px]">Database</TabsTrigger>
+              <TabsTrigger value="logs" className="text-micro px-2 sm:px-4 min-w-[60px] sm:min-w-[80px]">Logs</TabsTrigger>
+              <TabsTrigger value="tool-logs" className="text-micro px-2 sm:px-4 min-w-[60px] sm:min-w-[80px]">Tools</TabsTrigger>
+              <TabsTrigger value="context" className="text-micro px-2 sm:px-4 min-w-[60px] sm:min-w-[80px]">Context</TabsTrigger>
+              <TabsTrigger value="analytics" className="text-micro px-2 sm:px-4 min-w-[70px] sm:min-w-[80px]">Analytics</TabsTrigger>
+              <TabsTrigger value="accessibility" className="text-micro px-2 sm:px-4 min-w-[90px] sm:min-w-[120px]">Accessibility</TabsTrigger>
             </TabsList>
           </ScrollArea>
 

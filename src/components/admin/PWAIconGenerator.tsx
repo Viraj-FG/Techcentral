@@ -142,11 +142,11 @@ export const PWAIconGenerator = () => {
             </Button>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             {iconConfigs.map((config) => (
               <div
                 key={config.name}
-                className="glass-card p-4 space-y-2 border-white/5 hover:border-white/10 transition-colors"
+                className="glass-card p-3 sm:p-4 space-y-2 border-white/5 hover:border-white/10 transition-colors"
               >
                 <div className="aspect-square bg-background/50 rounded-lg flex items-center justify-center overflow-hidden">
                   {iconUrls[config.name] ? (
