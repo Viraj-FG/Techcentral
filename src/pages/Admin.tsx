@@ -17,6 +17,7 @@ import ContextPreview from "@/components/admin/ContextPreview";
 import { AgentProvisioning } from "@/components/admin/AgentProvisioning";
 import { ConversationMonitor } from "@/components/admin/ConversationMonitor";
 import { AccessibilityAudit } from "@/components/admin/AccessibilityAudit";
+import { PWAIconGenerator } from "@/components/admin/PWAIconGenerator";
 import { motion } from "framer-motion";
 import { kaevaTransition } from "@/hooks/useKaevaMotion";
 
@@ -79,6 +80,9 @@ const Admin = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <AgentTestPanel />
               <DeploymentChecklist />
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <PWAIconGenerator />
             </div>
           </TabsContent>
 
