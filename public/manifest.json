@@ -9,30 +9,25 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
-    },
-    {
-      "src": "/icon-192.png",
+      "src": "https://btgmvuieishjiybgcmpj.supabase.co/storage/v1/object/public/app-assets/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "https://btgmvuieishjiybgcmpj.supabase.co/storage/v1/object/public/app-assets/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-maskable-192.png",
+      "src": "https://btgmvuieishjiybgcmpj.supabase.co/storage/v1/object/public/app-assets/icon-maskable-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icon-maskable-512.png",
+      "src": "https://btgmvuieishjiybgcmpj.supabase.co/storage/v1/object/public/app-assets/icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
