@@ -27,80 +27,145 @@
 ## Project Overview
 
 ### Product Description
-Kaeva is a voice-first, AI-powered household management platform that combines:
-- Voice-based onboarding and interaction using ElevenLabs conversational AI
-- Smart inventory management across fridge, pantry, beauty products, and pet supplies
-- Multi-intent smart scanner with Google Gemini Vision integration
-- Household health tracking with TDEE calculations and nutrition monitoring
-- Allergen and toxicity detection for household safety
-- Instacart integration for smart shopping
-- Real-time spoilage detection and notifications
+KAEVA is a voice-first, AI-powered household management platform that transforms home management from a chore into a seamless, intelligent experience. The platform combines:
+- **Voice-based interactions** using ElevenLabs conversational AI with dual-agent architecture
+- **Smart inventory management** across fridge, pantry, beauty products, and pet supplies
+- **Multi-intent smart scanner** with Google Gemini Vision and multi-modal product identification
+- **Household-level collaboration** with invite system and activity feed
+- **Proactive AI insights** through daily digest and learned preferences
+- **Meal planning & recipe management** with YouTube tutorials and Instacart integration
+- **Allergen and toxicity detection** for household and pet safety
+- **Nutrition tracking** with TDEE calculations and macro goals
+- **Beauty product tracking** with inspiration and expiration alerts
+- **Pet care management** with toxic food monitoring and care tips
 
 ### Core Value Proposition
-Kaeva transforms household management from a chore into a seamless, voice-first experience. Users can manage their entire household inventory, track nutrition, ensure safety for family members and pets, and automate shopping—all through natural conversation with an AI assistant.
+KAEVA transforms household management into an intelligent, proactive system that anticipates user needs through AI-powered insights, voice interactions, and contextual recommendations. The platform shifts from reactive (responds when asked) to proactive (anticipates needs through daily insights, personalized recommendations, and contextual suggestions).
 
 ### Target Users
 - Families with children and/or pets
 - Health-conscious individuals tracking nutrition
-- Busy households seeking automation
-- Users with dietary restrictions or allergies
-- Anyone wanting a voice-first home management solution
+- Busy households seeking automation and proactive assistance
+- Users with dietary restrictions, allergies, or beauty routines
+- Multi-person households needing shared inventory and meal planning
+- Anyone wanting a voice-first, AI-powered home management solution
+
+### Distribution Strategy
+- **Primary**: Progressive Web App (PWA) installation via browser
+- **Platforms**: iOS Safari, Android Chrome, Desktop browsers
+- **Installation Flow**: Dedicated `/install` guide page with platform-specific instructions
+- **Future**: Native mobile apps via Capacitor (infrastructure already in place)
 
 ---
 
 ## Architecture Overview
 
-### High-Level Architecture
+### High-Level 3-Tier Architecture
 
 ```mermaid
 graph TD
-    A[React Frontend - Vite] --> B[Supabase Client]
-    B --> C[Lovable Cloud/Supabase Backend]
+    subgraph "Public Tier"
+        A[Landing Page] --> B[Auth Page]
+        C[Install Guide] --> B
+        D[Shared Recipe Links] --> B
+    end
     
-    A --> D[ElevenLabs WebSocket]
-    D --> E[ElevenLabs Conversational AI]
+    subgraph "Protected Tier - Lazy Loaded"
+        B --> E[AuthenticatedLayout]
+        E --> F[Voice SDK Provider]
+        F --> G[App Routes]
+    end
     
-    A --> F[Google Gemini Vision API]
+    subgraph "Admin Tier"
+        G --> H[Admin Dashboard]
+        H --> I[Agent Provisioning]
+        H --> J[System Monitoring]
+    end
     
-    C --> G[(PostgreSQL Database)]
-    C --> H[Edge Functions]
+    G --> K[Dashboard]
+    G --> L[Inventory]
+    G --> M[Recipes]
+    G --> N[Settings]
     
-    H --> I[FatSecret API]
-    H --> J[Instacart API]
-    H --> K[OpenAI API]
-    H --> L[Google Gemini API]
-    
-    G --> M[Row Level Security]
-    G --> N[Database Functions]
-    G --> O[Triggers]
+    K --> O[6 Swipeable Views]
+    O --> P[PULSE - Wellness]
+    O --> Q[FUEL - Nutrition]
+    O --> R[PANTRY - Food]
+    O --> S[GLOW - Beauty]
+    O --> T[PETS - Pet Care]
+    O --> U[HOME - Household]
+```
+
+### Code Splitting & Lazy Loading Strategy
+
+**Public Routes** (loaded immediately, no voice SDK):
+- `/` - Landing page (marketing homepage)
+- `/auth` - Authentication page
+- `/install` - PWA installation guide
+- `/recipe/:shareToken` - Public recipe links
+
+**Protected Routes** (lazy loaded via React.lazy()):
+- `/app` - Main app entry (onboarding flow / dashboard)
+- `/inventory` - Inventory management
+- `/recipes` - Recipe book
+- `/meal-planner` - Weekly meal planning
+- `/analytics` - Nutrition analytics
+- `/household` - Household management
+- `/settings` - User settings
+- `/household/join/:inviteCode` - Join household via invite
+
+**Admin Routes** (lazy loaded, role-restricted):
+- `/admin` - Admin dashboard with system monitoring
+
+**Voice SDK Optimization**:
+- Voice SDK (@11labs/react, ~100KB) lazy loads only for authenticated users
+- `AuthenticatedLayout` component wraps protected routes and dynamically imports `VoiceAssistantProvider`
+- Public routes never load voice libraries, reducing initial bundle by ~100KB
+
+**Vendor Chunking**:
+```typescript
+// vite.config.ts
+manualChunks: {
+  'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+  'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', ...],
+  'animation-vendor': ['framer-motion'],
+  'chart-vendor': ['recharts'],
+  'supabase-vendor': ['@supabase/supabase-js', '@tanstack/react-query']
+}
 ```
 
 ### System Components
 
 1. **Frontend Layer** (React + TypeScript + Tailwind CSS)
    - Single Page Application (SPA) architecture
-   - React Router for navigation
+   - React Router v6 for navigation
    - TanStack Query for server state management
-   - Framer Motion for animations
-   - Shadcn UI components
+   - Framer Motion for animations and page transitions
+   - Shadcn UI components with custom theming
+   - Route-based code splitting for optimal bundle size
+   - PWA capabilities with Vite PWA plugin
 
-2. **Backend Layer** (Lovable Cloud/Supabase)
-   - PostgreSQL database with RLS
+2. **Backend Layer** (Lovable Cloud / Supabase)
+   - PostgreSQL database with household-level RLS policies
    - Serverless Edge Functions (Deno runtime)
-   - Real-time subscriptions
-   - Authentication (Email/Password + Google OAuth)
+   - Real-time subscriptions for inventory, notifications, household activity
+   - Authentication (Email/Password only - Google OAuth removed)
+   - Storage buckets (configured: `app-assets`)
 
 3. **AI/ML Layer**
-   - ElevenLabs Conversational AI for voice interactions
-   - Google Gemini Vision for image analysis
-   - OpenAI GPT for intent detection and recipe generation
-   - Custom allergen detection logic
+   - **ElevenLabs Conversational AI**: Dual-agent architecture (onboarding + assistant)
+   - **Google Gemini 2.0 Flash**: Vision analysis, meal analysis, product identification
+   - **Lovable AI Gateway**: PWA icon generation, image editing
+   - **OpenAI GPT-5**: Intent detection (deprecated - using Gemini now)
+   - **Custom Logic**: Allergen detection, toxicity analysis, preference learning
 
 4. **Third-Party Integrations**
-   - FatSecret API for nutrition data
-   - Instacart API for shopping
-   - ElevenLabs SDK for voice
-   - Google Gemini for vision
+   - **FatSecret API**: Primary nutrition data enrichment
+   - **USDA FoodData Central**: Secondary nutrition enrichment fallback
+   - **YouTube Data API v3**: Recipe video tutorial search
+   - **Instacart API**: Shopping cart creation and management
+   - **Google Places API**: Store hours lookup
+   - **ElevenLabs SDK**: Voice interactions and agent provisioning
 
 ---
 
@@ -112,47 +177,77 @@ graph TD
 {
   "@11labs/react": "^0.2.0",
   "@elevenlabs/client": "^0.11.0",
-  "@radix-ui/*": "Latest versions",
+  "@capacitor/android": "^7.4.4",
+  "@capacitor/core": "^7.4.4",
+  "@capacitor/haptics": "^7.0.2",
+  "@capacitor/ios": "^7.4.4",
+  "@hookform/resolvers": "^3.10.0",
+  "@radix-ui/*": "Latest versions (30+ UI primitives)",
   "@supabase/supabase-js": "^2.84.0",
   "@tanstack/react-query": "^5.83.0",
+  "class-variance-authority": "^0.7.1",
+  "date-fns": "^4.1.0",
+  "embla-carousel-react": "^8.6.0",
   "framer-motion": "^11.18.2",
   "lucide-react": "^0.462.0",
   "react": "^18.3.1",
   "react-dom": "^18.3.1",
+  "react-hook-form": "^7.61.1",
   "react-router-dom": "^6.30.1",
   "react-webcam": "^7.2.0",
+  "recharts": "^2.15.4",
   "tailwindcss": "Latest",
-  "typescript": "Latest"
+  "typescript": "Latest",
+  "vite-plugin-pwa": "^1.1.0",
+  "zod": "^3.25.76"
 }
 ```
 
 ### Backend Technologies
 
 - **Runtime**: Deno (for Edge Functions)
-- **Database**: PostgreSQL (via Supabase)
-- **Authentication**: Supabase Auth
-- **Storage**: Supabase Storage (configured but not currently used)
-- **Serverless Functions**: Supabase Edge Functions
+- **Database**: PostgreSQL 13+ (via Supabase)
+- **Authentication**: Supabase Auth (email/password only)
+- **Storage**: Supabase Storage (bucket: `app-assets`)
+- **Serverless Functions**: Supabase Edge Functions (26 functions)
+- **Real-time**: Supabase Realtime (inventory, notifications, household_activity)
 
 ### Development Tools
 
-- **Build Tool**: Vite
-- **Package Manager**: npm/bun
-- **Linting**: ESLint
-- **Type Checking**: TypeScript
+- **Build Tool**: Vite 5.x with PWA plugin
+- **Package Manager**: npm / bun
+- **Linting**: ESLint with TypeScript support
+- **Type Checking**: TypeScript 5.x
 - **Version Control**: Git
-- **Hosting**: Lovable Cloud
+- **Hosting**: Lovable Cloud with automatic deployments
+- **API Gateway**: Lovable AI Gateway for image generation
 
-### Mobile Web App Meta Tags
+### PWA Configuration
 
-The following meta tags in `index.html` improve mobile browser behavior:
+**Manifest** (`public/manifest.json`):
+```json
+{
+  "name": "KAEVA - Smart Home Assistant",
+  "short_name": "KAEVA",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "theme_color": "#D69E2E",
+  "background_color": "#08080A",
+  "display": "standalone"
+}
+```
 
+**Mobile Meta Tags** (`index.html`):
 ```html
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 ```
-
-These enable the app to run in full-screen mode when added to home screen on iOS and Android.
 
 ---
 
@@ -162,19 +257,35 @@ These enable the app to run in full-screen mode when added to home screen on iOS
 
 ```mermaid
 erDiagram
-    profiles ||--o{ household_members : has
-    profiles ||--o{ pets : owns
-    profiles ||--o{ inventory : manages
-    profiles ||--o{ meal_logs : tracks
-    profiles ||--o{ shopping_list : maintains
-    profiles ||--o{ conversation_history : has
-    profiles ||--o{ notifications : receives
-    profiles ||--|| user_roles : has
+    profiles ||--o{ household_memberships : "belongs to"
+    households ||--o{ household_memberships : "has members"
+    households ||--o{ household_invites : "generates invites"
+    households ||--o{ household_activity : "tracks activity"
+    households ||--o{ inventory : "owns items"
+    households ||--o{ shopping_list : "maintains list"
+    households ||--o{ recipes : "saves recipes"
+    households ||--o{ meal_plans : "plans meals"
+    households ||--o{ daily_digests : "receives insights"
     
+    profiles ||--o{ household_members : "manages dependents"
+    profiles ||--o{ pets : "owns pets"
+    profiles ||--o{ meal_logs : "tracks meals"
+    profiles ||--o{ water_logs : "tracks hydration"
+    profiles ||--o{ conversation_history : "has conversations"
+    profiles ||--o{ conversation_events : "generates events"
+    profiles ||--o{ notifications : "receives alerts"
+    profiles ||--o{ bookmarks : "saves items"
+    profiles ||--o{ learned_preferences : "learns from"
+    profiles ||--o{ meal_templates : "creates templates"
+    profiles ||--o{ saved_foods : "saves foods"
+    profiles ||--|| user_roles : "has role"
+    
+    recipes ||--o{ meal_plans : "planned for"
     inventory ||--o{ shopping_list : "triggers reorder"
     
     profiles {
         uuid id PK
+        uuid current_household_id FK
         text user_name
         int user_age
         numeric user_weight
@@ -195,13 +306,64 @@ erDiagram
         text preferred_retailer_name
         timestamp last_retailer_refresh
         bool onboarding_completed
+        jsonb onboarding_modules
         bool permissions_granted
         bool agent_configured
         timestamp agent_configured_at
         timestamp agent_last_configured_at
         text agent_prompt_version
+        int daily_calorie_goal
+        int daily_protein_goal
+        int daily_carbs_goal
+        int daily_fat_goal
+        int water_goal_ml
+        int current_streak
+        int longest_streak
+        date streak_start_date
+        date last_log_date
+        jsonb notification_preferences
         timestamp created_at
         timestamp updated_at
+    }
+    
+    households {
+        uuid id PK
+        uuid owner_id FK
+        text name
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    household_memberships {
+        uuid id PK
+        uuid household_id FK
+        uuid user_id FK
+        text role
+        timestamp joined_at
+    }
+    
+    household_invites {
+        uuid id PK
+        uuid household_id FK
+        uuid created_by FK
+        text invite_code
+        timestamp expires_at
+        int max_uses
+        int times_used
+        timestamp created_at
+    }
+    
+    household_activity {
+        uuid id PK
+        uuid household_id FK
+        uuid actor_id FK
+        text actor_name
+        text activity_type
+        text entity_type
+        uuid entity_id
+        text entity_name
+        jsonb metadata
+        timestamp created_at
     }
     
     household_members {
@@ -232,18 +394,21 @@ erDiagram
         text breed
         int age
         text notes
+        text food_brand
+        numeric daily_serving_size
         bool toxic_flags_enabled
         timestamp created_at
     }
     
     inventory {
         uuid id PK
-        uuid user_id FK
+        uuid household_id FK
         text name
         text brand_name
         inventory_category category
         text barcode
         numeric quantity
+        numeric original_quantity
         text unit
         int fill_level
         date expiry_date
@@ -255,8 +420,42 @@ erDiagram
         text product_image_url
         bool auto_order_enabled
         int reorder_threshold
+        numeric consumption_rate
         timestamp last_activity_at
         timestamp last_enriched_at
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    recipes {
+        uuid id PK
+        uuid household_id FK
+        uuid user_id FK
+        text name
+        jsonb ingredients
+        jsonb instructions
+        int servings
+        int cooking_time
+        text difficulty
+        int estimated_calories
+        int match_score
+        text_array required_appliances
+        bool is_public
+        text share_token
+        timestamp shared_at
+        int view_count
+        timestamp cached_at
+        timestamp created_at
+    }
+    
+    meal_plans {
+        uuid id PK
+        uuid household_id FK
+        uuid user_id FK
+        uuid recipe_id FK
+        date planned_date
+        text meal_type
+        text notes
         timestamp created_at
         timestamp updated_at
     }
@@ -276,9 +475,31 @@ erDiagram
         timestamp created_at
     }
     
-    shopping_list {
+    meal_templates {
         uuid id PK
         uuid user_id FK
+        text template_name
+        jsonb items
+        numeric total_calories
+        numeric total_protein
+        numeric total_carbs
+        numeric total_fat
+        numeric total_fiber
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    water_logs {
+        uuid id PK
+        uuid user_id FK
+        int amount_ml
+        timestamp logged_at
+        timestamp created_at
+    }
+    
+    shopping_list {
+        uuid id PK
+        uuid household_id FK
         text item_name
         numeric quantity
         text unit
@@ -290,6 +511,45 @@ erDiagram
         timestamp updated_at
     }
     
+    daily_digests {
+        uuid id PK
+        uuid user_id FK
+        uuid household_id FK
+        date digest_date
+        jsonb insights
+        timestamp generated_at
+        timestamp viewed_at
+    }
+    
+    bookmarks {
+        uuid id PK
+        uuid user_id FK
+        text item_type
+        uuid item_id
+        timestamp created_at
+    }
+    
+    learned_preferences {
+        uuid id PK
+        uuid user_id FK
+        text preference_type
+        text preference_value
+        numeric confidence
+        int occurrences
+        text learned_from
+        timestamp created_at
+        timestamp last_updated
+    }
+    
+    saved_foods {
+        uuid id PK
+        uuid user_id FK
+        text food_name
+        jsonb nutrition_data
+        timestamp created_at
+        timestamp last_used_at
+    }
+    
     conversation_history {
         uuid id PK
         uuid user_id FK
@@ -297,6 +557,17 @@ erDiagram
         text role
         text message
         jsonb metadata
+        timestamp created_at
+    }
+    
+    conversation_events {
+        uuid id PK
+        uuid user_id FK
+        uuid conversation_id
+        text agent_type
+        text event_type
+        text role
+        jsonb event_data
         timestamp created_at
     }
     
@@ -328,38 +599,124 @@ erDiagram
         timestamp expires_at
         timestamp created_at
     }
+    
+    rate_limits {
+        uuid id PK
+        uuid user_id FK
+        text endpoint
+        int request_count
+        timestamp window_start
+        timestamp created_at
+    }
 ```
+
+### Household-Level Data Model Migration
+
+**Critical Architectural Shift**: The application migrated from user-level to household-level data organization:
+- `inventory`, `shopping_list`, `recipes`, `meal_plans` now use `household_id` instead of `user_id`
+- Every user must belong to at least one household via `household_memberships`
+- User's `profiles.current_household_id` determines active household context
+- Enables multi-user households to share inventory, recipes, and meal plans
+- Maintains proper data isolation between different households
 
 ### Table Descriptions
 
 #### `profiles`
-Stores user profile information including biometric data, preferences, household composition, and onboarding status.
+Core user profile with biometrics, preferences, household composition, and onboarding state.
 
 **Key Fields:**
-- `calculated_tdee`: Total Daily Energy Expenditure calculated from biometric data
-- `allergies`, `dietary_preferences`: JSON arrays of user dietary constraints
-- `health_goals`, `lifestyle_goals`: JSON arrays of user objectives
-- `beauty_profile`: JSON object for beauty product preferences
-- `agent_configured`: Boolean tracking if ElevenLabs agent is set up
-- `onboarding_completed`: Gates access to main app features
+- `current_household_id`: Active household (required after onboarding)
+- `calculated_tdee`: Total Daily Energy Expenditure from biometric data
+- `onboarding_completed`: Gates access to main app (onboarding → dashboard)
+- `onboarding_modules`: JSONB tracking 6 module completion (core, nutrition, pantry, beauty, pets, household)
+- `agent_configured`: Whether ElevenLabs agents are provisioned
+- `allergies`, `dietary_preferences`: JSON arrays for safety checks
+- `beauty_profile`: JSONB for beauty product preferences (skin type, hair type, goals)
+- `notification_preferences`: JSONB controlling alert types
+- `current_streak`, `longest_streak`: Nutrition logging streaks
+- `daily_*_goal`: Nutrition goals (calories, protein, carbs, fat)
+- `water_goal_ml`: Hydration target
 
 **Indexes:**
 - Primary key on `id`
-- Foreign key reference to `auth.users(id)`
+- Foreign key to `households(id)` on `current_household_id`
 
-#### `household_members`
-Tracks additional household members (partners, children, elderly) with their own health profiles.
+#### `households`
+Household entity enabling multi-user data sharing.
 
 **Key Fields:**
-- `member_type`: 'partner', 'child', 'elderly', etc.
+- `owner_id`: User who created the household
+- `name`: Household display name (e.g., "Smith Family")
+
+**Use Cases:**
+- Multi-user inventory sharing
+- Household-wide meal planning
+- Shared recipe collections
+- Family activity tracking
+
+#### `household_memberships`
+Junction table linking users to households with roles.
+
+**Roles:**
+- `owner`: Full control (delete household, manage members)
+- `admin`: Manage inventory, recipes, settings
+- `member`: Standard access (view/edit shared data)
+
+**Use Cases:**
+- Multi-household support (user can join multiple households)
+- Role-based permissions
+- Household member management
+
+#### `household_invites`
+Time-limited, usage-capped invite system for household sharing.
+
+**Key Fields:**
+- `invite_code`: JWT-signed secure code
+- `expires_at`: Invite expiration timestamp
+- `max_uses`: Maximum redemptions (default 1)
+- `times_used`: Redemption counter
+
+**Security:**
+- JWT signature prevents tampering
+- Time expiration limits exposure
+- Usage caps prevent abuse
+
+#### `household_activity`
+Real-time activity feed for household events.
+
+**Activity Types:**
+- `member_joined`: New member added to household
+- `inventory_added`, `inventory_updated`, `inventory_removed`: Inventory changes
+- `recipe_added`: New recipe saved
+- `meal_planned`: Meal scheduled
+
+**Key Fields:**
+- `actor_id`, `actor_name`: Who performed the action
+- `entity_type`, `entity_id`, `entity_name`: What was affected
+- `metadata`: JSONB with action details (old/new values, quantities, etc.)
+
+**Triggers:**
+- `log_member_joined`: Fires on household_memberships INSERT
+- `log_inventory_change`: Fires on inventory INSERT/UPDATE/DELETE
+- `log_recipe_added`: Fires on recipes INSERT
+
+#### `household_members`
+Dependents (children, partners, elderly) with individual health profiles.
+
+**Member Types:**
+- `child`, `partner`, `elderly`, `other`
+
+**Key Fields:**
 - `age_group`: For children without specific age
 - `calculated_tdee`: Individual TDEE calculation
-- `medication_interactions`: JSON array of drug interactions to watch for
+- `medication_interactions`: JSONB of drug interactions
+- `health_conditions`: JSONB of medical conditions
 
 **Use Cases:**
 - Multi-person TDEE calculations
 - Household-wide allergen tracking
 - Age-appropriate meal suggestions
+- Medication interaction warnings
 
 #### `pets`
 Pet profiles for toxicity checking and pet-specific inventory.
@@ -367,98 +724,296 @@ Pet profiles for toxicity checking and pet-specific inventory.
 **Key Fields:**
 - `species`: 'dog', 'cat', etc.
 - `toxic_flags_enabled`: Controls toxicity warnings in scanner
+- `food_brand`, `daily_serving_size`: Feeding tracking
 
 **Use Cases:**
 - Toxic food detection (chocolate, grapes for dogs)
 - Pet food inventory management
 - Age-based dietary recommendations
+- Feeding schedule tracking
 
 #### `inventory`
-Core table for all household inventory items across categories.
+Household inventory across all categories (household-level).
 
-**Categories:** `fridge`, `pantry`, `beauty`, `pets`
+**Categories** (enum `inventory_category`):
+- `fridge`: Refrigerated items
+- `pantry`: Shelf-stable food
+- `beauty`: Beauty/skincare/haircare products
+- `pets`: Pet food and supplies
+
+**Status** (enum `inventory_status`):
+- `sufficient`, `low`, `critical`, `out`, `out_of_stock`, `likely_spoiled`
 
 **Key Fields:**
+- `household_id`: Shared across household members
 - `fill_level`: 0-100 percentage for auto-reordering
-- `status`: `sufficient`, `low`, `critical`, `out`, `out_of_stock`, `likely_spoiled`
-- `allergens`: JSON array of detected allergens
-- `nutrition_data`: Full FatSecret API response
-- `fatsecret_id`: For re-enrichment and updates
+- `allergens`: JSONB array of detected allergens
+- `nutrition_data`: Full FatSecret/USDA API response
+- `fatsecret_id`: For re-enrichment
 - `auto_order_enabled`: Enables automatic shopping list addition
-- `reorder_threshold`: Fill level that triggers reorder (default 20)
-- `last_activity_at`: Updated on any interaction, used for spoilage detection
+- `reorder_threshold`: Fill level triggering reorder (default 20)
+- `consumption_rate`: Usage velocity for predictive reordering
+- `last_activity_at`: Updated on interaction, used for spoilage detection
+- `last_enriched_at`: Tracks nutrition data freshness
 
 **Triggers:**
-- `update_inventory_activity`: Sets `last_activity_at` on update
+- `update_inventory_activity`: Sets `last_activity_at` on UPDATE
+- `log_inventory_change`: Logs to household_activity
 
-#### `meal_logs`
-Nutrition tracking for meals analyzed via camera.
+#### `recipes`
+Saved recipes with ingredients, instructions, and metadata (household-level).
 
 **Key Fields:**
+- `household_id`: Shared across household
+- `user_id`: Recipe creator
+- `ingredients`: JSONB array `[{name, quantity, unit}]`
+- `instructions`: JSONB array `[{step, duration, temperature}]`
+- `required_appliances`: Text array `['oven', 'stovetop']`
+- `match_score`: AI-calculated ingredient availability score (0-100)
+- `is_public`: Whether recipe is publicly shareable
+- `share_token`: Unique token for public recipe links
+- `view_count`: Public recipe view counter
+
+**Use Cases:**
+- AI recipe suggestions based on inventory
+- Meal planning integration
+- Public recipe sharing via links
+- YouTube video tutorial integration
+
+#### `meal_plans`
+Weekly meal planning (household-level).
+
+**Key Fields:**
+- `household_id`: Shared meal plans
+- `user_id`: Plan creator
+- `recipe_id`: Linked recipe (nullable for custom meals)
+- `planned_date`: Meal date
 - `meal_type`: 'breakfast', 'lunch', 'dinner', 'snack'
-- `items`: JSON array of detected food items
-- `calories`, `protein`, `carbs`, `fat`, `fiber`: Calculated macros
+- `notes`: Custom instructions or preferences
+
+**Use Cases:**
+- Weekly meal calendar
+- Shopping list generation from meal plan
+- Household meal coordination
+
+#### `meal_logs`
+Individual nutrition tracking (user-level).
+
+**Key Fields:**
+- `user_id`: Individual tracking
+- `meal_type`: 'breakfast', 'lunch', 'dinner', 'snack'
+- `items`: JSONB array `[{name, quantity, calories, protein, carbs, fat, fiber}]`
+- `image_url`: Meal photo from scanner
+- Aggregated macros: `calories`, `protein`, `carbs`, `fat`, `fiber`
 
 **Use Cases:**
 - Daily nutrition tracking
 - Macro goal progress
 - Meal history and patterns
+- Streak calculation
 
-#### `shopping_list`
-Auto-generated and manual shopping list items.
+**Triggers:**
+- `learn_from_meal_log`: Updates learned_preferences
+
+#### `meal_templates`
+Saved meal templates for quick logging.
 
 **Key Fields:**
-- `source`: 'auto_reorder', 'voice_request', 'recipe', 'manual'
-- `priority`: 'high', 'normal', 'low'
-- `status`: 'pending', 'in_cart', 'purchased'
-- `inventory_id`: Links to inventory item for auto-reorder
+- `template_name`: User-defined name (e.g., "Breakfast Smoothie")
+- `items`: JSONB array of food items
+- Aggregated macros: `total_calories`, `total_protein`, etc.
+
+**Use Cases:**
+- Quick meal logging
+- Repeated meals
+- Custom meal presets
+
+#### `water_logs`
+Hydration tracking (user-level).
+
+**Key Fields:**
+- `amount_ml`: Water intake in milliliters
+- `logged_at`: Timestamp of log
+
+**Use Cases:**
+- Daily hydration tracking
+- Water goal progress
+
+#### `shopping_list`
+Auto-generated and manual shopping items (household-level).
+
+**Sources:**
+- `auto_reorder`: Triggered by low inventory
+- `recipe`: Generated from meal plan
+- `voice_request`: Added via voice assistant
+- `manual`: User-added
+
+**Priority:**
+- `high`, `normal`, `low`
+
+**Status:**
+- `pending`, `in_cart`, `purchased`
+
+**Key Fields:**
+- `household_id`: Shared shopping list
+- `inventory_id`: Links to inventory for auto-reorder
 
 **Use Cases:**
 - Automatic low-stock reordering
 - Recipe ingredient aggregation
 - Instacart cart creation
 
+#### `daily_digests`
+AI-generated proactive insights delivered daily (cron job).
+
+**Key Fields:**
+- `user_id`: Recipient
+- `household_id`: Household context
+- `digest_date`: Generation date
+- `insights`: JSONB array `[{type, title, message, priority, reasoning}]`
+- `generated_at`: Timestamp of generation
+- `viewed_at`: User viewed timestamp
+
+**Insight Types:**
+- `expiring_items`: Items approaching expiration
+- `low_stock`: Items needing reorder
+- `nutrition_gap`: Macro deficiencies
+- `meal_suggestion`: Time-appropriate meal ideas
+- `safety_alert`: Allergen or toxicity warnings
+
+**Use Cases:**
+- Proactive AI assistance
+- Daily household check-in
+- Waste reduction
+- Nutrition optimization
+
+#### `bookmarks`
+User-saved items across domains.
+
+**Item Types:**
+- `recipe`: Saved recipes
+- `meal_template`: Saved templates
+- `product`: Saved products
+
+**Use Cases:**
+- Quick access to favorites
+- Cross-domain bookmarking
+
+#### `learned_preferences`
+AI learning system tracking user behavior patterns.
+
+**Preference Types:**
+- `ingredient`: Frequently used ingredients
+- `cuisine`: Preferred cuisines
+- `cooking_time`: Time preferences (quick vs elaborate)
+- `difficulty`: Skill level preferences
+- `meal_time`: When user eats specific meal types
+
+**Key Fields:**
+- `confidence`: 0.0-1.0 score of preference strength
+- `occurrences`: Number of times pattern observed
+- `learned_from`: Source (`meal_log`, `recipe_save`, `voice_request`)
+
+**Use Cases:**
+- Personalized recipe suggestions
+- Contextual meal recommendations
+- Adaptive AI behavior
+
+**Triggers:**
+- `learn_from_meal_log`: Updates from meal logs
+- `learn_from_recipe_bookmark`: Updates from recipe saves
+
+#### `saved_foods`
+Frequently used foods for quick meal logging.
+
+**Use Cases:**
+- Quick meal logging autocomplete
+- Common food shortcuts
+
 #### `conversation_history`
-Persistent storage of all voice conversations with Kaeva.
+Persistent storage of all voice conversations.
 
 **Key Fields:**
 - `conversation_id`: Groups messages by session
 - `role`: 'user', 'assistant', 'system'
-- `metadata`: JSON for additional context (intent, confidence, etc.)
+- `message`: Message content
+- `metadata`: JSONB for context (intent, confidence, tool calls)
 
 **Use Cases:**
 - Conversation continuity
 - Intent pattern analysis
 - Debugging voice interactions
+- Conversation history review
+
+#### `conversation_events`
+Detailed event logging for voice agent monitoring.
+
+**Event Types:**
+- `message_sent`, `message_received`, `tool_call`, `error`
+
+**Key Fields:**
+- `agent_type`: 'onboarding' or 'assistant'
+- `event_data`: JSONB with full event payload
+
+**Use Cases:**
+- Admin monitoring
+- Agent debugging
+- Performance analytics
 
 #### `notifications`
-System-generated notifications for users.
+System-generated notifications.
 
 **Types:**
 - `spoilage_alert`: Items likely spoiled
 - `reorder_needed`: Low stock items
 - `allergen_warning`: Scanned item contains allergen
 - `toxicity_warning`: Scanned item toxic to pet
+- `household_activity`: Member actions
+
+**Key Fields:**
+- `metadata`: JSONB with action data (item_id, item_name, etc.)
+- `read`: Boolean tracking read status
 
 #### `user_roles`
 Role-based access control.
 
-**Roles:**
-- `admin`: Full system access (admin panel)
+**Roles** (enum `app_role`):
+- `admin`: Full system access (admin panel, agent provisioning)
 - `user`: Standard user access
 
+**Use Cases:**
+- Admin panel access control
+- System monitoring
+- Agent provisioning permissions
+
 #### `product_cache`
-Caches FatSecret API responses to reduce API calls and costs.
+FatSecret API response cache (30-day TTL).
 
 **Key Fields:**
 - `search_term`: Normalized search string
-- `expires_at`: Default 30 days from cache
-- `nutrition_summary`: Extracted key nutrition info
+- `expires_at`: Cache expiration (default +30 days)
+- `nutrition_summary`: Extracted key nutrition
 
 **Use Cases:**
 - Reducing redundant API calls
 - Faster product enrichment
 - Cost optimization
+
+#### `rate_limits`
+API rate limiting tracking.
+
+**Key Fields:**
+- `endpoint`: Rate-limited endpoint
+- `request_count`: Requests in current window
+- `window_start`: Window start timestamp
+
+**Use Cases:**
+- Preventing API abuse
+- Cost control
+- Fair usage enforcement
+
+**Database Function:**
+- `clean_old_rate_limits()`: Removes expired windows
 
 ### Database Functions
 
@@ -474,6 +1029,10 @@ Returns inventory items likely spoiled based on age and last activity.
 TABLE(inventory_id uuid, item_name text, days_old integer, category inventory_category)
 ```
 
+**Used By:**
+- `notify-spoilage` edge function (cron job)
+- Dashboard spoilage alerts
+
 #### `mark_spoilage(_inventory_id uuid)`
 Marks an inventory item as likely spoiled.
 
@@ -486,44 +1045,67 @@ Checks if a user has a specific role.
 
 **Security:** `SECURITY DEFINER` - runs with elevated privileges
 
-#### `handle_new_user()`
-Trigger function that creates a profile when a new user signs up.
+**Used By:**
+- Admin panel access control
+- RLS policies for admin-only tables
 
-**Execution:** Runs on `INSERT` to `auth.users`
+#### `handle_new_user()`
+Trigger function creating profile on user signup.
+
+**Execution:** Fires on `INSERT` to `auth.users`
 
 **Creates:**
 - Profile entry with user's email/name
 - Sets `onboarding_completed = false`
+- Assigns default 'user' role in `user_roles`
 
 #### `handle_updated_at()`
-Generic trigger function to update `updated_at` timestamps.
+Generic trigger function updating `updated_at` timestamps.
 
-**Attached to:** Multiple tables with `updated_at` columns
+**Execution:** Fires on `UPDATE` to tables with `updated_at` column
 
-#### `update_inventory_activity()`
-Trigger function to update `last_activity_at` on inventory changes.
+#### `log_household_activity()`
+Logs household events to activity feed.
 
-**Execution:** Runs on `UPDATE` to `inventory` table
+**Parameters:**
+- `p_household_id`: Household ID
+- `p_activity_type`: Event type
+- `p_entity_type`: Entity type (inventory, recipe, member)
+- `p_entity_id`: Entity UUID
+- `p_entity_name`: Entity display name
+- `p_metadata`: JSONB with additional context
 
-### Enums
+**Security:** `SECURITY DEFINER`
 
-#### `app_role`
-- `admin`
-- `user`
+**Called By:**
+- Trigger functions (inventory changes, recipe adds, member joins)
+- Edge functions (manual activity logging)
 
-#### `inventory_category`
-- `fridge`
-- `pantry`
-- `beauty`
-- `pets`
+#### `insert_household_batch()`
+Atomically inserts household members and pets from onboarding.
 
-#### `inventory_status`
-- `sufficient`
-- `low`
-- `critical`
-- `out`
-- `out_of_stock`
-- `likely_spoiled`
+**Parameters:**
+- `p_user_id`: User ID
+- `p_members`: JSONB array of household members
+- `p_pets`: JSONB array of pets
+
+**Returns:**
+```json
+{
+  "success": true,
+  "members_count": 2,
+  "pets_count": 1
+}
+```
+
+**Use Cases:**
+- Onboarding data save
+- Bulk household setup
+
+#### `clean_old_rate_limits()`
+Removes expired rate limit windows (>1 hour old).
+
+**Execution:** Can be called periodically or on-demand
 
 ---
 
@@ -531,266 +1113,265 @@ Trigger function to update `last_activity_at` on inventory changes.
 
 ### Authentication Flow
 
+**Current Implementation**: Email/Password only (Google OAuth removed due to redirect loops)
+
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant F as Frontend
-    participant SA as Supabase Auth
-    participant DB as Database
+    participant L as Landing Page
+    participant A as Auth Page
+    participant S as Supabase Auth
+    participant I as Index.tsx
+    participant D as Dashboard
     
-    U->>F: Open App
-    F->>SA: Check Session
+    U->>L: Visit /
+    L->>L: Check auth state
+    alt Authenticated
+        L->>I: Redirect to /app
+    else Unauthenticated
+        L->>L: Show hero/features
+    end
     
-    alt No Session
-        F->>U: Show Auth Page
-        U->>F: Sign Up/Login
-        F->>SA: auth.signUp/signIn
-        SA->>DB: Create User Record
-        DB->>DB: Trigger handle_new_user()
-        DB->>DB: Create Profile
-        SA-->>F: Session + User
-        F->>U: Redirect to Onboarding
-    else Has Session
-        SA-->>F: Session + User
-        F->>DB: Fetch Profile
-        
-        alt onboarding_completed = false
-            F->>U: Show Onboarding
-        else onboarding_completed = true
-            F->>U: Show Dashboard
+    U->>A: Click "Start Free" → /auth
+    A->>A: Show signup form
+    U->>A: Enter email/password
+    A->>S: signUp()
+    S->>S: Create auth.users entry
+    S->>S: Trigger handle_new_user()
+    S-->>A: Session token
+    A->>I: Redirect to /app
+    
+    I->>I: Check onboarding_completed
+    alt Not completed
+        I->>I: Show Splash → Onboarding
+    else Completed
+        alt Has current_household_id
+            I->>D: Show Dashboard
+        else No household
+            I->>I: Show HouseholdSetup
         end
     end
 ```
 
-### Auth Implementation
+### Auth State Management
 
-**Provider:** Supabase Auth
+**Separation of Concerns**:
+- `AuthContext`: Manages ONLY authentication session (session, user, isLoading, isAuthenticated)
+- `useProfile()`: Separate hook for profile data fetching
+- Index.tsx: Single source of routing truth based on auth + profile state
 
-**Methods Supported:**
-1. **Email/Password** - Standard signup/login
-2. **Google OAuth** - Social authentication
+**Critical Pattern**: `AuthContext` uses `onAuthStateChange` as sole handler for auth state updates. Manual `getSession()` calls only check session existence, never directly update state.
 
-**Configuration:**
+### Route Protection
+
+**3-Tier Route Structure**:
+
+1. **Public Routes** (no auth required):
+   - `/` - Landing page
+   - `/auth` - Login/signup
+   - `/install` - PWA installation guide
+   - `/recipe/:shareToken` - Shared recipe links
+
+2. **Protected Routes** (auth required via ProtectedRoute):
+   - `/app` - Main app (onboarding or dashboard)
+   - `/inventory` - Inventory management
+   - `/recipes` - Recipe book
+   - `/meal-planner` - Meal planning
+   - `/analytics` - Nutrition analytics
+   - `/household` - Household management
+   - `/settings` - User settings
+   - `/household/join/:inviteCode` - Join household
+
+3. **Admin Routes** (auth + admin role required via AdminRoute):
+   - `/admin` - Admin dashboard
+
+**ProtectedRoute Component**:
 ```typescript
-// src/integrations/supabase/client.ts
-export const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
-);
+// Redirects to /auth if not authenticated
+// Loads before Index.tsx to prevent flash
+<Route element={<ProtectedRoute />}>
+  <Route element={<AuthenticatedLayout />}>
+    {/* Protected routes here */}
+  </Route>
+</Route>
 ```
 
-**Auto-Confirm Email:** Enabled for non-production (Lovable Cloud default)
+**AdminRoute Component**:
+```typescript
+// Checks has_role(auth.uid(), 'admin')
+// Redirects to /app if not admin
+```
 
-### Authorization System
+### Row Level Security (RLS)
 
-#### Row Level Security (RLS)
+**Household-Based Policies**: Most tables use household membership for access control
 
-**Principle:** Users can only access their own data via `auth.uid()` checks.
-
-**Example Policy:**
+**profiles**:
 ```sql
-CREATE POLICY "Users can view own inventory"
-ON inventory FOR SELECT
-USING (auth.uid() = user_id);
+-- Users can view/update own profile
+POLICY "Users can view own profile" ON profiles FOR SELECT USING (auth.uid() = id);
+POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
 ```
 
-#### Role-Based Access Control (RBAC)
-
-**Admin Role:**
-- Access to `/admin` panel
-- User management capabilities
-- System configuration
-- Analytics and logs
-
-**Implementation:**
-```typescript
-// src/lib/authUtils.ts
-export const checkAdminStatus = async (): Promise<boolean> => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return false;
-
-  const { data } = await supabase.functions.invoke("check-admin", {
-    headers: { Authorization: `Bearer ${session.access_token}` },
-  });
-
-  return data?.isAdmin || false;
-};
+**households**:
+```sql
+-- Owners can manage own household
+POLICY "Owners can manage own household" ON households FOR ALL USING (auth.uid() = owner_id);
+-- Members can view their household
+POLICY "Members can view their household" ON households FOR SELECT 
+  USING (id IN (SELECT current_household_id FROM profiles WHERE id = auth.uid()));
 ```
 
-**Admin Route Protection:**
-```typescript
-// src/components/AdminRoute.tsx
-export const AdminRoute = ({ children }: AdminRouteProps) => {
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  
-  useEffect(() => {
-    checkAdminStatus().then(setIsAdmin);
-  }, []);
-  
-  if (isAdmin === null) return <LoadingState />;
-  if (!isAdmin) return <Navigate to="/" replace />;
-  
-  return <>{children}</>;
-};
+**household_memberships**:
+```sql
+-- Users can view their own memberships
+POLICY "Users can view their own memberships" ON household_memberships FOR SELECT 
+  USING (auth.uid() = user_id);
+-- Owners can view/manage members
+POLICY "Household owners can view members" ON household_memberships FOR SELECT 
+  USING (household_id IN (SELECT id FROM households WHERE owner_id = auth.uid()));
 ```
 
-### Session Management
+**inventory** (household-level):
+```sql
+-- Household members can CRUD inventory
+POLICY "Household members can view inventory" ON inventory FOR SELECT 
+  USING (household_id IN (
+    SELECT household_id FROM household_memberships WHERE user_id = auth.uid()
+  ));
+-- Similar policies for INSERT, UPDATE, DELETE
+```
 
-**Session Storage:** LocalStorage (Supabase default)
+**recipes** (household-level):
+```sql
+-- Household members can CRUD recipes
+POLICY "Household members can view recipes" ON recipes FOR SELECT 
+  USING (household_id IN (
+    SELECT household_id FROM household_memberships WHERE user_id = auth.uid()
+  ));
+-- Anyone can view public recipes
+POLICY "Anyone can view public recipes" ON recipes FOR SELECT 
+  USING (is_public = true OR household_id IN (...));
+```
 
-**Session Persistence:** Automatic across page reloads
+**meal_logs** (user-level):
+```sql
+-- Users can only CRUD their own meal logs
+POLICY "Users can manage own meal logs" ON meal_logs FOR ALL 
+  USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+```
 
-**Session Refresh:** Handled automatically by Supabase client
+**notifications** (user-level):
+```sql
+-- Users can view/update their own notifications
+POLICY "Users can view own notifications" ON notifications FOR SELECT 
+  USING (auth.uid() = user_id);
+-- Service role can insert notifications
+POLICY "Service role can insert notifications" ON notifications FOR INSERT 
+  WITH CHECK (true);
+```
 
-**Logout:**
-```typescript
-await supabase.auth.signOut();
-navigate('/auth');
+**user_roles**:
+```sql
+-- Users can view own roles
+POLICY "Users can view own roles" ON user_roles FOR SELECT 
+  USING (auth.uid() = user_id);
+-- Admins can manage all roles
+POLICY "Admins can manage roles" ON user_roles FOR ALL 
+  USING (has_role(auth.uid(), 'admin')) WITH CHECK (has_role(auth.uid(), 'admin'));
 ```
 
 ---
 
 ## Application Structure
 
-### Directory Layout
+### Directory Structure
 
 ```
 kaeva/
-├── public/
-│   ├── robots.txt
+├── public/                     # Static assets
+│   ├── icon-generator.html     # Icon generation utility
+│   ├── logo.svg                # App logo
+│   ├── manifest.json           # PWA manifest
+│   ├── robots.txt              # SEO
 │   └── sounds/
-│       └── wake.mp3
+│       └── wake.mp3            # Wake word audio
 ├── src/
-│   ├── components/
-│   │   ├── ui/                    # Shadcn UI primitives
-│   │   ├── voice/                 # Voice interaction components
-│   │   ├── scanner/               # Smart scanner components
-│   │   ├── dashboard/             # Dashboard widgets
-│   │   ├── admin/                 # Admin panel components
-│   │   └── layout/                # Layout components
-│   ├── pages/
-│   │   ├── Index.tsx              # Dashboard
-│   │   ├── Auth.tsx               # Login/Signup
-│   │   ├── ConfigureAgent.tsx     # ElevenLabs setup
-│   │   ├── Settings.tsx           # User settings
-│   │   ├── Household.tsx          # Household management
-│   │   ├── Admin.tsx              # Admin panel
-│   │   └── NotFound.tsx           # 404 page
-│   ├── hooks/
-│   │   ├── useVoiceManager.ts     # Voice state management
-│   │   ├── useVoiceAssistant.ts   # Voice assistant hook
-│   │   ├── useVoiceCommand.ts     # Voice commands
-│   │   ├── useOnboardingConversation.ts
-│   │   ├── useVisionCapture.ts    # Camera/scanner
-│   │   └── useKaevaMotion.ts      # Animation states
-│   ├── lib/
-│   │   ├── authUtils.ts           # Auth helpers
-│   │   ├── conversationUtils.ts   # Conversation storage
-│   │   ├── inventoryUtils.ts      # Inventory transforms
-│   │   ├── onboardingTransforms.ts
-│   │   ├── onboardingSave.ts
-│   │   ├── voiceClientTools.ts    # ElevenLabs tools
-│   │   ├── tdeeCalculator.ts      # TDEE calculation
-│   │   ├── elevenLabsAudio.ts     # Audio handling
-│   │   ├── audioMonitoring.ts     # Wake word detection
-│   │   └── utils.ts               # General utilities
+│   ├── assets/                 # Build-time assets
+│   ├── components/             # React components
+│   │   ├── admin/              # Admin panel components (15 files)
+│   │   ├── analytics/          # Analytics components (8 files)
+│   │   ├── dashboard/          # Dashboard widgets (40+ files)
+│   │   ├── household/          # Household management (5 files)
+│   │   ├── inventory/          # Inventory UI (2 files)
+│   │   ├── layout/             # Layout components (9 files)
+│   │   ├── meal-planner/       # Meal planning (5 files)
+│   │   ├── onboarding/         # Onboarding modules (10 files)
+│   │   ├── recipes/            # Recipe UI (8 files)
+│   │   ├── scanner/            # Scanner modes (20+ files)
+│   │   ├── search/             # Global search (1 file)
+│   │   ├── settings/           # Settings sheets (9 files)
+│   │   ├── ui/                 # Shadcn UI primitives (40+ files)
+│   │   ├── voice/              # Voice components (7 files)
+│   │   └── [domain components] # Feature-specific (20+ files)
+│   ├── contexts/               # React contexts
+│   │   ├── RealtimeContext.tsx # Realtime subscriptions
+│   │   └── VoiceAssistantContext.tsx # Voice provider
+│   ├── hooks/                  # Custom hooks (17 files)
 │   ├── integrations/
-│   │   └── supabase/
-│   │       ├── client.ts          # Supabase client
-│   │       └── types.ts           # Generated types
-│   ├── config/
-│   │   └── agent.ts               # ElevenLabs agent config
-│   ├── App.tsx                    # Root component
-│   ├── main.tsx                   # Entry point
-│   └── index.css                  # Global styles + design tokens
+│   │   └── supabase/           # Supabase integration
+│   │       ├── client.ts       # Supabase client (auto-generated)
+│   │       └── types.ts        # Database types (auto-generated)
+│   ├── lib/                    # Utility libraries (15 files)
+│   ├── pages/                  # Route pages (14 files)
+│   ├── App.tsx                 # Root component
+│   ├── index.css               # Global styles + design tokens
+│   ├── main.tsx                # Entry point
+│   └── vite-env.d.ts           # Vite types
 ├── supabase/
-│   ├── functions/
-│   │   ├── _shared/               # Shared utilities
-│   │   ├── analyze-meal/
-│   │   ├── analyze-vision/
-│   │   ├── check-admin/
-│   │   ├── configure-elevenlabs-agent/
-│   │   ├── cook-recipe/
-│   │   ├── detect-intent/
-│   │   ├── enrich-product/
-│   │   ├── generate-signed-url/
-│   │   ├── identify-product/
-│   │   ├── instacart-create-cart/
-│   │   ├── instacart-service/
-│   │   ├── notify-spoilage/
-│   │   └── suggest-recipes/
-│   ├── migrations/                # Database migrations
-│   └── config.toml                # Supabase configuration
-├── .env                           # Environment variables
-├── capacitor.config.ts            # Mobile app config
-├── tailwind.config.ts             # Tailwind configuration
-├── vite.config.ts                 # Vite configuration
-└── package.json                   # Dependencies
+│   ├── config.toml             # Supabase configuration
+│   ├── functions/              # Edge functions (26 functions)
+│   │   ├── _shared/            # Shared utilities (8 files)
+│   │   ├── [function-name]/    # Individual functions
+│   │   │   └── index.ts
+│   │   └── ...
+│   └── migrations/             # Database migrations (auto-managed)
+├── docs/                       # Documentation
+│   ├── diagrams/               # Mermaid diagrams (7 files)
+│   └── [documentation files]   # Architecture docs
+├── capacitor.config.ts         # Capacitor config (native apps)
+├── index.html                  # HTML entry point
+├── package.json                # Dependencies
+├── tailwind.config.ts          # Tailwind configuration
+├── tsconfig.json               # TypeScript config
+└── vite.config.ts              # Vite configuration
 ```
 
-### Key Architectural Patterns
+### Code Organization Patterns
 
-#### 1. Component Composition
-Small, focused components composed into larger features.
+**Component Structure**:
+- Small, focused components (not monolithic files)
+- Domain-specific folders (dashboard/, scanner/, recipes/, etc.)
+- Shared UI primitives in `ui/` following Shadcn pattern
+- Layout components separate from feature components
 
-**Example:**
-```
-Dashboard
-├── PulseHeader
-├── SafetyShield
-│   └── ShieldStatus
-├── InventoryMatrix
-│   └── InventoryCard
-├── NutritionWidget
-├── SmartCartWidget
-└── FloatingActionButton
-```
+**State Management**:
+- React Context for global state (Auth, Voice, Realtime)
+- TanStack Query for server state (automatic caching, refetching)
+- Local state via useState/useReducer for UI state
+- Custom hooks for reusable logic
 
-#### 2. Custom Hooks for Logic Separation
-Business logic extracted into reusable hooks.
+**Styling**:
+- Tailwind CSS with semantic design tokens
+- No inline styles or CSS modules
+- All colors via CSS variables (HSL format)
+- Responsive design with mobile-first approach
 
-**Examples:**
-- `useVoiceManager` - Manages ElevenLabs WebSocket connection
-- `useVisionCapture` - Handles camera and image capture
-- `useKaevaMotion` - Manages aperture animation states
-
-#### 3. Edge Functions for Backend Logic
-All server-side operations handled via Supabase Edge Functions.
-
-**Pattern:**
-```typescript
-const { data, error } = await supabase.functions.invoke('function-name', {
-  body: { payload },
-  headers: { Authorization: `Bearer ${session.access_token}` }
-});
-```
-
-#### 4. Type-Safe Database Access
-Generated TypeScript types from Supabase schema.
-
-```typescript
-import { Database } from '@/integrations/supabase/types';
-
-type Profile = Database['public']['Tables']['profiles']['Row'];
-type InventoryInsert = Database['public']['Tables']['inventory']['Insert'];
-```
-
-#### 5. Centralized State with React Query
-Server state managed via TanStack Query with automatic caching and refetching.
-
-```typescript
-const { data: profile } = useQuery({
-  queryKey: ['profile', userId],
-  queryFn: async () => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-    return data;
-  }
-});
-```
+**Type Safety**:
+- Strict TypeScript enabled
+- Auto-generated types from Supabase schema
+- Zod schemas for runtime validation (forms, API responses)
+- No `any` types (eslint enforced)
 
 ---
 
@@ -799,4489 +1380,4308 @@ const { data: profile } = useQuery({
 ### Route Configuration
 
 ```typescript
-// src/App.tsx
-<Routes>
-  <Route path="/" element={<Index />} />
-  <Route path="/auth" element={<Auth />} />
-  <Route path="/configure-agent" element={<ConfigureAgent />} />
-  <Route path="/settings" element={<Settings />} />
-  <Route path="/household" element={<Household />} />
-  <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
-  <Route path="*" element={<NotFound />} />
-</Routes>
+// App.tsx
+<BrowserRouter>
+  <VoiceAssistantProvider> {/* Inside router for useNavigate */}
+    <Routes>
+      {/* Public Routes */}
+      <Route element={<PublicShell />}>
+        <Route path="/" element={<Landing />} />
+        <Route path="/install" element={<Install />} />
+        <Route path="/recipe/:shareToken" element={<SharedRecipe />} />
+      </Route>
+      
+      {/* Auth Route */}
+      <Route element={<UniversalShell />}>
+        <Route path="/auth" element={<Auth />} />
+      </Route>
+      
+      {/* Protected Routes */}
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AuthenticatedLayout />}> {/* Lazy loads Voice SDK */}
+          <Route element={<UniversalShell />}>
+            <Route path="/app" element={<Index />} />
+            <Route path="/household/join/:inviteCode" element={<HouseholdInviteAccept />} />
+          </Route>
+          
+          <Route element={<AppShell />}>
+            <Route path="/inventory" element={<Inventory />} />
+            <Route path="/recipes" element={<RecipeBook />} />
+            <Route path="/meal-planner" element={<MealPlanner />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/household" element={<Household />} />
+            <Route path="/settings" element={<Settings />} />
+          </Route>
+        </Route>
+        
+        {/* Admin Routes */}
+        <Route element={<AdminRoute />}>
+          <Route element={<AppShell />}>
+            <Route path="/admin" element={<Admin />} />
+          </Route>
+        </Route>
+      </Route>
+      
+      {/* 404 */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  </VoiceAssistantProvider>
+</BrowserRouter>
 ```
 
 ### Page Descriptions
 
-#### `/` - Index (Dashboard)
-**File:** `src/pages/Index.tsx`
+#### `/` - Landing Page
+**File**: `src/pages/Landing.tsx`  
+**Layout**: `PublicShell`  
+**Auth**: Public
 
-**Purpose:** Main application dashboard after onboarding.
+**Features**:
+- Marketing homepage with hero section
+- Value proposition: "Your Home. On Autopilot"
+- Feature showcase (6-card bento grid)
+- Testimonials section
+- FAQ accordion
+- CTA buttons: "Start Free" → /auth, "Install App" → /install
 
-**Key Features:**
-- Conditional rendering based on onboarding status
-- Splash screen while loading
-- Voice onboarding flow if not completed
-- Dashboard view with all widgets if completed
+**Design**:
+- Manrope + Space Grotesk typography
+- Autumn Gold (#D69E2E) + Electric Sage (#70E098) gradient
+- Framer Motion animations (viewport-triggered)
+- Mobile-responsive grid layout
 
-**Flow:**
-```mermaid
-graph TD
-    A[Load Index] --> B{Session Exists?}
-    B -->|No| C[Redirect to /auth]
-    B -->|Yes| D{Profile Loaded?}
-    D -->|No| E[Show Splash]
-    D -->|Yes| F{Onboarding Complete?}
-    F -->|No| G[Show Voice Onboarding]
-    F -->|Yes| H{Permissions Granted?}
-    H -->|No| I[Show Permission Request]
-    H -->|Yes| J[Show Dashboard]
-```
-
-**Components Used:**
-- `Splash` - Loading state
-- `VoiceOnboarding` - Guided voice setup
-- `PermissionRequest` - Camera/mic permissions
-- `Dashboard` - Main dashboard view
+**Routing**:
+- Redirects authenticated users to `/app` on mount
 
 #### `/auth` - Authentication
-**File:** `src/pages/Auth.tsx`
+**File**: `src/pages/Auth.tsx`  
+**Layout**: `UniversalShell`  
+**Auth**: Public (redirects if authenticated)
 
-**Purpose:** User login and registration.
+**Features**:
+- Email/password signup and login forms
+- Form validation with Zod
+- Error handling and toast notifications
+- "Forgot password" flow
 
-**Features:**
-- Email/password authentication
-- Google OAuth integration
-- Automatic redirect after successful auth
-- Redirect to dashboard if already logged in
+**Design**:
+- Gold primary button with gold shadow
+- Glass card styling
+- Sage/gold branding
 
-**UI Elements:**
-- Email input
-- Password input
-- Sign In / Sign Up toggle
-- Google Sign In button
-- Form validation
+**Routing**:
+- Successful login redirects to `/app`
 
-#### `/configure-agent` - ElevenLabs Setup
-**File:** `src/pages/ConfigureAgent.tsx`
+#### `/install` - PWA Installation Guide
+**File**: `src/pages/Install.tsx`  
+**Layout**: `PublicShell`  
+**Auth**: Public
 
-**Purpose:** One-time setup of ElevenLabs conversational agent.
+**Features**:
+- Platform-specific installation instructions
+- iOS Safari instructions (Add to Home Screen)
+- Android Chrome instructions
+- Desktop browser instructions
+- Icon preview
 
-**Process:**
-1. Fetch user profile data
-2. Build custom prompt with user context
-3. Call `configure-elevenlabs-agent` edge function
-4. Update `agent_configured` in profile
-5. Redirect to dashboard
+**Design**:
+- Step-by-step guide with screenshots
+- Platform detection for smart defaults
 
-**Agent Context Includes:**
-- User name and biometrics
-- Household members and pets
-- Allergies and dietary restrictions
-- Health and lifestyle goals
-- Inventory summary
-- Shopping list
+#### `/recipe/:shareToken` - Shared Recipe
+**File**: `src/pages/SharedRecipe.tsx`  
+**Layout**: `PublicShell`  
+**Auth**: Public (via share_token)
 
-**Auto-redirect:** If agent already configured, redirects to `/`
+**Features**:
+- Public recipe viewing
+- Ingredients list
+- Step-by-step instructions
+- Cooking time, difficulty, servings
+- "Save to My Recipes" CTA (requires auth)
 
-#### `/settings` - User Settings
-**File:** `src/pages/Settings.tsx`
+**Security**:
+- Uses `share_token` instead of recipe ID
+- RLS policy allows public access when `is_public = true`
 
-**Purpose:** Manage all user preferences and data.
+#### `/app` - Main App Entry
+**File**: `src/pages/Index.tsx`  
+**Layout**: `UniversalShell`  
+**Auth**: Protected (ProtectedRoute)
 
-**Tabs:**
-1. **Profile** - Edit biometric data, goals
-2. **Safety** - Manage allergies, dietary restrictions
-3. **Household** - Quick access to household management
-4. **History** - View conversation logs
-5. **Store** - Select preferred retailer for Instacart
+**Purpose**: Single source of routing truth for authenticated users
 
-**Features:**
-- Real-time updates to profile
-- Conversation history viewer with filtering
-- Retailer selection with geolocation
-- Logout functionality
+**Logic**:
+```typescript
+const { profile, isLoading } = useProfile();
+
+if (isLoading) return <Splash />;
+
+if (!profile?.onboarding_completed) {
+  return <VoiceOnboarding />;
+}
+
+if (!profile?.current_household_id) {
+  return <HouseholdSetup />;
+}
+
+return <Dashboard />;
+```
+
+**Flows**:
+1. **First-time users**: Splash → Onboarding → HouseholdSetup → Dashboard
+2. **Returning users**: Splash → Dashboard
+3. **Incomplete onboarding**: Splash → Onboarding
+4. **No household**: Splash → HouseholdSetup
+
+#### `/inventory` - Inventory Management
+**File**: `src/pages/Inventory.tsx`  
+**Layout**: `AppShell`  
+**Auth**: Protected
+
+**Features**:
+- Category tabs (All, Fridge, Pantry, Beauty, Pets)
+- Search and filter
+- Grid view with item cards
+- Fill level indicators
+- Expiry date warnings
+- Edit/delete actions
+- "Scan to Add" FAB
+
+**Widgets**:
+- InventoryItemCard: Item display with image, quantity, status
+- EditItemModal: Edit item details
+
+#### `/recipes` - Recipe Book
+**File**: `src/pages/RecipeBook.tsx`  
+**Layout**: `AppShell`  
+**Auth**: Protected
+
+**Features**:
+- Recipe grid with cards
+- Search by name, ingredients
+- Filter by difficulty, cooking time, cuisine
+- Bookmark/unbookmark recipes
+- Recipe detail view with cooking mode
+- YouTube video tutorials
+- Share recipe publicly
+
+**Widgets**:
+- RecipeCard: Recipe preview
+- RecipeDetail: Full recipe view
+- CookingMode: Step-by-step cooking interface
+- RecipeVideoSection: YouTube tutorials
+
+#### `/meal-planner` - Weekly Meal Planning
+**File**: `src/pages/MealPlanner.tsx`  
+**Layout**: `AppShell`  
+**Auth**: Protected
+
+**Features**:
+- Weekly calendar view (swipeable)
+- Drag-and-drop meal assignment
+- AI meal plan generation with customization
+- Recipe selection for meal slots
+- Shopping list generation from meal plan
+- Meal plan sharing with household
+
+**Widgets**:
+- WeeklyCalendar: 7-day grid with meal slots
+- MealPlanCard: Meal preview
+- MealPlanCustomizationDialog: AI generation preferences
+- RecipeSelector: Choose recipes for meals
+- ShoppingPreviewSheet: Shopping list from plan
+
+#### `/analytics` - Nutrition Analytics
+**File**: `src/pages/Analytics.tsx`  
+**Layout**: `AppShell`  
+**Auth**: Protected
+
+**Features**:
+- BMI gauge visualization
+- Calorie chart (daily/weekly)
+- Macro breakdown chart (protein/carbs/fat)
+- Calendar view with daily summaries
+- Weekly report cards
+- Progress sharing (social media)
+- Streak display
+
+**Widgets**:
+- BMIGaugeCard: BMI calculation and visualization
+- CalorieChart: Line chart of calorie intake
+- MacroChart: Pie chart of macronutrient distribution
+- CalendarView: Monthly meal log calendar
+- WeeklyReportCard: Weekly summary
+- ShareProgressSheet: Social sharing
 
 #### `/household` - Household Management
-**File:** `src/pages/Household.tsx`
+**File**: `src/pages/Household.tsx`  
+**Layout**: `AppShell`  
+**Auth**: Protected
 
-**Purpose:** Manage household members and pets.
+**Features**:
+- Hero banner with household name
+- Members section with compact rows
+- Member detail sheets (biometrics, allergies)
+- Preferences section (household settings)
+- Invite members button
+- Notification toggles
+- Member role management (owner only)
 
-**Features:**
-- Add/edit/delete household members
-- Add/edit/delete pets
-- View calculated TDEE for each member
-- Digital twin summaries
-- Biometric data entry
+**Widgets**:
+- HeroHeaderBanner: Gradient header
+- CompactMemberRow: Member list item
+- MemberDetailSheet: Full member profile
+- HouseholdPreferencesSection: Settings
 
-**Components:**
-- `HouseholdMemberForm` - Add/edit members
-- `HouseholdMemberCard` - Display member info
-- `DigitalTwinSummary` - Visual summary of household
+#### `/settings` - User Settings
+**File**: `src/pages/Settings.tsx`  
+**Layout**: `AppShell`  
+**Auth**: Protected
 
-#### `/admin` - Admin Panel
-**File:** `src/pages/Admin.tsx`
+**Features**:
+- Quick action cards (Profile, Household, Analytics)
+- Settings sections (Profile, Dietary, Beauty, Goals, Account)
+- Bottom sheets for editing
+- Time-based greeting
+- App version info
+- Account deletion
 
-**Purpose:** System administration and monitoring.
+**Widgets**:
+- QuickActionCard: Shortcut cards
+- SettingsRow: Reusable row component
+- ProfileEditSheet: Edit profile
+- DietarySheet: Edit dietary preferences
+- BeautySheet: Edit beauty profile
+- GoalsSheet: Edit health/lifestyle goals
+- NutritionGoalsSheet: Edit nutrition goals
+- NotificationSettingsSheet: Manage notifications
+- ConversationHistorySheet: View conversation logs
+- AccountSheet: Account management
 
-**Access:** Protected by `AdminRoute` component.
+#### `/admin` - Admin Dashboard
+**File**: `src/pages/Admin.tsx`  
+**Layout**: `AppShell`  
+**Auth**: Admin role required
 
-**Features:**
-- User management (view all users, change roles)
-- System health monitoring
-- Database inspector (view tables, run queries)
-- Agent configuration management
-- Analytics dashboard
-- System logs viewer
-- Testing tools (API testing, data generation)
+**Features**:
+- 9 tabbed sections
+- Agent provisioning and management
+- Conversation monitoring
+- Database inspection
+- System logs
+- Analytics
+- User management
+- Accessibility audit
+- Testing tools
 - Deployment checklist
 
-**Tabs:**
-1. Users - User management
-2. Health - System health metrics
-3. Database - Database inspection
-4. Agent - Agent config
-5. Analytics - Usage analytics
-6. Logs - System logs
-7. Testing - Development tools
-8. Deployment - Pre-launch checklist
+**Tabs**:
+1. **Overview**: System health
+2. **Agent**: ElevenLabs agent provisioning
+3. **Conversations**: Conversation event logs
+4. **Database**: SQL inspector
+5. **Logs**: Tool call logs
+6. **Analytics**: Usage metrics
+7. **Users**: User/role management
+8. **Accessibility**: WCAG audit
+9. **Testing**: Test panel
+10. **Deploy**: Deployment checklist
+
+**Widgets** (15 components in `src/components/admin/`):
+- AgentProvisioning: Create/update agents
+- AgentStatus: Agent configuration status
+- AgentTestPanel: Test agent interactions
+- AgentHealthDashboard: Agent performance metrics
+- ConversationMonitor: Real-time conversation logs
+- DatabaseInspector: SQL query interface
+- SystemLogs: Edge function logs
+- ToolCallLogs: Client tool invocation logs
+- Analytics: Usage analytics
+- UserManagement: User/role CRUD
+- AccessibilityAudit: WCAG compliance check
+- TestingTools: Manual testing utilities
+- DeploymentChecklist: Pre-launch checks
+- ContextPreview: Agent context visualization
+- PWAIconGenerator: Generate PWA icons
+
+#### `/household/join/:inviteCode` - Join Household
+**File**: `src/pages/HouseholdInviteAccept.tsx`  
+**Layout**: `UniversalShell`  
+**Auth**: Protected
+
+**Features**:
+- JWT invite code validation
+- Household preview (name, member count)
+- Join confirmation
+- Success/error states
+
+**Flow**:
+1. Validate invite code via `accept-household-invite` edge function
+2. Show household preview
+3. User confirms join
+4. Add to `household_memberships`
+5. Update `profiles.current_household_id`
+6. Redirect to `/app`
+
+### Layout Components
+
+#### `PublicShell`
+**File**: `src/components/layout/PublicShell.tsx`
+
+**Purpose**: Layout for public marketing pages
+
+**Features**:
+- Navigation bar with logo
+- Footer with links
+- Full-height viewport with safe areas
+- No authentication UI
+
+#### `UniversalShell`
+**File**: `src/components/layout/UniversalShell.tsx`
+
+**Purpose**: Universal layout handling mobile viewport and safe areas
+
+**Features**:
+- `h-[100dvh]` dynamic viewport height (Safari address bar fix)
+- `env(safe-area-inset-*)` for notches/home bars
+- Fixed inset-0 positioning to lock body
+- `overscroll-none` to disable iOS rubber-band
+- Internal scrollable zone with `overflow-y-auto`
+- Prevents whole-page scrolling
+- Two-layer structure: background + floating dock
+
+**Critical Pattern**: All pages must use UniversalShell (or AppShell) to prevent mobile viewport issues
+
+#### `AppShell`
+**File**: `src/components/layout/AppShell.tsx`
+
+**Purpose**: Layout for authenticated app pages with navigation dock
+
+**Features**:
+- Extends UniversalShell
+- Floating command dock at bottom (72px height, 320px width)
+- Living Aperture (gold hero button) with satellite architecture
+- Settings button (left), Profile button (right)
+- Safe area bottom padding
+- Page transition animations
+
+**Floating Dock**:
+```typescript
+// Satellite Architecture Pattern
+<div className="glass-capsule"> {/* Background layer */}
+  <Button>Settings</Button>
+  <Button>Profile</Button>
+</div>
+<div className="living-aperture absolute -top-6"> {/* Overlapping layer */}
+  <KaevaAperture /> {/* 64-72px gold breathing button */}
+</div>
+```
+
+#### `AuthenticatedLayout`
+**File**: `src/components/layout/AuthenticatedLayout.tsx`
+
+**Purpose**: Lazy loads voice SDK for protected routes
+
+**Features**:
+- Dynamically imports VoiceAssistantProvider
+- Prevents voice SDK loading on public routes
+- Reduces initial bundle by ~100KB for unauthenticated users
 
 ---
 
 ## Components Architecture
 
-### Component Categories
+### 6-View Dashboard Architecture
 
-#### 1. UI Primitives (`src/components/ui/`)
-Shadcn UI components with custom styling.
+**File**: `src/pages/Dashboard.tsx`  
+**Pattern**: Horizontal swipeable views with circular wrap navigation
 
-**Key Components:**
-- `button.tsx` - Multiple variants (default, premium, hero, outline, ghost)
-- `card.tsx` - Container with header, content, footer
-- `dialog.tsx` - Modal dialogs
-- `drawer.tsx` - Bottom/side drawers (mobile-friendly)
-- `form.tsx` - Form building blocks with react-hook-form
-- `input.tsx` - Text inputs with variants
-- `select.tsx` - Dropdown selects
-- `tabs.tsx` - Tab navigation
-- `toast.tsx` - Notification toasts
-- `skeleton.tsx` - Loading placeholders
+**Views**:
+1. **PULSE** (Wellness Hub):
+   - WelcomeBanner: Time-based greeting
+   - PulseHeader: System health ring (0-100% from nutrition + inventory)
+   - SafetyShield: Active protections count
+   - DashboardHeader: Quick stats
 
-**Customization:**
-All UI components use design tokens from `index.css` for theming.
+2. **FUEL** (Nutrition Center):
+   - NutritionWidget: Daily macro progress
+   - WaterTrackingWidget: Hydration tracking
+   - StreakWidget: Meal logging streaks
+   - MealLogCard: Recent meals
 
-#### 2. Voice Components (`src/components/voice/`)
+3. **PANTRY** (Food Inventory):
+   - InventoryMatrix: 2x2 grid (Fridge, Pantry, Beauty, Pets)
+   - ExpiringItemsRecipes: Items nearing expiry with recipe suggestions
+   - SmartCartWidget: Shopping cart status
+   - SpoilageReview: Likely spoiled items
 
-##### `VoiceAssistant.tsx`
-Main voice assistant interface post-onboarding.
+4. **GLOW** (Beauty Station):
+   - BeautySummaryCard: Beauty inventory overview
+   - BeautyInventoryList: Beauty products
+   - ExpiringItemsRecipes: Expiring beauty products
 
-**Features:**
-- Floating action button to start conversation
-- Full-screen conversation overlay
-- Real-time transcription display
-- Aperture animation based on speaking state
-- ESC key to close
+5. **PETS** (Pet Care Hub):
+   - PetRosterCard: Household pets
+   - PetSuppliesStatus: Pet food/supplies inventory
+   - ToxicFoodMonitor: Toxic food warnings
+   - PetCareTipsWidget: Species-specific care tips
 
-**Props:**
+6. **HOME** (Household Hub):
+   - HouseholdQuickAccess: Household shortcuts
+   - RecipeFeed: Suggested recipes
+   - HouseholdActivityFeed: Recent household activity
+   - MealPlanWidget: Upcoming meals
+
+**Navigation**:
+- Horizontal swipe gestures (useSwipeNavigation hook)
+- Haptic feedback on view change
+- Pagination dots with labels/icons at bottom
+- Clickable dots for direct navigation
+- Circular wrap (HOME → PULSE)
+- SwipeEdgeIndicator: Shows adjacent view labels during swipe
+
+**Design**:
+- Each view has domain-specific color accent
+- Entrance animations with staggered children
+- Empty states with contextual CTAs
+- Consistent spacing (space-y-4)
+
+### Admin Components (15 files)
+
+Located in `src/components/admin/`:
+
+1. **AccessibilityAudit.tsx**: WCAG compliance checker
+2. **AgentHealthDashboard.tsx**: Agent performance metrics with charts
+3. **AgentProvisioning.tsx**: Create/update ElevenLabs agents
+4. **AgentStatus.tsx**: Agent configuration status cards
+5. **AgentTestPanel.tsx**: Test agent interactions
+6. **Analytics.tsx**: Usage analytics dashboard
+7. **ContextPreview.tsx**: Agent context visualization
+8. **ConversationMonitor.tsx**: Real-time conversation logs
+9. **DatabaseInspector.tsx**: SQL query interface
+10. **DeploymentChecklist.tsx**: Pre-launch verification
+11. **PWAIconGenerator.tsx**: AI-powered icon generation
+12. **SystemLogs.tsx**: Edge function logs viewer
+13. **TestingTools.tsx**: Manual testing utilities
+14. **ToolCallLogs.tsx**: Client tool invocation logs
+15. **UserManagement.tsx**: User/role CRUD
+
+### Dashboard Widgets (40+ files)
+
+Located in `src/components/dashboard/`:
+
+**Core Widgets**:
+- AIInsightsWidget: Daily digest insights (top 3-4 priority cards)
+- DashboardHeader: Quick stats bar
+- DashboardViewIndicator: Current view indicator
+- PulseHeader: System health ring with greeting
+- WelcomeBanner: Personalized welcome message
+
+**Inventory**:
+- InventoryCard: Single inventory item display
+- InventoryMatrix: 2x2 category grid (Fridge, Pantry, Beauty, Pets)
+- InventoryMatrixSkeleton: Loading skeleton
+- BeautyInventoryList: Beauty product list
+- BeautySummaryCard: Beauty inventory summary
+- ExpiringItemsRecipes: Expiring items with recipe suggestions
+- SpoilageReview: Likely spoiled items
+- BuildingCartOverlay: Instacart cart building animation
+
+**Nutrition**:
+- NutritionWidget: Daily macro progress (calories, protein, carbs, fat)
+- WaterTrackingWidget: Hydration tracking with circular dial
+- StreakWidget: Meal logging streak display
+- MealLogCard: Recent meal display
+
+**Recipes & Meals**:
+- RecipeFeed: AI-suggested recipes
+- MealPlanWidget: Upcoming meals from meal plan
+
+**Shopping**:
+- SmartCartWidget: Shopping cart status and Instacart integration
+- ShoppingManifest: Grouped shopping list (auto-refill, recipe, manual)
+- ProductSelector: Product search and selection
+- StoreSelector: Instacart retailer selection
+
+**Household**:
+- HouseholdQuickAccess: Household member shortcuts
+- HouseholdActivityFeed: Recent household events
+- PetRosterCard: Pet cards
+- PetSuppliesStatus: Pet inventory status
+- PetCareTipsWidget: Species-specific care tips
+- ToxicFoodMonitor: Toxic food warnings for pets
+
+**Safety & Alerts**:
+- SafetyShield: Active protections counter
+- ShieldStatus: Safety features status
+
+**UI Elements**:
+- FloatingActionButton: Multi-action FAB (Voice, Scanner)
+- QuickActions: Action shortcuts
+- RecentActivity: Recent user actions
+- VisionSpotlight: Scanner trigger button
+- SocialImport: Social recipe import
+- TetheredTag: AR-style floating labels
+
+**Skeletons** (loading states):
+- AIInsightsWidgetSkeleton
+- InventoryCardSkeleton
+- InventoryMatrixSkeleton
+
+### Scanner Components (20+ files)
+
+Located in `src/components/scanner/`:
+
+**Core Scanner**:
+- SmartScanner: Main scanner component with camera
+- ScannerHUD: Technical HUD overlay (corner brackets, scan line, grid)
+- ScanModeCarousel: Swipeable mode selector
+- ModeSelector: Mode picker
+- ScannerToolbar: Top toolbar with flash/flip controls
+- CaptureButton: Gold capture button with haptic feedback
+- ScanResults: Result display with parsed data
+- ScannerSummaryCard: Scan summary card
+
+**Scanner Modes**:
+- IntentPresetPicker: Quick intent selection
+- BarcodeOverlay: Barcode detection visual
+
+**Result Modes** (in `src/components/scanner/result-modes/`):
+- ApplianceScanResult: Appliance identification
+- InventorySweepResult: Multi-item inventory scan
+- NutritionTrackResult: Meal analysis result
+- PetIdResult: Pet identification via microchip/tag
+- ProductAnalysisResult: Single product analysis
+- VanitySweepResult: Beauty product batch scan
+- FixResultSheet: Manual correction sheet
+
+**Meal Logging**:
+- VoiceMealInput: Voice-activated meal logging
+- MealTemplateSheet: Saved meal templates
+- SaveTemplateDialog: Save current meal as template
+- DuplicateItemModal: Handle duplicate inventory detection
+
+**Beauty**:
+- BeautyInspirationSheet: Beauty looks and routines
+- PhotoEditModal: Photo editing before save
+
+**Toxicity**:
+- ToxicityAlert: Pet toxicity warnings
+
+### Recipe Components (8 files)
+
+Located in `src/components/recipes/`:
+
+1. **RecipeCard.tsx**: Recipe preview card
+2. **RecipeDetail.tsx**: Full recipe view
+3. **CookingMode.tsx**: Step-by-step cooking interface
+4. **CookingStepCard.tsx**: Individual cooking step
+5. **TimerPill.tsx**: Inline timer for cooking steps
+6. **PostCookingSheet.tsx**: Post-meal engagement (photo, rating)
+7. **RecipeVideoSection.tsx**: YouTube tutorial videos
+8. **RecipeShareSheet.tsx**: Share recipe publicly
+
+### Meal Planner Components (5 files)
+
+Located in `src/components/meal-planner/`:
+
+1. **WeeklyCalendar.tsx**: 7-day meal calendar with swipe navigation
+2. **MealPlanCard.tsx**: Single meal preview
+3. **MealPlanCustomizationDialog.tsx**: AI generation preferences
+4. **RecipeSelector.tsx**: Choose recipes for meals
+5. **ShoppingPreviewSheet.tsx**: Shopping list from meal plan
+
+### Onboarding Components (10 files)
+
+Located in `src/components/onboarding/`:
+
+**Core**:
+- ModularOnboardingPrompt: Prompt to complete modules
+- OnboardingModuleSheet: Module selection sheet
+
+**Forms** (in `src/components/onboarding/forms/`):
+- CoreOnboardingForm: Basic user info (age, weight, height, gender)
+- NutritionOnboardingForm: Nutrition goals and preferences
+- PantryOnboardingForm: Pantry setup
+- BeautyOnboardingForm: Beauty profile (skin type, hair type)
+- HouseholdOnboardingForm: Household members
+- PetsOnboardingForm: Pet profiles
+
+**Voice** (in `src/components/onboarding/voice/`):
+- ModuleVoiceSession: Voice conversation for module
+- WakeWordIndicator: "Hey Kaeva" listening indicator
+
+**Other**:
+- VoiceOnboarding: Main voice onboarding flow
+- Splash: Splash screen animation
+
+### Voice Components (7 files)
+
+Located in `src/components/voice/`:
+
+1. **VoiceAssistant.tsx**: Main voice assistant component (forwardRef for parent control)
+2. **ConversationOverlay.tsx**: Full-screen conversation UI
+3. **SleepingIndicator.tsx**: Idle state indicator
+4. **ConceptCard.tsx**: Visual confirmation cards during onboarding
+5. **SmartChips.tsx**: Quick-reply buttons for silent interaction
+6. **KeywordFeedback.tsx**: Keyword detection visual feedback
+7. **OnboardingStatus.tsx**: Onboarding progress display
+
+### Household Components (5 files)
+
+Located in `src/components/household/`:
+
+1. **HeroHeaderBanner.tsx**: Gradient header with household name
+2. **CompactMemberRow.tsx**: Member list item
+3. **MemberAvatarCircle.tsx**: Abstract avatar generation
+4. **MemberDetailSheet.tsx**: Full member profile sheet
+5. **HouseholdPreferencesSection.tsx**: Household settings
+
+### Analytics Components (8 files)
+
+Located in `src/components/analytics/`:
+
+1. **BMIGaugeCard.tsx**: BMI calculation and gauge
+2. **CalorieChart.tsx**: Daily/weekly calorie line chart
+3. **MacroChart.tsx**: Macronutrient pie chart
+4. **CalendarView.tsx**: Monthly meal log calendar
+5. **DayDetailModal.tsx**: Single day meal detail
+6. **WeeklyReportCard.tsx**: Weekly summary card
+7. **NutritionInsights.tsx**: AI-generated nutrition insights
+8. **ShareProgressSheet.tsx**: Social media sharing
+
+### Settings Components (9 files)
+
+Located in `src/components/settings/`:
+
+1. **QuickActionCard.tsx**: Shortcut card
+2. **SettingsRow.tsx**: Reusable settings row
+3. **ProfileEditSheet.tsx**: Edit profile
+4. **DietarySheet.tsx**: Edit dietary preferences
+5. **BeautySheet.tsx**: Edit beauty profile
+6. **GoalsSheet.tsx**: Edit health/lifestyle goals
+7. **NutritionGoalsSheet.tsx**: Edit nutrition goals
+8. **NotificationSettingsSheet.tsx**: Manage notifications
+9. **ConversationHistorySheet.tsx**: View conversation logs
+10. **AccountSheet.tsx**: Account management
+
+### Universal Components (reusable across domains)
+
+Located in `src/components/ui/`:
+
+**KAEVA-specific**:
+1. **ProgressRing.tsx**: Circular progress indicator
+2. **HintCard.tsx**: Contextual hints
+3. **BookmarkButton.tsx**: Bookmark/unbookmark action
+4. **MultiModalInput.tsx**: Text + voice + image input
+5. **CircularDialPicker.tsx**: Rotary dial for numerical values
+6. **UniversalFixSheet.tsx**: Manual correction sheet
+7. **UniversalLibrary.tsx**: Domain-specific tab structures for browsing items
+8. **EmojiGridSelector.tsx**: Emoji-based mood/preference selector
+9. **SyncIndicator.tsx**: Real-time sync status
+10. **NotificationBell.tsx**: Notification center
+
+**Shadcn UI Primitives** (40+ files):
+- accordion, alert-dialog, alert, avatar, badge, button, calendar, card, carousel, chart, checkbox, collapsible, dialog, drawer, dropdown-menu, error-fallback, form, icon, input, label, popover, progress, radio-group, scroll-area, select, separator, sheet, skeleton, slider, sonner (toast), switch, table, tabs, textarea, toast, toaster, tooltip
+
+### Layout Helper Components
+
+Located in `src/components/layout/`:
+
+1. **PageHeader.tsx**: Standard page header (back button, title, home button)
+2. **BottomTabBar.tsx**: Bottom navigation tabs for secondary pages
+3. **PageIndicator.tsx**: Page position indicator (pagination dots)
+4. **PageTransition.tsx**: Page transition wrapper (slide + fade)
+5. **ActionPickerDialog.tsx**: Multi-action picker modal
+
+### Misc Components
+
+Located in `src/components/`:
+
+1. **AdminRoute.tsx**: Admin role protection
+2. **ProtectedRoute.tsx**: Authentication protection
+3. **PublicRoute.tsx**: Public route wrapper
+4. **AuroraBackground.tsx**: Animated aurora background
+5. **KaevaAperture.tsx**: Living Aperture hero button
+6. **Dashboard.tsx**: Main dashboard (6 views)
+7. **DigitalTwinCard.tsx**: Digital twin summary
+8. **DigitalTwinSummary.tsx**: Digital twin details
+9. **HouseholdMemberCard.tsx**: Household member card
+10. **HouseholdMemberForm.tsx**: Add/edit household member
+11. **HouseholdSetup.tsx**: Initial household creation
+12. **PermissionRequest.tsx**: Permission request UI
+13. **TutorialOverlay.tsx**: Feature tutorials
+14. **ValuePropCarousel.tsx**: Landing page value props
+15. **VolumeControl.tsx**: Audio volume control
+16. **NavLink.tsx**: Navigation link component
+17. **ConversationHistory.tsx**: Conversation history viewer
+
+**Domain Clusters** (7 files for future modularity):
+- ClusterBeauty, ClusterBiometrics, ClusterHousehold, ClusterLanguage, ClusterMission, ClusterSafety
+
+### Component Design Patterns
+
+**Glass Card Pattern**:
 ```typescript
-interface VoiceAssistantProps {
-  userProfile: any;
-  onProfileUpdate?: (profile: any) => void;
+<div className="glass-card p-4 rounded-3xl border border-border/20">
+  {/* Content */}
+</div>
+```
+
+**Skeleton Loading**:
+```typescript
+if (isLoading) return <ComponentSkeleton />;
+```
+
+**Error Boundaries**:
+```typescript
+<ErrorBoundary fallback={<ErrorFallback />}>
+  <Component />
+</ErrorBoundary>
+```
+
+**Empty States**:
+```typescript
+if (items.length === 0) {
+  return <EmptyState icon={<Icon />} message="No items yet" action={<Button />} />;
 }
 ```
 
-**Hook Used:** `useVoiceManager`
-
-##### `ConversationOverlay.tsx`
-Full-screen overlay during active conversation.
-
-**Features:**
-- Animated aperture (Kaeva's "eye")
-- User transcript display
-- AI response display
-- Audio amplitude visualization
-- Close button
-
-**States:**
-- `idle` - No conversation
-- `listening` - User speaking
-- `processing` - AI thinking
-- `speaking` - AI responding
-
-##### `KeywordFeedback.tsx`
-Visual feedback when wake word is detected.
-
-**Animation:** Fade in/out pulse effect
-
-##### `SleepingIndicator.tsx`
-Shows when Kaeva is in sleep mode (listening for wake word).
-
-**Visual:** Subtle breathing animation
-
-##### `OnboardingStatus.tsx`
-Progress indicator during voice onboarding.
-
-**Shows:**
-- Current onboarding stage
-- Collected data checkmarks
-- Next steps
-
-#### 3. Scanner Components (`src/components/scanner/`)
-
-##### `SmartScanner.tsx`
-Multi-intent camera scanner.
-
-**Modes:**
-- Inventory Sweep
-- Nutrition Tracking
-- Product Analysis
-- Appliance Scan
-- Pet ID
-- Vanity Sweep
-
-**Features:**
-- Camera preview via `react-webcam`
-- Capture button with animation
-- Mode selector
-- Loading states during analysis
-- Results display via `ScanResults`
-
-**Flow:**
-```mermaid
-graph LR
-    A[Open Scanner] --> B[Select Mode]
-    B --> C[Capture Photo]
-    C --> D[Upload to Supabase]
-    D --> E[Call analyze-vision]
-    E --> F[Detect Intent]
-    F --> G[Process Based on Intent]
-    G --> H[Display Results]
+**Responsive Design**:
+```typescript
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  {/* Items */}
+</div>
 ```
-
-##### `ScanResults.tsx`
-Drawer displaying scan results.
-
-**Dynamic Content Based on Intent:**
-- `INVENTORY_SWEEP` → `InventorySweepResult`
-- `APPLIANCE_SCAN` → `ApplianceScanResult`
-- `NUTRITION_TRACK` → `NutritionTrackResult`
-- `PET_ID` → `PetIdResult`
-- `PRODUCT_ANALYSIS` → `ProductAnalysisResult`
-- `VANITY_SWEEP` → `VanitySweepResult`
-
-**Features:**
-- Confidence percentage display
-- Intent-specific icon
-- Animated entry
-- Confirm button to add to inventory/logs
-
-##### Result Mode Components
-
-**`InventorySweepResult.tsx`**
-- Lists detected items with confidence scores
-- Add to inventory button (batch insert)
-- Allergen warnings for each item
-
-**`NutritionTrackResult.tsx`**
-- Meal type selector
-- Detected food items
-- Total macro calculations
-- Log meal button
-
-**`ProductAnalysisResult.tsx`**
-- Product details (name, brand, nutrition)
-- Allergen flags
-- Deception warnings
-- Product truth analysis
-- Add to inventory
-
-**`PetIdResult.tsx`**
-- Detected pet species/breed
-- Age estimation
-- Add pet to household
-- Toxic food warnings
-
-**`ApplianceScanResult.tsx`**
-- Detected appliance type
-- Suggested products for that appliance
-- Quick add to inventory
-
-**`VanitySweepResult.tsx`**
-- Beauty product details
-- Ingredient analysis
-- Skin type compatibility
-- Add to beauty inventory
-
-#### 4. Dashboard Components (`src/components/dashboard/`)
-
-##### `PulseHeader.tsx`
-Top header with user greeting and quick stats.
-
-**Displays:**
-- Personalized greeting with user name
-- Current time
-- Quick stats (inventory count, low stock, meals logged)
-
-##### `SafetyShield.tsx`
-Household safety monitoring widget.
-
-**Features:**
-- Allergen check for household members
-- Pet toxicity warnings
-- Medication interaction alerts
-- Visual shield with status indicator
-
-**Component:** Uses `ShieldStatus` for visual representation
-
-##### `InventoryMatrix.tsx`
-Grid view of inventory categories.
-
-**Categories:**
-- Fridge
-- Pantry
-- Beauty
-- Pets
-
-**Each Card Shows:**
-- Category icon
-- Item count
-- Fill level indicator
-- Quick action button
-
-**Loading State:** `InventoryMatrixSkeleton`
-
-##### `NutritionWidget.tsx`
-Daily nutrition tracking.
-
-**Features:**
-- Macro breakdown (protein, carbs, fat)
-- Calorie count vs TDEE goal
-- Progress rings for each macro
-- Quick log meal button
-
-##### `SmartCartWidget.tsx`
-Shopping list and Instacart integration.
-
-**Features:**
-- Shopping list item count
-- Create cart button (Instacart)
-- Auto-reorder indicators
-- Priority item highlights
-
-##### `RecentActivity.tsx`
-Timeline of recent household events.
-
-**Event Types:**
-- Item added to inventory
-- Meal logged
-- Shopping completed
-- Spoilage detected
-- Agent conversation
-
-##### `FloatingActionButton.tsx`
-Multi-action FAB (Floating Action Button).
-
-**Actions:**
-- Talk to Kaeva (voice)
-- Scan item (camera)
-- Add manual entry
-- View notifications
-
-**Animation:** Expands to show action menu on click
-
-##### `ConfigurationBanner.tsx`
-Alert banner shown when ElevenLabs agent not configured.
-
-**Action:** Redirects to `/configure-agent`
-
-##### `ProductSelector.tsx`
-Search and select products from FatSecret database.
-
-**Features:**
-- Debounced search input
-- Product suggestions
-- Nutrition preview
-- Quick add to inventory
-
-##### `StoreSelector.tsx`
-Retailer selection for Instacart integration.
-
-**Features:**
-- Geolocation-based retailer search
-- Store logos and names
-- Save preferred retailer
-- Refresh retailer list
-
-#### 5. Onboarding Components
-
-##### `VoiceOnboarding.tsx`
-Guided voice-first onboarding experience.
-
-**Flow:**
-1. Permission grant screen
-2. Sleeping Kaeva (waiting for wake word)
-3. Active conversation with ElevenLabs
-4. Data collection via natural conversation
-5. Profile completion
-6. Redirect to dashboard
-
-**Hook Used:** `useOnboardingConversation`
-
-**Data Collected:**
-- User name, age, weight, height, gender
-- Activity level
-- Dietary preferences and allergies
-- Health goals
-- Household composition (adults, kids, pets)
-- Language preference
-
-##### `PermissionRequest.tsx`
-Robust cross-platform camera and microphone permission handling.
-
-**Features:**
-- **Feature Detection:** Checks for `navigator.mediaDevices` API and secure context (HTTPS)
-- **In-App Browser Detection:** Detects Instagram, Facebook, LinkedIn WebViews and shows appropriate message
-- **Progressive Permission Fallback:**
-  1. First tries audio + video together
-  2. Falls back to audio-only if combined fails (audio is critical for voice)
-  3. Provides detailed error messages for each failure scenario
-- **iOS Audio Unlock:** Creates and resumes AudioContext, plays silent audio to unlock iOS audio system
-- **Mobile-Specific Error Messages:**
-  - iOS: "Open Settings → Safari → Camera/Microphone → Allow for this site"
-  - Android: "Tap the lock icon in the address bar → Site Settings → Allow"
-- **Delayed Track Cleanup:** Waits 3 seconds before stopping tracks to prevent permission re-prompts on iOS
-- Clear explanation of why permissions needed
-- Grant button with loading states
-- Skip button (with limitations explained)
-- Developer bypass in DEV mode
-
-##### `SleepingKaeva.tsx`
-Animated "sleeping" state before conversation starts.
-
-**Features:**
-- Pulsing aperture animation
-- "Say 'Hey Kaeva' to begin" prompt
-- Wake word detection active
-
-##### `TutorialOverlay.tsx`
-Optional first-time user tutorial.
-
-**Screens:**
-1. Welcome to Kaeva
-2. Voice control basics
-3. Scanner features
-4. Inventory management
-5. Safety features
-
-**Dismissible:** Never shown again after completion
-
-#### 6. Household Components
-
-##### `HouseholdMemberForm.tsx`
-Form for adding/editing household members.
-
-**Fields:**
-- Member type (partner, child, elderly, other)
-- Name
-- Age (or age group for children)
-- Gender
-- Height, weight (for TDEE calculation)
-- Activity level
-- Allergies
-- Dietary restrictions
-- Health conditions
-- Medication interactions
-
-**Validation:** Zod schema with react-hook-form
-
-**Features:**
-- TDEE auto-calculation on biometric change
-- Conditional fields based on member type
-- Allergen multi-select
-- Submit creates/updates database record
-
-##### `HouseholdMemberCard.tsx`
-Display card for a household member.
-
-**Shows:**
-- Name and type
-- Age
-- TDEE (if calculated)
-- Allergen tags
-- Dietary restriction tags
-- Edit/delete buttons
-
-**Actions:**
-- Edit (opens form in dialog)
-- Delete (with confirmation)
-
-##### `DigitalTwinSummary.tsx`
-Visual summary of household composition.
-
-**Features:**
-- Avatar icons for each member/pet
-- Color-coded by type
-- Household totals
-- Quick navigation to member details
-
-##### `DigitalTwinCard.tsx`
-Individual digital twin profile card.
-
-**Shows:**
-- Avatar
-- Name
-- Type
-- Key health metrics
-- Recent activity
-
-#### 7. Layout Components
-
-##### `AppShell.tsx`
-Main application layout wrapper.
-
-**Structure:**
-```
-AppShell
-├── Navigation Bar (top)
-├── Main Content (center)
-└── Footer (optional)
-```
-
-**Features:**
-- Responsive design (mobile/desktop)
-- Navigation with active state
-- User profile dropdown
-- Theme toggle (light/dark)
-
-##### `NavLink.tsx`
-Navigation link component with active state.
-
-**Features:**
-- Icon + label
-- Active state styling
-- Keyboard accessible
-- Mobile-responsive
-
-#### 8. Admin Components (`src/components/admin/`)
-
-All admin panel components are protected by admin role check.
-
-##### `UserManagement.tsx`
-Manage all users in the system.
-
-**Features:**
-- User list table
-- Search/filter users
-- View user details
-- Change user roles
-- Impersonate user (for debugging)
-
-##### `AgentHealthDashboard.tsx`
-Monitor ElevenLabs agent health.
-
-**Metrics:**
-- Total conversations
-- Average conversation length
-- Success rate
-- Error rate
-- Response time
-
-##### `DatabaseInspector.tsx`
-View database tables and records.
-
-**Features:**
-- Table selector
-- Row browser
-- Column filters
-- SQL query executor (read-only for safety)
-
-##### `SystemLogs.tsx`
-View system logs and errors.
-
-**Features:**
-- Log level filtering (error, warn, info, debug)
-- Search logs
-- Date range filter
-- Export logs
-
-##### `Analytics.tsx`
-Usage analytics dashboard.
-
-**Charts:**
-- Daily active users
-- Conversation volume
-- Scanner usage by mode
-- Inventory growth
-- Top allergens detected
-
-##### `TestingTools.tsx`
-Development and debugging tools.
-
-**Features:**
-- API endpoint tester
-- Sample data generator
-- Database reset (dev only)
-- Webhook tester
-
-##### `DeploymentChecklist.tsx`
-Pre-launch checklist.
-
-**Checks:**
-- RLS policies enabled
-- Admin user created
-- API keys configured
-- Edge functions deployed
-- Error logging enabled
 
 ---
 
 ## Hooks & Custom Logic
 
-### Voice Management Hooks
+### Custom Hooks (17 files)
 
-#### `useVoiceManager` 
-**File:** `src/hooks/useVoiceManager.ts`
+Located in `src/hooks/`:
 
-**Purpose:** Manages ElevenLabs WebSocket connection and conversation state for post-onboarding voice assistant.
+#### `useAssistantVoice.ts`
+**Purpose**: In-app voice assistant (Jarvis) using ElevenLabs SDK
 
-**State:**
+**Features**:
+- `useConversation` from @11labs/react
+- Client tools registration (check_inventory, get_recipes, add_to_shopping_list, etc.)
+- Real-time contextual updates via Supabase subscriptions
+- Audio amplitude visualization
+- User/AI transcript tracking
+- Aperture state management (idle, listening, speaking)
+
+**Client Tools**:
+1. `check_inventory({ category })`: Query inventory by category
+2. `get_recipes({ dietary_restrictions, max_cooking_time })`: Find recipes
+3. `add_to_shopping_list({ items })`: Add items to shopping list
+4. `check_expiring_items()`: Get items nearing expiry
+5. `get_nutrition_status()`: Current day nutrition progress
+6. `get_household_info()`: Household members, pets, allergies
+
+**Contextual Updates**:
+- Inventory changes (items added, low stock, expiring)
+- Shopping list changes
+- Household member allergies
+- Pet dietary restrictions
+- Current cart contents
+
+**Returns**:
 ```typescript
 {
-  apertureState: ApertureState;        // Animation state
-  voiceState: VoiceState;              // Conversation state
-  audioAmplitude: number;              // Mic amplitude 0-1
-  userTranscript: string;              // Real-time user speech
-  aiTranscript: string;                // AI response text
-  showConversation: boolean;           // UI visibility
-  conversationHistory: Message[];      // Session history
+  apertureState: 'idle' | 'listening' | 'speaking',
+  audioAmplitude: number,
+  userTranscript: string,
+  aiTranscript: string,
+  showConversation: boolean,
+  status: 'connected' | 'disconnected' | 'connecting',
+  isSpeaking: boolean,
+  startConversation: () => Promise<void>,
+  endConversation: () => void,
+  sendContextualUpdate: (context: string) => void
 }
 ```
 
-**Methods:**
+#### `useOnboardingVoice.ts`
+**Purpose**: Voice-based onboarding flow using ElevenLabs SDK
+
+**Features**:
+- Separate agent from assistant (different prompt/tools)
+- Client tools for profile updates
+- Household member and pet creation
+- TDEE calculation integration
+- Concept card triggering
+- Onboarding completion handling
+
+**Client Tools**:
+1. `updateProfile({ userName, userAge, ... })`: Update profile fields with TDEE calculation
+2. `saveHouseholdMember({ name, age, ... })`: Add household member
+3. `savePet({ name, species, ... })`: Add pet
+4. `completeConversation()`: Mark onboarding complete, create household
+
+**Returns**: Same shape as useAssistantVoice
+
+#### `useModularOnboarding.ts`
+**Purpose**: Manage 6-module onboarding completion tracking
+
+**Modules**:
+- `core`: Basic user info (required for dashboard access)
+- `nutrition`: Nutrition goals and preferences
+- `pantry`: Pantry setup
+- `beauty`: Beauty profile
+- `pets`: Pet profiles
+- `household`: Household members
+
+**State**:
 ```typescript
 {
-  startConversation: () => Promise<void>;
-  endConversation: () => Promise<void>;
+  core: boolean,
+  nutrition: boolean,
+  pantry: boolean,
+  beauty: boolean,
+  pets: boolean,
+  household: boolean
 }
 ```
 
-**Key Features:**
-- ElevenLabs `useConversation` hook integration
-- Real-time transcript updates via WebSocket events
-- Client tools for profile updates and navigation
-- Conversation history persistence
-- Auto-cleanup on unmount
+**Functions**:
+- `isModuleComplete(module: OnboardingModule): boolean`
+- `completeModule(module: OnboardingModule): Promise<boolean>`
+- `isDismissedThisSession(module: OnboardingModule): boolean`
+- `dismissPrompt(module: OnboardingModule): void`
+- `allModulesComplete(): boolean`
+- `completionPercentage(): number`
 
-**Client Tools Provided to ElevenLabs:**
+**Storage**:
+- Completion state: `profiles.onboarding_modules` (JSONB)
+- Session dismissals: `sessionStorage`
 
-1. **`updateProfile`** - Update user profile fields using named parameters:
-   ```typescript
-   updateProfile({
-     userName?: string;
-     userAge?: number;
-     userWeight?: number;
-     userHeight?: number;
-     userGender?: string;
-     userActivityLevel?: string;
-     dietaryPreferences?: string[];
-     allergies?: string[];
-     skinType?: string;
-     hairType?: string;
-     householdAdults?: number;
-     householdKids?: number;
-     healthGoals?: string[];
-     lifestyleGoals?: string[];
-   })
-   ```
+#### `useSwipeNavigation.ts`
+**Purpose**: Horizontal swipe gestures between pages
 
-2. **`completeConversation`** - End conversation with summary:
-   ```typescript
-   completeConversation({ summary: string })
-   ```
+**Parameters**:
+- `onSwipeLeft?: () => void`
+- `onSwipeRight?: () => void`
+- `threshold?: number` (default 50px)
 
-3. **`navigateTo`** - Navigate to app page (logged only during onboarding)
+**Features**:
+- Touch event listeners
+- Swipe distance threshold
+- Haptic feedback (haptics.selection())
+- Prevents accidental swipes
 
-**Events Handled:**
-- `onConnect` - Session started
-- `onDisconnect` - Session ended
-- `onMessage` - Transcript update
-- `onError` - Error handling
+**Usage**:
+```typescript
+const { handleTouchStart, handleTouchEnd } = useSwipeNavigation({
+  onSwipeLeft: () => navigate('/next-page'),
+  onSwipeRight: () => navigate('/prev-page'),
+  threshold: 80
+});
 
-#### `useOnboardingConversation`
-**File:** `src/hooks/useOnboardingConversation.ts`
+return <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>...</div>;
+```
 
-**Purpose:** Manages voice-first onboarding flow with ElevenLabs.
+#### `useRealtimeInventory.ts`
+**Purpose**: Real-time inventory subscriptions and updates
 
-**Similar to `useVoiceManager` but with onboarding-specific tools:**
+**Features**:
+- Initial data fetch from Supabase
+- TanStack Query cache subscription
+- Real-time updates via Supabase Realtime
+- Automatic refetch on cache invalidation
 
-**Client Tools:**
-1. `updateProfile(field, value)` - Update onboarding state
-2. `completeConversation(reason)` - Save data and finish onboarding
-3. `navigateTo(page)` - Navigate (logged only, not executed)
-
-**Special Features:**
-- Tracks onboarding progress
-- Calculates TDEE on biometric data collection
-- Saves household members and pets to database
-- Transforms conversation state to profile format
-- Redirects to dashboard on completion
-
-**Onboarding Data Collected:**
+**Returns**:
 ```typescript
 {
-  userName: string;
-  userAge: number;
-  userWeight: number;
-  userHeight: number;
-  userGender: string;
-  userActivityLevel: string;
-  allergies: string[];
-  dietaryPreferences: string[];
-  healthGoals: string[];
-  lifestyleGoals: string[];
-  household: {
-    adults: number;
-    kids: number;
-    dogs: Pet[];
-    cats: Pet[];
-  };
-  language: string;
+  items: InventoryItem[],
+  isLoading: boolean
 }
 ```
 
-#### `useVoiceCommand`
-**File:** `src/hooks/useVoiceCommand.ts`
+**Realtime Setup**:
+```typescript
+// RealtimeContext.tsx
+supabase
+  .channel('inventory-changes')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory' }, () => {
+    queryClient.invalidateQueries({ queryKey: ['inventory'] });
+  })
+  .subscribe();
+```
 
-**Purpose:** Legacy hook for simple voice commands (may be deprecated in favor of ElevenLabs tools).
+#### `useRealtimeNotifications.ts`
+**Purpose**: Real-time notification subscriptions
 
-**Features:**
-- Wake word detection
-- Command pattern matching
-- Intent extraction
-- Action dispatching
+**Features**:
+- Fetch recent notifications
+- Real-time updates via Supabase Realtime
+- Unread count calculation
+- Mark as read functionality
+- Delete notifications
 
-**Example Commands:**
-- "Add milk to shopping list"
-- "What's in my fridge?"
-- "Suggest a recipe for dinner"
-- "Is this food safe for my dog?"
-
-### Vision & Scanner Hooks
-
-#### `useVisionCapture`
-**File:** `src/hooks/useVisionCapture.ts`
-
-**Purpose:** Handles camera capture, image upload, and vision analysis.
-
-**State:**
+**Returns**:
 ```typescript
 {
-  isCapturing: boolean;
-  imageUrl: string | null;
-  analysisResults: any | null;
-  error: string | null;
+  notifications: Notification[],
+  unreadCount: number,
+  isLoading: boolean,
+  markAsRead: (id: string) => Promise<void>,
+  markAllAsRead: () => Promise<void>,
+  deleteNotification: (id: string) => Promise<void>
 }
 ```
 
-**Methods:**
+#### `useHouseholdActivity.ts`
+**Purpose**: Fetch household activity feed
+
+**Returns**:
 ```typescript
 {
-  captureImage: (mode: ScanMode) => Promise<void>;
-  resetCapture: () => void;
+  activities: HouseholdActivity[],
+  isLoading: boolean
 }
 ```
 
-**Flow:**
-1. User clicks capture button
-2. Get image data from webcam ref
-3. Convert to blob
-4. Upload to Supabase Storage (or direct base64 to edge function)
-5. Call `analyze-vision` edge function with image URL and mode
-6. Receive detection results
-7. Call `detect-intent` edge function for intent classification
-8. Display results in `ScanResults` component
+#### `useWakeWordDetection.ts`
+**Purpose**: "Hey Kaeva" wake word detection
 
-**Vision Analysis Pipeline:**
-```mermaid
-graph LR
-    A[Capture Image] --> B[Upload/Encode]
-    B --> C[analyze-vision Edge Function]
-    C --> D[Google Gemini Vision API]
-    D --> E[Structured JSON Response]
-    E --> F[detect-intent Edge Function]
-    F --> G[Intent Classification]
-    G --> H[Process by Intent]
-```
+**Features**:
+- Web Speech API integration
+- Fuzzy matching ("Kaeva", "Hey Kaeva", "OK Kaeva")
+- Auto-restart on errors
+- Opt-in via settings toggle
+- Battery level check (auto-disable at low battery)
 
-### Animation Hooks
-
-#### `useKaevaMotion`
-**File:** `src/hooks/useKaevaMotion.ts`
-
-**Purpose:** Manages Kaeva aperture animation states.
-
-**States:**
-```typescript
-enum ApertureState {
-  SLEEPING = 'sleeping',      // Slow pulse
-  LISTENING = 'listening',    // Active pulse
-  PROCESSING = 'processing',  // Spinning/thinking
-  SPEAKING = 'speaking',      // Synced to audio amplitude
-  IDLE = 'idle'              // Neutral state
-}
-```
-
-**Transitions:**
-```typescript
-SLEEPING -> LISTENING (on wake word)
-LISTENING -> PROCESSING (on speech end)
-PROCESSING -> SPEAKING (on AI response start)
-SPEAKING -> LISTENING (on AI response end)
-LISTENING -> SLEEPING (on conversation end)
-```
-
-**Animation Details:**
-- `SLEEPING`: 0.5 Hz sine wave (0.7-1.0 scale)
-- `LISTENING`: 1 Hz pulse (0.9-1.0 scale)
-- `PROCESSING`: 360° rotation over 2s
-- `SPEAKING`: Amplitude-reactive scale (0.8-1.2 scale)
-
-### Utility Hooks
-
-#### `use-mobile`
-**File:** `src/hooks/use-mobile.tsx`
-
-**Purpose:** Responsive design hook for mobile detection.
-
-**Returns:** `boolean` - true if screen width < 768px
-
-**Usage:**
-```typescript
-const isMobile = useMobile();
-
-return (
-  <div className={isMobile ? "mobile-layout" : "desktop-layout"}>
-    {/* content */}
-  </div>
-);
-```
-
-#### `use-toast`
-**File:** `src/hooks/use-toast.ts`
-
-**Purpose:** Toast notification management (Shadcn UI).
-
-**Methods:**
+**Returns**:
 ```typescript
 {
-  toast: (options: ToastOptions) => void;
-  dismiss: (toastId: string) => void;
+  isListening: boolean,
+  startListening: () => void,
+  stopListening: () => void
 }
 ```
 
-**Usage:**
+#### `useVoiceCooking.ts`
+**Purpose**: Voice-guided cooking mode
+
+**Features**:
+- Step-by-step voice guidance
+- Timer announcements
+- Temperature callouts
+- Next/previous step commands
+
+#### `useVoiceMealLog.ts`
+**Purpose**: Voice meal logging
+
+**Features**:
+- Voice-activated meal entry
+- Food item detection
+- Quantity parsing
+- Meal type classification
+
+#### `useKaevaMotion.ts`
+**Purpose**: Living Aperture animation state management
+
+**States**:
+- `idle`: Slow breathing pulse
+- `listening`: Expanded with pulse
+- `speaking`: Sync with audio amplitude
+- `thinking`: Spinning animation
+
+#### `useVisionCapture.ts`
+**Purpose**: Camera/scanner functionality
+
+**Features**:
+- react-webcam integration
+- Photo capture
+- Flash toggle
+- Camera flip (front/back)
+- Permission handling
+
+#### `usePrefetch.ts`
+**Purpose**: Route prefetching for faster navigation
+
+**Features**:
+- Prefetch routes on hover/focus
+- Smart prefetching (only on desktop)
+
+#### `useDebouncedValue.ts`
+**Purpose**: Debounce utility for search inputs
+
+**Usage**:
+```typescript
+const debouncedSearch = useDebouncedValue(searchTerm, 300);
+```
+
+#### `use-mobile.tsx`
+**Purpose**: Mobile device detection
+
+**Returns**:
+```typescript
+{
+  isMobile: boolean
+}
+```
+
+**Logic**: Checks `window.matchMedia('(max-width: 768px)')`
+
+#### `use-toast.ts`
+**Purpose**: Toast notification helper (Shadcn sonner)
+
+**Usage**:
 ```typescript
 const { toast } = useToast();
-
 toast({
-  title: "Success!",
+  title: "Success",
   description: "Item added to inventory",
-  variant: "default" // or "destructive"
+  variant: "default" | "destructive"
 });
+```
+
+### Context Providers (2 files)
+
+Located in `src/contexts/`:
+
+#### `RealtimeContext.tsx`
+**Purpose**: Global Supabase Realtime subscriptions
+
+**Subscriptions**:
+- `inventory`: Inventory table changes
+- `notifications`: Notification table changes
+- `household_activity`: Household activity table changes
+
+**Features**:
+- Auto-invalidates TanStack Query cache on changes
+- Single subscription per table (no duplicates)
+- Cleanup on unmount
+
+#### `VoiceAssistantContext.tsx`
+**Purpose**: Voice assistant provider wrapping useAssistantVoice
+
+**Features**:
+- Exposes voice assistant state globally
+- Positioned inside BrowserRouter (for useNavigate)
+- Lazy loaded via AuthenticatedLayout (only for authenticated users)
+
+**Usage**:
+```typescript
+const { startConversation, sendContextualUpdate } = useVoiceAssistant();
 ```
 
 ---
 
 ## Utility Libraries
 
-### Authentication Utilities
-**File:** `src/lib/authUtils.ts`
+Located in `src/lib/`:
 
-#### `checkAdminStatus()`
-Checks if current user has admin role.
+### `authUtils.ts`
+**Purpose**: Authentication helpers
 
-**Returns:** `Promise<boolean>`
+**Functions**:
+- `getActiveSession()`: Get current session
+- `refreshSession()`: Refresh expired session
+- `signOut()`: Sign out user
 
-**Implementation:**
+### `contextBuilder.ts`
+**Purpose**: Build context for voice agents
+
+**Functions**:
+- `buildAssistantContext(profile, inventory, recipes, household)`: Construct agent context string
+- `buildOnboardingContext(profile)`: Construct onboarding context
+
+**Context Includes**:
+- User profile data
+- Household members and pets
+- Allergies and dietary restrictions
+- Inventory summary
+- Recent meals
+- Shopping list
+
+### `conversationLogger.ts`
+**Purpose**: Log voice conversations to database
+
+**Functions**:
+- `logMessage(conversationId, role, message, metadata)`: Insert conversation_history entry
+- `logEvent(conversationId, agentType, eventType, eventData)`: Insert conversation_events entry
+
+### `conversationUtils.ts`
+**Purpose**: Conversation helpers
+
+**Functions**:
+- `generateConversationId()`: Generate UUID for new conversation
+- `formatConversationTimestamp(timestamp)`: Format timestamp display
+
+### `elevenLabsAudio.ts`
+**Purpose**: ElevenLabs audio utilities
+
+**Functions**:
+- `initializeAudioContext()`: Create Web Audio API context
+- `playAudioStream(stream)`: Play audio stream from ElevenLabs
+
+### `exportUtils.ts`
+**Purpose**: Data export utilities
+
+**Functions**:
+- `exportToCSV(data, filename)`: Export data to CSV
+- `exportToJSON(data, filename)`: Export data to JSON
+- `shareData(data, platform)`: Share data to social media
+
+### `goalCalculators.ts`
+**Purpose**: Nutrition goal calculations
+
+**Functions**:
+- `calculateMacroGoals(tdee, dietType)`: Calculate protein/carbs/fat goals
+- `calculateWaterGoal(weight)`: Calculate daily water intake
+- `calculateBMI(weight, height)`: BMI calculation
+- `getBMICategory(bmi)`: BMI category (underweight, normal, overweight, obese)
+
+### `haptics.ts`
+**Purpose**: Haptic feedback using Capacitor Haptics
+
+**Functions**:
+- `haptics.impact()`: Impact feedback (light, medium, heavy)
+- `haptics.notification()`: Notification feedback (success, warning, error)
+- `haptics.selection()`: Selection feedback (tick)
+
+**Usage**:
 ```typescript
-export const checkAdminStatus = async (): Promise<boolean> => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return false;
+import { haptics } from '@/lib/haptics';
 
-  const { data } = await supabase.functions.invoke("check-admin", {
-    headers: { Authorization: `Bearer ${session.access_token}` },
-  });
-
-  return data?.isAdmin || false;
-};
+haptics.impact('medium'); // Button press
+haptics.notification('success'); // Success action
+haptics.selection(); // List scroll
 ```
 
-#### `getCurrentSession()`
-Gets current user session.
+### `inventoryUtils.ts`
+**Purpose**: Inventory helpers
 
-**Returns:** `Promise<Session | null>`
+**Functions**:
+- `calculateFillLevel(current, original)`: 0-100 fill percentage
+- `determineStatus(fillLevel, reorderThreshold)`: Status enum
+- `formatExpiryDate(date)`: Human-readable expiry ("2 days", "Expired")
+- `groupByCategory(items)`: Group inventory by category
 
-#### `getCurrentUserId()`
-Gets current user ID.
+### `onboardingSave.ts`
+**Purpose**: Save onboarding data to database
 
-**Returns:** `Promise<string | null>`
+**Functions**:
+- `saveOnboardingData(formData)`: Save all onboarding data
+  - Updates profiles
+  - Calculates TDEE
+  - Creates household
+  - Creates household_memberships
+  - Batch inserts household_members and pets
+  - Sets onboarding_completed = true
 
-### Conversation Utilities
-**File:** `src/lib/conversationUtils.ts`
+### `onboardingTransforms.ts`
+**Purpose**: Transform voice data to database format
 
-#### `storeMessage()`
-Stores a conversation message in database.
+**Functions**:
+- `transformVoiceToProfile(voiceData)`: Convert voice input to profile format
+- `transformVoiceToHouseholdMember(voiceData)`: Convert voice input to household_member
+- `transformVoiceToPet(voiceData)`: Convert voice input to pet
 
-**Signature:**
+### `petCareData.ts`
+**Purpose**: Pet care tips and toxic food data
+
+**Data**:
+- `TOXIC_FOODS_BY_SPECIES`: Map of species → toxic foods
+- `PET_CARE_TIPS`: Species-specific care guidelines
+- `FEEDING_SCHEDULES`: Age-based feeding recommendations
+
+### `shareUtils.ts`
+**Purpose**: Social sharing utilities
+
+**Functions**:
+- `shareRecipe(recipe, platform)`: Share recipe to social media
+- `shareProgress(stats, platform)`: Share nutrition progress
+- `generateShareImage(data)`: Generate share image with stats
+
+### `streakUtils.ts`
+**Purpose**: Streak calculation
+
+**Functions**:
+- `calculateStreak(lastLogDate, currentStreakstart)`: Calculate current streak
+- `updateStreak(userId)`: Update user's streak on meal log
+- `isStreakActive(lastLogDate)`: Check if streak is still active
+
+### `tdeeCalculator.ts`
+**Purpose**: TDEE (Total Daily Energy Expenditure) calculation
+
+**Formulas**:
+- Mifflin-St Jeor Equation for BMR
+- Activity multipliers (sedentary, light, moderate, very active, extremely active)
+
+**Functions**:
+- `calculateTDEE(age, weight, height, gender, activityLevel)`: Calculate TDEE
+- `calculateBMR(age, weight, height, gender)`: Calculate Basal Metabolic Rate
+
+### `utils.ts`
+**Purpose**: General utilities
+
+**Functions**:
+- `cn(...classes)`: Class name merger using clsx + tailwind-merge
+- `formatDate(date, format)`: Date formatting
+- `formatCurrency(amount)`: Currency formatting
+- `slugify(text)`: Convert text to URL-safe slug
+
+### `voiceLogger.ts`
+**Purpose**: Voice interaction logging
+
+**Functions**:
+- `logVoiceInteraction(userId, intent, confidence, duration)`: Log voice interaction
+- `logToolCall(userId, toolName, params, result)`: Log client tool invocation
+
+### Error Boundary
+
+**File**: `src/lib/ErrorBoundary.tsx`
+
+**Features**:
+- Global error catching
+- Error fallback UI
+- Error reporting (console.error)
+- Recovery button
+
+**Usage**:
 ```typescript
-storeMessage(
-  role: 'user' | 'assistant' | 'system',
-  message: string,
-  conversationId: string
-): Promise<void>
+<ErrorBoundary fallback={<ErrorFallback />}>
+  <App />
+</ErrorBoundary>
 ```
-
-#### `fetchRecentHistory()`
-Fetches recent conversation history for context.
-
-**Signature:**
-```typescript
-fetchRecentHistory(limit: number = 10): Promise<Message[]>
-```
-
-**Returns:** Array of messages ordered by `created_at`
-
-#### `generateConversationId()`
-Generates unique conversation ID for grouping messages.
-
-**Returns:** `string` (UUID v4)
-
-### Inventory Utilities
-**File:** `src/lib/inventoryUtils.ts`
-
-#### `transformInventoryItem()`
-Transforms database inventory record to UI format.
-
-**Transforms:**
-- `fill_level` → status ('good', 'medium', 'low')
-- `auto_order_enabled` → `autoOrdering`
-- Database column names → camelCase
-
-#### `groupInventoryByCategory()`
-Groups inventory items by category.
-
-**Returns:**
-```typescript
-{
-  fridge: InventoryItem[];
-  pantry: InventoryItem[];
-  beauty: InventoryItem[];
-  pets: InventoryItem[];
-}
-```
-
-#### `getInventoryStatus()`
-Calculates overall status for a category.
-
-**Logic:**
-- Average fill level >= 60%: `good`
-- Average fill level <= 30%: `warning`
-- Otherwise: `normal`
-
-### Onboarding Utilities
-
-#### `onboardingTransforms.ts`
-**File:** `src/lib/onboardingTransforms.ts`
-
-##### `transformProfileData()`
-Transforms conversation state to database profile format.
-
-**Signature:**
-```typescript
-transformProfileData(state: ConversationState): ProfileData
-```
-
-**Transformations:**
-- Calculates TDEE from biometric data
-- Counts household adults and kids
-- Formats JSON arrays for database
-- Sets `onboarding_completed = true`
-
-#### `onboardingSave.ts`
-**File:** `src/lib/onboardingSave.ts`
-
-##### `saveOnboardingData()`
-Saves all onboarding data to database.
-
-**Process:**
-1. Update user profile
-2. Insert household members
-3. Insert pets (legacy support for dogs/cats)
-4. Log errors to `conversation_history` if failures
-
-**Returns:** `Promise<boolean>` - Success status
-
-##### `logError()`
-Logs errors to database for debugging.
-
-**Signature:**
-```typescript
-logError(step: string, error: any, data?: any): Promise<void>
-```
-
-**Stores in:** `conversation_history` table with `role = 'error'`
-
-### Voice Client Tools
-**File:** `src/lib/voiceClientTools.ts`
-
-Factory functions for creating ElevenLabs client tools.
-
-#### `createUpdateProfileTool()`
-Creates tool for updating user profile from conversation.
-
-**Signature:**
-```typescript
-createUpdateProfileTool(
-  onProfileUpdate?: (profile: any) => void
-): (parameters: { field: string; value: any }) => Promise<string>
-```
-
-**Supported Fields:**
-- `householdMembers` - Adds/updates household member
-- `household.dogs` / `household.cats` - Adds pets
-- `userBiometrics` - Updates age, weight, height, etc.
-- `allergies`, `dietaryPreferences`, `healthGoals`, etc. - Updates arrays
-- Direct profile fields (name, language, etc.)
-
-**Features:**
-- Automatic TDEE recalculation on biometric changes
-- Household member TDEE calculation
-- Real-time database updates
-- Optional callback for UI updates
-
-#### `createCompleteConversationTool()`
-Creates tool for ending conversation and cleanup.
-
-**Signature:**
-```typescript
-createCompleteConversationTool(
-  conversationEndSession: () => Promise<void>,
-  setters: {
-    setShowConversation: (show: boolean) => void;
-    setUserTranscript: (text: string) => void;
-    setAiTranscript: (text: string) => void;
-    setVoiceState: (state: any) => void;
-    setApertureState: (state: any) => void;
-  },
-  onComplete?: (reason: string) => void
-): (parameters: { reason: string }) => Promise<string>
-```
-
-**Actions:**
-1. End ElevenLabs session
-2. Reset all UI state
-3. Call completion callback (for onboarding: save data)
-4. Return success message
-
-#### `createNavigateToTool()`
-Creates tool for navigating to different pages.
-
-**Signature:**
-```typescript
-createNavigateToTool(
-  navigate: NavigateFunction
-): (parameters: { page: string }) => string
-```
-
-**Supported Pages:**
-- `/` - Dashboard
-- `/settings` - Settings
-- `/household` - Household management
-- Any valid route path
-
-### TDEE Calculator
-**File:** `src/lib/tdeeCalculator.ts`
-
-#### `calculateTDEE()`
-Calculates Total Daily Energy Expenditure.
-
-**Formula:** Mifflin-St Jeor Equation
-
-**Men:**
-```
-BMR = (10 × weight in kg) + (6.25 × height in cm) - (5 × age in years) + 5
-TDEE = BMR × Activity Factor
-```
-
-**Women:**
-```
-BMR = (10 × weight in kg) + (6.25 × height in cm) - (5 × age in years) - 161
-TDEE = BMR × Activity Factor
-```
-
-**Activity Factors:**
-- Sedentary: 1.2
-- Lightly active: 1.375
-- Moderately active: 1.55
-- Very active: 1.725
-- Extra active: 1.9
-
-**Signature:**
-```typescript
-calculateTDEE(
-  age: number,
-  weight: number,  // kg
-  height: number,  // cm
-  gender: 'male' | 'female',
-  activityLevel: ActivityLevel
-): number
-```
-
-### Audio Utilities
-
-#### `elevenLabsAudio.ts`
-**File:** `src/lib/elevenLabsAudio.ts`
-
-Audio handling for ElevenLabs WebSocket.
-
-**Functions:**
-- `initAudioContext()` - Initialize Web Audio API
-- `playAudioChunk()` - Play PCM audio data
-- `getAudioAmplitude()` - Calculate audio level for visualization
-
-#### `audioMonitoring.ts`
-**File:** `src/lib/audioMonitoring.ts`
-
-Wake word detection and audio monitoring.
-
-**Features:**
-- Microphone stream capture
-- Audio level monitoring
-- Wake word detection (client-side)
-- Audio visualization data
-
-**Note:** Current implementation uses ElevenLabs built-in wake word detection. This file may be for future custom implementation.
-
-### General Utilities
-**File:** `src/lib/utils.ts`
-
-#### `cn()`
-Class name merger using `clsx` and `tailwind-merge`.
-
-**Usage:**
-```typescript
-<div className={cn(
-  "base-classes",
-  condition && "conditional-classes",
-  variant === 'primary' && "primary-classes"
-)} />
-```
-
-**Purpose:** Safely merge Tailwind classes, resolving conflicts.
 
 ---
 
 ## Edge Functions
 
-All Edge Functions run on Deno runtime and are deployed automatically.
+### Overview
 
-### Shared Utilities (`supabase/functions/_shared/`)
+**Location**: `supabase/functions/`  
+**Count**: 26 functions  
+**Runtime**: Deno  
+**Authentication**: Most require JWT verification (set in `supabase/config.toml`)
 
-#### `apiClients.ts`
-Centralized API client configurations.
+### Shared Utilities
 
-**Clients:**
-1. **FatSecret OAuth 1.0 Client**
-   - Consumer key/secret from env
-   - OAuth signature generation
-   - Cached token management
+**Location**: `supabase/functions/_shared/`
 
-2. **Instacart API Client**
-   - API key authentication
-   - Base URL configuration
+1. **allergenDetection.ts**: Allergen detection logic
+2. **apiClients.ts**: API client factories (FatSecret, USDA, YouTube, Instacart, Gemini)
+3. **beautyAnalyzer.ts**: Beauty product analysis
+4. **contextHydration.ts**: Build agent context from database
+5. **deceptionAnalyzer.ts**: Product deception detection (marketing claims vs reality)
+6. **oauth1.ts**: OAuth 1.0 signature generation (FatSecret, Instacart)
+7. **petCareData.ts**: Pet care tips and toxic foods
+8. **productProcessors.ts**: Product identification and enrichment
+9. **rateLimiter.ts**: Rate limiting logic
+10. **schemas.ts**: Zod validation schemas
+11. **usdaApi.ts**: USDA FoodData Central API client
 
-3. **Google Gemini Client**
-   - API key from env
-   - Vision and text models
+### Edge Function Descriptions
 
-4. **OpenAI Client**
-   - API key from env
-   - GPT model configurations
+#### `accept-household-invite`
+**File**: `supabase/functions/accept-household-invite/index.ts`  
+**Auth**: Required  
+**Purpose**: Join household via invite code
 
-#### `allergenDetection.ts`
-Allergen detection and matching logic.
-
-**Functions:**
-
-##### `detectAllergens()`
-Scans product ingredients/description for allergens.
-
-**Algorithm:**
-1. Normalize text (lowercase, remove punctuation)
-2. Check against allergen keyword dictionary
-3. Score matches (exact > partial > similar)
-4. Return detected allergens with confidence
-
-**Allergen Categories:**
-- Dairy (milk, cheese, whey, casein, lactose)
-- Eggs (egg, albumin, lysozyme)
-- Peanuts (peanut, groundnut)
-- Tree Nuts (almond, walnut, cashew, etc.)
-- Soy (soy, soya, tofu, edamame)
-- Wheat (wheat, gluten, flour)
-- Fish (fish, cod, salmon, tuna, etc.)
-- Shellfish (shrimp, crab, lobster, etc.)
-- Sesame (sesame, tahini)
-
-**Returns:**
-```typescript
+**Input**:
+```json
 {
-  allergen: string;
-  confidence: number; // 0-1
-  foundIn: string;    // "ingredients" | "description" | "name"
-}[]
-```
-
-##### `checkHouseholdAllergens()`
-Cross-references detected allergens with household member allergies.
-
-**Process:**
-1. Fetch all household members for user
-2. Compile all allergies
-3. Match against detected allergens
-4. Return warnings with member names
-
-**Returns:**
-```typescript
-{
-  allergen: string;
-  affectedMembers: string[];
-  severity: 'high' | 'medium' | 'low';
-}[]
-```
-
-##### `checkPetToxicity()`
-Checks if a product is toxic to household pets.
-
-**Toxic Foods by Species:**
-
-**Dogs:**
-- Chocolate (theobromine)
-- Grapes/raisins (kidney failure)
-- Onions/garlic (Heinz body anemia)
-- Xylitol (hypoglycemia)
-- Macadamia nuts (paralysis)
-- Avocado (persin)
-- Alcohol (ethanol poisoning)
-
-**Cats:**
-- Onions/garlic
-- Chocolate
-- Grapes/raisins
-- Alcohol
-- Caffeine
-- Lilies (in beauty products)
-- Xylitol
-
-**Returns:**
-```typescript
-{
-  isPotentiallyToxic: boolean;
-  toxicIngredients: string[];
-  affectedPets: {
-    name: string;
-    species: string;
-    severity: 'fatal' | 'dangerous' | 'harmful' | 'mild';
-    symptoms: string[];
-  }[];
+  "inviteCode": "jwt-signed-code"
 }
 ```
 
-#### `productProcessors.ts`
-Product data enrichment and processing.
+**Process**:
+1. Verify JWT signature
+2. Check invite validity (expiration, max uses)
+3. Add user to `household_memberships` with role 'member'
+4. Update `profiles.current_household_id`
+5. Increment `household_invites.times_used`
+6. Log activity to `household_activity`
 
-**Functions:**
-
-##### `enrichProductData()`
-Enriches basic product data with nutrition and metadata.
-
-**Process:**
-1. Check `product_cache` for existing data
-2. If cached and not expired, return cached data
-3. Otherwise, call FatSecret API
-4. Extract and normalize nutrition data
-5. Detect allergens
-6. Cache response
-7. Return enriched data
-
-**Enriched Data Structure:**
-```typescript
+**Output**:
+```json
 {
-  name: string;
-  brand: string;
-  barcode?: string;
-  nutrition: {
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-    fiber: number;
-    servingSize: string;
-  };
-  allergens: string[];
-  dietaryFlags: string[]; // "vegan", "gluten-free", etc.
-  fatsecretId: string;
-  imageUrl?: string;
-  cached: boolean;
+  "success": true,
+  "householdId": "uuid",
+  "householdName": "Smith Family"
 }
 ```
 
-##### `searchFatSecretProduct()`
-Searches FatSecret API by product name or barcode.
-
-**Parameters:**
-- `query: string` - Product name or barcode
-- `type: 'name' | 'barcode'`
-
-**Returns:** Array of matching products with basic info
-
-##### `normalizeFatSecretResponse()`
-Normalizes varying FatSecret API response formats.
-
-**Handles:**
-- Single vs multiple results
-- Different JSON structures
-- Missing fields
-- Unit conversions (g, mg, IU, etc.)
-
-#### `oauth1.ts`
-OAuth 1.0 signature generation for FatSecret API.
-
-**Functions:**
-
-##### `percentEncode()`
-RFC 3986 compliant percent encoding.
-
-##### `generateOAuthSignature()`
-Generates HMAC-SHA1 signature for OAuth 1.0.
-
-**Process:**
-1. Sort parameters alphabetically
-2. Create signature base string
-3. Create signing key (consumer secret + token secret)
-4. HMAC-SHA1 hash
-5. Base64 encode
-
-##### `generateNonce()` & `generateTimestamp()`
-Generate OAuth parameters.
-
-##### `buildOAuth1Request()`
-Builds complete OAuth 1.0 signed request URL.
-
-**Parameters:**
-- HTTP method
-- Base URL
-- Query parameters
-- Consumer key/secret
-
-**Returns:** Fully signed request URL
-
-### Edge Function Endpoints
+**Errors**:
+- `INVALID_CODE`: JWT verification failed
+- `EXPIRED_CODE`: Invite expired
+- `MAX_USES_REACHED`: Invite fully redeemed
+- `ALREADY_MEMBER`: User already in household
 
 #### `analyze-meal`
-**Path:** `/supabase/functions/analyze-meal/index.ts`
+**File**: `supabase/functions/analyze-meal/index.ts`  
+**Auth**: Required  
+**Purpose**: Analyze meal photo for nutrition tracking
 
-**Purpose:** Analyzes meal photo to log nutrition.
-
-**Input:**
-```typescript
+**Input**:
+```json
 {
-  imageUrl: string;
-  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
-  userId: string;
+  "imageUrl": "https://...",
+  "mealType": "lunch"
 }
 ```
 
-**Process:**
-1. Call Google Gemini Vision with meal photo
-2. Detect food items in image
-3. For each item, search FatSecret API
-4. Calculate total macros
-5. Insert into `meal_logs` table
-6. Return summary
+**Process**:
+1. Send image to Google Gemini Vision
+2. Extract food items with quantities
+3. Enrich each item via FatSecret/USDA/Gemini cascade
+4. Calculate aggregate macros
+5. Insert `meal_logs` entry
+6. Update user streak
 
-**Output:**
-```typescript
+**Output**:
+```json
 {
-  items: {
-    name: string;
-    quantity: string;
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-  }[];
-  totals: {
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-    fiber: number;
-  };
-  logId: string;
+  "items": [
+    {
+      "name": "Chicken breast",
+      "quantity": 200,
+      "unit": "g",
+      "calories": 330,
+      "protein": 62,
+      "carbs": 0,
+      "fat": 7,
+      "fiber": 0
+    }
+  ],
+  "totals": {
+    "calories": 330,
+    "protein": 62,
+    "carbs": 0,
+    "fat": 7,
+    "fiber": 0
+  },
+  "mealLogId": "uuid"
 }
 ```
 
 #### `analyze-vision`
-**Path:** `/supabase/functions/analyze-vision/index.ts`
+**File**: `supabase/functions/analyze-vision/index.ts`  
+**Auth**: Required  
+**Purpose**: Multi-intent vision analysis (barcode, OCR, visual features)
 
-**Purpose:** Multi-intent vision analysis using Google Gemini Vision.
-
-**Input:**
-```typescript
+**Input**:
+```json
 {
-  imageUrl: string;
-  mode: 'inventory' | 'nutrition' | 'product' | 'appliance' | 'pet' | 'vanity';
-  context?: any;
+  "imageData": "base64-string",
+  "intent": "inventory" | "nutrition" | "beauty" | "pet" | "appliance"
 }
 ```
 
-**Process:**
-1. Build mode-specific prompt for Gemini
-2. Call Gemini Vision API with image + prompt
-3. Parse structured JSON response
-4. Return mode-specific data
+**Process**:
+1. Barcode detection (highest priority)
+2. OCR text extraction from packaging
+3. Visual features analysis (color, shape, text)
+4. Nutrition label parsing
+5. Confidence scoring for each method
+6. Return best match with identification method
 
-**Mode-Specific Prompts:**
-
-**Inventory Mode:**
-"Identify all food items visible in this image. For each item, provide: name, estimated quantity, category (fridge/pantry), brand if visible. Return as JSON array."
-
-**Nutrition Mode:**
-"Analyze this meal. Identify all food items and estimate portions. Return as JSON with item names, quantities, and meal type."
-
-**Product Mode:**
-"Analyze this product. Extract: product name, brand, ingredients list, nutrition facts, allergen warnings, serving size. Return as structured JSON."
-
-**Appliance Mode:**
-"Identify the appliance in this image. Return: appliance type, brand, model number if visible, suggested products for this appliance."
-
-**Pet Mode:**
-"Identify the pet in this image. Return: species, breed (best guess), estimated age, distinctive features."
-
-**Vanity Mode:**
-"Identify beauty/personal care products. For each: name, brand, product type, key ingredients, skin type suitability."
-
-**Output:**
-```typescript
+**Output**:
+```json
 {
-  mode: string;
-  confidence: number;
-  results: any; // Mode-specific structure
+  "identificationMethod": "barcode" | "ocr" | "visual" | "nutrition_label",
+  "confidence": 0.95,
+  "productName": "Coca-Cola Classic",
+  "brandName": "Coca-Cola",
+  "barcode": "049000042566",
+  "category": "pantry",
+  "extractedText": ["Coca-Cola", "Classic", "12 FL OZ"],
+  "nutritionData": { ... }
 }
 ```
 
 #### `check-admin`
-**Path:** `/supabase/functions/check-admin/index.ts`
+**File**: `supabase/functions/check-admin/index.ts`  
+**Auth**: Required  
+**Purpose**: Check if user has admin role
 
-**Purpose:** Verifies if authenticated user has admin role.
-
-**Input:** None (uses JWT from Authorization header)
-
-**Process:**
-1. Extract user ID from JWT
-2. Query `user_roles` table
-3. Check if role = 'admin'
-4. Return boolean
-
-**Output:**
-```typescript
+**Output**:
+```json
 {
-  isAdmin: boolean;
-  userId: string;
+  "isAdmin": true
 }
 ```
 
-**Security:** Requires valid JWT token
+#### `check-auto-restock`
+**File**: `supabase/functions/check-auto-restock/index.ts`  
+**Auth**: Required (cron job)  
+**Purpose**: Evaluate inventory for auto-reorder triggers
 
-#### `configure-elevenlabs-agent`
-**Path:** `/supabase/functions/configure-elevenlabs-agent/index.ts`
+**Process**:
+1. Query inventory where `auto_order_enabled = true`
+2. Check `fill_level` against `reorder_threshold`
+3. Create `shopping_list` entries with source 'auto_reorder'
+4. Send notification to user
 
-**Purpose:** Configures ElevenLabs conversational agent with user context.
-
-**Input:**
-```typescript
+**Output**:
+```json
 {
-  userId: string;
-  agentId?: string; // Optional, uses default if not provided
-  promptData: {
-    userName: string;
-    allergies: string[];
-    dietaryPreferences: string[];
-    healthGoals: string[];
-    householdMembers: any[];
-    pets: any[];
-    inventorySummary: string;
-    // ... more context
-  };
-}
-```
-
-**Process:**
-1. Build comprehensive system prompt with user data
-2. Call ElevenLabs Agent Configuration API
-3. Update agent's knowledge base
-4. Set agent's first message
-5. Update `profiles.agent_configured` = true
-6. Store `agent_prompt_version` for tracking
-7. Return agent details
-
-**System Prompt Template:**
-```
-You are Kaeva, a friendly AI household assistant for [userName].
-
-User Profile:
-- Name: [userName]
-- Allergies: [allergies]
-- Dietary Preferences: [dietaryPreferences]
-- Health Goals: [healthGoals]
-- TDEE: [calculatedTdee] calories/day
-
-Household:
-[List of members with their data]
-[List of pets with their data]
-
-Current Inventory:
-[Summary of inventory items by category]
-
-Your role is to help with:
-1. Inventory management
-2. Recipe suggestions based on available ingredients
-3. Shopping list management
-4. Nutrition tracking and advice
-5. Safety warnings (allergens, pet toxicity)
-6. General household questions
-
-Always prioritize safety and be aware of household allergies and dietary restrictions.
-```
-
-**Output:**
-```typescript
-{
-  success: boolean;
-  agentId: string;
-  promptVersion: string;
-  configuredAt: string;
-}
-```
-
-**API Used:** ElevenLabs Agent Configuration API
-
-#### `cook-recipe`
-**Path:** `/supabase/functions/cook-recipe/index.ts`
-
-**Purpose:** Generates step-by-step cooking instructions with inventory awareness.
-
-**Input:**
-```typescript
-{
-  recipeName: string;
-  ingredients?: string[]; // Optional, uses inventory if not provided
-  servings?: number;
-  dietaryRestrictions?: string[];
-}
-```
-
-**Process:**
-1. Fetch user's dietary restrictions and allergies
-2. If ingredients not provided, fetch from inventory
-3. Call OpenAI GPT with recipe request
-4. Generate cooking steps
-5. Calculate nutrition estimate
-6. Check ingredient availability
-7. Return recipe with warnings
-
-**Output:**
-```typescript
-{
-  recipe: {
-    name: string;
-    servings: number;
-    prepTime: string;
-    cookTime: string;
-    ingredients: {
-      item: string;
-      amount: string;
-      inInventory: boolean;
-    }[];
-    steps: string[];
-    nutrition: {
-      calories: number;
-      protein: number;
-      carbs: number;
-      fat: number;
-    };
-    allergenWarnings: string[];
-    missingIngredients: string[];
-  };
-}
-```
-
-**AI Model:** OpenAI GPT-4
-
-#### `detect-intent`
-**Path:** `/supabase/functions/detect-intent/index.ts`
-
-**Purpose:** Classifies user intent from vision analysis or text.
-
-**Input:**
-```typescript
-{
-  visionResults: any;
-  userMessage?: string;
-  context?: {
-    currentMode?: string;
-    recentHistory?: string[];
-  };
-}
-```
-
-**Process:**
-1. Combine vision results + user message + context
-2. Call OpenAI GPT for intent classification
-3. Extract confidence score
-4. Return classified intent
-
-**Supported Intents:**
-- `INVENTORY_SWEEP` - Adding items to inventory
-- `NUTRITION_TRACK` - Logging a meal
-- `PRODUCT_ANALYSIS` - Analyzing specific product
-- `APPLIANCE_SCAN` - Identifying appliance
-- `PET_ID` - Identifying pet
-- `VANITY_SWEEP` - Beauty product scan
-- `RECIPE_REQUEST` - Recipe suggestion
-- `SHOPPING_HELP` - Shopping list management
-- `GENERAL_QUERY` - General question
-
-**Output:**
-```typescript
-{
-  intent: string;
-  confidence: number; // 0-1
-  extractedData: any; // Intent-specific extracted info
-}
-```
-
-**AI Model:** OpenAI GPT-4
-
-#### `provision-agents`
-**Path:** `/supabase/functions/provision-agents/index.ts`
-
-**Purpose:** Provisions and configures ElevenLabs conversational agents for both onboarding and assistant modes.
-
-**Authentication:** Requires admin role.
-
-**Agents Provisioned:**
-1. **Onboarding Agent** (`agent_0501kakwnx5rffaby5px9y1pskkb`)
-   - Guides new users through profile setup
-   - Collects biometrics, dietary preferences, household info
-
-2. **Assistant Agent** (`agent_2601kaqwv4ejfhets9fyyafzj2e6`)
-   - Post-onboarding voice assistant
-   - Handles inventory, recipes, shopping, nutrition queries
-
-**Client Tools (Onboarding Agent):**
-```typescript
-{
-  updateProfile: {
-    // Uses named parameters for ElevenLabs API compatibility
-    userName?: string;
-    userAge?: number;
-    userWeight?: number;
-    userHeight?: number;
-    userGender?: string;
-    userActivityLevel?: string;
-    dietaryPreferences?: string[];  // items require description field
-    allergies?: string[];           // items require description field
-    skinType?: string;
-    hairType?: string;
-    householdAdults?: number;
-    householdKids?: number;
-    healthGoals?: string[];         // items require description field
-    lifestyleGoals?: string[];      // items require description field
-  };
-  completeConversation: { summary: string };
-}
-```
-
-**Client Tools (Assistant Agent):**
-```typescript
-{
-  check_inventory: { category?: string };
-  addToShoppingList: { items: { name: string; reason?: string }[] };
-  suggestRecipes: { constraints?: { use_inventory: boolean; max_cook_time?: number; cuisine_type?: string } };
-  updateInventory: { action: string; item_data: object };
-  logMeal: { meal_type: string; items: object[]; notes?: string };
-}
-```
-
-**API Behavior:**
-- Uses PATCH to update existing agents (known IDs)
-- Falls back to POST (create) only if PATCH returns 404
-- All tool definitions require `type: "client"` field
-- Array item schemas require `description` field (ElevenLabs API validation)
-
-**Output:**
-```typescript
-{
-  success: boolean;
-  message: string;
-  results: {
-    type: string;
-    agentId: string;
-    status: string;
-    tools: string[];
-    error?: string;
-  }[];
-}
-```
-
-#### `enrich-product`
-**Path:** `/supabase/functions/enrich-product/index.ts`
-
-**Purpose:** Enriches product with nutrition data, allergens, and metadata.
-
-**Input:**
-```typescript
-{
-  productName: string;
-  barcode?: string;
-  brand?: string;
-  userId: string;
-}
-```
-
-**Process:**
-1. Check product cache
-2. If not cached, search FatSecret API
-3. Fetch detailed nutrition data
-4. Detect allergens from ingredients
-5. Check household allergen warnings
-6. Check pet toxicity if pets exist
-7. Extract dietary flags
-8. Cache result
-9. Return enriched data
-
-**Output:**
-```typescript
-{
-  product: {
-    name: string;
-    brand: string;
-    barcode?: string;
-    fatsecretId: string;
-    nutrition: NutritionData;
-    allergens: string[];
-    allergenWarnings: AllergenWarning[];
-    toxicityWarnings: ToxicityWarning[];
-    dietaryFlags: string[];
-    imageUrl?: string;
-  };
-  cached: boolean;
-  expiresAt: string;
-}
-```
-
-**Uses:** FatSecret API, shared utility functions
-
-#### `generate-signed-url`
-**Path:** `/supabase/functions/generate-signed-url/index.ts`
-
-**Purpose:** Generates signed URL for temporary file upload.
-
-**Input:**
-```typescript
-{
-  fileName: string;
-  fileType: string;
-  bucket?: string; // Default: 'vision-uploads'
-}
-```
-
-**Process:**
-1. Validate user authentication
-2. Generate unique file path with user ID
-3. Create signed upload URL (expires in 1 hour)
-4. Return URL and file path
-
-**Output:**
-```typescript
-{
-  signedUrl: string;
-  path: string;
-  expiresAt: number;
-}
-```
-
-**Security:** Requires authentication, URLs expire
-
-**Note:** Currently, the app uploads images directly to edge functions as base64. This function is for future Supabase Storage integration.
-
-#### `identify-product`
-**Path:** `/supabase/functions/identify-product/index.ts`
-
-**Purpose:** Identifies product from image using vision + barcode detection.
-
-**Input:**
-```typescript
-{
-  imageUrl: string;
-  userId: string;
-}
-```
-
-**Process:**
-1. Call Gemini Vision to identify product
-2. Extract product name, brand
-3. Attempt barcode extraction if visible
-4. Call `enrich-product` to get full data
-5. Return identified product with enrichment
-
-**Output:**
-```typescript
-{
-  identified: {
-    name: string;
-    brand: string;
-    barcode?: string;
-    confidence: number;
-  };
-  enriched: EnrichedProductData;
-}
-```
-
-**Chains to:** `enrich-product` function
-
-#### `instacart-create-cart`
-**Path:** `/supabase/functions/instacart-create-cart/index.ts`
-
-**Purpose:** Creates Instacart cart from shopping list.
-
-**Input:**
-```typescript
-{
-  items: {
-    name: string;
-    quantity: number;
-    unit?: string;
-  }[];
-  retailerId: string;
-  userId: string;
-}
-```
-
-**Process:**
-1. Fetch user's shopping list
-2. Call Instacart API to create cart
-3. For each item, search Instacart catalog
-4. Add best matches to cart
-5. Return cart URL and summary
-
-**Output:**
-```typescript
-{
-  cartId: string;
-  cartUrl: string;
-  addedItems: {
-    requestedItem: string;
-    matchedProduct: string;
-    quantity: number;
-    price: number;
-  }[];
-  failedItems: string[];
-  totalPrice: number;
-}
-```
-
-**API Used:** Instacart Developer API
-
-**Webhook:** Instacart sends callback on purchase completion to update inventory.
-
-#### `instacart-service`
-**Path:** `/supabase/functions/instacart-service/index.ts`
-
-**Purpose:** Handles Instacart API interactions and webhooks.
-
-**Endpoints:**
-
-##### `POST /search-products`
-Search Instacart catalog.
-
-**Input:**
-```typescript
-{
-  query: string;
-  retailerId: string;
-  limit?: number;
-}
-```
-
-**Output:** Array of matching products
-
-##### `POST /webhook`
-Webhook for order completion.
-
-**Payload from Instacart:**
-```typescript
-{
-  orderId: string;
-  status: 'completed' | 'canceled';
-  items: {
-    productId: string;
-    name: string;
-    quantity: number;
-  }[];
-}
-```
-
-**Process:**
-1. Verify webhook signature
-2. If order completed:
-   - Add items to inventory
-   - Update shopping list status
-   - Create notification
-3. Return 200 OK
-
-##### `GET /retailers`
-Fetch available retailers by location.
-
-**Input (query params):**
-- `zipCode: string`
-
-**Output:** Array of nearby retailers
-
-#### `notify-spoilage`
-**Path:** `/supabase/functions/notify-spoilage/index.ts`
-
-**Purpose:** Scheduled function to check for spoiled items and notify users.
-
-**Trigger:** Cron job (daily at 9 AM user local time)
-
-**Process:**
-1. Call `check_spoilage()` database function
-2. For each spoiled item:
-   - Mark as `likely_spoiled`
-   - Create notification
-   - Send email (if configured)
-3. Return summary
-
-**Output:**
-```typescript
-{
-  checkedItems: number;
-  spoiledItems: number;
-  notificationsSent: number;
-}
-```
-
-**Notifications Created:**
-```typescript
-{
-  type: 'spoilage_alert',
-  title: 'Food Spoilage Alert',
-  message: '[Item] in your [category] may be spoiled (added [days] days ago)',
-  metadata: {
-    inventoryId: string;
-    itemName: string;
-    daysOld: number;
-  }
-}
-```
-
-#### `suggest-recipes`
-**Path:** `/supabase/functions/suggest-recipes/index.ts`
-
-**Purpose:** AI-powered recipe suggestions based on inventory.
-
-**Input:**
-```typescript
-{
-  userId: string;
-  preferences?: {
-    mealType?: string;
-    cuisine?: string;
-    maxPrepTime?: number;
-    servings?: number;
-  };
-  includeItems?: string[]; // Must include these items
-  excludeItems?: string[]; // Must exclude these items
-}
-```
-
-**Process:**
-1. Fetch user's current inventory
-2. Fetch dietary restrictions and allergies
-3. Build prompt with constraints:
-   - Available ingredients
-   - Allergies to avoid
-   - Dietary preferences
-   - Meal type, cuisine, time constraints
-4. Call OpenAI GPT for recipe generation
-5. Generate 3-5 recipe options
-6. For each recipe:
-   - Check ingredient availability
-   - Calculate nutrition estimate
-   - Highlight missing ingredients
-7. Return ranked suggestions
-
-**Output:**
-```typescript
-{
-  recipes: {
-    name: string;
-    description: string;
-    prepTime: string;
-    cookTime: string;
-    servings: number;
-    ingredients: {
-      item: string;
-      amount: string;
-      inInventory: boolean;
-    }[];
-    steps: string[];
-    nutrition: NutritionEstimate;
-    matchScore: number; // % of ingredients in inventory
-    missingItems: string[];
-  }[];
-}
-```
-
-**AI Model:** OpenAI GPT-4
-
-**Ranking Algorithm:**
-1. Highest match score (most ingredients available)
-2. Respects dietary restrictions
-3. No allergens
-4. Meets time constraints
-5. Variety (different cuisines)
-
----
-
-## API Integrations
-
-### ElevenLabs Conversational AI
-
-**Purpose:** Voice-first interaction and onboarding
-
-**SDK:** `@11labs/react` + `@elevenlabs/client`
-
-**Features Used:**
-- Conversational AI with custom prompts
-- Real-time WebSocket transcription
-- Client-side tools for function calling
-- Wake word detection
-- Audio streaming
-
-**Configuration:**
-```typescript
-// src/config/agent.ts
-export const AGENT_CONFIG = {
-  agentId: process.env.ELEVENLABS_AGENT_ID,
-  defaultVoice: 'Rachel', // Voice ID: 21m00Tcm4TlvDq8ikWAM
-  language: 'en',
-  firstMessage: "Hey! I'm Kaeva, your household AI assistant..."
-};
-```
-
-**Connection Setup:**
-```typescript
-const { startSession, endSession, conversation } = useConversation({
-  onConnect: () => console.log('Connected to Kaeva'),
-  onDisconnect: () => console.log('Disconnected'),
-  onMessage: (message) => {
-    // Update transcripts
-  },
-  onError: (error) => {
-    // Handle errors
-  }
-});
-
-// Start conversation
-await startSession({
-  agentId: AGENT_CONFIG.agentId,
-  clientTools: {
-    updateProfile: (params) => { /* ... */ },
-    completeConversation: (params) => { /* ... */ },
-    navigateTo: (params) => { /* ... */ }
-  },
-  customVariables: {
-    userName: user.name,
-    allergies: user.allergies.join(', '),
-    // ... more context
-  }
-});
-```
-
-**Client Tools:** Functions the AI can call during conversation
-1. `updateProfile` - Update user data
-2. `completeConversation` - End session
-3. `navigateTo` - Navigate app (limited)
-
-**Custom Variables:** Context provided to agent at session start
-- User profile data
-- Household composition
-- Current inventory summary
-- Shopping list items
-- Recent conversation history
-
-**Pricing:** Pay-per-use (charged by ElevenLabs)
-
-**Limits:** None specified, usage-based billing
-
-### FatSecret Platform API
-
-**Purpose:** Nutrition data for food products
-
-**API Type:** REST with OAuth 1.0
-
-**Authentication:** 
-- Consumer Key + Consumer Secret
-- OAuth 1.0 signature generation
-- Access token (reusable)
-
-**Endpoints Used:**
-
-1. **Food Search**
-   ```
-   GET /foods/search.v1
-   Params: search_expression, max_results
-   ```
-
-2. **Food Get**
-   ```
-   GET /food/get.v2
-   Params: food_id
-   ```
-
-3. **Barcode Search**
-   ```
-   GET /foods/search.v1
-   Params: barcode
-   ```
-
-**Response Caching:**
-- All responses cached in `product_cache` table
-- 30-day expiration
-- Reduces API calls and costs
-
-**Rate Limits:**
-- Free tier: 10,000 calls/month
-- Exceeded: Relies on cache
-
-**Data Structure:**
-```typescript
-{
-  food_id: string;
-  food_name: string;
-  brand_name: string;
-  servings: {
-    serving: {
-      serving_description: string;
-      calories: string;
-      protein: string;
-      carbohydrate: string;
-      fat: string;
-      fiber: string;
-      // ... more nutrients
-    }
-  }
-}
-```
-
-**Normalization:** `normalizeFatSecretResponse()` converts to consistent format
-
-### Instacart Developer API
-
-**Purpose:** Shopping list to cart conversion
-
-**API Type:** REST with API Key
-
-**Authentication:**
-```
-Authorization: Bearer {INSTACART_API_KEY}
-```
-
-**Endpoints Used:**
-
-1. **Search Retailers**
-   ```
-   GET /v2/retailers
-   Params: zip_code, limit
-   ```
-
-2. **Search Products**
-   ```
-   GET /v2/products
-   Params: retailer_id, query, limit
-   ```
-
-3. **Create Cart**
-   ```
-   POST /v2/carts
-   Body: {
-     retailer_id: string,
-     items: { product_id, quantity }[]
-   }
-   ```
-
-4. **Get Cart**
-   ```
-   GET /v2/carts/{cart_id}
-   ```
-
-**Webhook:**
-Instacart sends POST to `/instacart-service/webhook` on order completion.
-
-**Webhook Payload:**
-```typescript
-{
-  event_type: 'order.completed',
-  order: {
-    id: string,
-    status: string,
-    items: {
-      product_id: string,
-      name: string,
-      quantity: number,
-      price: number
-    }[]
-  }
-}
-```
-
-**Webhook Security:**
-- Signature verification
-- IP whitelist (Instacart IPs only)
-
-**Flow:**
-1. User creates cart in Kaeva
-2. Cart created in Instacart
-3. User completes purchase in Instacart
-4. Webhook triggers
-5. Items added to Kaeva inventory
-6. Shopping list marked as purchased
-
-**Rate Limits:** Not specified in docs, likely generous
-
-### Google Gemini Vision API
-
-**Purpose:** Image analysis for smart scanner
-
-**Model Used:** `gemini-1.5-pro-vision`
-
-**Authentication:**
-```
-X-Goog-Api-Key: {GOOGLE_GEMINI_API_KEY}
-```
-
-**Endpoint:**
-```
-POST https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro-vision:generateContent
-```
-
-**Request Format:**
-```typescript
-{
-  contents: [
+  "restockedItems": [
     {
-      parts: [
-        {
-          text: "Identify all food items in this image..." // Prompt
-        },
-        {
-          inline_data: {
-            mime_type: "image/jpeg",
-            data: "{base64_image_data}"
-          }
-        }
-      ]
-    }
-  ],
-  generationConfig: {
-    temperature: 0.4, // Lower for more deterministic results
-    topK: 32,
-    topP: 1,
-    maxOutputTokens: 4096,
-  }
-}
-```
-
-**Response Format:**
-```typescript
-{
-  candidates: [
-    {
-      content: {
-        parts: [
-          {
-            text: "{JSON response from AI}"
-          }
-        ]
-      }
+      "itemName": "Milk",
+      "fillLevel": 15,
+      "threshold": 20,
+      "addedToCart": true
     }
   ]
 }
 ```
 
-**Usage Patterns:**
-- **Product Identification:** Extract name, brand, barcode
-- **Ingredient Parsing:** OCR nutrition label
-- **Meal Analysis:** Identify food items and portions
-- **Appliance Detection:** Recognize kitchen appliances
-- **Pet Identification:** Detect species and breed
-- **Beauty Products:** Read product labels and ingredients
+#### `cook-recipe`
+**File**: `supabase/functions/cook-recipe/index.ts`  
+**Auth**: Required  
+**Purpose**: Start cooking mode for recipe
 
-**Prompting Strategy:**
-- Request structured JSON output
-- Provide clear schema in prompt
-- Use examples for complex tasks
-- Set low temperature for consistency
-
-**Rate Limits:**
-- Free tier: 60 requests/minute
-- Paid tier: Unlimited (usage-based)
-
-**Cost Optimization:**
-- Compress images before sending (max 1024px width)
-- Cache results when possible
-- Batch analyze when feasible
-
-### OpenAI GPT API
-
-**Purpose:** Intent detection, recipe generation, conversation
-
-**Models Used:**
-- `gpt-4` - Complex reasoning (recipes, intent)
-- `gpt-3.5-turbo` - Simple tasks (classification)
-
-**Authentication:**
-```
-Authorization: Bearer {OPENAI_API_KEY}
-```
-
-**Endpoint:**
-```
-POST https://api.openai.com/v1/chat/completions
-```
-
-**Request Format:**
-```typescript
+**Input**:
+```json
 {
-  model: "gpt-4",
-  messages: [
-    {
-      role: "system",
-      content: "You are an assistant that..." // System prompt
-    },
-    {
-      role: "user",
-      content: "..." // User message
-    }
-  ],
-  temperature: 0.7,
-  max_tokens: 2000,
-  response_format: { type: "json_object" } // For structured output
+  "recipeId": "uuid"
 }
 ```
 
-**Use Cases:**
+**Output**:
+```json
+{
+  "recipe": {
+    "name": "Spaghetti Carbonara",
+    "ingredients": [...],
+    "instructions": [
+      {
+        "step": 1,
+        "description": "Boil water for pasta",
+        "duration": 10,
+        "temperature": null
+      }
+    ]
+  }
+}
+```
 
-1. **Intent Detection**
-   ```typescript
-   System: "Classify user intent from vision results and message. Return JSON."
-   User: "{visionResults: [...], message: 'What is this?'}"
-   Output: {intent: 'PRODUCT_ANALYSIS', confidence: 0.95}
-   ```
+#### `create-household-invite`
+**File**: `supabase/functions/create-household-invite/index.ts`  
+**Auth**: Required  
+**Purpose**: Generate JWT-signed invite code
 
-2. **Recipe Generation**
-   ```typescript
-   System: "Generate recipe based on available ingredients. Respect allergies."
-   User: "Ingredients: chicken, rice, broccoli. Allergies: dairy."
-   Output: {recipe: {...}, nutrition: {...}}
-   ```
+**Input**:
+```json
+{
+  "householdId": "uuid",
+  "expiresIn": 86400,
+  "maxUses": 1
+}
+```
 
-3. **Conversation Context**
-   ```typescript
-   System: "You are Kaeva's backend reasoning. Provide factual responses."
-   User: "{conversationHistory}, {currentQuestion}"
-   Output: Factual answer with sources
-   ```
+**Process**:
+1. Verify user is household owner
+2. Generate JWT with payload: `{ householdId, createdBy, expiresAt }`
+3. Sign with `INVITE_JWT_SECRET`
+4. Insert `household_invites` entry
+5. Generate shareable URL
 
-**Rate Limits:**
-- Tier 1 (new accounts): 3,500 requests/day
-- Tier 2 ($5 spent): 3,500,000 tokens/day
+**Output**:
+```json
+{
+  "inviteCode": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "inviteUrl": "https://app.kaeva.com/household/join/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expiresAt": "2024-01-15T12:00:00Z"
+}
+```
 
-**Cost Management:**
-- Use GPT-3.5-turbo for simple tasks
-- Keep prompts concise
-- Cache repeated queries
-- Set max_tokens limits
+#### `daily-ai-digest`
+**File**: `supabase/functions/daily-ai-digest/index.ts`  
+**Auth**: Required (cron job)  
+**Purpose**: Generate proactive AI insights daily
+
+**Trigger**: Cron job (daily at 7 AM user local time)
+
+**Process**:
+1. Query user profile, household, inventory, meal logs
+2. Analyze expiring items (within 3 days)
+3. Detect low stock items (fill_level < reorder_threshold)
+4. Calculate nutrition gaps (calories/protein/carbs/fat vs goals)
+5. Generate time-appropriate meal suggestions
+6. Check allergen warnings
+7. Send to Gemini for insight generation with reasoning
+8. Limit to 3-5 insights, prioritize by urgency
+9. Insert `daily_digests` entry
+10. Create `notifications` entry
+
+**Output** (stored in `daily_digests.insights`):
+```json
+{
+  "insights": [
+    {
+      "type": "expiring_items",
+      "title": "3 items expiring soon",
+      "message": "Milk, Yogurt, and Chicken breast expire in 2 days",
+      "priority": 1,
+      "reasoning": "These items are perishable and approaching expiration. Consider using them in meals today to avoid waste."
+    },
+    {
+      "type": "nutrition_gap",
+      "title": "Low protein intake yesterday",
+      "message": "You consumed 45g protein vs 150g goal",
+      "priority": 2,
+      "reasoning": "Yesterday's protein intake was 30% of your goal. Consider protein-rich breakfast options like eggs or Greek yogurt."
+    }
+  ]
+}
+```
+
+**Insight Types**:
+- `expiring_items`: Items approaching expiration
+- `low_stock`: Items needing reorder
+- `nutrition_gap`: Macro deficiencies
+- `meal_suggestion`: Time-appropriate meal ideas
+- `safety_alert`: Allergen or toxicity warnings
+
+**Gemini Optimization**:
+- Model: `gemini-2.0-flash`
+- maxOutputTokens: 4096
+- Request 2-3 insights instead of 3-5 to avoid truncation
+- Limit context: 5 expiring items, 5 low stock items, 3 recent meals
+
+#### `delete-account`
+**File**: `supabase/functions/delete-account/index.ts`  
+**Auth**: Required  
+**Purpose**: Delete user account and all associated data
+
+**Process**:
+1. Delete from `household_members`
+2. Delete from `pets`
+3. Delete from `meal_logs`
+4. Delete from `water_logs`
+5. Delete from `conversation_history`
+6. Delete from `notifications`
+7. Delete from `bookmarks`
+8. Delete from `learned_preferences`
+9. Remove from `household_memberships`
+10. Delete from `profiles`
+11. Delete from `auth.users`
+
+**Output**:
+```json
+{
+  "success": true,
+  "message": "Account deleted successfully"
+}
+```
+
+#### `detect-intent`
+**File**: `supabase/functions/detect-intent/index.ts`  
+**Auth**: Required  
+**Purpose**: Detect user intent from voice/text input
+
+**Input**:
+```json
+{
+  "message": "Add milk to my shopping list"
+}
+```
+
+**Process**:
+1. Send to Gemini for intent classification
+2. Extract intent and entities
+
+**Output**:
+```json
+{
+  "intent": "add_to_shopping_list",
+  "confidence": 0.95,
+  "entities": {
+    "items": ["milk"]
+  }
+}
+```
+
+**Intents**:
+- `add_to_shopping_list`: Add items to cart
+- `check_inventory`: Query inventory
+- `get_recipes`: Find recipes
+- `track_meal`: Log meal
+- `get_nutrition_status`: Check progress
+- `check_expiring_items`: Find expiring items
+
+#### `enrich-product`
+**File**: `supabase/functions/enrich-product/index.ts`  
+**Auth**: Required  
+**Purpose**: Enrich product with nutrition data
+
+**Input**:
+```json
+{
+  "productName": "Coca-Cola Classic",
+  "barcode": "049000042566"
+}
+```
+
+**Process** (cascading fallback):
+1. **FatSecret API** (primary):
+   - Search by barcode or name
+   - Return full nutrition data
+2. **USDA FoodData Central** (secondary):
+   - Search Survey (FNDDS) database
+   - Search SR Legacy database
+   - Return nutrition data
+3. **Gemini Estimation** (tertiary):
+   - AI-powered nutrition estimation
+   - Lower confidence score
+
+**Output**:
+```json
+{
+  "fatsecretId": "12345",
+  "nutritionData": {
+    "servingSize": "12 fl oz",
+    "calories": 140,
+    "protein": 0,
+    "carbs": 39,
+    "fat": 0,
+    "fiber": 0,
+    "sugar": 39
+  },
+  "allergens": [],
+  "dietaryFlags": ["vegan", "gluten-free"],
+  "source": "fatsecret" | "usda" | "gemini_estimate"
+}
+```
+
+#### `extract-social-recipe`
+**File**: `supabase/functions/extract-social-recipe/index.ts`  
+**Auth**: Required  
+**Purpose**: Import recipe from social media URL
+
+**Supported Platforms**:
+- TikTok
+- Instagram
+- Pinterest
+- YouTube
+
+**Input**:
+```json
+{
+  "url": "https://www.tiktok.com/@user/video/123456"
+}
+```
+
+**Process**:
+1. Fetch URL content
+2. Extract video/image/text
+3. Send to Gemini for recipe extraction
+4. Parse ingredients and instructions
+5. Cache in `social_recipe_cache` table (avoid re-parsing)
+6. Return recipe data
+
+**Output**:
+```json
+{
+  "name": "TikTok Pasta",
+  "ingredients": [
+    { "name": "Cherry tomatoes", "quantity": 2, "unit": "cups" },
+    { "name": "Feta cheese", "quantity": 8, "unit": "oz" }
+  ],
+  "instructions": [
+    { "step": 1, "description": "Place tomatoes and feta in baking dish" },
+    { "step": 2, "description": "Bake at 400°F for 30 minutes" }
+  ],
+  "cookingTime": 40,
+  "difficulty": "easy",
+  "servings": 4,
+  "source": "tiktok",
+  "sourceUrl": "https://..."
+}
+```
+
+#### `generate-app-icons`
+**File**: `supabase/functions/generate-app-icons/index.ts`  
+**Auth**: None (public)  
+**Purpose**: Generate PWA icons via Lovable AI Gateway
+
+**Input**:
+```json
+{
+  "prompt": "Kaeva K logo with gold gradient"
+}
+```
+
+**Process**:
+1. Call Lovable AI Gateway with prompt
+2. Receive base64 image
+3. Generate multiple sizes: 192x192, 512x512, 180x180 (Apple Touch), maskable variants
+4. Return download links
+
+**Output**:
+```json
+{
+  "icons": {
+    "icon-192": "data:image/png;base64,...",
+    "icon-512": "data:image/png;base64,...",
+    "apple-touch-icon": "data:image/png;base64,...",
+    "icon-maskable-192": "data:image/png;base64,...",
+    "icon-maskable-512": "data:image/png;base64,..."
+  }
+}
+```
+
+#### `generate-beauty-inspiration`
+**File**: `supabase/functions/generate-beauty-inspiration/index.ts`  
+**Auth**: Required  
+**Purpose**: Generate beauty looks and routines
+
+**Input**:
+```json
+{
+  "products": [
+    { "name": "Glossier Boy Brow", "category": "makeup" }
+  ],
+  "style": "natural" | "glam" | "professional" | "bold"
+}
+```
+
+**Process**:
+1. Analyze user's beauty inventory
+2. Send to Gemini for look generation
+3. Search YouTube for tutorial videos
+4. Return look with products and videos
+
+**Output**:
+```json
+{
+  "looks": [
+    {
+      "name": "Natural Everyday Look",
+      "products": [
+        { "name": "Glossier Boy Brow", "step": 1, "instruction": "Brush brows upward" }
+      ],
+      "steps": ["Prep skin", "Apply foundation", ...],
+      "videoTutorials": [
+        {
+          "title": "Natural Makeup Tutorial",
+          "channelTitle": "Beauty Guru",
+          "videoId": "abc123",
+          "thumbnail": "https://..."
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### `generate-meal-plan`
+**File**: `supabase/functions/generate-meal-plan/index.ts`  
+**Auth**: Required  
+**Purpose**: Generate weekly meal plan with AI
+
+**Input**:
+```json
+{
+  "startDate": "2024-01-15",
+  "cuisines": ["Italian", "Mexican"],
+  "avoidIngredients": ["mushrooms"],
+  "maxCookingTime": 45,
+  "dietaryRestrictions": ["vegetarian"]
+}
+```
+
+**Process**:
+1. Fetch user profile, household members, inventory
+2. Calculate household TDEE and nutrition goals
+3. Send to Gemini for meal plan generation
+4. Generate 7 days × 3 meals (breakfast, lunch, dinner)
+5. Match recipes from inventory
+6. Return meal plan with shopping list
+
+**Output**:
+```json
+{
+  "mealPlan": [
+    {
+      "date": "2024-01-15",
+      "meals": {
+        "breakfast": {
+          "name": "Avocado Toast",
+          "recipeId": "uuid",
+          "ingredients": [...],
+          "calories": 350
+        },
+        "lunch": { ... },
+        "dinner": { ... }
+      }
+    }
+  ],
+  "shoppingList": [
+    { "item": "Avocados", "quantity": 7, "unit": "count" }
+  ]
+}
+```
+
+#### `generate-signed-url`
+**File**: `supabase/functions/generate-signed-url/index.ts`  
+**Auth**: Required  
+**Purpose**: Generate signed URL for file upload
+
+**Input**:
+```json
+{
+  "bucket": "app-assets",
+  "path": "meal-photos/123.jpg",
+  "expiresIn": 3600
+}
+```
+
+**Output**:
+```json
+{
+  "signedUrl": "https://...",
+  "expiresAt": "2024-01-01T13:00:00Z"
+}
+```
+
+#### `get-place-hours`
+**File**: `supabase/functions/get-place-hours/index.ts`  
+**Auth**: None (public)  
+**Purpose**: Get store hours from Google Places API
+
+**Input**:
+```json
+{
+  "placeId": "ChIJN1t_tDeuEmsRUsoyG83frY4"
+}
+```
+
+**Output**:
+```json
+{
+  "hours": {
+    "monday": "8:00 AM - 9:00 PM",
+    "tuesday": "8:00 AM - 9:00 PM",
+    ...
+  },
+  "openNow": true
+}
+```
+
+#### `identify-product`
+**File**: `supabase/functions/identify-product/index.ts`  
+**Auth**: Required  
+**Purpose**: Identify product from image (barcode-first, then visual)
+
+**Input**:
+```json
+{
+  "imageData": "base64-string"
+}
+```
+
+**Process**:
+1. Barcode detection
+2. If no barcode: OCR + visual analysis
+3. Return product identification
+
+**Output**:
+```json
+{
+  "productName": "Tide Laundry Detergent",
+  "barcode": "037000850984",
+  "category": "household",
+  "confidence": 0.98
+}
+```
+
+#### `instacart-create-cart`
+**File**: `supabase/functions/instacart-create-cart/index.ts`  
+**Auth**: Required  
+**Purpose**: Create Instacart cart from shopping list
+
+**Input**:
+```json
+{
+  "items": [
+    { "name": "Milk", "quantity": 1 }
+  ],
+  "retailerId": "123"
+}
+```
+
+**Output**:
+```json
+{
+  "cartUrl": "https://www.instacart.com/store/checkout/...",
+  "cartId": "abc123"
+}
+```
+
+#### `instacart-service`
+**File**: `supabase/functions/instacart-service/index.ts`  
+**Auth**: Required  
+**Purpose**: Instacart API service wrapper
+
+**Endpoints**:
+- `GET /retailers`: List available retailers
+- `GET /retailers/:id/products`: Search products
+- `POST /carts`: Create cart
+- `PUT /carts/:id`: Update cart
+
+#### `notify-spoilage`
+**File**: `supabase/functions/notify-spoilage/index.ts`  
+**Auth**: Required (cron job)  
+**Purpose**: Check for spoiled items and notify users
+
+**Process**:
+1. Call `check_spoilage()` database function
+2. For each spoiled item:
+   - Call `mark_spoilage()` to update status
+   - Create notification entry
+3. Send push notification (if configured)
+
+#### `provision-agents`
+**File**: `supabase/functions/provision-agents/index.ts`  
+**Auth**: Required  
+**Purpose**: Create/update ElevenLabs agents
+
+**Known Agent IDs**:
+- Onboarding: `agent_0501kakwnx5rffaby5px9y1pskkb`
+- Assistant: `agent_2601kaqwv4ejfhets9fyyafzj2e6`
+
+**Input**:
+```json
+{
+  "agentType": "onboarding" | "assistant"
+}
+```
+
+**Process**:
+1. Fetch user profile for context
+2. Build agent prompt from template
+3. Define client tools in ElevenLabs format
+4. Attempt PATCH to update existing agent (by known ID)
+5. If 404, POST to create new agent
+6. Update `profiles.agent_configured = true`
+
+**Onboarding Tools**:
+- `updateProfile`: Named parameters (userName, userAge, userWeight, ...)
+- `saveHouseholdMember`: Named parameters (name, age, allergies, ...)
+- `savePet`: Named parameters (name, species, breed, ...)
+- `completeConversation`: No parameters
+
+**Assistant Tools**:
+- `check_inventory`: `{ category: string }`
+- `get_recipes`: `{ dietary_restrictions: string[], max_cooking_time: number }`
+- `add_to_shopping_list`: `{ items: string[] }`
+- `check_expiring_items`: No parameters
+
+**Tool Format** (ElevenLabs API):
+```json
+{
+  "type": "client",
+  "name": "updateProfile",
+  "description": "Update user profile fields",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "userName": { "type": "string", "description": "User's name" },
+      "userAge": { "type": "number", "description": "User's age" }
+    }
+  }
+}
+```
+
+**Output**:
+```json
+{
+  "success": true,
+  "agentId": "agent_0501kakwnx5rffaby5px9y1pskkb",
+  "message": "Onboarding agent configured successfully"
+}
+```
+
+#### `search-recipe-videos`
+**File**: `supabase/functions/search-recipe-videos/index.ts`  
+**Auth**: Required  
+**Purpose**: Search YouTube for recipe tutorial videos
+
+**Input**:
+```json
+{
+  "recipeName": "Spaghetti Carbonara"
+}
+```
+
+**Process**:
+1. Call YouTube Data API v3 search endpoint
+2. Filter for medium-duration cooking videos
+3. Fetch video metadata (title, channel, thumbnail)
+4. Return top 3 results
+
+**Output**:
+```json
+{
+  "videos": [
+    {
+      "videoId": "abc123",
+      "title": "Perfect Spaghetti Carbonara",
+      "channelTitle": "Chef John",
+      "thumbnail": "https://i.ytimg.com/vi/abc123/mqdefault.jpg",
+      "duration": "PT12M34S",
+      "estimatedCookTime": 25
+    }
+  ]
+}
+```
+
+#### `suggest-recipes`
+**File**: `supabase/functions/suggest-recipes/index.ts`  
+**Auth**: Required  
+**Purpose**: AI-powered recipe suggestions
+
+**Input**:
+```json
+{
+  "dietary_restrictions": ["vegetarian"],
+  "max_cooking_time": 30,
+  "ingredients": ["pasta", "tomatoes"]
+}
+```
+
+**Process**:
+1. Fetch user inventory, preferences, household data
+2. Send to Gemini for recipe generation
+3. Calculate ingredient match score (0-100%)
+4. Add explanation field (why this recipe is recommended)
+5. Search YouTube for tutorial videos
+6. Return 3-5 recipes
+
+**Output**:
+```json
+{
+  "recipes": [
+    {
+      "name": "Quick Pasta Primavera",
+      "ingredients": [...],
+      "instructions": [...],
+      "cookingTime": 25,
+      "difficulty": "easy",
+      "matchScore": 85,
+      "explanation": "This recipe uses 85% of your current pantry items (pasta, tomatoes, garlic, olive oil) and aligns with your vegetarian preference. Quick cooking time fits your busy schedule.",
+      "videoTutorials": [...]
+    }
+  ]
+}
+```
+
+**Explanation Field**: Transparent reasoning for why recipe is suggested
+- Ingredient match percentage
+- Nutritional alignment
+- Household preferences
+- Time constraints
+- Dietary compatibility
+
+### Edge Function Configuration
+
+**File**: `supabase/config.toml`
+
+```toml
+project_id = "btgmvuieishjiybgcmpj"
+
+[functions.generate-app-icons]
+verify_jwt = false
+
+[functions.get-place-hours]
+verify_jwt = false
+
+[functions.analyze-vision]
+verify_jwt = true
+
+[functions.daily-ai-digest]
+verify_jwt = true
+
+[functions.check-auto-restock]
+verify_jwt = true
+
+[functions.search-recipe-videos]
+verify_jwt = true
+
+[functions.generate-meal-plan]
+verify_jwt = true
+
+[functions.generate-beauty-inspiration]
+verify_jwt = true
+
+[functions.create-household-invite]
+verify_jwt = true
+
+[functions.generate-signed-url]
+verify_jwt = true
+
+[functions.provision-agents]
+verify_jwt = true
+
+[functions.instacart-create-cart]
+verify_jwt = true
+
+[functions.check-admin]
+verify_jwt = true
+
+[functions.enrich-product]
+verify_jwt = true
+
+[functions.identify-product]
+verify_jwt = true
+
+[functions.cook-recipe]
+verify_jwt = true
+
+[functions.notify-spoilage]
+verify_jwt = true
+
+[functions.delete-account]
+verify_jwt = true
+```
+
+### Edge Function Best Practices
+
+**CORS Headers** (required for web app calls):
+```typescript
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+// Handle preflight
+if (req.method === 'OPTIONS') {
+  return new Response(null, { headers: corsHeaders });
+}
+```
+
+**Supabase Client** (always use client methods, not raw HTTP):
+```typescript
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL')!,
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+);
+
+// ✅ CORRECT
+const { data, error } = await supabase.from('table').select();
+
+// ❌ NEVER
+fetch(`${SUPABASE_URL}/rest/v1/table`);
+```
+
+**Authentication**:
+```typescript
+const authHeader = req.headers.get('Authorization')!;
+const token = authHeader.replace('Bearer ', '');
+
+const { data: { user }, error } = await supabase.auth.getUser(token);
+if (error || !user) {
+  return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+    status: 401,
+    headers: corsHeaders
+  });
+}
+```
+
+**Error Handling**:
+```typescript
+try {
+  // ... logic
+  return new Response(JSON.stringify({ data }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+} catch (error) {
+  console.error('Error:', error);
+  return new Response(JSON.stringify({ error: error.message }), {
+    status: 500,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+```
+
+**Logging**:
+```typescript
+console.log('Function started', { userId, timestamp: new Date().toISOString() });
+console.error('Error occurred', { error, context });
+```
+
+---
+
+## API Integrations
+
+### FatSecret API (Primary Nutrition)
+
+**Purpose**: Nutrition data enrichment  
+**Endpoint**: `https://platform.fatsecret.com/rest/server.api`  
+**Authentication**: OAuth 1.0  
+**Rate Limit**: 1000 requests/day
+
+**Key Methods**:
+- `foods.search`: Search foods by name/barcode
+- `food.get.v2`: Get detailed nutrition data
+
+**Fallback Chain**: FatSecret → USDA → Gemini estimation
+
+### USDA FoodData Central (Secondary Nutrition)
+
+**Purpose**: Nutrition data fallback  
+**Endpoint**: `https://api.nal.usda.gov/fdc/v1/`  
+**Authentication**: API Key  
+**Rate Limit**: 1000 requests/hour
+
+**Databases**:
+- Survey (FNDDS): Food and Nutrient Database for Dietary Studies
+- SR Legacy: Standard Reference Legacy
+
+**Key Endpoints**:
+- `/foods/search`: Search foods by query
+- `/food/{fdcId}`: Get food details
+
+### YouTube Data API v3
+
+**Purpose**: Recipe video tutorial search  
+**Endpoint**: `https://www.googleapis.com/youtube/v3/`  
+**Authentication**: API Key  
+**Rate Limit**: 10,000 quota units/day
+
+**Key Endpoints**:
+- `/search`: Search videos by query
+- `/videos`: Get video details
+
+**Search Parameters**:
+```typescript
+{
+  part: 'snippet',
+  q: 'Spaghetti Carbonara recipe',
+  type: 'video',
+  videoDuration: 'medium', // 4-20 minutes
+  maxResults: 3
+}
+```
+
+### Google Gemini API
+
+**Purpose**: Vision analysis, meal analysis, recipe generation, intent detection  
+**Model**: `gemini-2.0-flash`  
+**Endpoint**: `https://generativelanguage.googleapis.com/v1beta/`  
+**Authentication**: API Key
+
+**Use Cases**:
+- Vision analysis (product identification, OCR)
+- Meal photo analysis
+- Recipe generation
+- AI digest generation
+- Intent detection
+
+**Key Parameters**:
+- `maxOutputTokens`: 4096 (prevent truncation)
+- `temperature`: 0.7 (balanced creativity)
+- `topP`: 0.9
+- `topK`: 40
+
+**Example** (vision analysis):
+```typescript
+const response = await fetch(
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
+  {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{
+        parts: [
+          { text: "Identify the food items in this image with quantities" },
+          { inlineData: { mimeType: "image/jpeg", data: base64Image } }
+        ]
+      }],
+      generationConfig: {
+        maxOutputTokens: 4096,
+        temperature: 0.7
+      }
+    })
+  }
+);
+```
+
+### Lovable AI Gateway
+
+**Purpose**: PWA icon generation, image editing  
+**Endpoint**: `https://ai.gateway.lovable.dev/v1/`  
+**Authentication**: API Key (LOVABLE_API_KEY)
+
+**Models**:
+- `google/gemini-2.5-flash-image-preview`: Image generation
+
+**Example** (generate image):
+```typescript
+const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    model: 'google/gemini-2.5-flash-image-preview',
+    messages: [{
+      role: 'user',
+      content: 'Generate Kaeva K logo with gold gradient'
+    }],
+    modalities: ['image', 'text']
+  })
+});
+
+const data = await response.json();
+const imageUrl = data.choices[0].message.images[0].image_url.url; // base64 data URL
+```
+
+### Instacart API
+
+**Purpose**: Shopping cart creation  
+**Endpoint**: `https://connect.instacart.com/v2/`  
+**Authentication**: OAuth 1.0  
+**Rate Limit**: 100 requests/minute
+
+**Key Endpoints**:
+- `/retailers`: List available retailers
+- `/retailers/{id}/products`: Search products
+- `/carts`: Create cart
+- `/carts/{id}/items`: Add items to cart
+
+**Environment**: Sandbox vs Production (controlled via `INSTACART_ENVIRONMENT`)
+
+### Google Places API
+
+**Purpose**: Store hours lookup  
+**Endpoint**: `https://maps.googleapis.com/maps/api/place/`  
+**Authentication**: API Key  
+**Rate Limit**: Varies by plan
+
+**Key Endpoints**:
+- `/details/json`: Get place details including hours
+
+### ElevenLabs API
+
+**Purpose**: Voice agent provisioning  
+**Endpoint**: `https://api.elevenlabs.io/v1/`  
+**Authentication**: API Key  
+**Rate Limit**: Varies by plan
+
+**Key Endpoints**:
+- `POST /convai/agents`: Create conversational AI agent
+- `PATCH /convai/agents/{agentId}`: Update agent
+- `GET /convai/agents/{agentId}`: Get agent details
+
+**Agent Configuration**:
+```typescript
+{
+  name: "KAEVA Onboarding",
+  conversation_config: {
+    agent: {
+      prompt: {
+        prompt: "You are Kaeva, a friendly home assistant...",
+        tools: [
+          {
+            type: "client",
+            name: "updateProfile",
+            description: "Update user profile",
+            parameters: {
+              type: "object",
+              properties: {
+                userName: { type: "string", description: "User's name" }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+### API Error Handling Patterns
+
+**Cascading Fallback** (nutrition enrichment):
+```typescript
+async function enrichProduct(name: string) {
+  try {
+    return await fetchFromFatSecret(name);
+  } catch (error) {
+    console.warn('FatSecret failed, trying USDA:', error);
+    try {
+      return await fetchFromUSDA(name);
+    } catch (error) {
+      console.warn('USDA failed, using Gemini estimation:', error);
+      return await estimateWithGemini(name);
+    }
+  }
+}
+```
+
+**Rate Limiting**:
+```typescript
+// Check rate limit before API call
+const isAllowed = await checkRateLimit(userId, endpoint);
+if (!isAllowed) {
+  return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+    status: 429
+  });
+}
+
+// Increment counter after successful call
+await incrementRateLimit(userId, endpoint);
+```
+
+**Caching**:
+```typescript
+// Check cache first
+const cached = await supabase
+  .from('product_cache')
+  .select('*')
+  .eq('search_term', normalized)
+  .gt('expires_at', new Date().toISOString())
+  .single();
+
+if (cached.data) {
+  return cached.data.fatsecret_response;
+}
+
+// Fetch from API
+const response = await fetchFromAPI(query);
+
+// Cache for 30 days
+await supabase.from('product_cache').insert({
+  search_term: normalized,
+  fatsecret_response: response,
+  expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+});
+```
 
 ---
 
 ## Voice AI System
 
-### Architecture Overview
+### Dual-Agent Architecture
 
-```mermaid
-graph TD
-    A[User] -->|Speech| B[Microphone]
-    B --> C[ElevenLabs WebSocket]
-    C --> D[Speech-to-Text]
-    D --> E[ElevenLabs Conversational AI]
-    E --> F[Intent Understanding]
-    F --> G{Tool Call Needed?}
-    G -->|Yes| H[Client Tools]
-    G -->|No| I[Generate Response]
-    H --> J[Execute Action]
-    J --> K[Update Database]
-    K --> L[Return Result]
-    L --> E
-    I --> M[Text-to-Speech]
-    M --> N[Audio Stream]
-    N -->|Audio| A
-```
+KAEVA uses two separate ElevenLabs conversational AI agents:
 
-### Voice Flow States
+1. **Onboarding Agent** (`agent_0501kakwnx5rffaby5px9y1pskkb`):
+   - Purpose: Guide new users through initial setup
+   - Prompt: Friendly, educational, patient
+   - Tools: Profile updates, household member creation, pet creation
+   - Lifecycle: One-time use until onboarding complete
 
-#### 1. Pre-Onboarding Flow
+2. **Assistant Agent** (`agent_2601kaqwv4ejfhets9fyyafzj2e6`):
+   - Purpose: In-app assistance (Jarvis)
+   - Prompt: Helpful, proactive, context-aware
+   - Tools: Inventory queries, recipe search, shopping list management
+   - Lifecycle: Persistent throughout app usage
 
-**Entry Point:** User opens app for first time
+### Voice SDK Integration
 
-**States:**
-- `PERMISSION_REQUEST` - Asking for mic/camera
-- `SLEEPING` - Waiting for wake word
-- `WAKING` - Wake word detected
-- `ONBOARDING_ACTIVE` - In conversation
-- `ONBOARDING_COMPLETE` - Redirect to dashboard
+**Package**: `@11labs/react` v0.2.0
 
-**Wake Word:** "Hey Kaeva" or "OK Kaeva"
+**Core Hook**: `useConversation`
 
-**Onboarding Conversation Flow:**
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant K as Kaeva AI
-    participant DB as Database
-    
-    U->>K: "Hey Kaeva"
-    K->>U: "Hey! I'm Kaeva. What's your name?"
-    U->>K: "I'm John"
-    K->>DB: updateProfile({userName: 'John'})
-    K->>U: "Nice to meet you, John! To help you better, tell me a bit about yourself..."
-    U->>K: [Provides biometric data]
-    K->>DB: updateProfile({userBiometrics: {...}})
-    Note over K,DB: Continues collecting data
-    K->>U: "Great! Do you live alone or with others?"
-    U->>K: [Describes household]
-    K->>DB: updateProfile({household: {...}})
-    K->>U: "Any allergies or dietary preferences?"
-    U->>K: [Lists allergies]
-    K->>DB: updateProfile({allergies: [...]})
-    K->>U: "Perfect! Your profile is all set. Let me configure..."
-    K->>DB: completeConversation('onboarding_finished')
-    K->>U: "All done! Welcome to Kaeva."
-```
-
-**Data Collected:**
-- Personal: Name, age
-- Biometric: Weight, height, gender, activity level
-- Household: Adults, children, pets
-- Health: Allergies, dietary restrictions, health goals
-- Lifestyle: Goals, language preference
-
-**Completion Trigger:** `completeConversation` tool call
-
-**Post-Completion:**
-1. Calculate TDEE
-2. Save all data to database
-3. Set `onboarding_completed = true`
-4. Redirect to dashboard
-
-#### 2. Post-Onboarding Flow
-
-**Entry Points:**
-- Wake word detection (continuous listening)
-- Voice button press (manual trigger)
-
-**States:**
-- `IDLE` - No active conversation
-- `LISTENING` - User speaking
-- `PROCESSING` - AI thinking
-- `SPEAKING` - AI responding
-- `WAITING_FOR_RESPONSE` - Paused for user
-
-**Conversation Types:**
-
-1. **Inventory Queries**
-   ```
-   User: "What's in my fridge?"
-   Kaeva: [Queries inventory] "You have milk, eggs, cheese, and some vegetables..."
-   ```
-
-2. **Recipe Suggestions**
-   ```
-   User: "What can I make for dinner?"
-   Kaeva: [Calls suggest-recipes] "Based on your inventory, you could make..."
-   ```
-
-3. **Shopping Assistance**
-   ```
-   User: "Add milk to my shopping list"
-   Kaeva: [Updates shopping_list] "Added milk to your shopping list."
-   ```
-
-4. **Safety Checks**
-   ```
-   User: "Is this chocolate safe for my dog?"
-   Kaeva: [Checks pet toxicity] "No, chocolate is toxic to dogs. Please keep it away."
-   ```
-
-5. **Nutrition Questions**
-   ```
-   User: "How many calories have I eaten today?"
-   Kaeva: [Queries meal_logs] "You've logged 1,200 calories so far today..."
-   ```
-
-6. **General Questions**
-   ```
-   User: "What's the healthiest cooking oil?"
-   Kaeva: [Uses general knowledge] "Olive oil is generally considered..."
-   ```
-
-### ElevenLabs Integration Details
-
-#### Session Management
-
-**Starting a Session:**
 ```typescript
-const { startSession } = useConversation();
+import { useConversation } from '@11labs/react';
 
-await startSession({
-  agentId: AGENT_CONFIG.agentId,
-  clientTools: {
-    updateProfile: createUpdateProfileTool(onProfileUpdate),
-    completeConversation: createCompleteConversationTool(...),
-    navigateTo: createNavigateToTool(navigate)
+const conversation = useConversation({
+  onConnect: () => setApertureState('listening'),
+  onDisconnect: () => setApertureState('idle'),
+  onError: (error) => console.error(error),
+  onMessage: (message) => {
+    if (message.type === 'user_transcript') {
+      setUserTranscript(message.message);
+    } else if (message.type === 'agent_response') {
+      setAiTranscript(message.message);
+    }
   },
-  customVariables: {
-    userName: profile.user_name,
-    currentInventory: JSON.stringify(inventorySummary),
-    allergies: profile.allergies.join(', '),
-    // ... more context
+  clientTools: {
+    updateProfile: async ({ userName, userAge, ... }) => {
+      // Update profile in Supabase
+      // Calculate TDEE
+      // Return confirmation
+      return { success: true };
+    },
+    check_inventory: async ({ category }) => {
+      // Query inventory
+      return { items: [...] };
+    }
   }
 });
 ```
 
-**Custom Variables:** Injected into agent's context
-- Updated at session start
-- Available to AI for decision making
-- Used for personalization
+### Client Tools Pattern
 
-**Client Tools:** Functions AI can invoke
-- Defined in `voiceClientTools.ts`
-- Executed client-side
-- Can update database, UI, navigation
+**Critical**: Tools defined **inline** within `useConversation` configuration to avoid stale closures
 
-#### Real-Time Transcription
-
-**User Transcript:**
+**Onboarding Tools**:
 ```typescript
-conversation.onMessage((message) => {
-  if (message.source === 'user') {
-    setUserTranscript(message.text);
-  }
-});
-```
-
-**AI Transcript:**
-```typescript
-conversation.onMessage((message) => {
-  if (message.source === 'agent') {
-    setAiTranscript(message.text);
-    storeMessage('assistant', message.text, conversationId);
-  }
-});
-```
-
-**Storage:** All messages stored in `conversation_history`
-
-#### Audio Visualization
-
-**Audio Amplitude Tracking:**
-```typescript
-const { isSpeaking, audioLevel } = conversation;
-
-useEffect(() => {
-  setAudioAmplitude(audioLevel);
+clientTools: {
+  updateProfile: async ({
+    userName,
+    userAge,
+    userWeight,
+    userHeight,
+    userGender,
+    userActivityLevel,
+    dietaryPreferences,
+    allergies,
+    skinType,
+    hairType,
+    householdAdults,
+    householdKids,
+    healthGoals,
+    lifestyleGoals
+  }) => {
+    // Calculate TDEE
+    const tdee = calculateTDEE(userAge, userWeight, userHeight, userGender, userActivityLevel);
+    
+    // Update profiles table
+    await supabase.from('profiles').update({
+      user_name: userName,
+      user_age: userAge,
+      user_weight: userWeight,
+      user_height: userHeight,
+      user_gender: userGender,
+      user_activity_level: userActivityLevel,
+      calculated_tdee: tdee,
+      dietary_preferences: dietaryPreferences,
+      allergies: allergies,
+      beauty_profile: { skin_type: skinType, hair_type: hairType },
+      household_adults: householdAdults,
+      household_kids: householdKids,
+      health_goals: healthGoals,
+      lifestyle_goals: lifestyleGoals
+    }).eq('id', user.id);
+    
+    // Trigger concept card
+    onShowConceptCard({ type: 'profile', data: { userName, tdee } });
+    
+    return { success: true, tdee };
+  },
   
-  if (isSpeaking) {
-    setApertureState('SPEAKING');
-  } else {
-    setApertureState('LISTENING');
-  }
-}, [isSpeaking, audioLevel]);
-```
-
-**Aperture Animation:**
-- Synced to audio amplitude
-- Scale 0.8-1.2 based on volume
-- Smooth transitions (ease-in-out)
-
-#### Error Handling
-
-**Connection Errors:**
-```typescript
-conversation.onError((error) => {
-  console.error('Voice error:', error);
-  
-  if (error.code === 'NETWORK_ERROR') {
-    toast({
-      title: "Connection Lost",
-      description: "Please check your internet connection.",
-      variant: "destructive"
+  saveHouseholdMember: async ({
+    name,
+    age,
+    gender,
+    weight,
+    height,
+    activityLevel,
+    allergies,
+    dietaryRestrictions,
+    healthConditions
+  }) => {
+    const tdee = calculateTDEE(age, weight, height, gender, activityLevel);
+    
+    await supabase.from('household_members').insert({
+      user_id: user.id,
+      member_type: 'other',
+      name,
+      age,
+      gender,
+      weight,
+      height,
+      activity_level: activityLevel,
+      calculated_tdee: tdee,
+      allergies,
+      dietary_restrictions: dietaryRestrictions,
+      health_conditions: healthConditions
     });
-  }
+    
+    return { success: true, memberName: name };
+  },
   
-  endConversation();
-});
-```
-
-**Timeout Handling:**
-- 30s no speech → prompt user
-- 60s no speech → end conversation
-- Reconnect on network recovery
-
-#### Tool Definition Requirements
-
-When defining client tools for ElevenLabs agents, the following requirements must be met:
-
-1. **`type` field required:** Every tool must include `type: "client"`
-2. **`description` field required:** All properties (including nested ones) must have descriptions
-3. **Array items need descriptions:** For array properties, the `items` schema must include a description:
-   ```typescript
-   allergies: {
-     type: "array",
-     items: { 
-       type: "string", 
-       description: "A food allergy (e.g., Nuts, Gluten, Dairy)"  // Required!
-     },
-     description: "Array of food allergies"
-   }
-   ```
-4. **Named parameters preferred:** Use specific named parameters instead of generic `(field, value)` patterns for better agent understanding
-5. **`wait_for_response` for blocking tools:** Set to `true` for tools that should pause conversation until complete
-
-#### Wake Word Detection
-
-**Built-in Wake Word:**
-ElevenLabs supports built-in wake word detection.
-
-**Configuration:**
-```typescript
-// In agent configuration
-{
-  wakeWord: "Hey Kaeva",
-  sensitivity: 0.7, // 0-1, higher = more sensitive
-  continuous: true  // Keep listening after conversation
+  savePet: async ({ name, species, breed, age, toxicFlagsEnabled }) => {
+    await supabase.from('pets').insert({
+      user_id: user.id,
+      name,
+      species,
+      breed,
+      age,
+      toxic_flags_enabled: toxicFlagsEnabled
+    });
+    
+    return { success: true, petName: name };
+  },
+  
+  completeConversation: async () => {
+    // Create household
+    const household = await supabase.from('households').insert({
+      name: `${profile.user_name}'s Household`,
+      owner_id: user.id
+    }).select().single();
+    
+    // Add membership
+    await supabase.from('household_memberships').insert({
+      household_id: household.data.id,
+      user_id: user.id,
+      role: 'owner'
+    });
+    
+    // Update profile
+    await supabase.from('profiles').update({
+      onboarding_completed: true,
+      current_household_id: household.data.id
+    }).eq('id', user.id);
+    
+    return { success: true };
+  }
 }
 ```
 
-**Custom Wake Word (Future):**
-`audioMonitoring.ts` prepared for custom implementation using Web Audio API + ML model.
-
-### Voice UI Components
-
-#### Aperture Animation
-
-**Component:** `KaevaAperture.tsx`
-
-**States:**
-- `sleeping` - Slow pulse (breathing)
-- `listening` - Active pulse (ready)
-- `processing` - Spinning (thinking)
-- `speaking` - Amplitude-reactive (talking)
-
-**Implementation:**
+**Assistant Tools**:
 ```typescript
-const variants = {
-  sleeping: {
-    scale: [1, 1.05, 1],
-    transition: { repeat: Infinity, duration: 2 }
+clientTools: {
+  check_inventory: async ({ category }) => {
+    const { data } = await supabase
+      .from('inventory')
+      .select('*')
+      .eq('household_id', profile.current_household_id)
+      .eq('category', category);
+    
+    return {
+      items: data.map(item => ({
+        name: item.name,
+        quantity: item.quantity,
+        unit: item.unit,
+        status: item.status
+      }))
+    };
   },
-  listening: {
-    scale: [1, 1.1, 1],
-    transition: { repeat: Infinity, duration: 1 }
+  
+  get_recipes: async ({ dietary_restrictions, max_cooking_time }) => {
+    const { data } = await supabase.functions.invoke('suggest-recipes', {
+      body: { dietary_restrictions, max_cooking_time }
+    });
+    
+    return { recipes: data.recipes };
   },
-  processing: {
-    rotate: 360,
-    transition: { repeat: Infinity, duration: 2, ease: "linear" }
+  
+  add_to_shopping_list: async ({ items }) => {
+    const entries = items.map(item => ({
+      household_id: profile.current_household_id,
+      item_name: item,
+      source: 'voice_request',
+      status: 'pending'
+    }));
+    
+    await supabase.from('shopping_list').insert(entries);
+    
+    return { success: true, itemCount: items.length };
   },
-  speaking: {
-    scale: 0.8 + (audioAmplitude * 0.4),
-    transition: { duration: 0.1 }
+  
+  check_expiring_items: async () => {
+    const threeDaysFromNow = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+    
+    const { data } = await supabase
+      .from('inventory')
+      .select('*')
+      .eq('household_id', profile.current_household_id)
+      .lte('expiry_date', threeDaysFromNow.toISOString())
+      .order('expiry_date', { ascending: true });
+    
+    return { expiringItems: data };
   }
+}
+```
+
+### Contextual Updates
+
+**Pattern**: Send real-time household context to agent during active conversation
+
+**Trigger**: Supabase Realtime subscriptions
+
+**Implementation**:
+```typescript
+// useAssistantVoice.ts
+useEffect(() => {
+  if (!showConversation || !sendContextualUpdate) return;
+  
+  const channel = supabase
+    .channel('inventory-updates')
+    .on('postgres_changes', 
+      { event: '*', schema: 'public', table: 'inventory', filter: `household_id=eq.${householdId}` },
+      async (payload) => {
+        // Build context update
+        const { data: inventory } = await supabase.from('inventory')
+          .select('*')
+          .eq('household_id', householdId)
+          .eq('status', 'low')
+          .limit(5);
+        
+        const { data: expiring } = await supabase.from('inventory')
+          .select('*')
+          .eq('household_id', householdId)
+          .lte('expiry_date', threeDaysFromNow)
+          .limit(5);
+        
+        const contextUpdate = `
+          Inventory Update:
+          - Low stock items: ${inventory.map(i => i.name).join(', ')}
+          - Expiring soon: ${expiring.map(i => `${i.name} (${formatExpiryDate(i.expiry_date)})`).join(', ')}
+        `;
+        
+        sendContextualUpdate(contextUpdate);
+      }
+    )
+    .subscribe();
+  
+  return () => {
+    channel.unsubscribe();
+  };
+}, [showConversation, sendContextualUpdate, householdId]);
+```
+
+**Context Types**:
+- Inventory changes (items added, low stock, expiring)
+- Shopping list changes
+- Household member allergies
+- Pet dietary restrictions
+- Current cart contents
+- Nutrition progress
+
+### Aperture State Management
+
+**States**:
+- `idle`: Slow breathing pulse (2s cycle)
+- `listening`: Expanded with pulse
+- `speaking`: Synced with audio amplitude
+- `thinking`: Spinning animation
+
+**State Transitions**:
+```typescript
+const [apertureState, setApertureState] = useState<ApertureState>('idle');
+
+useEffect(() => {
+  if (isSpeaking) {
+    setApertureState('speaking');
+  } else if (status === 'connected' && !isSpeaking) {
+    setApertureState('listening');
+  } else {
+    setApertureState('idle');
+  }
+}, [isSpeaking, status]);
+```
+
+### Audio Amplitude Visualization
+
+**Pattern**: Track audio amplitude for visual feedback
+
+```typescript
+const [audioAmplitude, setAudioAmplitude] = useState(0);
+
+useEffect(() => {
+  if (!conversation.audioRef.current) return;
+  
+  const audioContext = new AudioContext();
+  const analyser = audioContext.createAnalyser();
+  const source = audioContext.createMediaElementSource(conversation.audioRef.current);
+  source.connect(analyser);
+  analyser.connect(audioContext.destination);
+  
+  analyser.fftSize = 256;
+  const bufferLength = analyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+  
+  const updateAmplitude = () => {
+    analyser.getByteFrequencyData(dataArray);
+    const average = dataArray.reduce((a, b) => a + b) / bufferLength;
+    setAudioAmplitude(average / 255); // Normalize to 0-1
+    requestAnimationFrame(updateAmplitude);
+  };
+  
+  updateAmplitude();
+}, [conversation.audioRef]);
+```
+
+### Wake Word Detection
+
+**Pattern**: "Hey Kaeva" detection using Web Speech API
+
+**Implementation**: `useWakeWordDetection.ts`
+
+```typescript
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+
+recognition.continuous = true;
+recognition.interimResults = true;
+
+recognition.onresult = (event) => {
+  const transcript = Array.from(event.results)
+    .map(result => result[0].transcript)
+    .join('')
+    .toLowerCase();
+  
+  const wakeWords = ['kaeva', 'hey kaeva', 'ok kaeva'];
+  const detected = wakeWords.some(word => transcript.includes(word));
+  
+  if (detected) {
+    haptics.notification('success');
+    onWakeWordDetected();
+  }
+};
+
+recognition.onerror = (event) => {
+  console.error('Speech recognition error:', event.error);
+  // Auto-restart on errors
+  setTimeout(() => recognition.start(), 1000);
 };
 ```
 
-**Visual Design:**
-- Circular gradient mesh
-- Glow effect on active
-- Color shifts by state
-  - Sleeping: Soft blue
-  - Listening: Bright cyan
-  - Processing: Purple pulse
-  - Speaking: Dynamic green-blue
+**Settings Integration**:
+- Opt-in via `profiles.notification_preferences.wake_word_enabled`
+- Visual indicator when listening (WakeWordIndicator component)
+- Auto-disable at low battery (<20%)
 
-#### Transcript Display
+### Voice UI Components
 
-**Component:** `ConversationOverlay.tsx`
+**ConversationOverlay**:
+- Full-screen overlay during active conversation
+- Living Aperture with state-based animation
+- User transcript display (bottom)
+- AI transcript display (top)
+- Close button (ESC or tap outside)
 
-**Layout:**
+**SleepingIndicator**:
+- Subtle pulsing indicator when assistant is idle
+- Small gold dot with breathing animation
+
+**ConceptCard**:
+- Visual confirmation cards during onboarding
+- Slide in from right on data confirmation
+- Auto-dismiss after 2 seconds
+- Glass styling with sage border
+
+**SmartChips**:
+- Quick-reply buttons for silent interaction
+- "Yes", "No", "Skip" predefined responses
+- Glass design with primary accent
+- Sends contextual update on click
+
+### Voice Activation Entry Points
+
+**3 Activation Methods**:
+
+1. **Mic Button** (AppShell navigation dock):
+   - Bottom dock mic icon
+   - Triggers `startConversation()`
+
+2. **Living Aperture** (FloatingActionButton):
+   - Center gold hero button
+   - Primary voice activation point
+   - Triggers modal picker → Voice option
+
+3. **Keyboard Shortcut** (global):
+   - `Cmd+Shift+K` (Mac) / `Ctrl+Shift+K` (Windows)
+   - Triggers `startConversation()`
+
+### Voice Assistant Lifecycle
+
+**Onboarding Flow**:
+1. User completes signup
+2. `Index.tsx` checks `onboarding_completed = false`
+3. Shows `VoiceOnboarding` component
+4. Agent guides through profile setup
+5. `completeConversation` tool marks `onboarding_completed = true`
+6. Creates household and household_membership
+7. Redirects to Dashboard
+
+**In-App Assistance**:
+1. User triggers voice via one of 3 entry points
+2. `VoiceAssistant` component loads (forwardRef pattern)
+3. `useAssistantVoice` hook establishes ElevenLabs connection
+4. User speaks query
+5. Agent processes with client tools
+6. Contextual updates sent via realtime subscriptions
+7. User ends conversation or times out
+
+### Agent Provisioning Flow
+
+**File**: `supabase/functions/provision-agents/index.ts`
+
+**Process**:
+1. Admin clicks "Provision Agents" in Admin Dashboard
+2. Fetches user profile for context building
+3. For each agent type (onboarding, assistant):
+   - Build agent prompt from template
+   - Define client tools in ElevenLabs format
+   - Attempt PATCH to known agent ID
+   - If 404, POST to create new agent
+4. Update `profiles.agent_configured = true`
+5. Display success/error in UI
+
+**Agent Prompt Template** (onboarding):
 ```
-┌─────────────────────────────────┐
-│         [Close Button]          │
-│                                 │
-│       [Kaeva Aperture]          │
-│                                 │
-│  ┌─────────────────────────┐   │
-│  │   User Transcript       │   │
-│  │   "What's in my..."     │   │
-│  └─────────────────────────┘   │
-│                                 │
-│  ┌─────────────────────────┐   │
-│  │   AI Response           │   │
-│  │   "You have milk..."    │   │
-│  └─────────────────────────┘   │
-└─────────────────────────────────┘
+You are Kaeva, a friendly and helpful home assistant. Your goal is to help the user set up their profile through natural conversation.
+
+User Context:
+- Name: ${profile.user_name || 'not set'}
+- Current household: ${profile.current_household_id ? 'exists' : 'needs creation'}
+
+Your Tasks:
+1. Gather basic user info (name, age, weight, height, gender, activity level)
+2. Ask about dietary preferences and allergies
+3. Ask about household members and pets
+4. Ask about beauty preferences (skin type, hair type)
+5. Confirm all information before saving
+
+Tools Available:
+- updateProfile: Update user profile fields
+- saveHouseholdMember: Add household member
+- savePet: Add pet
+- completeConversation: Mark onboarding complete
+
+Be conversational, friendly, and patient. Confirm each piece of information before moving to the next.
 ```
 
-**Features:**
-- Real-time updates
-- Auto-scroll to latest
-- Typing indicator during processing
-- Fade-in animations
-- Accessibility (ARIA labels)
-
-#### Voice Button
-
-**Component:** `FloatingActionButton.tsx` (Voice action)
-
-**States:**
-- `idle` - Blue pulsing button
-- `active` - Recording indicator
-- `disabled` - Grayed out
-
-**Animation:**
-```typescript
-<motion.button
-  whileHover={{ scale: 1.1 }}
-  whileTap={{ scale: 0.9 }}
-  animate={isRecording ? { scale: [1, 1.2, 1] } : {}}
-  transition={{ repeat: isRecording ? Infinity : 0 }}
->
-  <Mic />
-</motion.button>
+**Agent Prompt Template** (assistant):
 ```
+You are Kaeva, a proactive home assistant helping the user manage their household.
 
-### Conversation Context Management
+User Context:
+- Name: ${profile.user_name}
+- Household: ${householdName}
+- Dietary preferences: ${profile.dietary_preferences}
+- Allergies: ${profile.allergies}
+- Household members: ${householdMembers.map(m => m.name).join(', ')}
+- Pets: ${pets.map(p => `${p.name} (${p.species})`).join(', ')}
 
-#### Context Building
+Current Household State:
+- Low stock items: ${lowStockItems}
+- Expiring soon: ${expiringItems}
+- Today's nutrition: ${todayNutrition}
+- Shopping list: ${shoppingListItems}
 
-**What AI Knows:**
-1. **User Profile**
-   - Name, biometrics, goals
-   - Allergies, dietary preferences
-   - Household composition
+Tools Available:
+- check_inventory: Query inventory by category
+- get_recipes: Find recipes matching criteria
+- add_to_shopping_list: Add items to shopping list
+- check_expiring_items: Get items nearing expiry
 
-2. **Current State**
-   - Inventory summary (counts by category)
-   - Shopping list items
-   - Recent meals logged
-   - Low stock alerts
-
-3. **Conversation History**
-   - Last 10 messages from database
-   - Current session messages
-   - Previous intents
-
-**Context Injection:**
-```typescript
-const context = `
-User: ${profile.user_name}
-Allergies: ${profile.allergies.join(', ')}
-Inventory: ${inventorySummary}
-Recent History: ${recentMessages.map(m => `${m.role}: ${m.message}`).join('\n')}
-`;
-
-await startSession({
-  customVariables: { context }
-});
+Be proactive, helpful, and context-aware. Use the real-time household data to provide personalized assistance.
 ```
-
-#### Context Refresh
-
-**When to Refresh:**
-- Inventory changes (item added/removed)
-- Profile updates
-- New household member
-- Shopping list changes
-
-**How to Refresh:**
-Currently requires new session. Future: Dynamic context updates via ElevenLabs API.
 
 ---
 
 ## Smart Scanner System
 
-### Multi-Intent Scanner Architecture
+### Multi-Intent Architecture
 
-```mermaid
-graph TD
-    A[User Opens Scanner] --> B[Select Mode or Auto]
-    B --> C[Capture Photo]
-    C --> D[Upload Image]
-    D --> E[analyze-vision Edge Function]
-    E --> F[Google Gemini Vision]
-    F --> G[Extract Structured Data]
-    G --> H[detect-intent Edge Function]
-    H --> I[OpenAI Intent Classification]
-    I --> J{Intent Type}
-    J -->|Inventory| K[Enrich Product Data]
-    J -->|Nutrition| L[Analyze Meal]
-    J -->|Product| M[Get Nutrition Facts]
-    J -->|Appliance| N[Suggest Products]
-    J -->|Pet| O[Identify Pet]
-    J -->|Vanity| P[Analyze Beauty Product]
-    K --> Q[Display Results]
-    L --> Q
-    M --> Q
-    N --> Q
-    O --> Q
-    P --> Q
-```
+**File**: `src/components/scanner/SmartScanner.tsx`
 
-### Scanner Modes
+**Intents**:
+1. **Inventory**: Add/update inventory items
+2. **Nutrition**: Track meal for nutrition logging
+3. **Beauty**: Analyze beauty products
+4. **Pets**: Check pet food/product safety
+5. **Appliances**: Identify appliances for manual lookup
 
-#### 1. Inventory Sweep
-**Purpose:** Bulk add items to inventory
+### Scanner UI Components
 
-**Use Case:** User scans fridge/pantry shelf
+**ScanModeCarousel**:
+- Horizontal swipeable mode selector
+- Shows 3 modes at once (previous, current, next)
+- Active mode centered and highlighted
+- Positioned beneath capture button
+- Embla carousel for smooth gestures
 
-**Process:**
-1. Capture wide shot of items
-2. Gemini identifies all visible products
-3. For each product:
-   - Extract name, brand
-   - Estimate quantity
-   - Classify category (fridge/pantry)
-4. Batch enrich via FatSecret
-5. Check allergens for each
-6. Display list with checkboxes
-7. User confirms which to add
-8. Batch insert to inventory
+**ScannerHUD**:
+- Technical AR-style overlay
+- Corner brackets (SVG)
+- Animated scan line (Autumn Gold #D69E2E)
+- Fine grid overlay (subtle)
+- Fleeting hint text
 
-**Vision Prompt:**
-```
-Identify all packaged food products visible in this image.
-For each product, provide:
-- Product name
-- Brand name (if visible)
-- Estimated quantity (count if multiple)
-- Category: fridge or pantry
+**CaptureButton**:
+- Fixed 72px gold circular button
+- Center of screen
+- Haptic feedback on tap
+- Gold glow shadow
 
-Return as JSON array:
-[
-  {
-    "name": "Whole Milk",
-    "brand": "Organic Valley",
-    "quantity": 1,
-    "category": "fridge"
-  },
-  ...
-]
-```
+**ScannerToolbar**:
+- Top toolbar with controls
+- Flash toggle
+- Camera flip (front/back)
+- Close button
 
-**UI:**
+### Product Identification Cascade
+
+**Multi-Modal Strategy**:
+
+1. **Barcode Detection** (highest confidence):
+   - Scan barcode from image
+   - Query product database by barcode
+   - Confidence: 0.95+
+
+2. **OCR Text Extraction**:
+   - Extract text from packaging via Gemini Vision
+   - Search product database by text
+   - Confidence: 0.7-0.9
+
+3. **Visual Features Analysis**:
+   - Analyze color, shape, packaging design
+   - Match against product database
+   - Confidence: 0.5-0.8
+
+4. **Nutrition Label Parsing**:
+   - Extract nutrition facts table
+   - Match nutrition profile to products
+   - Confidence: 0.6-0.9
+
+**Identification Method Display**:
+- UI shows which method was used (barcode icon, text icon, eye icon, label icon)
+- Transparency for user trust
+
+### Scanner Result Modes
+
+**Located**: `src/components/scanner/result-modes/`
+
+#### `ProductAnalysisResult.tsx`
+**Intent**: Inventory, Beauty, Pets
+
+**Features**:
+- Product name, brand, image
+- Category classification
+- Nutrition data (if food)
+- Allergen warnings
+- Toxicity warnings (for pets)
+- Safety score (0-100)
+- "Add to Inventory" button
+- "View Similar Products" link
+
+#### `NutritionTrackResult.tsx`
+**Intent**: Nutrition
+
+**Features**:
+- Detected food items with quantities
+- Individual item macros
+- Aggregate meal macros
+- Meal type selector (breakfast, lunch, dinner, snack)
+- "Log Meal" button
+- "Save as Template" button
+
+#### `InventorySweepResult.tsx`
+**Intent**: Inventory (multi-item)
+
+**Features**:
+- Grid view of detected items
+- Checkbox selection
+- Batch add to inventory
+- Category assignment per item
+
+#### `VanitySweepResult.tsx`
+**Intent**: Beauty (multi-item)
+
+**Features**:
+- Beauty product grid
+- Skin compatibility indicators
+- Expiry date detection
+- Batch add to beauty inventory
+
+#### `PetIdResult.tsx`
+**Intent**: Pets
+
+**Features**:
+- Pet identification via microchip/tag scan
+- Pet profile display
+- Food compatibility check
+- Toxic food warnings
+
+#### `ApplianceScanResult.tsx`
+**Intent**: Appliances
+
+**Features**:
+- Appliance identification
+- Manual link generation
+- Model number extraction
+- "Search for Manual" button
+
+#### `FixResultSheet.tsx`
+**Universal**:
+- Manual correction interface
+- Edit detected values
+- Override classification
+- Force save
+
+### Duplicate Detection
+
+**Component**: `DuplicateItemModal.tsx`
+
+**Logic**:
 ```typescript
-<InventorySweepResult
-  items={detectedItems}
-  onConfirm={(selectedItems) => {
-    // Batch insert
-    selectedItems.forEach(item => {
-      supabase.from('inventory').insert({
-        name: item.name,
-        brand: item.brand,
-        quantity: item.quantity,
-        category: item.category,
-        user_id: userId
-      });
-    });
-  }}
-/>
-```
+// Check for duplicates before adding to inventory
+const { data: existing } = await supabase
+  .from('inventory')
+  .select('*')
+  .eq('household_id', householdId)
+  .eq('name', productName)
+  .eq('category', category)
+  .single();
 
-#### 2. Nutrition Tracking
-**Purpose:** Log a meal for calorie/macro tracking
-
-**Use Case:** User scans plate of food
-
-**Process:**
-1. Capture photo of meal
-2. Gemini identifies food items and portions
-3. For each item, search FatSecret
-4. Calculate total macros
-5. User selects meal type
-6. Insert into `meal_logs`
-
-**Vision Prompt:**
-```
-Analyze this meal photo. Identify all food items and estimate portion sizes.
-
-Return as JSON:
-{
-  "items": [
-    {
-      "name": "Grilled Chicken Breast",
-      "portion": "6 oz",
-      "quantity": 1
-    },
-    {
-      "name": "Steamed Broccoli",
-      "portion": "1 cup",
-      "quantity": 1
-    }
-  ],
-  "estimatedMealType": "lunch"
+if (existing) {
+  // Show modal: Update quantity or Add new?
+  setShowDuplicateModal(true);
 }
 ```
 
-**Macro Calculation:**
+**Options**:
+1. **Update Existing**: Increase quantity of existing item
+2. **Add New**: Create separate inventory entry (different location/brand)
+3. **Cancel**: Abort scan
+
+### Toxicity Detection
+
+**Component**: `ToxicityAlert.tsx`
+
+**Logic**:
 ```typescript
-const totals = items.reduce((acc, item) => {
-  const nutrition = await searchFatSecret(item.name);
-  const portionMultiplier = calculatePortionMultiplier(
-    item.portion,
-    nutrition.serving_size
-  );
-  
-  return {
-    calories: acc.calories + (nutrition.calories * portionMultiplier),
-    protein: acc.protein + (nutrition.protein * portionMultiplier),
-    carbs: acc.carbs + (nutrition.carbs * portionMultiplier),
-    fat: acc.fat + (nutrition.fat * portionMultiplier)
-  };
-}, { calories: 0, protein: 0, carbs: 0, fat: 0 });
-```
+import { TOXIC_FOODS_BY_SPECIES } from '@/lib/petCareData';
 
-**UI:**
-```typescript
-<NutritionTrackResult
-  items={detectedItems}
-  totals={calculatedTotals}
-  onLog={(mealType) => {
-    supabase.from('meal_logs').insert({
-      user_id: userId,
-      meal_type: mealType,
-      items: detectedItems,
-      ...totals,
-      logged_at: new Date(),
-      image_url: capturedImageUrl
-    });
-  }}
-/>
-```
-
-#### 3. Product Analysis
-**Purpose:** Deep dive into specific product
-
-**Use Case:** User scans a product to learn about it
-
-**Process:**
-1. Capture close-up of product
-2. Gemini extracts:
-   - Product name and brand
-   - Ingredients list (OCR)
-   - Nutrition label (OCR)
-   - Barcode (if visible)
-3. Enrich via FatSecret
-4. Detect allergens
-5. Check pet toxicity
-6. Analyze "product truth" (marketing vs reality)
-7. Display comprehensive report
-
-**Vision Prompt:**
-```
-Analyze this product packaging in detail.
-
-Extract:
-- Product name
-- Brand name
-- Full ingredients list (read the label)
-- Nutrition facts (all fields from label)
-- Barcode number (if visible)
-- Any health claims or marketing language
-
-Return as JSON:
-{
-  "name": "...",
-  "brand": "...",
-  "ingredients": ["ingredient1", "ingredient2", ...],
-  "nutrition": {
-    "servingSize": "...",
-    "calories": ...,
-    "protein": ...,
-    ...
-  },
-  "barcode": "...",
-  "marketingClaims": ["claim1", "claim2"]
-}
-```
-
-**Product Truth Analysis:**
-```typescript
-const analyzeProductTruth = (product) => {
-  const deceptions = [];
-  
-  // Check "natural" claim
-  if (product.marketingClaims.includes('natural')) {
-    const artificialIngredients = product.ingredients.filter(i =>
-      i.includes('artificial') || i.includes('synthetic')
+const checkToxicity = (productName: string, pets: Pet[]) => {
+  for (const pet of pets) {
+    if (!pet.toxic_flags_enabled) continue;
+    
+    const toxicFoods = TOXIC_FOODS_BY_SPECIES[pet.species] || [];
+    const isToxic = toxicFoods.some(toxic => 
+      productName.toLowerCase().includes(toxic.toLowerCase())
     );
-    if (artificialIngredients.length > 0) {
-      deceptions.push({
-        claim: 'Natural',
-        reality: `Contains ${artificialIngredients.length} artificial ingredients`,
-        severity: 'medium'
-      });
+    
+    if (isToxic) {
+      return {
+        isToxic: true,
+        petName: pet.name,
+        species: pet.species,
+        toxicFood: productName
+      };
     }
   }
   
-  // Check "low sugar" claim
-  if (product.marketingClaims.includes('low sugar')) {
-    if (product.nutrition.sugar > 10) {
-      deceptions.push({
-        claim: 'Low Sugar',
-        reality: `Contains ${product.nutrition.sugar}g sugar per serving`,
-        severity: 'high'
-      });
-    }
-  }
-  
-  // More checks...
-  
-  return deceptions;
+  return { isToxic: false };
 };
 ```
 
-**UI:**
-```typescript
-<ProductAnalysisResult
-  product={enrichedProduct}
-  allergenWarnings={detectedAllergens}
-  toxicityWarnings={petToxicity}
-  deceptionFlags={productTruth}
-  onAddToInventory={() => {
-    supabase.from('inventory').insert({
-      ...product,
-      user_id: userId
-    });
-  }}
-/>
-```
+**Alert Display**:
+- Full-screen overlay with Terracotta (#D97757) accent
+- Shield icon with warning symbol
+- Pet name and species
+- Toxic food name
+- "Do not feed" message
+- Double heavy vibration (haptics)
 
-#### 4. Appliance Scan
-**Purpose:** Identify appliance and suggest compatible products
+### Voice Meal Logging
 
-**Use Case:** User scans coffee maker, wants to buy filters
+**Component**: `VoiceMealInput.tsx`
 
-**Process:**
-1. Capture photo of appliance
-2. Gemini identifies type, brand, model
-3. Query database/API for compatible products
-4. Suggest products to add to inventory
-5. Add to shopping list
+**Flow**:
+1. User taps "Log Meal by Voice"
+2. Microphone opens
+3. User describes meal: "I had chicken breast with broccoli and rice"
+4. Speech-to-text conversion
+5. Send to Gemini for food item extraction
+6. Enrich each item via FatSecret/USDA/Gemini
+7. Calculate macros
+8. Show `NutritionTrackResult`
+9. User confirms and logs
 
-**Vision Prompt:**
-```
-Identify this kitchen appliance.
+### Meal Templates
 
-Return:
-- Appliance type (e.g., "Coffee Maker")
-- Brand (if visible)
-- Model number (if visible)
-- Key features observed
+**Components**: `MealTemplateSheet.tsx`, `SaveTemplateDialog.tsx`
 
-JSON format:
-{
-  "type": "Coffee Maker",
-  "brand": "Keurig",
-  "model": "K-Elite",
-  "features": ["Single Serve", "Iced Coffee", "Strong Brew"]
-}
-```
+**Purpose**: Quick logging of repeated meals
 
-**Product Suggestions:**
-```typescript
-const suggestProducts = (appliance) => {
-  const suggestions = {
-    'Coffee Maker': ['Coffee Filters', 'Coffee Beans', 'Descaling Solution'],
-    'Blender': ['Blender Bottles', 'Protein Powder', 'Frozen Fruit'],
-    'Air Fryer': ['Air Fryer Liners', 'Cooking Spray', 'Seasoning Blends']
-  };
-  
-  return suggestions[appliance.type] || [];
-};
-```
+**Flow**:
+1. User scans/logs meal
+2. Taps "Save as Template"
+3. Names template (e.g., "Breakfast Smoothie")
+4. Template saved to `meal_templates` table
+5. Later: Tap template from sheet → instant log
 
-**UI:**
-```typescript
-<ApplianceScanResult
-  appliance={identifiedAppliance}
-  suggestedProducts={productSuggestions}
-  onAddToInventory={(products) => {
-    products.forEach(product => {
-      supabase.from('shopping_list').insert({
-        item_name: product,
-        source: 'appliance_scan',
-        user_id: userId
-      });
-    });
-  }}
-/>
-```
+### Beauty Inspiration
 
-#### 5. Pet ID
-**Purpose:** Add pet to household
+**Component**: `BeautyInspirationSheet.tsx`
 
-**Use Case:** User scans their pet
+**Trigger**: User scans 3+ beauty products
 
-**Process:**
-1. Capture photo of pet
-2. Gemini identifies species, breed
-3. Estimate age from appearance
-4. Pre-fill pet form
-5. User confirms/edits
-6. Insert into `pets` table
+**Process**:
+1. Detect batch beauty scan
+2. Call `generate-beauty-inspiration` edge function
+3. Gemini analyzes products and generates looks
+4. Search YouTube for tutorial videos
+5. Display looks with product usage steps
+6. Link to video tutorials
 
-**Vision Prompt:**
-```
-Identify this pet.
-
-Provide:
-- Species (dog, cat, bird, etc.)
-- Breed (best guess)
-- Estimated age (puppy/kitten, young, adult, senior)
-- Distinctive features
-
-JSON:
-{
-  "species": "dog",
-  "breed": "Golden Retriever",
-  "estimatedAge": "adult (3-7 years)",
-  "features": ["golden coat", "friendly expression"]
-}
-```
-
-**UI:**
-```typescript
-<PetIdResult
-  petData={identifiedPet}
-  onAddPet={(petDetails) => {
-    supabase.from('pets').insert({
-      user_id: userId,
-      species: petDetails.species,
-      breed: petDetails.breed,
-      age: petDetails.age,
-      name: petDetails.name, // User-provided
-      toxic_flags_enabled: true
-    });
-  }}
-/>
-```
-
-#### 6. Vanity Sweep
-**Purpose:** Add beauty/personal care products
-
-**Use Case:** User scans bathroom cabinet
-
-**Process:**
-1. Capture photo of beauty products
-2. Gemini identifies each product
-3. Extract ingredients if visible
-4. Classify product type
-5. Analyze skin type compatibility
-6. Add to beauty inventory
-
-**Vision Prompt:**
-```
-Identify all beauty/personal care products in this image.
-
-For each:
-- Product name
-- Brand
-- Product type (moisturizer, cleanser, serum, etc.)
-- Key ingredients (if label visible)
-
-JSON array:
-[
-  {
-    "name": "Hydrating Gel Cream",
-    "brand": "CeraVe",
-    "type": "moisturizer",
-    "ingredients": ["hyaluronic acid", "ceramides", "niacinamide"]
-  }
-]
-```
-
-**Skin Type Analysis:**
-```typescript
-const analyzeSkinTypeCompatibility = (product, userSkinType) => {
-  const compatibilityRules = {
-    'oily': {
-      avoid: ['heavy oils', 'thick creams'],
-      prefer: ['gel', 'water-based', 'oil-free']
-    },
-    'dry': {
-      avoid: ['alcohol', 'astringent'],
-      prefer: ['hyaluronic acid', 'ceramides', 'rich creams']
-    },
-    'sensitive': {
-      avoid: ['fragrance', 'alcohol', 'harsh acids'],
-      prefer: ['fragrance-free', 'hypoallergenic']
-    }
-  };
-  
-  const rules = compatibilityRules[userSkinType];
-  const warnings = [];
-  const benefits = [];
-  
-  product.ingredients.forEach(ingredient => {
-    if (rules.avoid.some(avoid => ingredient.includes(avoid))) {
-      warnings.push(`May not be suitable: contains ${ingredient}`);
-    }
-    if (rules.prefer.some(prefer => ingredient.includes(prefer))) {
-      benefits.push(`Great for your skin: contains ${ingredient}`);
-    }
-  });
-  
-  return { warnings, benefits };
-};
-```
-
-**UI:**
-```typescript
-<VanitySweepResult
-  products={detectedProducts}
-  compatibility={skinTypeAnalysis}
-  onAddToInventory={(products) => {
-    products.forEach(product => {
-      supabase.from('inventory').insert({
-        name: product.name,
-        brand: product.brand,
-        category: 'beauty',
-        user_id: userId,
-        metadata: {
-          productType: product.type,
-          ingredients: product.ingredients
-        }
-      });
-    });
-  }}
-/>
-```
-
-### Image Capture & Processing
-
-#### Camera Component
-
-**Library:** `react-webcam`
-
-**Configuration:**
-```typescript
-<Webcam
-  ref={webcamRef}
-  screenshotFormat="image/jpeg"
-  videoConstraints={{
-    facingMode: "environment", // Use back camera on mobile
-    width: 1920,
-    height: 1080
-  }}
-  audio={false}
-/>
-```
-
-#### Capture Flow
-
-1. **User Clicks Capture Button**
-2. **Get Image Data:**
-   ```typescript
-   const imageSrc = webcamRef.current.getScreenshot();
-   // imageSrc is base64 data URL
-   ```
-
-3. **Compress Image:**
-   ```typescript
-   const compressImage = async (base64) => {
-     const img = new Image();
-     img.src = base64;
-     await img.decode();
-     
-     const canvas = document.createElement('canvas');
-     const ctx = canvas.getContext('2d');
-     
-     // Max width 1024px
-     const maxWidth = 1024;
-     const scale = maxWidth / img.width;
-     canvas.width = maxWidth;
-     canvas.height = img.height * scale;
-     
-     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-     
-     return canvas.toDataURL('image/jpeg', 0.8); // 80% quality
-   };
-   ```
-
-4. **Send to Edge Function:**
-   ```typescript
-   const { data, error } = await supabase.functions.invoke('analyze-vision', {
-     body: {
-       imageData: compressedImage,
-       mode: selectedMode,
-       userId
-     }
-   });
-   ```
-
-#### Result Display
-
-**ScanResults Component:**
-- Animated drawer (slides up from bottom)
-- Confidence meter
-- Intent-specific icon
-- Dynamic content area
-- Confirm/Cancel buttons
-
-**Animations:**
-```typescript
-<Drawer open={isOpen} onOpenChange={onClose}>
-  <DrawerContent>
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      {/* Results content */}
-    </motion.div>
-  </DrawerContent>
-</Drawer>
-```
-
-### Error Handling
-
-**Common Errors:**
-
-1. **Camera Permission Denied**
-   ```typescript
-   if (error.name === 'NotAllowedError') {
-     toast({
-       title: "Camera Access Denied",
-       description: "Please enable camera permissions to use scanner.",
-       variant: "destructive"
-     });
-   }
-   ```
-
-2. **Poor Image Quality**
-   ```typescript
-   if (visionResults.confidence < 0.5) {
-     toast({
-       title: "Low Confidence",
-       description: "Try capturing a clearer photo with better lighting.",
-       variant: "warning"
-     });
-   }
-   ```
-
-3. **No Items Detected**
-   ```typescript
-   if (visionResults.items.length === 0) {
-     toast({
-       title: "No Items Found",
-       description: "Make sure items are clearly visible in the frame.",
-     });
-   }
-   ```
-
-4. **API Errors**
-   ```typescript
-   if (error.code === 'RATE_LIMIT_EXCEEDED') {
-     toast({
-       title: "Too Many Requests",
-       description: "Please wait a moment before scanning again.",
-       variant: "destructive"
-     });
-   }
-   ```
+**Output**:
+- 2-3 suggested looks (natural, glam, professional)
+- Product usage per look
+- Step-by-step instructions
+- YouTube tutorial videos
 
 ---
 
 ## Design System
 
-### Design Philosophy
+### "Engineered Organic" Philosophy
 
-**Kaeva's Visual Identity:**
-- **Futuristic Minimalism** - Clean, spacious layouts with high-tech accents
-- **Biophilic Elements** - Organic shapes, nature-inspired colors
-- **Conversational** - Friendly, approachable typography
-- **Intelligent Motion** - Purposeful animations that enhance UX
+**Visual Language Metaphor**: "Glass & Light" - UI acts as transparent intelligent lens
 
-**Color Psychology:**
-- **Mint Green** - Fresh, healthy, natural (primary brand color)
-- **Electric Sky** - Innovative, intelligent, trustworthy (accent)
-- **Warm Gray** - Neutral, sophisticated (backgrounds)
-- **Alert Colors** - Clear status indicators (success/warning/error)
+**Principles**:
+- Precision with calming organic warmth
+- Heavy glassmorphism with crisp thin borders
+- Depth via inner glows and layering
+- Avoiding heavy shadows (prefer glows and gradients)
+- Dark mode default (eye strain reduction, battery savings)
 
-### Color Tokens
+### "Seattle Fall Nano" Color Palette
 
-**File:** `src/index.css`
+**5 Core Colors** (semantic purpose):
 
+1. **Autumn Gold** (#D69E2E) - Primary action color
+   - Usage: Buttons, Living Aperture, primary CTAs, scan line
+   - Role: Commands user attention, represents primary actions
+   
+2. **Electric Sage** (#70E098) - Success/safety
+   - Usage: Success states, safety indicators, positive feedback
+   - Role: Food/success/safety semantic meaning
+   
+3. **Terracotta** (#D97757) - Warnings/beauty/heat
+   - Usage: Alerts, toxicity warnings, beauty accents
+   - Role: Alert/beauty/heat semantic meaning
+   
+4. **Electric Sky** (#38BDF8) - Data/tech/medical
+   - Usage: Health metrics, data visualizations, technical info
+   - Role: Tech/medical/logistics semantic meaning
+   
+5. **Mist White** (#E2E8F0) - Neutral text/home
+   - Usage: Primary text, foreground elements
+   - Role: Neutral text/home semantic meaning
+
+**Background Colors**:
+- **Void** (#08080A) - Main background
+- **Deep Slate** (#0F172A) - Secondary background
+
+### Color System Implementation
+
+**Design Tokens** (`index.css`):
 ```css
 :root {
-  /* Brand Colors */
-  --kaeva-mint: 170 75% 65%;
-  --kaeva-mint-dark: 170 75% 45%;
-  --kaeva-electric-sky: 200 85% 60%;
-  --kaeva-electric-sky-dark: 200 85% 40%;
+  /* Primary Colors */
+  --primary: 44 84% 52%; /* Autumn Gold #D69E2E */
+  --secondary: 142 71% 69%; /* Electric Sage #70E098 */
+  --destructive: 12 70% 60%; /* Terracotta #D97757 */
+  --accent: 199 89% 61%; /* Electric Sky #38BDF8 */
   
-  /* Semantic Tokens */
-  --background: 0 0% 100%;
-  --foreground: 0 0% 10%;
-  --primary: var(--kaeva-mint);
-  --primary-foreground: 0 0% 100%;
-  --secondary: 200 20% 95%;
-  --secondary-foreground: 0 0% 10%;
-  --accent: var(--kaeva-electric-sky);
-  --accent-foreground: 0 0% 100%;
+  /* Background */
+  --background: 240 10% 3%; /* Void #08080A */
+  --foreground: 210 20% 90%; /* Mist #E2E8F0 */
   
-  /* UI States */
-  --muted: 0 0% 96%;
-  --muted-foreground: 0 0% 45%;
-  --border: 0 0% 90%;
-  --input: 0 0% 90%;
-  --ring: var(--primary);
+  /* UI Elements */
+  --card: 222 47% 11%; /* Deep Slate */
+  --border: 217 33% 17%;
+  --input: 217 33% 17%;
   
-  /* Status Colors */
-  --success: 142 71% 45%;
-  --warning: 38 92% 50%;
-  --error: 0 72% 51%;
-  --info: 217 91% 60%;
-  
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  --shadow-glow: 0 0 20px hsl(var(--kaeva-mint) / 0.3);
-}
-
-.dark {
-  --background: 0 0% 10%;
-  --foreground: 0 0% 95%;
-  --primary: var(--kaeva-mint-dark);
-  --accent: var(--kaeva-electric-sky-dark);
-  --muted: 0 0% 15%;
-  --muted-foreground: 0 0% 60%;
-  --border: 0 0% 20%;
-  /* ... dark mode overrides */
+  /* Shadows & Glows */
+  --glow: 0 0 40px hsl(44 84% 52% / 0.4); /* Gold glow */
+  --glass: inset 0 1px 0 hsl(0 0% 100% / 0.1); /* Glass border */
+  --dock: 0 10px 30px hsl(0 0% 0% / 0.3); /* Floating elevation */
 }
 ```
 
-**Tailwind Config Extension:**
-
+**Tailwind Config** (`tailwind.config.ts`):
 ```typescript
-// tailwind.config.ts
-export default {
-  theme: {
-    extend: {
-      colors: {
-        kaeva: {
-          mint: 'hsl(var(--kaeva-mint))',
-          'mint-dark': 'hsl(var(--kaeva-mint-dark))',
-          'electric-sky': 'hsl(var(--kaeva-electric-sky))',
-          'electric-sky-dark': 'hsl(var(--kaeva-electric-sky-dark))'
-        },
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))'
-        },
-        // ... more semantic tokens
-      }
+theme: {
+  extend: {
+    colors: {
+      primary: 'hsl(var(--primary))',
+      secondary: 'hsl(var(--secondary))',
+      destructive: 'hsl(var(--destructive))',
+      accent: 'hsl(var(--accent))',
+      background: 'hsl(var(--background))',
+      foreground: 'hsl(var(--foreground))',
+      // ... more
+    },
+    boxShadow: {
+      glow: 'var(--glow)',
+      glass: 'var(--glass)',
+      dock: 'var(--dock)'
     }
   }
-};
-```
-
-### Typography
-
-**Font Stack:**
-
-```css
-:root {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Space Grotesk', 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
 ```
 
-**Type Scale:**
+**Usage in Components**:
+```typescript
+// ✅ CORRECT: Use semantic tokens
+<Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+  Action
+</Button>
 
-```css
-.text-xs { font-size: 0.75rem; line-height: 1rem; }      /* 12px */
-.text-sm { font-size: 0.875rem; line-height: 1.25rem; }  /* 14px */
-.text-base { font-size: 1rem; line-height: 1.5rem; }     /* 16px */
-.text-lg { font-size: 1.125rem; line-height: 1.75rem; }  /* 18px */
-.text-xl { font-size: 1.25rem; line-height: 1.75rem; }   /* 20px */
-.text-2xl { font-size: 1.5rem; line-height: 2rem; }      /* 24px */
-.text-3xl { font-size: 1.875rem; line-height: 2.25rem; } /* 30px */
-.text-4xl { font-size: 2.25rem; line-height: 2.5rem; }   /* 36px */
+// ❌ WRONG: Direct colors
+<Button className="bg-[#D69E2E] text-white">
+  Action
+</Button>
 ```
 
-**Usage Guidelines:**
-- **Headings:** Space Grotesk (display font)
-- **Body Text:** Inter (high legibility)
-- **Code/Data:** JetBrains Mono (monospace)
+### Typography System
+
+**3 Font Families**:
+
+1. **Manrope** (Sans) - Body text and display headers
+   - Weights: 400, 500, 600, 700
+   - Usage: Paragraphs, UI labels, headings
+   
+2. **Space Grotesk** (Mono) - Technical headers and data labels
+   - Weights: 400, 500, 700
+   - Usage: Technical data, code-like elements, monospace needs
+   
+3. **JetBrains Mono** (Mono) - Prices/quantities/metrics
+   - Weights: 400, 500
+   - Usage: Numerical data, prices, metrics
+
+**Type Scale**:
+```css
+.text-display { /* 2.5rem / 40px */
+  font-family: 'Manrope', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.text-body { /* 1rem / 16px */
+  font-family: 'Manrope', sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.text-data { /* 0.875rem / 14px */
+  font-family: 'Space Grotesk', monospace;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.text-micro { /* 0.75rem / 12px */
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.3;
+}
+```
 
 ### Spacing System
 
-**8px Grid:**
+**Consistent Vertical Rhythm**:
+- `space-y-4` (1rem / 16px): Default section gaps
+- `space-y-6` (1.5rem / 24px): Larger section gaps
+- `mb-3` (0.75rem / 12px): Header-to-content gap
 
-```css
-.spacing-unit: 8px;
+**Container Padding**:
+- `p-4` (1rem): Card padding
+- `p-6` (1.5rem): Page padding
 
-.space-1  { 8px }   /* 0.5rem */
-.space-2  { 16px }  /* 1rem */
-.space-3  { 24px }  /* 1.5rem */
-.space-4  { 32px }  /* 2rem */
-.space-6  { 48px }  /* 3rem */
-.space-8  { 64px }  /* 4rem */
-.space-12 { 96px }  /* 6rem */
-.space-16 { 128px } /* 8rem */
-```
+**Border Radius**:
+- `24px`: Large cards, modals
+- `12px`: Medium cards, inputs
+- `8px`: Small cards, buttons
 
-**Component Spacing:**
-- **Compact:** 8px (mobile, tight layouts)
-- **Default:** 16px (most components)
-- **Comfortable:** 24px (desktop, spacious)
-- **Generous:** 32px+ (hero sections, emphasis)
+### Glass Morphism Pattern
 
-### Component Variants
-
-#### Button Variants
-
+**Glass Card**:
 ```typescript
-// src/components/ui/button.tsx
-const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md transition-all",
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        premium: "bg-gradient-to-r from-kaeva-mint to-kaeva-electric-sky text-white shadow-lg hover:shadow-xl",
-        hero: "bg-background/10 backdrop-blur-md border border-border/20 hover:bg-background/20",
-        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        destructive: "bg-error text-white hover:bg-error/90"
-      },
-      size: {
-        sm: "h-9 px-3 text-sm",
-        default: "h-10 px-4 py-2",
-        lg: "h-11 px-8 text-lg",
-        icon: "h-10 w-10"
-      }
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default"
-    }
-  }
-);
-```
-
-**Usage:**
-```typescript
-<Button variant="premium" size="lg">Talk to Kaeva</Button>
-<Button variant="outline">Cancel</Button>
-<Button variant="ghost" size="icon"><Settings /></Button>
-```
-
-#### Card Variants
-
-```typescript
-const cardVariants = cva(
-  "rounded-lg border bg-card text-card-foreground shadow-sm",
-  {
-    variants: {
-      variant: {
-        default: "border-border bg-card",
-        elevated: "shadow-lg hover:shadow-xl transition-shadow",
-        glass: "bg-background/80 backdrop-blur-md border-border/20",
-        gradient: "bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20"
-      }
-    }
-  }
-);
-```
-
-### Animation System
-
-**Motion Principles:**
-1. **Purposeful** - Every animation serves UX
-2. **Snappy** - Quick transitions (200-300ms)
-3. **Natural** - Easing curves mimic physics
-4. **Contextual** - Animation style matches content
-
-**Easing Functions:**
-
-```css
-:root {
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-out: cubic-bezier(0, 0, 0.2, 1);
-  --ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-```
-
-**Common Animations:**
-
-**Fade In:**
-```typescript
-const fadeIn = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
-  transition: { duration: 0.2 }
-};
-```
-
-**Slide Up:**
-```typescript
-const slideUp = {
-  initial: { y: 20, opacity: 0 },
-  animate: { y: 0, opacity: 1 },
-  exit: { y: -20, opacity: 0 },
-  transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] }
-};
-```
-
-**Scale Pop:**
-```typescript
-const scalePop = {
-  initial: { scale: 0.9, opacity: 0 },
-  animate: { scale: 1, opacity: 1 },
-  exit: { scale: 0.9, opacity: 0 },
-  transition: { duration: 0.2, ease: [0.68, -0.55, 0.265, 1.55] }
-};
-```
-
-**Aperture Pulse:**
-```typescript
-const aperturePulse = {
-  animate: {
-    scale: [1, 1.1, 1],
-    opacity: [0.8, 1, 0.8]
-  },
-  transition: {
-    duration: 2,
-    repeat: Infinity,
-    ease: "easeInOut"
-  }
-};
-```
-
-### Responsive Design
-
-**Breakpoints:**
-
-```typescript
-// tailwind.config.ts
-screens: {
-  'sm': '640px',   // Mobile landscape
-  'md': '768px',   // Tablet portrait
-  'lg': '1024px',  // Tablet landscape / small desktop
-  'xl': '1280px',  // Desktop
-  '2xl': '1536px'  // Large desktop
-}
-```
-
-**Mobile-First Approach:**
-
-```typescript
-// Base styles for mobile
-<div className="p-4 text-base">
-  {/* Mobile styles */}
-</div>
-
-// Tablet and up
-<div className="p-4 md:p-6 text-base md:text-lg">
-  {/* Scales up on tablet */}
-</div>
-
-// Desktop
-<div className="p-4 md:p-6 lg:p-8 text-base md:text-lg lg:text-xl">
-  {/* Scales up on desktop */}
-</div>
-```
-
-**Component Responsiveness:**
-
-```typescript
-const isMobile = useMobile();
-
-return (
-  <>
-    {isMobile ? (
-      <Drawer> {/* Mobile drawer */} </Drawer>
-    ) : (
-      <Dialog> {/* Desktop modal */} </Dialog>
-    )}
-  </>
-);
-```
-
-### Accessibility
-
-**ARIA Labels:**
-```typescript
-<button
-  aria-label="Start voice conversation"
-  aria-pressed={isRecording}
->
-  <Mic />
-</button>
-```
-
-**Keyboard Navigation:**
-```typescript
-<div
-  tabIndex={0}
-  onKeyDown={(e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      handleClick();
-    }
-  }}
->
+<div className="glass-card p-4 rounded-3xl border border-border/20 backdrop-blur-xl bg-card/30">
   {/* Content */}
 </div>
 ```
 
-**Focus Indicators:**
+**CSS Definition**:
 ```css
-.focus-visible:focus {
-  outline: 2px solid hsl(var(--ring));
-  outline-offset: 2px;
+.glass-card {
+  background: hsl(var(--card) / 0.3);
+  backdrop-filter: blur(12px);
+  border: 1px solid hsl(var(--border) / 0.2);
+  box-shadow: var(--glass);
 }
 ```
 
-**Color Contrast:**
-- All text meets WCAG AA standards (4.5:1 minimum)
-- Interactive elements have clear hover/focus states
-- Status colors are distinguishable for colorblind users
+### Living Aperture Design
+
+**Component**: `KaevaAperture.tsx`
+
+**States**:
+1. **Idle**: Slow breathing pulse (2s cycle, scale 1.0 → 1.05)
+2. **Listening**: Expanded with pulse (scale 1.1)
+3. **Speaking**: Sync with audio amplitude (dynamic scale)
+4. **Thinking**: Spinning animation (360° rotation)
+
+**Visual**:
+- 64-72px circular button
+- Autumn Gold (#D69E2E) solid fill
+- Gold glow shadow: `drop-shadow(0 0 40px rgba(214, 158, 46, 0.4))`
+- Border: 4px solid background (void cutout effect)
+- Center dot with gradient
+
+**Animation**:
+```typescript
+<motion.div
+  animate={{
+    scale: apertureState === 'idle' ? [1, 1.05, 1] : 1.1,
+    rotate: apertureState === 'thinking' ? 360 : 0
+  }}
+  transition={{
+    scale: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
+    rotate: { duration: 1, repeat: Infinity, ease: 'linear' }
+  }}
+  className="w-16 h-16 rounded-full bg-primary shadow-glow"
+/>
+```
+
+### Floating Command Dock (Satellite Architecture)
+
+**Two-Layer Structure**:
+
+1. **Glass Capsule** (background layer):
+   - Fixed 320px width × 72px height
+   - Positioned bottom-[calc(1rem+env(safe-area-inset-bottom))]
+   - Glass styling with backdrop blur
+   - Contains Settings and Profile buttons
+   - `justify-between` for perfect symmetry
+
+2. **Living Aperture** (overlapping layer):
+   - Absolute positioned `-top-6` (breaks out of capsule)
+   - `left-1/2 -translate-x-1/2` (centered)
+   - Border: 4px solid background (void cutout)
+   - 64-72px circular gold button
+   - Overlaps capsule creating depth
+
+**Code**:
+```typescript
+<div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-50">
+  {/* Glass Capsule */}
+  <div className="relative w-80 h-18 glass-card rounded-full flex items-center justify-between px-6">
+    <Button variant="ghost" size="icon">
+      <Settings className="w-5 h-5" />
+    </Button>
+    
+    <Button variant="ghost" size="icon">
+      <User className="w-5 h-5" />
+    </Button>
+  </div>
+  
+  {/* Living Aperture */}
+  <div className="absolute -top-6 left-1/2 -translate-x-1/2">
+    <div className="border-4 border-background rounded-full">
+      <KaevaAperture state={apertureState} amplitude={audioAmplitude} />
+    </div>
+  </div>
+</div>
+```
+
+### Micro-Interactions & Animations
+
+**Page Transitions**:
+```typescript
+<PageTransition>
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
+    transition={{ duration: 0.3 }}
+  >
+    {children}
+  </motion.div>
+</PageTransition>
+```
+
+**Staggered Children**:
+```typescript
+<motion.div
+  initial="hidden"
+  animate="visible"
+  variants={{
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  }}
+>
+  {items.map((item, i) => (
+    <motion.div
+      key={i}
+      variants={{
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0 }
+      }}
+    >
+      {item}
+    </motion.div>
+  ))}
+</motion.div>
+```
+
+**Haptic Feedback**:
+- Success: `haptics.notification('success')` - sharp vibration
+- Warning: `haptics.notification('warning')` - double heavy vibration
+- Selection: `haptics.selection()` - light tick
+- Impact: `haptics.impact('medium')` - medium vibration
+
+### Loading States (Skeleton Screens)
+
+**Pattern**: Shimmering shapes matching final layout
+
+```typescript
+const InventoryCardSkeleton = () => (
+  <div className="glass-card p-4 rounded-2xl animate-pulse">
+    <div className="h-32 bg-muted/20 rounded-xl mb-3" />
+    <div className="h-4 bg-muted/20 rounded w-3/4 mb-2" />
+    <div className="h-3 bg-muted/20 rounded w-1/2" />
+  </div>
+);
+```
+
+### Empty States
+
+**Pattern**: Icon + message + CTA
+
+```typescript
+const EmptyInventory = () => (
+  <div className="flex flex-col items-center justify-center py-12 text-center">
+    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+      <Package className="w-8 h-8 text-primary" />
+    </div>
+    <h3 className="text-lg font-semibold mb-2">No items yet</h3>
+    <p className="text-sm text-muted-foreground mb-6">
+      Scan your first item to get started
+    </p>
+    <Button onClick={onScan}>
+      <Camera className="w-4 h-4 mr-2" />
+      Scan Item
+    </Button>
+  </div>
+);
+```
+
+### Responsive Design
+
+**Mobile-First Approach**:
+```typescript
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  {/* Items */}
+</div>
+```
+
+**Safe Areas** (iOS notches, Android gesture bars):
+```css
+.app-container {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+```
+
+**Dynamic Viewport Height** (Safari address bar):
+```css
+.full-height {
+  height: 100dvh; /* Dynamic viewport height */
+}
+```
+
+### Accessibility
+
+**WCAG AA Compliance**:
+- Mist White (#E2E8F0) on Deep Slate (#0F172A): 13.5:1 contrast (exceeds 4.5:1)
+- Touch targets: Minimum 44px × 44px
+- Focus indicators: 2px solid primary with offset
+- aria-labels on all interactive elements
+- Keyboard navigation support
+
+**Voice Fallbacks**:
+- Every voice interaction has visual UI fallback
+- Buttons/text inputs for silent environments
+- Non-negotiable for inclusive design
 
 ---
 
 ## User Flows
 
-### 1. New User Onboarding
+### Authentication Flow
 
 ```mermaid
-graph TD
-    A[Open App] --> B{Authenticated?}
-    B -->|No| C[Show Auth Page]
-    C --> D[Email/Password or Google OAuth]
-    D --> E[Create Account]
-    E --> F[Profile Created in DB]
-    F --> G[Redirect to Index]
+sequenceDiagram
+    participant U as User
+    participant L as Landing
+    participant A as Auth
+    participant S as Supabase
+    participant I as Index
     
-    B -->|Yes| G
+    U->>L: Visit /
+    L->>L: Check auth
+    alt Authenticated
+        L->>I: Redirect to /app
+    else Unauthenticated
+        L->>L: Show hero
+    end
     
-    G --> H{Onboarding Complete?}
-    H -->|No| I[Show Permission Request]
-    I --> J{Permissions Granted?}
-    J -->|No| K[Limited Functionality Warning]
-    K --> L[Manual Data Entry Form]
-    
-    J -->|Yes| M[Show Sleeping Kaeva]
-    M --> N[User Says Wake Word]
-    N --> O[Start Voice Onboarding]
-    O --> P[Collect User Data via Conversation]
-    P --> Q[AI Calls updateProfile Tool]
-    Q --> R{All Data Collected?}
-    R -->|No| P
-    R -->|Yes| S[AI Calls completeConversation]
-    S --> T[Save Data to Database]
-    T --> U[Calculate TDEE]
-    U --> V[Set onboarding_completed = true]
-    V --> W[Redirect to Dashboard]
-    
-    H -->|Yes| X[Show Dashboard]
+    U->>A: Click "Start Free" → /auth
+    U->>A: Enter email/password
+    A->>S: signUp()
+    S->>S: Create user
+    S->>S: Trigger handle_new_user()
+    S->>S: Create profile
+    S->>S: Assign 'user' role
+    S-->>A: Session
+    A->>I: Redirect to /app
 ```
 
-**Duration:** 3-5 minutes (voice) or 5-10 minutes (manual)
-
-**Data Collected:**
-- Personal: Name, age
-- Biometric: Weight, height, gender, activity level
-- Household: Adults, children, pets
-- Health: Allergies, dietary restrictions, goals
-- Preferences: Language, store
-
-**Completion Criteria:**
-- `onboarding_completed = true` in profiles table
-- Minimum required: Name, age (other fields optional)
-
-### 2. Adding Inventory Items
-
-#### Via Scanner
+### Onboarding Flow
 
 ```mermaid
-graph TD
-    A[Click FAB] --> B[Select Scanner]
-    B --> C[Choose Mode or Auto]
-    C --> D[Grant Camera Permission]
+flowchart TD
+    A[/app Route] --> B{Onboarding<br/>Complete?}
+    B -->|No| C[Show Splash]
+    C --> D[Start VoiceOnboarding]
+    
+    D --> E[Kaeva Greeting]
+    E --> F[Collect Basic Info]
+    F --> G[Calculate TDEE]
+    G --> H[Collect Dietary Prefs]
+    H --> I[Collect Beauty Profile]
+    I --> J[Add Household Members]
+    J --> K[Add Pets]
+    K --> L[Confirm All Data]
+    L --> M[completeConversation Tool]
+    
+    M --> N[Create Household]
+    N --> O[Add Membership]
+    O --> P[Set onboarding_completed=true]
+    P --> Q[Set current_household_id]
+    Q --> R[Redirect to Dashboard]
+    
+    B -->|Yes| S{Has<br/>Household?}
+    S -->|No| T[HouseholdSetup]
+    T --> N
+    S -->|Yes| R
+```
+
+### Modular Onboarding Flow
+
+```mermaid
+flowchart TD
+    A[Dashboard] --> B{Core<br/>Complete?}
+    B -->|No| C[Block Access]
+    C --> D[Prompt: Complete Core]
+    D --> E[CoreOnboardingForm<br/>or Voice]
+    
+    B -->|Yes| F[Show Dashboard]
+    F --> G{Visit<br/>Domain?}
+    
+    G -->|Nutrition| H{Nutrition<br/>Module?}
+    H -->|No| I[Prompt: Complete Nutrition]
+    I --> J[NutritionOnboardingForm<br/>or Voice]
+    H -->|Yes| K[Show Nutrition Features]
+    
+    G -->|Beauty| L{Beauty<br/>Module?}
+    L -->|No| M[Prompt: Complete Beauty]
+    M --> N[BeautyOnboardingForm<br/>or Voice]
+    L -->|Yes| O[Show Beauty Features]
+    
+    G -->|Pets| P{Pets<br/>Module?}
+    P -->|No| Q[Prompt: Complete Pets]
+    Q --> R[PetsOnboardingForm<br/>or Voice]
+    P -->|Yes| S[Show Pet Features]
+    
+    J --> T[Update profiles.onboarding_modules]
+    N --> T
+    R --> T
+    T --> F
+```
+
+### Household Invite Flow
+
+```mermaid
+sequenceDiagram
+    participant O as Owner
+    participant H as Household Page
+    participant E as Edge Function
+    participant I as Invitee
+    participant A as Accept Page
+    
+    O->>H: Click "Invite Members"
+    H->>E: create-household-invite
+    E->>E: Generate JWT
+    E->>E: Insert household_invites
+    E-->>H: Return invite URL
+    H->>O: Show URL + QR code
+    
+    O->>I: Share URL
+    I->>A: Visit /household/join/:code
+    A->>E: accept-household-invite
+    E->>E: Verify JWT
+    E->>E: Check expiration
+    E->>E: Check max uses
+    E->>E: Add to household_memberships
+    E->>E: Update current_household_id
+    E->>E: Increment times_used
+    E->>E: Log activity
+    E-->>A: Success
+    A->>I: Redirect to /app
+```
+
+### Daily AI Digest Flow
+
+```mermaid
+flowchart TD
+    A[Cron Job 7 AM] --> B[For Each User]
+    B --> C[Fetch Profile]
+    C --> D[Fetch Household]
+    D --> E[Fetch Inventory]
+    E --> F[Fetch Recent Meals]
+    
+    F --> G[Analyze Expiring Items<br/>≤3 days]
+    G --> H[Detect Low Stock<br/>fill_level < threshold]
+    H --> I[Calculate Nutrition Gaps<br/>vs goals]
+    I --> J[Check Allergen Warnings]
+    J --> K[Generate Time-Appropriate<br/>Meal Suggestions]
+    
+    K --> L[Send to Gemini 2.0 Flash]
+    L --> M{Output<br/>Tokens?}
+    M -->|Under 4096| N[Parse Insights]
+    M -->|Truncated| O[Return Default Insights]
+    
+    N --> P[Prioritize by Urgency]
+    P --> Q[Insert daily_digests]
+    Q --> R[Create Notification]
+    R --> S[Send Push if Configured]
+    
+    S --> T[User Opens App]
+    T --> U[AIInsightsWidget Displays]
+    U --> V[User Views Insights]
+    V --> W[Update viewed_at]
+```
+
+### Scanner Flow (Inventory)
+
+```mermaid
+flowchart TD
+    A[User Opens Scanner] --> B[Select Intent: Inventory]
+    B --> C[Camera Active]
+    C --> D[Tap Capture]
     D --> E[Capture Photo]
-    E --> F[Upload to analyze-vision]
-    F --> G[Gemini Vision Analysis]
-    G --> H[Detect Intent]
-    H --> I{Intent Type}
     
-    I -->|Inventory Sweep| J[List All Items]
-    J --> K[User Selects Items]
-    K --> L[Batch Enrich via FatSecret]
-    L --> M[Check Allergens]
-    M --> N[Display Warnings]
-    N --> O[User Confirms]
-    O --> P[Batch Insert to inventory]
+    E --> F[analyze-vision Edge Function]
+    F --> G[Try Barcode Detection]
+    G -->|Found| H[Query by Barcode]
+    G -->|Not Found| I[Try OCR]
+    I --> J[Extract Text]
+    J --> K[Query by Text]
     
-    I -->|Product Analysis| Q[Enrich Single Product]
-    Q --> M
+    H --> L{Product<br/>Found?}
+    K --> L
+    L -->|Yes| M[enrich-product]
+    L -->|No| N[Gemini Visual Analysis]
+    N --> M
     
-    P --> R[Update Inventory UI]
-    R --> S[Show Success Toast]
+    M --> O[FatSecret API]
+    O -->|Success| P[Return Nutrition Data]
+    O -->|Fail| Q[USDA API]
+    Q -->|Success| P
+    Q -->|Fail| R[Gemini Estimation]
+    R --> P
+    
+    P --> S[Check for Duplicates]
+    S -->|Found| T[DuplicateItemModal]
+    T -->|Update| U[Increase Quantity]
+    T -->|Add New| V[Insert Inventory]
+    S -->|Not Found| V
+    
+    V --> W[Log Household Activity]
+    W --> X[Show Success Toast]
+    X --> Y[Return to Scanner]
 ```
 
-#### Via Voice
+### Recipe Suggestion Flow
 
 ```mermaid
-graph TD
-    A[Click Voice Button] --> B[Start Conversation]
-    B --> C["User: 'Add milk to my inventory'"]
-    C --> D[AI Processes Request]
-    D --> E[AI Calls updateProfile Tool]
-    E --> F[Add Item to inventory Table]
-    F --> G["AI: 'Added milk to your inventory'"]
-    G --> H[Update UI]
+flowchart TD
+    A[User Requests Recipes] --> B[Fetch User Profile]
+    B --> C[Fetch Household Members]
+    C --> D[Fetch Inventory]
+    D --> E[Fetch Learned Preferences]
+    
+    E --> F[Build Context]
+    F --> G[suggest-recipes Edge Function]
+    G --> H[Send to Gemini]
+    
+    H --> I[Generate 3-5 Recipes]
+    I --> J[Calculate Match Score<br/>0-100%]
+    J --> K[Add Explanation Field]
+    K --> L[Search YouTube Videos]
+    
+    L --> M{Video<br/>Found?}
+    M -->|Yes| N[Attach Video Metadata]
+    M -->|No| O[Skip Video]
+    
+    N --> P[Return Recipes]
+    O --> P
+    P --> Q[Display in RecipeFeed]
+    Q --> R[User Selects Recipe]
+    R --> S[RecipeDetail View]
+    S --> T{Action?}
+    
+    T -->|Save| U[Insert recipes]
+    T -->|Cook| V[CookingMode]
+    T -->|Shop| W[Generate Shopping List]
 ```
 
-#### Manual Entry
+### Meal Planning Flow
 
 ```mermaid
-graph TD
-    A[Click Add Button] --> B[Open Form Dialog]
-    B --> C[Enter Item Details]
-    C --> D[Optional: Search FatSecret]
-    D --> E[Select Matching Product]
-    E --> F[Auto-fill Nutrition Data]
-    F --> G[User Confirms]
-    G --> H[Insert to inventory]
-    H --> I[Close Dialog]
-    I --> J[Update UI]
+flowchart TD
+    A[User Opens Meal Planner] --> B[WeeklyCalendar View]
+    B --> C{Action?}
+    
+    C -->|Generate Plan| D[MealPlanCustomizationDialog]
+    D --> E[Select Cuisines]
+    E --> F[Avoid Ingredients]
+    F --> G[Max Cooking Time]
+    G --> H[Dietary Restrictions]
+    H --> I[generate-meal-plan]
+    
+    I --> J[Fetch Household Data]
+    J --> K[Calculate TDEE]
+    K --> L[Send to Gemini]
+    L --> M[Generate 7 Days × 3 Meals]
+    M --> N[Match Recipes from Inventory]
+    N --> O[Return Meal Plan]
+    O --> P[Insert meal_plans]
+    P --> Q[Display in Calendar]
+    
+    C -->|Manual Assign| R[Select Date + Meal Type]
+    R --> S[RecipeSelector]
+    S --> T[Choose Recipe]
+    T --> P
+    
+    C -->|Generate Shopping List| U[Aggregate Ingredients]
+    U --> V[Check Inventory]
+    V --> W[Calculate Missing Items]
+    W --> X[Insert shopping_list]
+    X --> Y[ShoppingPreviewSheet]
+    Y --> Z[Create Instacart Cart]
 ```
 
-### 3. Meal Logging
+### Shopping Flow
 
 ```mermaid
-graph TD
-    A[User Wants to Log Meal] --> B{Method}
+flowchart TD
+    A[User Views Shopping List] --> B{Source?}
     
-    B -->|Scanner| C[Open Scanner]
-    C --> D[Select Nutrition Mode]
-    D --> E[Capture Meal Photo]
-    E --> F[analyze-meal Edge Function]
-    F --> G[Gemini Identifies Items]
-    G --> H[Search Each Item in FatSecret]
-    H --> I[Calculate Total Macros]
-    I --> J[Display Results]
-    J --> K[User Selects Meal Type]
-    K --> L[User Confirms]
-    L --> M[Insert to meal_logs]
+    B -->|Auto-Reorder| C[check-auto-restock Cron]
+    C --> D[Query Inventory<br/>auto_order_enabled=true]
+    D --> E[Check fill_level<br/>vs reorder_threshold]
+    E -->|Below| F[Insert shopping_list<br/>source='auto_reorder']
     
-    B -->|Voice| N["Say: 'Log my breakfast'"]
-    N --> O[AI Asks for Details]
-    O --> P["User: 'Eggs and toast'"]
-    P --> Q[AI Searches Items]
-    Q --> R[AI Estimates Macros]
-    R --> S[AI Calls Tool to Log]
-    S --> M
+    B -->|Recipe| G[Meal Plan Shopping]
+    G --> H[Aggregate Recipe Ingredients]
+    H --> I[Check Inventory]
+    I --> J[Calculate Missing]
+    J --> F
     
-    M --> T[Update Nutrition Widget]
-    T --> U[Show Daily Progress]
+    B -->|Voice| K[Voice Assistant]
+    K --> L[add_to_shopping_list Tool]
+    L --> F
+    
+    B -->|Manual| M[User Adds Manually]
+    M --> F
+    
+    F --> N[SmartCartWidget]
+    N --> O[Group by Source]
+    O --> P[User Reviews]
+    P --> Q[Tap "Create Cart"]
+    Q --> R[Show BuildingCartOverlay]
+    R --> S[instacart-create-cart]
+    S --> T[Create Cart via API]
+    T --> U[Return Deep Link]
+    U --> V[Open Instacart App]
 ```
 
-### 4. Shopping Workflow
-
-#### Creating Cart
+### Voice Assistant Flow
 
 ```mermaid
-graph TD
-    A[User Opens SmartCart Widget] --> B[View Shopping List]
-    B --> C{Items in List?}
-    C -->|No| D[Suggest Auto-Reorder Items]
-    D --> E[User Adds Items]
+sequenceDiagram
+    participant U as User
+    participant F as FloatingActionButton
+    participant V as VoiceAssistant
+    participant E as ElevenLabs
+    participant T as Client Tools
+    participant S as Supabase
     
-    C -->|Yes| F[Review Items]
-    F --> G[Edit Quantities]
-    G --> H[Click 'Create Instacart Cart']
-    H --> I[Select Retailer]
-    I --> J[Call instacart-create-cart]
-    J --> K[Search Instacart Catalog]
-    K --> L[Match Products]
-    L --> M[Create Cart]
-    M --> N[Return Cart URL]
-    N --> O[Open Instacart in Browser]
-    O --> P[User Completes Purchase]
+    U->>F: Tap Living Aperture
+    F->>V: startConversation()
+    V->>E: Connect WebSocket
+    E-->>V: onConnect
+    V->>V: Set apertureState='listening'
+    V->>V: Show ConversationOverlay
+    
+    U->>V: Speak: "What's in my fridge?"
+    V->>E: Audio stream
+    E->>E: Speech-to-text
+    E-->>V: onMessage (user_transcript)
+    V->>V: Display user transcript
+    
+    E->>E: Process intent
+    E->>T: Tool call: check_inventory({ category: 'fridge' })
+    T->>S: Query inventory
+    S-->>T: Return items
+    T-->>E: Tool result
+    
+    E->>E: Generate response
+    E-->>V: onMessage (agent_response)
+    V->>V: Display AI transcript
+    E-->>V: Audio stream
+    V->>V: Set apertureState='speaking'
+    V->>V: Update audioAmplitude
+    
+    Note over V,S: Realtime subscription active
+    S->>V: Inventory change event
+    V->>E: sendContextualUpdate("New item added: Milk")
+    E->>E: Update context
+    
+    U->>V: Tap Close
+    V->>E: Disconnect
+    E-->>V: onDisconnect
+    V->>V: Set apertureState='idle'
+    V->>V: Hide ConversationOverlay
 ```
 
-#### Post-Purchase Update
+### Account Deletion Flow
 
 ```mermaid
-graph TD
-    A[User Completes Purchase] --> B[Instacart Sends Webhook]
-    B --> C[instacart-service Receives]
-    C --> D[Verify Signature]
-    D --> E{Order Status}
-    E -->|Completed| F[Extract Purchased Items]
-    F --> G[For Each Item]
-    G --> H{Exists in inventory?}
-    H -->|Yes| I[Increment Quantity]
-    H -->|No| J[Add New Item]
-    I --> K[Update last_activity_at]
-    J --> K
-    K --> L[Mark shopping_list as Purchased]
-    L --> M[Create Notification]
-    M --> N[User Sees Updated Inventory]
+flowchart TD
+    A[User Opens Settings] --> B[Tap Account]
+    B --> C[AccountSheet]
+    C --> D[Scroll to Delete Account]
+    D --> E[Tap "Delete Account"]
+    E --> F[Confirmation Dialog]
+    F --> G{Confirm?}
     
-    E -->|Canceled| O[Do Nothing]
-```
-
-### 5. Safety Check Flow
-
-#### Allergen Warning
-
-```mermaid
-graph TD
-    A[User Scans Product] --> B[Enrich Product Data]
-    B --> C[Extract Ingredients]
-    C --> D[detectAllergens Function]
-    D --> E[Check Against Allergen DB]
-    E --> F{Allergens Found?}
-    F -->|Yes| G[Fetch Household Members]
-    G --> H[Check Each Member's Allergies]
-    H --> I{Match Found?}
-    I -->|Yes| J[Create Warning]
-    J --> K[Display Alert Banner]
-    K --> L["'This contains X, which [Member] is allergic to'"]
-    L --> M[User Can Still Add]
-    M --> N[Warning Stored in Item Metadata]
+    G -->|No| H[Cancel]
+    G -->|Yes| I[delete-account Edge Function]
     
-    F -->|No| O[No Warnings]
-    I -->|No| O
-    O --> P[Safe to Add]
-```
-
-#### Pet Toxicity Warning
-
-```mermaid
-graph TD
-    A[User Scans Food Item] --> B[Enrich Product Data]
-    B --> C[Extract Ingredients]
-    C --> D[Fetch User's Pets]
-    D --> E{Has Pets?}
-    E -->|No| F[Skip Check]
+    I --> J[Delete household_members]
+    J --> K[Delete pets]
+    K --> L[Delete meal_logs]
+    L --> M[Delete water_logs]
+    M --> N[Delete conversation_history]
+    N --> O[Delete notifications]
+    O --> P[Delete bookmarks]
+    P --> Q[Delete learned_preferences]
+    Q --> R[Remove household_memberships]
+    R --> S[Delete profiles]
+    S --> T[Delete auth.users]
     
-    E -->|Yes| G[checkPetToxicity Function]
-    G --> H[Check Ingredients vs Toxic DB]
-    H --> I{Toxic Ingredients?}
-    I -->|Yes| J[Identify Affected Pets]
-    J --> K[Assess Severity]
-    K --> L[Create Warning]
-    L --> M[Display Alert]
-    M --> N["'Warning: Contains chocolate, toxic to [Pet]'"]
-    N --> O[Show Symptoms]
-    O --> P[User Decides]
-    
-    I -->|No| Q[Safe for Pets]
-    F --> Q
-    Q --> R[Proceed Normally]
-```
-
-### 6. Recipe Generation Flow
-
-```mermaid
-graph TD
-    A[User Requests Recipe] --> B{Method}
-    
-    B -->|Voice| C["'Suggest dinner recipe'"]
-    C --> D[AI Calls suggest-recipes Function]
-    
-    B -->|UI| E[Click 'Get Recipe Ideas']
-    E --> F[Open Recipe Dialog]
-    F --> G[Set Preferences]
-    G --> H[Call suggest-recipes]
-    
-    D --> I[Fetch User's Inventory]
-    H --> I
-    I --> J[Fetch Dietary Restrictions]
-    J --> K[Build Prompt for GPT]
-    K --> L[GPT Generates 3-5 Recipes]
-    L --> M[For Each Recipe]
-    M --> N[Check Ingredient Availability]
-    N --> O[Calculate Match Score]
-    O --> P[Rank Recipes]
-    P --> Q[Return Sorted List]
-    Q --> R[Display in UI]
-    R --> S[User Selects Recipe]
-    S --> T{Cook Now?}
-    T -->|Yes| U[Call cook-recipe]
-    U --> V[Get Step-by-Step Instructions]
-    V --> W[Display Cooking Steps]
-    
-    T -->|No| X[Add Missing Items to Shopping List]
-    X --> Y[Save Recipe for Later]
-```
-
-### 7. Spoilage Detection Flow
-
-```mermaid
-graph TD
-    A[Daily Cron Job] --> B[notify-spoilage Function]
-    B --> C[Call check_spoilage DB Function]
-    C --> D[Query inventory Table]
-    D --> E{Items Old?}
-    E -->|Fridge: >14 days| F[Mark as Likely Spoiled]
-    E -->|Pantry: >90 days| F
-    
-    F --> G[For Each Spoiled Item]
-    G --> H[Update Status]
-    H --> I[Create Notification]
-    I --> J[Insert to notifications Table]
-    J --> K[Optionally Send Email]
-    K --> L[User Sees Notification]
-    L --> M{User Action}
-    M -->|Remove| N[Delete from Inventory]
-    M -->|Still Good| O[Mark as Not Spoiled]
-    O --> P[Update last_activity_at]
-    
-    E -->|No Old Items| Q[No Action]
-```
-
-### 8. Agent Configuration Flow
-
-```mermaid
-graph TD
-    A[User Completes Onboarding] --> B{Agent Configured?}
-    B -->|No| C[Redirect to /configure-agent]
-    C --> D[Fetch User Profile]
-    D --> E[Fetch Household Members]
-    E --> F[Fetch Pets]
-    F --> G[Fetch Inventory Summary]
-    G --> H[Build System Prompt]
-    H --> I[Call configure-elevenlabs-agent]
-    I --> J[ElevenLabs API Call]
-    J --> K[Update Agent Knowledge Base]
-    K --> L[Set First Message]
-    L --> M[Store agent_id in Profile]
-    M --> N[Set agent_configured = true]
-    N --> O[Redirect to Dashboard]
-    
-    B -->|Yes| P[Dashboard Loads]
-    P --> Q[Voice Assistant Available]
+    T --> U[Sign Out]
+    U --> V[Redirect to /auth]
+    V --> W[Show Success Toast]
 ```
 
 ---
 
 ## Security & RLS Policies
 
-### Row Level Security Overview
+### Authentication Security
 
-All user-facing tables have RLS enabled with policies enforcing user ownership.
+**Password Requirements**:
+- Minimum 8 characters
+- No complexity requirements (per NIST guidelines)
+- Auto-confirm email enabled (non-production)
 
-**Principle:** `auth.uid() = user_id`
+**Session Management**:
+- Auto-refresh tokens
+- Persistent sessions via localStorage
+- 1-hour session timeout
+- Manual refresh on auth state change
 
-### Table-by-Table Policies
+**Admin Access**:
+- Role-based via `user_roles` table
+- `has_role()` database function
+- Admin panel restricted by AdminRoute
+- Service role operations use `SECURITY DEFINER`
 
-#### `profiles`
+### Row Level Security Policies
 
-**SELECT:**
+**Key Patterns**:
+
+1. **User-Level Data** (meal_logs, water_logs, notifications):
 ```sql
-CREATE POLICY "Users can view own profile"
-ON profiles FOR SELECT
-USING (auth.uid() = id);
-```
-
-**UPDATE:**
-```sql
-CREATE POLICY "Users can update own profile"
-ON profiles FOR UPDATE
-USING (auth.uid() = id)
-WITH CHECK (auth.uid() = id);
-```
-
-**INSERT:**
-```sql
-CREATE POLICY "Users can insert own profile"
-ON profiles FOR INSERT
-WITH CHECK (auth.uid() = id);
-```
-
-**DELETE:**
-```sql
-CREATE POLICY "Users can delete own profile"
-ON profiles FOR DELETE
-USING (auth.uid() = id);
-```
-
-#### `household_members`
-
-**SELECT:**
-```sql
-CREATE POLICY "Users can view own household members"
-ON household_members FOR SELECT
-USING (auth.uid() = user_id);
-```
-
-**INSERT:**
-```sql
-CREATE POLICY "Users can insert own household members"
-ON household_members FOR INSERT
-WITH CHECK (auth.uid() = user_id);
-```
-
-**UPDATE:**
-```sql
-CREATE POLICY "Users can update own household members"
-ON household_members FOR UPDATE
-USING (auth.uid() = user_id);
-```
-
-**DELETE:**
-```sql
-CREATE POLICY "Users can delete own household members"
-ON household_members FOR DELETE
-USING (auth.uid() = user_id);
-```
-
-#### `pets`
-
-**Policies:** Same as `household_members`, enforcing `auth.uid() = user_id`
-
-#### `inventory`
-
-**Policies:** Same as `household_members`, enforcing `auth.uid() = user_id`
-
-#### `meal_logs`
-
-**Policies:** Same as `household_members`, enforcing `auth.uid() = user_id`
-
-#### `shopping_list`
-
-**Policies:** Same as `household_members`, enforcing `auth.uid() = user_id`
-
-**Note:** `inventory_id` foreign key allows linking to inventory items.
-
-#### `conversation_history`
-
-**Policies:** Same as `household_members`, enforcing `auth.uid() = user_id`
-
-**Special Consideration:** Used for error logging too, so errors are user-scoped.
-
-#### `notifications`
-
-**SELECT:**
-```sql
-CREATE POLICY "Users can view own notifications"
-ON notifications FOR SELECT
-USING (auth.uid() = user_id);
-```
-
-**UPDATE:**
-```sql
-CREATE POLICY "Users can update own notifications"
-ON notifications FOR UPDATE
+POLICY "Users can manage own data" ON table_name FOR ALL
 USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
 ```
 
-**DELETE:**
+2. **Household-Level Data** (inventory, recipes, shopping_list):
 ```sql
-CREATE POLICY "Users can delete own notifications"
-ON notifications FOR DELETE
-USING (auth.uid() = user_id);
+POLICY "Household members can manage data" ON table_name FOR ALL
+USING (household_id IN (
+  SELECT household_id FROM household_memberships WHERE user_id = auth.uid()
+))
+WITH CHECK (household_id IN (
+  SELECT household_id FROM household_memberships WHERE user_id = auth.uid()
+));
 ```
 
-**INSERT:** NOT ALLOWED (system-generated only)
-
-#### `user_roles`
-
-**SELECT:**
+3. **Owner-Only Operations** (household management):
 ```sql
--- Users can view own roles
-CREATE POLICY "Users can view own roles"
-ON user_roles FOR SELECT
-USING (auth.uid() = user_id);
-
--- Admins can view all roles
-CREATE POLICY "Admins can view all roles"
-ON user_roles FOR SELECT
-USING (has_role(auth.uid(), 'admin'));
+POLICY "Owners can manage household" ON households FOR ALL
+USING (auth.uid() = owner_id)
+WITH CHECK (auth.uid() = owner_id);
 ```
 
-**ALL (INSERT/UPDATE/DELETE):**
+4. **Public Data** (shared recipes):
 ```sql
-CREATE POLICY "Admins can manage roles"
-ON user_roles FOR ALL
-USING (has_role(auth.uid(), 'admin'))
-WITH CHECK (has_role(auth.uid(), 'admin'));
+POLICY "Anyone can view public recipes" ON recipes FOR SELECT
+USING (is_public = true OR household_id IN (...));
 ```
 
-#### `product_cache`
-
-**RLS DISABLED** - Public cache, no user-specific data
-
-**Rationale:** Cache is shared across all users for efficiency. No sensitive data.
-
-### Admin Role Security
-
-**Function:** `has_role(user_id, role)`
-
-**Definition:**
+5. **Service Role** (notifications, digests):
 ```sql
-CREATE OR REPLACE FUNCTION has_role(_user_id uuid, _role app_role)
-RETURNS boolean
-LANGUAGE sql
-STABLE SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.user_roles
-    WHERE user_id = _user_id AND role = _role
-  );
-$$;
+POLICY "Service can insert notifications" ON notifications FOR INSERT
+WITH CHECK (true);
 ```
 
-**Security:** `SECURITY DEFINER` allows function to bypass RLS for role check.
+### Rate Limiting
 
-**Usage in Policies:**
-```sql
-USING (has_role(auth.uid(), 'admin'))
-```
+**Implementation**: `rate_limits` table + `rateLimiter.ts` shared utility
 
-**Edge Function Protection:**
+**Limits**:
+- Vision API: 100 requests/hour per user
+- Nutrition API: 50 requests/hour per user
+- Recipe generation: 20 requests/hour per user
+
+**Enforcement**:
 ```typescript
-// supabase/functions/check-admin/index.ts
-const { data: { user } } = await supabase.auth.getUser(jwt);
-
-const { data: roleData } = await supabase
-  .from('user_roles')
-  .select('role')
-  .eq('user_id', user.id)
-  .single();
-
-const isAdmin = roleData?.role === 'admin';
-
-return new Response(JSON.stringify({ isAdmin }), {
-  headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-});
-```
-
-### Edge Function Security
-
-**Authentication Required:** All edge functions except explicitly public ones
-
-**JWT Validation:**
-```typescript
-const authHeader = req.headers.get('Authorization');
-if (!authHeader) {
-  return new Response('Unauthorized', { status: 401 });
+// Edge function
+const isAllowed = await checkRateLimit(userId, 'analyze-vision');
+if (!isAllowed) {
+  return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+    status: 429
+  });
 }
 
-const jwt = authHeader.replace('Bearer ', '');
-const { data: { user }, error } = await supabase.auth.getUser(jwt);
-
-if (error || !user) {
-  return new Response('Invalid token', { status: 401 });
-}
+await incrementRateLimit(userId, 'analyze-vision');
 ```
 
-**User Scoping:** All queries filtered by `user.id`
-```typescript
-const { data } = await supabase
-  .from('inventory')
-  .select('*')
-  .eq('user_id', user.id); // RLS ensures this is enforced
-```
-
-**API Key Security:**
-```typescript
-// Never expose API keys to client
-const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-
-// All external API calls from edge functions only
-```
+**Cleanup**: `clean_old_rate_limits()` removes windows >1 hour old
 
 ### Input Validation
 
-**SQL Injection Prevention:**
-- Supabase client uses parameterized queries
-- Never raw SQL execution in edge functions
-- Database functions use `SET search_path = public` for safety
-
-**XSS Prevention:**
-- React escapes output by default
-- User input sanitized before database insertion
-- No `dangerouslySetInnerHTML` usage
-
-**CSRF Prevention:**
-- Supabase handles CSRF tokens
-- All mutations require valid JWT
-- Short-lived JWT tokens (1 hour)
-
-### Secrets Management
-
-**Environment Variables:**
-Stored in Lovable Cloud secrets manager.
-
-**Never in Code:**
+**Zod Schemas** (`supabase/functions/_shared/schemas.ts`):
 ```typescript
-// ❌ NEVER
-const apiKey = "sk-abc123...";
+const ProfileUpdateSchema = z.object({
+  user_name: z.string().min(1).max(100),
+  user_age: z.number().int().min(1).max(120),
+  user_weight: z.number().positive().max(500),
+  user_height: z.number().positive().max(300),
+  allergies: z.array(z.string()).max(50),
+  dietary_preferences: z.array(z.string()).max(20)
+});
 
-// ✅ ALWAYS
-const apiKey = Deno.env.get('OPENAI_API_KEY');
+// Usage in edge function
+const validated = ProfileUpdateSchema.parse(requestBody);
 ```
 
-**Secrets:**
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `FATSECRET_CLIENT_ID`
-- `FATSECRET_CLIENT_SECRET`
-- `INSTACART_API_KEY`
-- `GOOGLE_GEMINI_API_KEY`
-- `OPENAI_API_KEY`
-- `ELEVENLABS_API_KEY`
+**Frontend Validation** (React Hook Form + Zod):
+```typescript
+const formSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8)
+});
 
-**Rotation:** API keys rotated quarterly or on compromise
+const form = useForm<z.infer<typeof formSchema>>({
+  resolver: zodResolver(formSchema)
+});
+```
+
+### Sensitive Data Protection
+
+**Secrets Management**:
+- API keys stored in Supabase Edge Function environment variables
+- Never exposed to client
+- JWT tokens for household invites (signed with `INVITE_JWT_SECRET`)
+
+**PII Handling**:
+- User data encrypted at rest (Supabase default)
+- No client-side caching of sensitive data
+- HTTPS only (enforced by Supabase)
+
+**Audit Logging**:
+- `conversation_events`: All voice interactions
+- `household_activity`: All household actions
+- Edge function logs: System logs for admin review
+
+### CORS Configuration
+
+**Edge Functions**:
+```typescript
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+if (req.method === 'OPTIONS') {
+  return new Response(null, { headers: corsHeaders });
+}
+```
+
+**Storage Buckets**:
+- `app-assets`: Public read, authenticated write
+- CORS enabled for client uploads
+
+### SQL Injection Prevention
+
+**Critical Rule**: Edge functions NEVER execute raw SQL
+
+**Correct Pattern**:
+```typescript
+// ✅ CORRECT: Supabase client methods
+const { data, error } = await supabase
+  .from('inventory')
+  .select('*')
+  .eq('household_id', householdId);
+```
+
+**Forbidden Pattern**:
+```typescript
+// ❌ FORBIDDEN: Raw SQL
+await supabase.rpc('execute_sql', { 
+  query: `SELECT * FROM inventory WHERE household_id = '${householdId}'` 
+});
+```
+
+### Content Security Policy
+
+**index.html**:
+```html
+<meta http-equiv="Content-Security-Policy" 
+  content="default-src 'self'; 
+           script-src 'self' 'unsafe-inline' 'unsafe-eval'; 
+           style-src 'self' 'unsafe-inline'; 
+           img-src 'self' data: https:; 
+           connect-src 'self' https://btgmvuieishjiybgcmpj.supabase.co https://api.elevenlabs.io;">
+```
 
 ---
 
 ## Environment Variables
 
-### Frontend (.env)
+### Supabase (auto-configured)
 
-```bash
-# Supabase
-VITE_SUPABASE_URL="https://btgmvuieishjiybgcmpj.supabase.co"
-VITE_SUPABASE_PUBLISHABLE_KEY="eyJhbGci..."
-VITE_SUPABASE_PROJECT_ID="btgmvuieishjiybgcmpj"
+**Client-Side** (`.env`):
+```env
+VITE_SUPABASE_URL=https://btgmvuieishjiybgcmpj.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+VITE_SUPABASE_PROJECT_ID=btgmvuieishjiybgcmpj
 ```
 
-**Note:** `VITE_` prefix exposes to client. Never store secrets here.
-
-### Edge Functions (Supabase Secrets)
-
-```bash
-# Database
-SUPABASE_URL="https://btgmvuieishjiybgcmpj.supabase.co"
-SUPABASE_ANON_KEY="eyJhbGci..." # Public key, safe in client
-SUPABASE_SERVICE_ROLE_KEY="eyJhbGci..." # NEVER expose to client
-SUPABASE_DB_URL="postgresql://..." # Direct DB connection
-
-# External APIs
-FATSECRET_CLIENT_ID="your-client-id"
-FATSECRET_CLIENT_SECRET="your-client-secret"
-INSTACART_API_KEY="your-api-key"
-GOOGLE_GEMINI_API_KEY="your-api-key"
-OPENAI_API_KEY="sk-..."
-ELEVENLABS_API_KEY="your-api-key"
+**Edge Functions** (auto-injected):
+```env
+SUPABASE_URL=https://btgmvuieishjiybgcmpj.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_DB_URL=postgresql://postgres:[PASSWORD]@db.btgmvuieishjiybgcmpj.supabase.co:5432/postgres
 ```
 
-**Setting Secrets:**
-Via Lovable Cloud dashboard or Supabase CLI:
-```bash
-supabase secrets set OPENAI_API_KEY=sk-...
+### External APIs (Secrets)
+
+**Required Secrets**:
+```env
+# Nutrition APIs
+FATSECRET_CLIENT_ID=<from FatSecret Platform>
+FATSECRET_CLIENT_SECRET=<from FatSecret Platform>
+USDA_API_KEY=<from USDA FoodData Central>
+
+# AI/ML
+GOOGLE_GEMINI_API_KEY=<from Google AI Studio>
+LOVABLE_API_KEY=<from Lovable AI Gateway>
+
+# Voice AI
+ELEVENLABS_API_KEY=<from ElevenLabs>
+ELEVENLABS_WEBHOOK_SECRET=<from ElevenLabs>
+
+# Shopping
+INSTACART_ENVIRONMENT=sandbox
+# INSTACART_CLIENT_ID=<from Instacart Developer Portal>
+# INSTACART_CLIENT_SECRET=<from Instacart Developer Portal>
+
+# Utilities
+YOUTUBE_API_KEY=<from Google Cloud Console>
+GOOGLE_PLACES_API_KEY=<from Google Cloud Console>
+INVITE_JWT_SECRET=<random 32-character string>
 ```
 
-**Accessing in Edge Functions:**
+**Optional Secrets**:
+```env
+OPENAI_API_KEY=<deprecated - using Gemini>
+```
+
+### Secret Management
+
+**Adding Secrets**:
+1. Admin opens Admin Dashboard → Agent tab
+2. System prompts for missing secrets
+3. User enters secret values securely
+4. Secrets encrypted and stored in Supabase
+
+**Accessing Secrets** (Edge Functions):
 ```typescript
-const apiKey = Deno.env.get('OPENAI_API_KEY');
+const apiKey = Deno.env.get('GOOGLE_GEMINI_API_KEY');
+if (!apiKey) {
+  return new Response(JSON.stringify({ 
+    error: 'Missing API key',
+    details: { missing: 'GOOGLE_GEMINI_API_KEY' }
+  }), { status: 500 });
+}
 ```
 
 ---
 
 ## Deployment & Configuration
 
-### Deployment Process
+### Build Configuration
 
-**Automatic Deployment:**
-1. Code pushed to repository
-2. Lovable Cloud detects changes
-3. Frontend built via Vite
-4. Edge functions deployed to Supabase
-5. Database migrations applied (if any)
-6. Live in <2 minutes
-
-**Manual Deployment:**
-Via Lovable Cloud dashboard: Click "Publish"
-
-### Frontend Build
-
-**Build Command:**
-```bash
-npm run build
-```
-
-**Output:** `dist/` directory
-
-**Vite Config:**
+**Vite Config** (`vite.config.ts`):
 ```typescript
-// vite.config.ts
 export default defineConfig({
-  plugins: [react()],
-  base: '/', // For root domain deployment
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      manifest: {
+        name: 'KAEVA - Smart Home Assistant',
+        short_name: 'KAEVA',
+        theme_color: '#D69E2E',
+        icons: [...]
+      }
+    })
+  ],
   build: {
-    outDir: 'dist',
-    sourcemap: true, // For debugging
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
-          supabase: ['@supabase/supabase-js']
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['@radix-ui/react-dialog', ...],
+          'animation-vendor': ['framer-motion'],
+          'chart-vendor': ['recharts'],
+          'supabase-vendor': ['@supabase/supabase-js', '@tanstack/react-query']
         }
       }
     }
@@ -5289,192 +5689,105 @@ export default defineConfig({
 });
 ```
 
-**Build Optimizations:**
-- Code splitting by route
-- Tree shaking for unused code
-- Minification & compression
-- Asset hashing for cache busting
+**Target Bundle Sizes** (gzipped):
+- react-vendor: ~45KB
+- ui-vendor: ~60KB
+- animation-vendor: ~40KB
+- chart-vendor: ~30KB
+- supabase-vendor: ~35KB
+- Main bundle: ~40KB
+- **Total**: ~250-300KB (down from 680KB)
 
-### Edge Function Deployment
+### Supabase Configuration
 
-**Deployment:**
-Automatic on code push. No manual step required.
+**File**: `supabase/config.toml`
 
-**Supabase Config:**
-```toml
-# supabase/config.toml
-project_id = "btgmvuieishjiybgcmpj"
+**Project ID**: `btgmvuieishjiybgcmpj`
 
-[functions.analyze-meal]
-verify_jwt = true  # Requires authentication
+**Edge Function JWT Verification**: See [Edge Functions](#edge-functions) section
 
-[functions.analyze-vision]
-verify_jwt = true
+**Database Migrations**: Auto-managed, never edit manually
 
-[functions.check-admin]
-verify_jwt = true
+**Realtime Subscriptions**: Enabled for `inventory`, `notifications`, `household_activity`
 
-[functions.configure-elevenlabs-agent]
-verify_jwt = true
+### PWA Configuration
 
-# ... more functions
+**Manifest** (`public/manifest.json`):
+```json
+{
+  "name": "KAEVA - Smart Home Assistant",
+  "short_name": "KAEVA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#08080A",
+  "theme_color": "#D69E2E",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
 ```
 
-**Testing Deployment:**
-```bash
-# Test edge function locally
-supabase functions serve analyze-meal --env-file .env.local
+**Service Worker**: Auto-generated by Vite PWA plugin
 
-# Deploy specific function
-supabase functions deploy analyze-meal
-```
+**Installation Prompt**: Handled by browser (Chrome, Safari)
 
-### Database Migrations
+### Deployment Checklist
 
-**Migration Files:** `supabase/migrations/*.sql`
+**Pre-Launch** (see Admin Dashboard → Deploy tab):
+1. ✅ All edge functions deployed
+2. ✅ All secrets configured
+3. ✅ ElevenLabs agents provisioned
+4. ✅ Database migrations applied
+5. ✅ RLS policies verified
+6. ✅ PWA icons generated
+7. ✅ Accessibility audit passed
+8. ✅ Rate limiting configured
+9. ✅ Error tracking enabled (if using Sentry)
+10. ✅ Analytics configured (if using external service)
 
-**Applying Migrations:**
-Automatic on deployment or via CLI:
-```bash
-supabase db push
-```
-
-**Creating Migration:**
-```bash
-supabase migration new add_new_table
-# Edit generated SQL file
-supabase db push
-```
-
-**Rollback:**
-```bash
-supabase db reset # Dangerous: drops all data
-```
-
-**Best Practice:**
-- Never edit applied migrations
-- Always create new migration for schema changes
-- Test migrations locally first
+**Post-Launch**:
+1. Monitor edge function logs
+2. Check conversation_events for voice errors
+3. Review household_activity for anomalies
+4. Monitor rate_limits table for abuse
+5. Check daily_digests generation success
 
 ### Monitoring & Logging
 
-**Frontend Errors:**
-Logged to browser console. Future: Sentry integration.
+**Admin Dashboard**:
+- System Logs: Edge function logs
+- Tool Call Logs: Client tool invocations
+- Conversation Monitor: Real-time conversation events
+- Agent Health: Agent performance metrics
 
-**Edge Function Logs:**
-```bash
-# View logs for specific function
-supabase functions logs analyze-meal
+**Supabase Logs**:
+- Database logs: SQL queries, slow queries
+- Edge function logs: Console output, errors
+- Auth logs: Login attempts, failures
 
-# Stream logs in real-time
-supabase functions logs analyze-meal --tail
-```
-
-**Database Logs:**
-Via Supabase dashboard or `conversation_history` table for app errors.
-
-**Metrics:**
-- Request counts per function
-- Error rates
-- Response times
-- Database query performance
-
-### Scaling Considerations
-
-**Frontend:**
-- Hosted on Lovable Cloud CDN (auto-scales)
-- No server-side rendering, scales infinitely
-
-**Database:**
-- Lovable Cloud Supabase auto-scales
-- Connection pooling via Supavisor
-- Upgrade instance size if needed
-
-**Edge Functions:**
-- Auto-scale with traffic
-- Each invocation is isolated
-- No concurrency limits
-
-**Rate Limiting:**
-- Implemented per external API
-- FatSecret: 10k calls/month (free tier)
-- OpenAI: Based on tier (see API limits)
-- Instacart: TBD (generous)
-
-### Performance Optimization
-
-**Frontend:**
-1. **Code Splitting:** Routes lazy-loaded
-   ```typescript
-   const Admin = lazy(() => import('./pages/Admin'));
-   ```
-
-2. **Image Optimization:** Compress before upload
-   ```typescript
-   canvas.toDataURL('image/jpeg', 0.8); // 80% quality
-   ```
-
-3. **Query Caching:** TanStack Query caches API responses
-   ```typescript
-   queryClient.setDefaultOptions({
-     queries: { staleTime: 5 * 60 * 1000 } // 5 minutes
-   });
-   ```
-
-**Backend:**
-1. **Product Caching:** `product_cache` table (30-day expiry)
-2. **Database Indexing:**
-   - `inventory(user_id, category)`
-   - `meal_logs(user_id, logged_at)`
-   - `conversation_history(user_id, conversation_id)`
-
-3. **Connection Pooling:** Supabase handles automatically
-
-### Backup & Recovery
-
-**Database Backups:**
-- Lovable Cloud Supabase: Daily automatic backups
-- Point-in-time recovery (last 7 days)
-
-**Manual Backup:**
-```bash
-# Export entire database
-supabase db dump > backup.sql
-
-# Restore from backup
-psql $DATABASE_URL < backup.sql
-```
-
-**User Data Export:**
-Via UI: Settings → Export Data (future feature)
-
-### Compliance & Privacy
-
-**GDPR:**
-- User can delete account (deletes all data via CASCADE)
-- Data export available on request
-- Privacy policy URL: TBD
-
-**HIPAA:**
-Not HIPAA-compliant (health data is not PHI in this context)
-
-**Data Retention:**
-- User data: Indefinite (until account deletion)
-- Conversation history: Indefinite
-- Product cache: 30 days
-- Logs: 7 days
+**Client-Side Logging**:
+- Console errors (captured by ErrorBoundary)
+- Voice interaction logs (conversation_history)
+- User actions (household_activity)
 
 ---
 
 ## Conclusion
 
-This document provides a comprehensive overview of the Kaeva application architecture, implementation details, and operational procedures. For additional information or support, please refer to:
+This document represents the complete technical architecture of KAEVA as of the current implementation. It covers all major systems, components, flows, and design decisions. For specific implementation details, refer to the source code and inline comments.
 
-- **Lovable Cloud Documentation:** https://docs.lovable.dev/
-- **Supabase Documentation:** https://supabase.com/docs
-- **ElevenLabs Documentation:** https://elevenlabs.io/docs
-- **Project Repository:** [GitHub URL]
+**Key Files**:
+- `KAEVA_MASTER_BLUEPRINT.md`: Product vision and feature roadmap
+- `docs/ARCHITECTURE.md`: High-level architecture overview
+- `docs/COMPONENTS.md`: Component catalog
+- `docs/HOOKS.md`: Hook documentation
+- `docs/EDGE_FUNCTIONS.md`: Edge function reference
+- `docs/USER_JOURNEYS.md`: User flow diagrams
 
-**Last Updated:** 2025-11-25
-**Version:** 1.1.0
-**Maintained By:** Kaeva Development Team
+**Last Updated**: 2025-01-27
+
+**Version**: 1.0.0 (Production Ready)
