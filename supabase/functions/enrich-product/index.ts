@@ -8,6 +8,7 @@ import { productEnrichmentSchema, validateRequest } from "../_shared/schemas.ts"
 import { analyzeProductDeception } from "../_shared/deceptionAnalyzer.ts";
 import { analyzeBeautyIngredients, analyzeSkinCompatibility } from "../_shared/beautyAnalyzer.ts";
 import { searchUSDA, processUSDAFood } from "../_shared/usdaApi.ts";
+import { getSecret, getOptionalSecret, getSupabaseSecrets, getFatSecretCredentials } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -57,10 +58,12 @@ serve(async (req) => {
     
     // Rate limiting
     const authHeader = req.headers.get('Authorization');
+    const { url: supabaseUrl, anonKey } = getSupabaseSecrets();
+    
     if (authHeader) {
       const supabaseClient = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        supabaseUrl,
+        anonKey,
         { global: { headers: { Authorization: authHeader } } }
       );
       
@@ -76,8 +79,8 @@ serve(async (req) => {
     console.log('Enrichment request:', { name, brand, barcode, category });
     
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      supabaseUrl,
+      anonKey,
       {
         global: {
           headers: { Authorization: req.headers.get('Authorization')! },
@@ -146,12 +149,7 @@ serve(async (req) => {
     }
 
     // FatSecret OAuth 1.0 authentication
-    const clientId = Deno.env.get('FATSECRET_CLIENT_ID');
-    const clientSecret = Deno.env.get('FATSECRET_CLIENT_SECRET');
-
-    if (!clientId || !clientSecret) {
-      throw new Error('FatSecret credentials not configured');
-    }
+    const { clientId, clientSecret } = getFatSecretCredentials();
 
     console.log('=== OAUTH 1.0 AUTHENTICATION ===');
     console.log('Using OAuth 1.0 with Consumer Key:', clientId?.substring(0, 8) + '...');
@@ -262,7 +260,7 @@ serve(async (req) => {
       
       // Try USDA FoodData Central as final fallback
       console.log('No products found in Open Food Facts, trying USDA FoodData Central...');
-      const usdaApiKey = Deno.env.get('USDA_API_KEY');
+      const usdaApiKey = getOptionalSecret('USDA_API_KEY');
       
       if (usdaApiKey) {
         const usdaFood = await searchUSDA(name, usdaApiKey);
