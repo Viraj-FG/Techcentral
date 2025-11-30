@@ -2,6 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { encodeBase64 } from 'https://deno.land/std@0.224.0/encoding/base64.ts';
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
 import { householdInviteSchema, validateRequest } from "../_shared/schemas.ts";
+import { getSecret, getSupabaseSecrets } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,10 +21,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const jwtSecret = Deno.env.get('INVITE_JWT_SECRET')!;
+    const { url: supabaseUrl, anonKey: supabaseAnonKey, serviceRoleKey: supabaseServiceKey } = getSupabaseSecrets();
+    const jwtSecret = getSecret('INVITE_JWT_SECRET');
 
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
@@ -72,7 +71,7 @@ Deno.serve(async (req) => {
     const { householdId: household_id, expiresInHours: expires_in_hours, maxUses: max_uses } = validation.data;
 
     // Use SERVICE ROLE key for database operations
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey!);
 
     // Verify user is owner of the household
     const { data: household, error: householdError } = await adminClient

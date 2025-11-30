@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { validateRequest, signedUrlSchema } from "../_shared/schemas.ts";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
+import { getSecret, getSupabaseSecrets } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -38,9 +39,10 @@ serve(async (req) => {
     console.log('🔐 [SignedURL] Verifying JWT token');
     
     // Create admin client with service role key to verify the JWT
+    const { url: supabaseUrl, serviceRoleKey } = getSupabaseSecrets();
     const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      supabaseUrl,
+      serviceRoleKey!,
       {
         auth: {
           autoRefreshToken: false,
@@ -81,11 +83,7 @@ serve(async (req) => {
 
     const { agentId } = validation.data;
     
-    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
-    if (!ELEVENLABS_API_KEY) {
-      console.error('❌ [SignedURL] ELEVENLABS_API_KEY not configured');
-      throw new Error('ELEVENLABS_API_KEY is not set');
-    }
+    const ELEVENLABS_API_KEY = getSecret('ELEVENLABS_API_KEY');
 
     console.log('🤖 [SignedURL] Generating signed URL for agent:', agentId, {
       userId: user.id

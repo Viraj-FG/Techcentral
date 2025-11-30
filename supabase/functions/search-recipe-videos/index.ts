@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { getSecret, getSupabaseSecrets } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,9 +24,10 @@ serve(async (req) => {
 
   try {
     const authHeader = req.headers.get('Authorization');
+    const { url: supabaseUrl, anonKey } = getSupabaseSecrets();
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      supabaseUrl,
+      anonKey,
       { global: { headers: { Authorization: authHeader! } } }
     );
 
@@ -37,10 +39,7 @@ serve(async (req) => {
       );
     }
 
-    const apiKey = Deno.env.get('YOUTUBE_API_KEY');
-    if (!apiKey) {
-      throw new Error('YOUTUBE_API_KEY not configured');
-    }
+    const apiKey = getSecret('YOUTUBE_API_KEY');
 
     const { recipeName, maxResults = 3 } = await req.json();
 

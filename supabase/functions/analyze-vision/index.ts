@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
 import { visionAnalysisSchema, validateRequest } from "../_shared/schemas.ts";
+import { getSecret, getSupabaseSecrets } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -44,9 +45,10 @@ serve(async (req) => {
       );
     }
 
+    const { url: supabaseUrl, anonKey } = getSupabaseSecrets();
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      supabaseUrl,
+      anonKey,
       { global: { headers: { Authorization: authHeader } } }
     );
 
@@ -84,11 +86,7 @@ serve(async (req) => {
     
     const { imageBase64: image, intent: mode } = validation.data;
     const voiceCommand = requestBody.voiceCommand;
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
+    const LOVABLE_API_KEY = getSecret('LOVABLE_API_KEY');
 
     console.log(`Vision analysis request - Mode: ${mode}, Command: ${voiceCommand}`);
 
