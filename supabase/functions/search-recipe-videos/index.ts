@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { getSecret, getSupabaseSecrets } from "../_shared/secrets.ts";
+import { getSecret, getSupabaseSecrets, validateRequiredSecrets, SECRET_GROUPS } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,6 +23,8 @@ serve(async (req) => {
   }
 
   try {
+    // Validate required secrets early
+    validateRequiredSecrets(SECRET_GROUPS.recipeVideos);
     const authHeader = req.headers.get('Authorization');
     const { url: supabaseUrl, anonKey } = getSupabaseSecrets();
     const supabaseClient = createClient(

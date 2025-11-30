@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateRequest, placeHoursSchema } from "../_shared/schemas.ts";
-import { getSecret } from "../_shared/secrets.ts";
+import { getSecret, validateRequiredSecrets, SECRET_GROUPS } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,6 +13,8 @@ serve(async (req) => {
   }
 
   try {
+    // Validate required secrets early
+    validateRequiredSecrets(SECRET_GROUPS.location);
     // Validate request
     const body = await req.json();
     const validation = validateRequest(placeHoursSchema, body);
