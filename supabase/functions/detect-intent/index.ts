@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.84.0";
 import { validateRequest, detectIntentSchema } from "../_shared/schemas.ts";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
+import { getSecret } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -54,10 +55,7 @@ serve(async (req) => {
 
     const { image } = validation.data;
 
-    const apiKey = Deno.env.get('GOOGLE_GEMINI_API_KEY');
-    if (!apiKey) {
-      throw new Error('GOOGLE_GEMINI_API_KEY not configured');
-    }
+    const apiKey = getSecret('GOOGLE_GEMINI_API_KEY');
 
     const systemPrompt = `Analyze this image and classify the SCENE into one of these categories:
 

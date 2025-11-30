@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { checkRateLimit } from "../_shared/rateLimiter.ts";
+import { getSecret, getSupabaseSecrets } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,11 +22,13 @@ serve(async (req) => {
       );
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const { url: supabaseUrl, serviceRoleKey } = getSupabaseSecrets();
+    if (!serviceRoleKey) {
+      throw new Error('SUPABASE_SERVICE_ROLE_KEY not configured');
+    }
 
     const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
-    const supabase = createClient(supabaseUrl, supabaseKey, {
+    const supabase = createClient(supabaseUrl, serviceRoleKey, {
       global: { headers: { Authorization: authHeader } }
     });
 
@@ -67,10 +70,7 @@ serve(async (req) => {
       );
     }
 
-    const apiKey = Deno.env.get('ELEVENLABS_API_KEY');
-    if (!apiKey) {
-      throw new Error('ELEVENLABS_API_KEY not configured');
-    }
+    const apiKey = getSecret('ELEVENLABS_API_KEY');
 
     console.log('=== AGENT PROVISIONING START ===');
     console.log('Timestamp:', new Date().toISOString());

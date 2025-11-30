@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getSecret, getSupabaseSecrets, getOptionalSecret } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,9 +24,10 @@ serve(async (req) => {
   }
 
   try {
+    const { url, anonKey } = getSupabaseSecrets();
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      url,
+      anonKey,
       {
         global: {
           headers: { Authorization: req.headers.get('Authorization')! },
@@ -60,10 +62,7 @@ serve(async (req) => {
     const beautyProfile = profile?.beauty_profile as { skinType?: string; hairType?: string } || {};
 
     // Generate beauty inspiration using Gemini
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
+    const LOVABLE_API_KEY = getSecret('LOVABLE_API_KEY');
 
     const productList = products.map(p => `${p.brand || ''} ${p.name}`.trim()).join(', ');
     const prompt = `Based on these beauty products: ${productList}
@@ -135,7 +134,7 @@ Ensure productsUsed only includes items from the scanned products list.`;
     const inspiration = JSON.parse(jsonContent);
 
     // Search YouTube for tutorials
-    const YOUTUBE_API_KEY = Deno.env.get('YOUTUBE_API_KEY');
+    const YOUTUBE_API_KEY = getOptionalSecret('YOUTUBE_API_KEY');
     let youtubeVideos = [];
 
     if (YOUTUBE_API_KEY) {

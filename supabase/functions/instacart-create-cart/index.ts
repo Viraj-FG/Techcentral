@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
 import { instacartCartSchema, validateRequest } from "../_shared/schemas.ts";
+import { getSecret, getSupabaseSecrets } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,9 +26,10 @@ serve(async (req) => {
       );
     }
 
+    const { url, anonKey } = getSupabaseSecrets();
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      url,
+      anonKey,
       { global: { headers: { Authorization: authHeader } } }
     );
 
@@ -75,10 +77,7 @@ serve(async (req) => {
 
     console.log('📝 Transformed line items:', lineItems);
 
-    const INSTACART_API_KEY = Deno.env.get('INSTACART_API_KEY');
-    if (!INSTACART_API_KEY) {
-      throw new Error('INSTACART_API_KEY is not configured');
-    }
+    const INSTACART_API_KEY = getSecret('INSTACART_ENVIRONMENT');
 
     // Call Instacart Developer Platform API
     const response = await fetch(

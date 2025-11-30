@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { getSecret } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -34,8 +35,8 @@ serve(async (req) => {
 
     // Create client with service role to verify JWT
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      getSecret('SUPABASE_URL'),
+      getSecret('SUPABASE_SERVICE_ROLE_KEY')
     );
 
     // Verify the JWT token and get user
@@ -58,15 +59,12 @@ serve(async (req) => {
       );
     }
 
-    const apiKey = Deno.env.get('GOOGLE_GEMINI_API_KEY');
-    if (!apiKey) {
-      throw new Error('GOOGLE_GEMINI_API_KEY not configured');
-    }
+    const apiKey = getSecret('GOOGLE_GEMINI_API_KEY');
 
     // Use service role for data fetching
     const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      getSecret('SUPABASE_URL'),
+      getSecret('SUPABASE_SERVICE_ROLE_KEY')
     );
 
     // Get user profile with household info

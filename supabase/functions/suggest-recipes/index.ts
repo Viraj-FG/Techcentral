@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
 import { recipeSuggestionSchema, validateRequest } from "../_shared/schemas.ts";
+import { getSecret, getSupabaseSecrets } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,9 +26,10 @@ serve(async (req) => {
   try {
     // Authentication
     const authHeader = req.headers.get('Authorization');
+    const { url, anonKey } = getSupabaseSecrets();
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      url,
+      anonKey,
       { global: { headers: { Authorization: authHeader! } } }
     );
 
@@ -64,10 +66,7 @@ serve(async (req) => {
       );
     }
 
-    const apiKey = Deno.env.get('GOOGLE_GEMINI_API_KEY');
-    if (!apiKey) {
-      throw new Error('GOOGLE_GEMINI_API_KEY not configured');
-    }
+    const apiKey = getSecret('GOOGLE_GEMINI_API_KEY');
 
     let availableIngredients = ingredients || [];
     let inventoryContext = '';
@@ -100,15 +99,17 @@ serve(async (req) => {
 
     // If inventory_match mode, fetch user's actual inventory
     if (inventory_match && user_id) {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const { url: supabaseUrl, serviceRoleKey } = getSupabaseSecrets();
+      if (!serviceRoleKey) {
+        throw new Error('SUPABASE_SERVICE_ROLE_KEY not configured');
+      }
       
       const inventoryResponse = await fetch(
         `${supabaseUrl}/rest/v1/inventory?user_id=eq.${user_id}&quantity=gt.0&select=name,quantity,category`,
         {
           headers: {
-            'apikey': supabaseKey,
-            'Authorization': `Bearer ${supabaseKey}`
+            'apikey': serviceRoleKey,
+            'Authorization': `Bearer ${serviceRoleKey}`
           }
         }
       );
