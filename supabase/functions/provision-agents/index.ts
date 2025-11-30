@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { checkRateLimit } from "../_shared/rateLimiter.ts";
-import { getSecret, getSupabaseSecrets } from "../_shared/secrets.ts";
+import { getSecret, getSupabaseSecrets, validateRequiredSecrets, SECRET_GROUPS } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,6 +13,8 @@ serve(async (req) => {
   }
 
   try {
+    // Validate required secrets early
+    validateRequiredSecrets(SECRET_GROUPS.voice);
     // Verify admin access
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
