@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { validateRequest, socialRecipeEnhancedSchema } from "../_shared/schemas.ts";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
+import { getSecret, getSupabaseSecrets } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -74,10 +75,7 @@ serve(async (req) => {
       return rateLimitResponse(rateLimit.retryAfter!);
     }
 
-    const apiKey = Deno.env.get('GOOGLE_GEMINI_API_KEY');
-    if (!apiKey) {
-      throw new Error('GOOGLE_GEMINI_API_KEY not configured');
-    }
+    const apiKey = getSecret('GOOGLE_GEMINI_API_KEY');
 
     console.log('Processing recipe extraction:', url ? 'URL mode' : 'Image mode');
 
@@ -233,9 +231,11 @@ Important rules:
     const recipeData = JSON.parse(recipeText);
 
     // Fetch user's inventory using Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const { url: supabaseUrl, serviceRoleKey } = getSupabaseSecrets();
+    if (!serviceRoleKey) {
+      throw new Error('SUPABASE_SERVICE_ROLE_KEY not configured');
+    }
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const { data: inventory, error: invError } = await supabase
       .from('inventory')

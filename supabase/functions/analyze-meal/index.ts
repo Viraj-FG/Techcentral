@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
 import { mealAnalysisSchema, validateRequest } from "../_shared/schemas.ts";
+import { getSecret, getSupabaseSecrets, getFatSecretCredentials } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -159,9 +160,10 @@ serve(async (req) => {
   try {
     // Authentication check
     const authHeader = req.headers.get('Authorization');
+    const { url, anonKey } = getSupabaseSecrets();
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      url,
+      anonKey,
       { global: { headers: { Authorization: authHeader! } } }
     );
 
@@ -204,17 +206,8 @@ serve(async (req) => {
       );
     }
 
-    const apiKey = Deno.env.get('GOOGLE_GEMINI_API_KEY');
-    if (!apiKey) {
-      throw new Error('GOOGLE_GEMINI_API_KEY not configured');
-    }
-
-    const clientId = Deno.env.get('FATSECRET_CLIENT_ID');
-    const clientSecret = Deno.env.get('FATSECRET_CLIENT_SECRET');
-    
-    if (!clientId || !clientSecret) {
-      throw new Error('FatSecret credentials not configured');
-    }
+    const apiKey = getSecret('GOOGLE_GEMINI_API_KEY');
+    const { clientId, clientSecret } = getFatSecretCredentials();
 
     // Step A: Use Gemini Vision to identify food items
     const prompt = `Analyze this food image and identify specific components with estimated quantities.

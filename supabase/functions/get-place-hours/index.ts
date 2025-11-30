@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateRequest, placeHoursSchema } from "../_shared/schemas.ts";
+import { getSecret } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,11 +25,7 @@ serve(async (req) => {
     }
 
     const { name, address, city, state } = validation.data;
-    const apiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
-
-    if (!apiKey) {
-      throw new Error('GOOGLE_PLACES_API_KEY not configured');
-    }
+    const apiKey = getSecret('GOOGLE_PLACES_API_KEY');
 
     // Step 1: Search for the place using Text Search
     const searchQuery = `${name} ${address} ${city} ${state}`;

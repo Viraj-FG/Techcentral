@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
+import { getSecret, getSupabaseSecrets } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,9 +19,10 @@ serve(async (req) => {
 
   try {
     const authHeader = req.headers.get('Authorization');
+    const { url, anonKey } = getSupabaseSecrets();
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      url,
+      anonKey,
       {
         global: {
           headers: { Authorization: authHeader! },
@@ -53,11 +55,7 @@ serve(async (req) => {
     
     console.log('Product identification request received');
     
-    const geminiApiKey = Deno.env.get('GOOGLE_GEMINI_API_KEY');
-    
-    if (!geminiApiKey) {
-      throw new Error('Gemini API key not configured');
-    }
+    const geminiApiKey = getSecret('GOOGLE_GEMINI_API_KEY');
 
     console.log('Calling Gemini Vision API...');
     
