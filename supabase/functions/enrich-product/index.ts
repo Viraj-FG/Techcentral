@@ -8,7 +8,7 @@ import { productEnrichmentSchema, validateRequest } from "../_shared/schemas.ts"
 import { analyzeProductDeception } from "../_shared/deceptionAnalyzer.ts";
 import { analyzeBeautyIngredients, analyzeSkinCompatibility } from "../_shared/beautyAnalyzer.ts";
 import { searchUSDA, processUSDAFood } from "../_shared/usdaApi.ts";
-import { getSecret, getOptionalSecret, getSupabaseSecrets, getFatSecretCredentials, validateRequiredSecrets, SECRET_GROUPS } from "../_shared/secrets.ts";
+import { getSecret, getOptionalSecret, getSupabaseSecrets, getFatSecretCredentials, validateRequiredSecrets } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -43,7 +43,7 @@ serve(async (req) => {
 
   try {
     // Validate required secrets early
-    validateRequiredSecrets(SECRET_GROUPS.nutrition);
+    validateRequiredSecrets(['FATSECRET_CLIENT_ID', 'FATSECRET_CLIENT_SECRET', 'USDA_API_KEY', 'GOOGLE_GEMINI_API_KEY']);
     const requestBody = await req.json();
     
     // Validate request with Zod

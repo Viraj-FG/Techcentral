@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { validateRequest, signedUrlSchema } from "../_shared/schemas.ts";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
-import { getSecret, getSupabaseSecrets, validateRequiredSecrets, SECRET_GROUPS } from "../_shared/secrets.ts";
+import { getSecret, getSupabaseSecrets, validateRequiredSecrets } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,7 +19,7 @@ serve(async (req) => {
 
   try {
     // Validate required secrets early
-    validateRequiredSecrets(SECRET_GROUPS.supabaseAdmin);
+    validateRequiredSecrets(['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY']);
   } catch (error) {
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Secret validation failed' }),

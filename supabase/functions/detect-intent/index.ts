@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.84.0";
 import { validateRequest, detectIntentSchema } from "../_shared/schemas.ts";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
-import { getSecret, validateRequiredSecrets, SECRET_GROUPS } from "../_shared/secrets.ts";
+import { getSecret, validateRequiredSecrets } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -43,7 +43,7 @@ serve(async (req) => {
 
   try {
     // Validate required secrets early
-    validateRequiredSecrets([...SECRET_GROUPS.vision, ...SECRET_GROUPS.supabase]);
+    validateRequiredSecrets(['GOOGLE_GEMINI_API_KEY', 'SUPABASE_URL', 'SUPABASE_ANON_KEY']);
     // Validate request
     const body = await req.json();
     const validation = validateRequest(detectIntentSchema, body);
