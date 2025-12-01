@@ -148,70 +148,10 @@ export function getSecretStatus(names: SecretName[]): {
 }
 
 // ============================================================================
-// PRE-CONFIGURED SECRET GROUPS
+// SECRET GROUPS REMOVED
 // ============================================================================
-
-/**
- * Common groups of secrets used together by edge functions
- * Use these with validateRequiredSecrets() at function start
- */
-export const SECRET_GROUPS = {
-  /** Voice agent and conversation features */
-  voice: [
-    'ELEVENLABS_API_KEY',
-    'ELEVENLABS_WEBHOOK_SECRET',
-  ] as SecretName[],
-  
-  /** AI vision and generation features */
-  vision: [
-    'GOOGLE_GEMINI_API_KEY',
-  ] as SecretName[],
-  
-  /** Nutrition data enrichment (primary + fallback) */
-  nutrition: [
-    'FATSECRET_CLIENT_ID',
-    'FATSECRET_CLIENT_SECRET',
-    'USDA_API_KEY',
-    'GOOGLE_GEMINI_API_KEY', // For AI estimation fallback
-  ] as SecretName[],
-  
-  /** Recipe video search */
-  recipeVideos: [
-    'YOUTUBE_API_KEY',
-  ] as SecretName[],
-  
-  /** Shopping cart integration */
-  shopping: [
-    'INSTACART_ENVIRONMENT',
-  ] as SecretName[],
-  
-  /** Location and store hours */
-  location: [
-    'GOOGLE_PLACES_API_KEY',
-  ] as SecretName[],
-  
-  /** Image generation */
-  imageGen: [
-    'LOVABLE_API_KEY',
-  ] as SecretName[],
-  
-  /** Supabase client essentials */
-  supabase: [
-    'SUPABASE_URL',
-    'SUPABASE_ANON_KEY',
-  ] as SecretName[],
-  
-  /** Supabase admin operations */
-  supabaseAdmin: [
-    'SUPABASE_URL',
-    'SUPABASE_SERVICE_ROLE_KEY',
-  ] as SecretName[],
-  
-  /** Household invite system */
-  invites: [
-    'INVITE_JWT_SECRET',
-  ] as SecretName[],
-} as const;
+// Secret groups were removed to optimize edge function bundling.
+// Each function now validates secrets inline with direct arrays.
 
 // ============================================================================
 // CONVENIENCE FUNCTIONS
