@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { getSecret, getSupabaseSecrets, getOptionalSecret, validateRequiredSecrets, SECRET_GROUPS } from "../_shared/secrets.ts";
+import { getSecret, getSupabaseSecrets, getOptionalSecret, validateRequiredSecrets } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,7 +25,7 @@ serve(async (req) => {
 
   try {
     // Validate required secrets early
-    validateRequiredSecrets([...SECRET_GROUPS.imageGen, ...SECRET_GROUPS.vision, ...SECRET_GROUPS.supabase]);
+    validateRequiredSecrets(['LOVABLE_API_KEY', 'GOOGLE_GEMINI_API_KEY', 'SUPABASE_URL', 'SUPABASE_ANON_KEY']);
     const { url, anonKey } = getSupabaseSecrets();
     const supabaseClient = createClient(
       url,

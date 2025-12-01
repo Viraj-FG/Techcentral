@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { encodeBase64 } from 'https://deno.land/std@0.224.0/encoding/base64.ts';
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimiter.ts";
 import { householdInviteSchema, validateRequest } from "../_shared/schemas.ts";
-import { getSecret, getSupabaseSecrets, validateRequiredSecrets, SECRET_GROUPS } from "../_shared/secrets.ts";
+import { getSecret, getSupabaseSecrets, validateRequiredSecrets } from "../_shared/secrets.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
 
   try {
     // Validate required secrets early
-    validateRequiredSecrets([...SECRET_GROUPS.invites, ...SECRET_GROUPS.supabase]);
+    validateRequiredSecrets(['INVITE_JWT_SECRET', 'SUPABASE_URL', 'SUPABASE_ANON_KEY']);
     const { url: supabaseUrl, anonKey: supabaseAnonKey, serviceRoleKey: supabaseServiceKey } = getSupabaseSecrets();
     const jwtSecret = getSecret('INVITE_JWT_SECRET');
 
