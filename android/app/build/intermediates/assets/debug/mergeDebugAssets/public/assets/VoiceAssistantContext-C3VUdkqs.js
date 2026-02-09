@@ -1,0 +1,6 @@
+import{d as f,be as p}from"./index-D4bhw5kJ.js";import{j as c}from"./ui-vendor-CRu_cuPE.js";import{r as s}from"./react-vendor-DwZQO67Z.js";/**
+ * @license lucide-react v0.462.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const V=f("Eye",[["path",{d:"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0",key:"1nclc0"}],["circle",{cx:"12",cy:"12",r:"3",key:"1v7zrd"}]]),i=s.createContext(null),v=()=>{const t=s.useContext(i);if(!t)throw new Error("useVoiceAssistant must be used within VoiceAssistantProvider");return t},A=({children:t,userProfile:a})=>{const e=s.useRef(null),[u,l]=s.useState(!1),d=o=>{var r,n;if(o&&((r=e.current)!=null&&r.sendContextualUpdate))try{e.current.sendContextualUpdate(o)}catch(x){console.error("Failed to send context:",x)}(n=e.current)==null||n.startConversation(),l(!0)};return c.jsxs(i.Provider,{value:{startConversation:d,isActive:u},children:[c.jsx(p,{ref:e,userProfile:a,onProfileUpdate:()=>{}}),t]})},j=Object.freeze(Object.defineProperty({__proto__:null,VoiceAssistantProvider:A,useVoiceAssistant:v},Symbol.toStringTag,{value:"Module"}));export{V as E,j as V,v as u};
