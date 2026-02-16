@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initScrollEffects();
     initCounters();
 
-    fetch('data/products.json')
+    fetch('./data/products.json')
         .then(r => r.json())
         .then(data => {
             allProducts = data;
