@@ -1,7 +1,7 @@
 {
-  "name": "techgear",
+  "name": "kaeva",
   "version": "1.0.0",
-  "description": "TechGear — The Best Tech, Curated for You. Amazon affiliate site for gaming, AI/ML, coding peripherals & networking gear.",
+  "description": "KAEVA — The Best Tech, Curated for You. Amazon affiliate site for gaming, AI/ML, coding peripherals & networking gear.",
   "type": "module",
   "scripts": {
     "dev": "vite",
