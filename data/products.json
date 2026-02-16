@@ -4,7 +4,7 @@
     "price": "$1,599.99",
     "rating": 5,
     "description": "24GB GDDR6X, Ada Lovelace — the ultimate GPU for 4K gaming.",
-    "imageUrl": "https://m.media-amazon.com/images/I/61PL9noHQ-L._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/811jAU5NuJL._AC_SL1500_.jpg",
     "asin": "B0DYVCGVK4",
     "category": "gaming",
     "topPick": true
@@ -14,7 +14,7 @@
     "price": "$799.99",
     "rating": 4.5,
     "description": "16GB GDDR6X, sweet spot for 1440p gaming performance.",
-    "imageUrl": "https://m.media-amazon.com/images/I/81dS2osSqKL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/815-M4vy8JL._AC_SL1500_.jpg",
     "asin": "B0DS6S98ZF",
     "category": "gaming",
     "topPick": false
@@ -24,7 +24,7 @@
     "price": "$949.99",
     "rating": 4.5,
     "description": "24GB GDDR6, AMD's flagship with stellar rasterization.",
-    "imageUrl": "https://m.media-amazon.com/images/I/51xGGonCBnL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/41fOuNCg2mL._AC_SL1500_.jpg",
     "asin": "B0BNLSDRKB",
     "category": "gaming",
     "topPick": false
@@ -34,7 +34,7 @@
     "price": "$999.99",
     "rating": 5,
     "description": "240Hz QHD OLED gaming monitor with G-Sync Ultimate.",
-    "imageUrl": "https://m.media-amazon.com/images/I/71ojGOY6fFL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/712sIskH-lL._AC_SL1500_.jpg",
     "asin": "B0B8RVH517",
     "category": "gaming",
     "topPick": true
@@ -44,7 +44,7 @@
     "price": "$349.99",
     "rating": 4.5,
     "description": "Nano IPS, 165Hz, 1ms — incredible value gaming monitor.",
-    "imageUrl": "https://m.media-amazon.com/images/I/71p-CzYjBzL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/616ZOS5bnnL._AC_SL1500_.jpg",
     "asin": "B093MTSTKD",
     "category": "gaming",
     "topPick": false
@@ -54,7 +54,7 @@
     "price": "$1,099.99",
     "rating": 4.5,
     "description": "Dual QHD ultrawide curved, 240Hz — immersive gaming.",
-    "imageUrl": "https://m.media-amazon.com/images/I/81CngWsSY4L._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/71cuZoxL0cL._AC_SL1500_.jpg",
     "asin": "B0CDQMQQS2",
     "category": "gaming",
     "topPick": false
@@ -64,7 +64,7 @@
     "price": "$229.99",
     "rating": 4.5,
     "description": "OPX optical-mechanical switches, iCUE wheel, per-key RGB.",
-    "imageUrl": "https://m.media-amazon.com/images/I/71u2fG+HFSL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/71jD+PgsphL._AC_SL1500_.jpg",
     "asin": "B0FWRDZ1QW",
     "category": "gaming",
     "topPick": false
@@ -74,7 +74,7 @@
     "price": "$89.99",
     "rating": 4.5,
     "description": "63g ultralight ergonomic wireless gaming mouse, 30K DPI.",
-    "imageUrl": "https://m.media-amazon.com/images/I/61JJiMbiWxL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/61+jneMKiGL._AC_SL1469_.jpg",
     "asin": "B0CSP61VR4",
     "category": "gaming",
     "topPick": false
@@ -84,7 +84,7 @@
     "price": "$159.99",
     "rating": 5,
     "description": "60g, HERO 2 sensor 44K DPI, pro-grade wireless mouse.",
-    "imageUrl": "https://m.media-amazon.com/images/I/61lYIKPieDL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/61BJ2MpgTTL._AC_SL1500_.jpg",
     "asin": "B0CW25XR5R",
     "category": "gaming",
     "topPick": false
@@ -94,7 +94,7 @@
     "price": "$249.99",
     "rating": 4.5,
     "description": "Adjustable actuation, rapid trigger, OLED smart display.",
-    "imageUrl": "https://m.media-amazon.com/images/I/71jMaf9gC-L._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/713vLZcw3FL._AC_SL1500_.jpg",
     "asin": "B0DGZLHN8G",
     "category": "gaming",
     "topPick": false
@@ -104,7 +104,7 @@
     "price": "$1,599.99",
     "rating": 5,
     "description": "24GB VRAM — top consumer GPU for deep learning & training.",
-    "imageUrl": "https://m.media-amazon.com/images/I/61PL9noHQ-L._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/811jAU5NuJL._AC_SL1500_.jpg",
     "asin": "B0DYVCGVK4",
     "category": "ai",
     "topPick": true
@@ -114,7 +114,7 @@
     "price": "$549.99",
     "rating": 5,
     "description": "16 cores / 32 threads, 5.7GHz boost — ML preprocessing beast.",
-    "imageUrl": "https://m.media-amazon.com/images/I/51Aup1ARWGL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/5116zdA9uyL._AC_SL1200_.jpg",
     "asin": "B0BBHD5D8Y",
     "category": "ai",
     "topPick": true
@@ -124,7 +124,7 @@
     "price": "$159.99",
     "rating": 5,
     "description": "7,450 MB/s sequential read — fast dataset loading.",
-    "imageUrl": "https://m.media-amazon.com/images/I/51GvNbiePeL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/71OWtcxKgvL._AC_SL1500_.jpg",
     "asin": "B0BHJJ9Y77",
     "category": "ai",
     "topPick": false
@@ -134,7 +134,7 @@
     "price": "$159.99",
     "rating": 4.5,
     "description": "64GB (2x32GB) kit for large model training and inference.",
-    "imageUrl": "https://m.media-amazon.com/images/I/51gOS1Opo9L._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/51YgnMva5XL._AC_SL1100_.jpg",
     "asin": "B0D1G2KKY2",
     "category": "ai",
     "topPick": false
@@ -144,7 +144,7 @@
     "price": "$499.99",
     "rating": 4.5,
     "description": "AM5 workstation board, PCIe 5.0, Thunderbolt 4, 10G LAN.",
-    "imageUrl": "https://m.media-amazon.com/images/I/81M6gmMxMBL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/81qTBHNXtkL._AC_SL1500_.jpg",
     "asin": "B0DF123GCV",
     "category": "ai",
     "topPick": false
@@ -154,7 +154,7 @@
     "price": "$344.99",
     "rating": 4.5,
     "description": "80+ Platinum, fully modular — powers multi-GPU AI rigs.",
-    "imageUrl": "https://m.media-amazon.com/images/I/71HzKy36XML._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/61p3tq9e2TL._AC_SL1030_.jpg",
     "asin": "B0F1NGKBK3",
     "category": "ai",
     "topPick": false
@@ -164,7 +164,7 @@
     "price": "$299.99",
     "rating": 4.5,
     "description": "4TB high-speed NVMe for massive datasets and checkpoints.",
-    "imageUrl": "https://m.media-amazon.com/images/I/51bre+8jnQL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/61uDl4amtnL._AC_SL1500_.jpg",
     "asin": "B0DZK9C789",
     "category": "ai",
     "topPick": false
@@ -174,7 +174,7 @@
     "price": "$109.95",
     "rating": 5,
     "description": "Dual-tower air cooler — silent, powerful, zero maintenance.",
-    "imageUrl": "https://m.media-amazon.com/images/I/81hEbkEpNHL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/91t48GBv8TL._SL1500_.jpg",
     "asin": "B07Y87YHRH",
     "category": "ai",
     "topPick": false
@@ -184,7 +184,7 @@
     "price": "$269.90",
     "rating": 4.5,
     "description": "Full tower, sound insulated, fits E-ATX — perfect ML case.",
-    "imageUrl": "https://m.media-amazon.com/images/I/71Z4U-rXNML._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/61IhAP9l3LL._AC_SL1500_.jpg",
     "asin": "B0CWH71LQF",
     "category": "ai",
     "topPick": false
@@ -194,7 +194,7 @@
     "price": "$179.99",
     "rating": 4.5,
     "description": "PCIe 4.0 NVMe with heatsink, 7,100 MB/s read.",
-    "imageUrl": "https://m.media-amazon.com/images/I/61sWJH-iMvL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/61zuR3UMnWL._AC_SL1500_.jpg",
     "asin": "B08HN37XC1",
     "category": "ai",
     "topPick": false
@@ -204,7 +204,7 @@
     "price": "$1,299.99",
     "rating": 4.5,
     "description": "Thunderbolt 4, Nano IPS, perfect multi-pane coding monitor.",
-    "imageUrl": "https://m.media-amazon.com/images/I/81Bv8fSK5QL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/71SNK3dJY9L._AC_SL1500_.jpg",
     "asin": "B0D7Q8N64F",
     "category": "coding",
     "topPick": true
@@ -214,7 +214,7 @@
     "price": "$449.99",
     "rating": 4.5,
     "description": "IPS Black tech, USB-C 90W hub, factory calibrated.",
-    "imageUrl": "https://m.media-amazon.com/images/I/81cL9PATqmL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/A1Iqr2v1SIL._AC_SL1500_.jpg",
     "asin": "B09TQZP9CL",
     "category": "coding",
     "topPick": false
@@ -224,7 +224,7 @@
     "price": "$1,395.00",
     "rating": 5,
     "description": "Gold standard ergonomic chair for marathon coding sessions.",
-    "imageUrl": "https://m.media-amazon.com/images/I/51mUMLADJqL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/61vsHNwGGWL._AC_SL1500_.jpg",
     "asin": "B01DGM7ZII",
     "category": "coding",
     "topPick": true
@@ -234,7 +234,7 @@
     "price": "$519.00",
     "rating": 4.5,
     "description": "4-way lumbar, magnetic accessories, cold-cure foam.",
-    "imageUrl": "https://m.media-amazon.com/images/I/71b-OslNnzL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/71JMbeac-qL._AC_SL1500_.jpg",
     "asin": "B0DP5SY554",
     "category": "coding",
     "topPick": false
@@ -244,7 +244,7 @@
     "price": "$199.99",
     "rating": 4.5,
     "description": "75% wireless, QMK/VIA, gasket mount, hot-swappable.",
-    "imageUrl": "https://m.media-amazon.com/images/I/61YMu-MHXTL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/61zQ2umtPcL._AC_SL1500_.jpg",
     "asin": "B0CR1JHZ6R",
     "category": "coding",
     "topPick": false
@@ -254,7 +254,7 @@
     "price": "$599.00",
     "rating": 4.5,
     "description": "Bamboo top, programmable presets, whisper-quiet motor.",
-    "imageUrl": "https://m.media-amazon.com/images/I/71xvd+KYBML._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/61vyvp5MtLL._AC_SL1500_.jpg",
     "asin": "B07V6ZSHF4",
     "category": "coding",
     "topPick": false
@@ -264,7 +264,7 @@
     "price": "$379.99",
     "rating": 5,
     "description": "18 ports, 98W charging, dual 6K display — the best dock.",
-    "imageUrl": "https://m.media-amazon.com/images/I/71tN3-fgPWL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/61RBOqHLI0L._AC_SL1500_.jpg",
     "asin": "B09GK8LBWS",
     "category": "coding",
     "topPick": false
@@ -274,7 +274,7 @@
     "price": "$179.00",
     "rating": 4.5,
     "description": "Wireless controller, auto-dimming, zero screen glare.",
-    "imageUrl": "https://m.media-amazon.com/images/I/61cGpf+SKLL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/51TVzOs05eL._AC_SL1500_.jpg",
     "asin": "B08WT889V3",
     "category": "coding",
     "topPick": false
@@ -284,7 +284,7 @@
     "price": "$99.99",
     "rating": 5,
     "description": "Quiet clicks, 8K DPI, multi-device flow — coder's favorite.",
-    "imageUrl": "https://m.media-amazon.com/images/I/61ni3t1ryQL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/61+OT7FPABL._AC_SL1500_.jpg",
     "asin": "B09HM94VDS",
     "category": "coding",
     "topPick": false
@@ -294,7 +294,7 @@
     "price": "$129.00",
     "rating": 4,
     "description": "Multi-Touch, Force Touch, seamless macOS gestures.",
-    "imageUrl": "https://m.media-amazon.com/images/I/51Cujqb2wnL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/3177roL4yML._AC_SL1144_.jpg",
     "asin": "B09BRG3MZ2",
     "category": "coding",
     "topPick": false
@@ -304,7 +304,7 @@
     "price": "$348.00",
     "rating": 5,
     "description": "Best-in-class ANC, 30hr battery, multipoint Bluetooth.",
-    "imageUrl": "https://m.media-amazon.com/images/I/51aXvjzcukL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/61BGLYEN-xL._AC_SL1500_.jpg",
     "asin": "B09XS7JWHH",
     "category": "peripherals",
     "topPick": true
@@ -314,7 +314,7 @@
     "price": "$349.99",
     "rating": 4.5,
     "description": "Multi-system connect, active ANC, hot-swap battery.",
-    "imageUrl": "https://m.media-amazon.com/images/I/61GsNaq-csL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/71I8NxeLHDL._SL1500_.jpg",
     "asin": "B0FH5XX7GP",
     "category": "peripherals",
     "topPick": false
@@ -324,7 +324,7 @@
     "price": "$139.99",
     "rating": 4.5,
     "description": "4-capsule condenser array, Blue VO!CE, LED metering.",
-    "imageUrl": "https://m.media-amazon.com/images/I/71FwMWG-iNL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/61yw+MkDwpL._AC_SL1500_.jpg",
     "asin": "B07QKQJL17",
     "category": "peripherals",
     "topPick": false
@@ -334,7 +334,7 @@
     "price": "$149.99",
     "rating": 4.5,
     "description": "Premium condenser, Clipguard anti-distortion, digital mixer.",
-    "imageUrl": "https://m.media-amazon.com/images/I/71WqIJ1ub0L._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/61KjhEX33JL._AC_SL1500_.jpg",
     "asin": "B088HHWC47",
     "category": "peripherals",
     "topPick": false
@@ -344,7 +344,7 @@
     "price": "$139.99",
     "rating": 4.5,
     "description": "4K HDR, auto light correction, Windows Hello IR.",
-    "imageUrl": "https://m.media-amazon.com/images/I/71iNwni9TsL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/71SAamTGWQL._AC_SL1500_.jpg",
     "asin": "B01N5UOYC4",
     "category": "peripherals",
     "topPick": false
@@ -354,7 +354,7 @@
     "price": "$149.99",
     "rating": 5,
     "description": "15 customizable LCD keys, multi-app integrations.",
-    "imageUrl": "https://m.media-amazon.com/images/I/61RhbJMiBlL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/71acrSF2nSL._AC_SL1500_.jpg",
     "asin": "B0DFXX7WJ1",
     "category": "peripherals",
     "topPick": true
@@ -364,7 +364,7 @@
     "price": "$169.00",
     "rating": 4.5,
     "description": "Studio-grade USB mic with internal DSP and Revolution preamp.",
-    "imageUrl": "https://m.media-amazon.com/images/I/61a7t3MGv9L._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/71P1QQK4qYL._AC_SL1500_.jpg",
     "asin": "B0D458QDVN",
     "category": "peripherals",
     "topPick": false
@@ -374,7 +374,7 @@
     "price": "$129.99",
     "rating": 4.5,
     "description": "1400 lumens LED panel, app-controlled, edge-lit design.",
-    "imageUrl": "https://m.media-amazon.com/images/I/61-jN2UcJDL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/61o8RbJMX6L._AC_SL1500_.jpg",
     "asin": "B082QHRZFW",
     "category": "peripherals",
     "topPick": false
@@ -384,7 +384,7 @@
     "price": "$249.99",
     "rating": 4,
     "description": "13-in-1, 85W laptop charging, triple display support.",
-    "imageUrl": "https://m.media-amazon.com/images/I/61R6kVwmsaL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/5131gnnHIIL._AC_SL1500_.jpg",
     "asin": "B0BNZ4D72B",
     "category": "peripherals",
     "topPick": false
@@ -394,7 +394,7 @@
     "price": "$69.99",
     "rating": 4,
     "description": "26K DPI, 59g ultralight, Bluetooth + 2.4GHz + USB-C.",
-    "imageUrl": "https://m.media-amazon.com/images/I/612JiMpOl8L._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/61t+Ikq2w4L._AC_SL1500_.jpg",
     "asin": "B0D53FNYZY",
     "category": "peripherals",
     "topPick": false
@@ -404,7 +404,7 @@
     "price": "$249.99",
     "rating": 4.5,
     "description": "AX5700, 2.5G WAN, AiMesh, AiProtection Pro, gaming QoS.",
-    "imageUrl": "https://m.media-amazon.com/images/I/61PO7rCzEBL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/61D7vtclcsL._AC_SL1500_.jpg",
     "asin": "B09PRB1MZM",
     "category": "networking",
     "topPick": true
@@ -414,7 +414,7 @@
     "price": "$399.99",
     "rating": 4,
     "description": "WiFi 6E tri-band, 10.8 Gbps combined, 12-stream.",
-    "imageUrl": "https://m.media-amazon.com/images/I/61+IFTrg7QL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/71wDRCm5ADL._AC_SL1500_.jpg",
     "asin": "B0DVBP5L6Y",
     "category": "networking",
     "topPick": false
@@ -424,7 +424,7 @@
     "price": "$299.99",
     "rating": 4.5,
     "description": "WiFi 6E whole-home mesh, 5,400 sq ft, AI-driven roaming.",
-    "imageUrl": "https://m.media-amazon.com/images/I/51l6i3pbVML._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/51gpduaRy4L._AC_SL1500_.jpg",
     "asin": "B0DKVDZXSN",
     "category": "networking",
     "topPick": false
@@ -434,7 +434,7 @@
     "price": "$379.00",
     "rating": 4.5,
     "description": "All-in-one gateway, NVR, UniFi controller — pro networking.",
-    "imageUrl": "https://m.media-amazon.com/images/I/31CoYnJQ+gL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/31Wj0r3zzlL._AC_SL1500_.jpg",
     "asin": "B086967C9X",
     "category": "networking",
     "topPick": true
@@ -444,7 +444,7 @@
     "price": "$349.99",
     "rating": 4,
     "description": "8-port 10G/Multi-Gig managed switch for NAS & servers.",
-    "imageUrl": "https://m.media-amazon.com/images/I/71-HLGbTOAL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/71QsWW5rZXL._AC_SL1500_.jpg",
     "asin": "B076642YPN",
     "category": "networking",
     "topPick": false
@@ -454,7 +454,7 @@
     "price": "$17.99",
     "rating": 4.5,
     "description": "Unmanaged, plug & play, metal case, fanless — essential.",
-    "imageUrl": "https://m.media-amazon.com/images/I/51GEwtWWlyL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/61rq2K0-BTL._AC_SL1500_.jpg",
     "asin": "B00A121WN6",
     "category": "networking",
     "topPick": false
@@ -464,7 +464,7 @@
     "price": "$13.99",
     "rating": 4.5,
     "description": "40Gbps, 2000MHz, shielded SFTP — future-proof cabling.",
-    "imageUrl": "https://m.media-amazon.com/images/I/71hZaz1u4bL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/71fvdY+XG1L._SL1500_.jpg",
     "asin": "B07QWC3CQN",
     "category": "networking",
     "topPick": false
@@ -474,7 +474,7 @@
     "price": "$599.99",
     "rating": 4.5,
     "description": "Quad-band WiFi 6E, dual 10G ports, gaming-first router.",
-    "imageUrl": "https://m.media-amazon.com/images/I/81mX6YOOOAL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/71HzNl--8qL._AC_SL1500_.jpg",
     "asin": "B09Z792WWF",
     "category": "networking",
     "topPick": false
@@ -484,7 +484,7 @@
     "price": "$549.99",
     "rating": 5,
     "description": "AMD Ryzen R1600, expandable to 9 bays, 10GbE capable.",
-    "imageUrl": "https://m.media-amazon.com/images/I/51LN1jqCg7L._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/81netJNXqUL._AC_SL1500_.jpg",
     "asin": "B09VXCSLR4",
     "category": "networking",
     "topPick": false
@@ -494,7 +494,7 @@
     "price": "$239.99",
     "rating": 4.5,
     "description": "Battery backup + surge protection for your entire setup.",
-    "imageUrl": "https://m.media-amazon.com/images/I/71VB8JxMtKL._AC_SL1500_.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/617WOwlPeDL._AC_SL1500_.jpg",
     "asin": "B00429N19W",
     "category": "networking",
     "topPick": false
