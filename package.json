@@ -1,0 +1,14 @@
+{
+  "name": "techgear",
+  "version": "1.0.0",
+  "description": "TechGear — The Best Tech, Curated for You. Amazon affiliate site for gaming, AI/ML, coding peripherals & networking gear.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.1.0"
+  }
+}
