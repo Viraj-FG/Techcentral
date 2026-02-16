@@ -1,48 +1,135 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kaeva</title>
-    <meta name="description" content="Living made easier.">
-    <meta name="author" content="Lovable" />
-    
-    <!-- Mobile Web App Meta Tags -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#D69E2E">
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="https://btgmvuieishjiybgcmpj.supabase.co/storage/v1/object/public/app-assets/icon-192.png">
-    
-    <!-- Critical Resource Hints - Preconnect to external domains for faster loading -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://btgmvuieishjiybgcmpj.supabase.co">
-    <link rel="dns-prefetch" href="https://api.elevenlabs.io">
-    
-    <!-- Optimized Typography - 2 fonts only -->
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    
-    
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-    <meta property="og:title" content="Kaeva">
-  <meta name="twitter:title" content="Kaeva">
-  <meta property="og:description" content="Living made easier.">
-  <meta name="twitter:description" content="Living made easier.">
-  <link rel="icon" type="image/png" href="https://btgmvuieishjiybgcmpj.supabase.co/storage/v1/object/public/app-assets/icon-192.png">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechGear — The Best Tech, Curated for You</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
 </head>
+<body>
+    <!-- Animated background particles -->
+    <canvas id="particles"></canvas>
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+    <!-- Navbar -->
+    <header class="navbar" id="navbar">
+        <div class="container nav-container">
+            <a href="#" class="logo" onclick="showAll()">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">TechGear</span>
+            </a>
+            <div class="search-wrapper">
+                <div class="search-inner">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <input type="text" id="search" placeholder="Search gear..." autocomplete="off">
+                </div>
+            </div>
+            <nav class="nav-links" id="nav-links">
+                <a href="#" class="nav-link active" data-category="all" onclick="filterCategory('all', this)">All</a>
+                <a href="#" class="nav-link" data-category="gaming" onclick="filterCategory('gaming', this)">🎮 Gaming</a>
+                <a href="#" class="nav-link" data-category="ai" onclick="filterCategory('ai', this)">🤖 AI/ML</a>
+                <a href="#" class="nav-link" data-category="coding" onclick="filterCategory('coding', this)">💻 Coding</a>
+                <a href="#" class="nav-link" data-category="peripherals" onclick="filterCategory('peripherals', this)">🎧 Peripherals</a>
+                <a href="#" class="nav-link" data-category="networking" onclick="filterCategory('networking', this)">🌐 Networking</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero -->
+        <section class="hero" id="hero">
+            <div class="hero-glow"></div>
+            <div class="hero-content">
+                <div class="hero-badge animate-in">
+                    <span class="pulse-dot"></span>
+                    Curated by tech enthusiasts
+                </div>
+                <h1 class="hero-title animate-in delay-1">
+                    The Best Tech.<br>
+                    <span class="accent gradient-text">Curated for You.</span>
+                </h1>
+                <p class="hero-sub animate-in delay-2">Top-tier gear for gaming, AI/ML, coding & beyond — handpicked and linked directly to Amazon.</p>
+                <div class="hero-actions animate-in delay-3">
+                    <a href="#products" class="cta-btn">
+                        <span>Browse Gear</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+                    </a>
+                    <div class="hero-stats">
+                        <div class="stat"><span class="stat-num" data-count="50">0</span><span class="stat-label">Products</span></div>
+                        <div class="stat-divider"></div>
+                        <div class="stat"><span class="stat-num" data-count="5">0</span><span class="stat-label">Categories</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="scroll-indicator animate-in delay-4">
+                <div class="scroll-line"></div>
+            </div>
+        </section>
+
+        <!-- Category Cards -->
+        <section class="categories-section" id="categories-section">
+            <div class="container">
+                <h2 class="section-label reveal">CATEGORIES</h2>
+                <div class="cat-grid">
+                    <div class="cat-card reveal" onclick="filterCategory('gaming')" style="--i:0">
+                        <div class="cat-glow"></div>
+                        <span class="cat-icon">🎮</span>
+                        <span class="cat-label">Gaming</span>
+                        <span class="cat-count" data-cat="gaming">0</span>
+                    </div>
+                    <div class="cat-card reveal" onclick="filterCategory('ai')" style="--i:1">
+                        <div class="cat-glow"></div>
+                        <span class="cat-icon">🤖</span>
+                        <span class="cat-label">AI / ML</span>
+                        <span class="cat-count" data-cat="ai">0</span>
+                    </div>
+                    <div class="cat-card reveal" onclick="filterCategory('coding')" style="--i:2">
+                        <div class="cat-glow"></div>
+                        <span class="cat-icon">💻</span>
+                        <span class="cat-label">Coding</span>
+                        <span class="cat-count" data-cat="coding">0</span>
+                    </div>
+                    <div class="cat-card reveal" onclick="filterCategory('peripherals')" style="--i:3">
+                        <div class="cat-glow"></div>
+                        <span class="cat-icon">🎧</span>
+                        <span class="cat-label">Peripherals</span>
+                        <span class="cat-count" data-cat="peripherals">0</span>
+                    </div>
+                    <div class="cat-card reveal" onclick="filterCategory('networking')" style="--i:4">
+                        <div class="cat-glow"></div>
+                        <span class="cat-icon">🌐</span>
+                        <span class="cat-label">Networking</span>
+                        <span class="cat-count" data-cat="networking">0</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Products Grid -->
+        <section class="products-section" id="products">
+            <div class="container">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title" id="section-title">All Products</h2>
+                        <p class="product-count" id="product-count"></p>
+                    </div>
+                </div>
+                <div class="product-grid" id="product-grid">
+                    <p style="color:#888">Loading products...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-logo">⚡ TechGear</div>
+            <p class="disclaimer">As an Amazon Associate, we earn from qualifying purchases.</p>
+            <p class="footer-sub">© 2026 TechGear. All product names, logos, and brands are property of their respective owners.</p>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
 </html>
