@@ -13,58 +13,8 @@ const categoryNames = {
     networking: '🌐 Networking'
 };
 
-// SiteStripe amzn.to short links (verified Feb 16, 2026 — batch 2)
-const shortLinks = {
-    "B0BDK8JD8A": "https://amzn.to/40fDh7y",
-    "B0CS5MY416": "https://amzn.to/4cDAFaW",
-    "B0BZBFK9Y4": "https://amzn.to/4rvPy3R",
-    "B0C4TP4GQV": "https://amzn.to/4rx5Rxa",
-    "B093MTSTKD": "https://amzn.to/4qFMfGc",
-    "B0CDQMQQS2": "https://amzn.to/4aIrliP",
-    "B08DHL2JRY": "https://amzn.to/4kItnVA",
-    "B0B6HY9JL5": "https://amzn.to/40bAg8j",
-    "B0CKJ4H1R8": "https://amzn.to/4rlbX3L",
-    "B0BF67DN4M": "https://amzn.to/4rm9Fl7",
-    "B0BBJNCS13": "https://amzn.to/4qZ75AB",
-    "B0BHJJ9Y77": "https://amzn.to/4qIpf9v",
-    "B0BWNPFKPN": "https://amzn.to/4rm7myc",
-    "B0BHRFH43M": "https://amzn.to/4aQ1pDX",
-    "B0BY84JFC4": "https://amzn.to/4aTj5hX",
-    "B0BRY6VPC8": "https://amzn.to/467Ail9",
-    "B09HSD2VQW": "https://amzn.to/4auWmsF",
-    "B0BFCC9FP5": "https://amzn.to/46bspLy",
-    "B0B25M8FD5": "https://amzn.to/4qIEIXc",
-    "B09TKNF3G3": "https://amzn.to/3MhsHKa",
-    "B09TQZP9CL": "https://amzn.to/4tGJVBh",
-    "B01DGM7ZII": "https://amzn.to/3OrwTrd",
-    "B0B1GZWCBN": "https://amzn.to/4ak9Ze2",
-    "B0BZ3SD2GY": "https://amzn.to/4rU30yk",
-    "B0B5Q1SXCW": "https://amzn.to/4aUgww0",
-    "B09GK8LBWS": "https://amzn.to/4auWnwJ",
-    "B08WT889V3": "https://amzn.to/4rZmSjM",
-    "B09HM94VDS": "https://amzn.to/4rmPdR6",
-    "B09BRG3MZ2": "https://amzn.to/4kDW1ah",
-    "B09XS7JWHH": "https://amzn.to/4kCdDDo",
-    "B09ZWFNKK3": "https://amzn.to/4rPwcGz",
-    "B07QKQJL17": "https://amzn.to/4bYKP5P",
-    "B088HHWC47": "https://amzn.to/4ayAvPE",
-    "B01N5UOYC4": "https://amzn.to/4rPwcq3",
-    "B09738CV2Q": "https://amzn.to/4kIQNdt",
-    "B0BVLLXLWQ": "https://amzn.to/4awXLgP",
-    "B082QHRZFW": "https://amzn.to/4aky0BH",
-    "B0BNZ4D72B": "https://amzn.to/4kItqRg",
-    "B0CGBJDZMC": "https://amzn.to/4kYGi65",
-    "B0BWJNK185": "https://amzn.to/4rfA044",
-    "B09B4R3F3K": "https://amzn.to/46W1iUW",
-    "B0B5GKDR5Y": "https://amzn.to/3OiPXbb",
-    "B086967C9X": "https://amzn.to/4bT0pjr",
-    "B076642YPN": "https://amzn.to/4kHsWe3",
-    "B00A121WN6": "https://amzn.to/4rlc0wt",
-    "B07QWC3CQN": "https://amzn.to/4rOOrvS",
-    "B0BCKL54Z1": "https://amzn.to/4kCgdcx",
-    "B0BTZZ1K2T": "https://amzn.to/4kCQgd7",
-    "B084Y1RGBQ": "https://amzn.to/4bU8nZC"
-};
+// Short links cleared — using constructed links with real ASINs (Feb 16, 2026)
+const shortLinks = {};
 
 // ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', () => {
