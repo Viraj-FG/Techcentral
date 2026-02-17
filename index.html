@@ -35,6 +35,10 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <!-- Custom cursor -->
+    <div class="cursor-dot" id="cursor-dot"></div>
+    <div class="cursor-ring" id="cursor-ring"></div>
+
     <!-- Parallax background layers -->
     <div class="parallax-bg">
         <canvas id="particles"></canvas>
@@ -125,7 +129,7 @@
                     Interactive Tech Discovery Platform
                 </div>
                 <h1 class="hero-title animate-in delay-1">
-                    Discover tech that<br>
+                    <span class="hero-line" data-split>Discover tech that</span><br>
                     <span class="gradient-text" id="hero-typed">transforms.</span>
                 </h1>
                 <p class="hero-sub animate-in delay-2">
