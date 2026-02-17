@@ -299,6 +299,44 @@ a { text-decoration: none; color: inherit; }
     100% { background-position: 200% center; }
 }
 
+.cat-tagline {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    display: block;
+}
+
+/* ========== PERSONA TABS ========== */
+.persona-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+    padding: 4px;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+.persona-tab {
+    padding: 10px 20px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.25s var(--ease);
+    white-space: nowrap;
+}
+.persona-tab:hover { color: var(--text); background: var(--bg-card-hover); }
+.persona-tab.active {
+    color: #fff;
+    background: var(--accent);
+    box-shadow: 0 4px 12px rgba(108,92,231,0.3);
+}
+
 /* ========== STAGGER REVEAL ========== */
 .stagger-item {
     opacity: 0;

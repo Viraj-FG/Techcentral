@@ -1,10 +1,10 @@
 [
-  { "id": "gamer", "name": "Gamer", "icon": "gamepad-2", "tagline": "Level up your battlestation", "color": "#FF4444" },
-  { "id": "coder", "name": "Programmer", "icon": "code-2", "tagline": "Code in comfort and style", "color": "#00C853" },
-  { "id": "streamer", "name": "Streamer", "icon": "radio", "tagline": "Go live like a pro", "color": "#AA00FF" },
-  { "id": "ai-ml", "name": "AI/ML Pro", "icon": "brain-circuit", "tagline": "Build the future with better hardware", "color": "#FF6D00" },
-  { "id": "tech-nerd", "name": "Tech Nerd", "icon": "cpu", "tagline": "Tinker, hack, and build cool stuff", "color": "#00B0FF" },
-  { "id": "student", "name": "Student", "icon": "graduation-cap", "tagline": "Great gear without breaking the bank", "color": "#FFD600" },
-  { "id": "creative", "name": "Creative Pro", "icon": "palette", "tagline": "Create without compromise", "color": "#E91E63" },
-  { "id": "home-office", "name": "Home Office Pro", "icon": "building-2", "tagline": "Work from home like you mean it", "color": "#607D8B" }
+  {"id":"gaming","name":"Gamer","icon":"🎮","tagline":"Level up your battlestation","color":"#FF4444","count":12},
+  {"id":"coding","name":"Coder","icon":"⌨️","tagline":"Code at peak efficiency","color":"#6C5CE7","count":9},
+  {"id":"streaming","name":"Streamer","icon":"📡","tagline":"Go live like a pro","color":"#00CEC9","count":11},
+  {"id":"ai-ml","name":"AI/ML Pro","icon":"🧠","tagline":"Train models, not patience","color":"#A29BFE","count":10},
+  {"id":"tech-nerd","name":"Tech Nerd","icon":"🔧","tagline":"Build, hack, tinker","color":"#55EFC4","count":11},
+  {"id":"student","name":"Student","icon":"📚","tagline":"Budget gear that delivers","color":"#FFEAA7","count":10},
+  {"id":"creative","name":"Creative","icon":"🎨","tagline":"Create without limits","color":"#FD79A8","count":9},
+  {"id":"home-office","name":"Home Office","icon":"🏠","tagline":"Work from anywhere, comfortably","color":"#FAB1A0","count":10}
 ]

@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Student Essentials Under $100",
+    "budget": "$100",
+    "persona": "student",
+    "asins": ["B0148NPH9I", "B094PS5RZQ", "B07YC5YDYG", "B01DBV1OKY"],
+    "totalPrice": "$99.96",
+    "description": "Everything a student needs to get productive: Logitech K380 Bluetooth keyboard ($30), Razer DeathAdder Essential mouse ($20), Nulaxy laptop stand ($19), and Lamicall phone/tablet stand ($11). Perfect for dorm rooms and study sessions."
+  },
+  {
+    "name": "Budget Streamer Starter Kit",
+    "budget": "$250",
+    "persona": "streamer",
+    "asins": ["B00N1YPXW2", "B085TFF7M1", "B08FSTGQWD"],
+    "totalPrice": "$226",
+    "description": "Start streaming without breaking the bank: Blue Yeti USB microphone ($100) for broadcast-quality audio, Logitech C920x webcam ($60) for crisp 1080p video, and Neewer 18-inch ring light ($66) for professional lighting."
+  },
+  {
+    "name": "Coder's Productivity Setup",
+    "budget": "$500",
+    "persona": "coder",
+    "asins": ["B09LJWSRQT", "B09HM94VDS", "B0BSGH4L1N", "B07YGZ7C1K"],
+    "totalPrice": "$470",
+    "description": "Level up your dev workflow: Logitech MX Mechanical Mini keyboard ($130), MX Master 3S mouse ($90), UGREEN USB-C hub ($20), and LG 34-inch ultrawide monitor ($450). Multi-device switching lets you code across machines seamlessly. Note: Mix and match if over budget."
+  },
+  {
+    "name": "Maker & Tinkerer Starter Pack",
+    "budget": "$300",
+    "persona": "tech-nerd",
+    "asins": ["B0CTH7MKWH", "B01D8KOZF4", "B0BQBYZL1Y", "B08GV3Y52S"],
+    "totalPrice": "$290",
+    "description": "Dive into hardware hacking: Raspberry Pi 5 8GB starter kit ($120) for Linux projects, ELEGOO Arduino Uno starter kit ($37) for electronics, TP-Link smart plugs ($23) for IoT experiments, and SanDisk 1TB portable SSD ($80) for backups."
+  },
+  {
+    "name": "Home Office Comfort Upgrade",
+    "budget": "$500",
+    "persona": "home-office",
+    "asins": ["B0B3LMQVTF", "B0BX2L8PBT"],
+    "totalPrice": "$488",
+    "description": "Transform your WFH space: FEZIBO electric standing desk ($190) with built-in drawer for a clean setup, and Sony WH-1000XM5 noise-cancelling headphones ($298) to block out distractions. Ergonomic and focused."
+  }
+]

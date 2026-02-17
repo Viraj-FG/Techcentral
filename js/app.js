@@ -2,10 +2,12 @@
 
 let allProducts = [];
 let currentCategory = 'all';
+let currentPersona = 'all';
 let searchQuery = '';
 let currentView = 'grid';
 let compareList = []; // max 3
 let setupBag = []; // asin list
+let allPersonas = [];
 let heroWords = ['Build.', 'Create.', 'Dominate.', 'Win.'];
 let heroWordIdx = 0;
 
@@ -79,6 +81,16 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('product-grid').innerHTML =
                 '<div class="no-results"><div class="no-results-icon">🔌</div>Failed to load products.</div>';
         });
+
+    // Load personas and render tabs + category cards
+    fetch('./data/personas.json')
+        .then(r => r.json())
+        .then(data => {
+            allPersonas = data;
+            renderPersonaTabs();
+            renderCategoryCards();
+        })
+        .catch(() => {});
 
     document.getElementById('search').addEventListener('input', debounce((e) => {
         searchQuery = e.target.value.toLowerCase().trim();
@@ -499,6 +511,7 @@ function renderProducts() {
 
     let filtered = allProducts;
     if (currentCategory !== 'all') filtered = filtered.filter(p => p.category === currentCategory);
+    if (currentPersona !== 'all') filtered = filtered.filter(p => p.persona && p.persona.includes(currentPersona));
     if (searchQuery) {
         filtered = filtered.filter(p =>
             p.name.toLowerCase().includes(searchQuery) ||
@@ -998,6 +1011,35 @@ function renderMarquee() {
             </div>
         </a>
     `).join('');
+}
+
+// ==================== PERSONA TABS ====================
+function renderPersonaTabs() {
+    const container = document.getElementById('persona-tabs');
+    if (!container || !allPersonas.length) return;
+    container.innerHTML = '<button class="persona-tab active" data-persona="all" onclick="filterPersona(\'all\', this)">All</button>' +
+        allPersonas.map(p => `<button class="persona-tab" data-persona="${p.id}" onclick="filterPersona('${p.id}', this)" style="--tab-color:${p.color}">${p.icon} ${p.name}</button>`).join('');
+}
+
+function renderCategoryCards() {
+    const grid = document.getElementById('cat-grid');
+    if (!grid || !allPersonas.length) return;
+    grid.innerHTML = allPersonas.map(p => `
+        <div class="cat-card" onclick="filterCategory('${p.id}')" data-tilt data-cat-card="${p.id}">
+            <div class="cat-glow" style="background:${p.color}"></div>
+            <span class="cat-icon">${p.icon}</span>
+            <span class="cat-label">${p.name}</span>
+            <span class="cat-count">${allProducts.filter(x => x.category === p.id).length || p.count}</span>
+            <span class="cat-tagline">${p.tagline}</span>
+        </div>
+    `).join('');
+}
+
+function filterPersona(persona, btn) {
+    currentPersona = persona;
+    document.querySelectorAll('.persona-tab').forEach(t => t.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderProducts();
 }
 
 // ==================== STAGGER REVEAL ====================

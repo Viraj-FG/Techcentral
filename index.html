@@ -98,17 +98,26 @@
                     <a href="#" class="nav-link" data-category="gaming" onclick="filterCategory('gaming', this); return false;">
                         <span class="nav-emoji">🎮</span> Gaming
                     </a>
-                    <a href="#" class="nav-link" data-category="ai" onclick="filterCategory('ai', this); return false;">
-                        <span class="nav-emoji">🤖</span> AI/ML
-                    </a>
                     <a href="#" class="nav-link" data-category="coding" onclick="filterCategory('coding', this); return false;">
-                        <span class="nav-emoji">💻</span> Coding
+                        <span class="nav-emoji">⌨️</span> Coding
                     </a>
-                    <a href="#" class="nav-link" data-category="peripherals" onclick="filterCategory('peripherals', this); return false;">
-                        <span class="nav-emoji">🎧</span> Peripherals
+                    <a href="#" class="nav-link" data-category="streaming" onclick="filterCategory('streaming', this); return false;">
+                        <span class="nav-emoji">📡</span> Streaming
                     </a>
-                    <a href="#" class="nav-link" data-category="networking" onclick="filterCategory('networking', this); return false;">
-                        <span class="nav-emoji">🌐</span> Networking
+                    <a href="#" class="nav-link" data-category="ai-ml" onclick="filterCategory('ai-ml', this); return false;">
+                        <span class="nav-emoji">🧠</span> AI/ML
+                    </a>
+                    <a href="#" class="nav-link" data-category="creative" onclick="filterCategory('creative', this); return false;">
+                        <span class="nav-emoji">🎨</span> Creative
+                    </a>
+                    <a href="#" class="nav-link" data-category="home-office" onclick="filterCategory('home-office', this); return false;">
+                        <span class="nav-emoji">🏠</span> Home Office
+                    </a>
+                    <a href="#" class="nav-link" data-category="student" onclick="filterCategory('student', this); return false;">
+                        <span class="nav-emoji">📚</span> Student
+                    </a>
+                    <a href="#" class="nav-link" data-category="tech-nerd" onclick="filterCategory('tech-nerd', this); return false;">
+                        <span class="nav-emoji">🔧</span> Tech Nerd
                     </a>
                     <a href="#experiences" class="nav-link nav-link-special" onclick="scrollToSection('experiences'); return false;">
                         <span class="nav-emoji">🧪</span> Experiences
@@ -297,38 +306,7 @@
                     <div class="section-tag">📂 Browse by Category</div>
                     <h2 class="section-title">Find your setup</h2>
                 </div>
-                <div class="cat-grid">
-                    <div class="cat-card" onclick="filterCategory('gaming')" data-tilt data-cat-card="gaming">
-                        <div class="cat-glow"></div>
-                        <span class="cat-icon">🎮</span>
-                        <span class="cat-label">Gaming</span>
-                        <span class="cat-count" data-cat="gaming">0</span>
-                    </div>
-                    <div class="cat-card" onclick="filterCategory('ai')" data-tilt data-cat-card="ai">
-                        <div class="cat-glow"></div>
-                        <span class="cat-icon">🤖</span>
-                        <span class="cat-label">AI / ML</span>
-                        <span class="cat-count" data-cat="ai">0</span>
-                    </div>
-                    <div class="cat-card" onclick="filterCategory('coding')" data-tilt data-cat-card="coding">
-                        <div class="cat-glow"></div>
-                        <span class="cat-icon">💻</span>
-                        <span class="cat-label">Coding</span>
-                        <span class="cat-count" data-cat="coding">0</span>
-                    </div>
-                    <div class="cat-card" onclick="filterCategory('peripherals')" data-tilt data-cat-card="peripherals">
-                        <div class="cat-glow"></div>
-                        <span class="cat-icon">🎧</span>
-                        <span class="cat-label">Peripherals</span>
-                        <span class="cat-count" data-cat="peripherals">0</span>
-                    </div>
-                    <div class="cat-card" onclick="filterCategory('networking')" data-tilt data-cat-card="networking">
-                        <div class="cat-glow"></div>
-                        <span class="cat-icon">🌐</span>
-                        <span class="cat-label">Networking</span>
-                        <span class="cat-count" data-cat="networking">0</span>
-                    </div>
-                </div>
+                <div class="cat-grid" id="cat-grid"></div>
             </div>
         </section>
 
@@ -452,6 +430,9 @@
                         </button>
                     </div>
                 </div>
+                <div class="persona-tabs" id="persona-tabs">
+                    <button class="persona-tab active" data-persona="all" onclick="filterPersona('all', this)">All</button>
+                </div>
                 <div class="product-grid" id="product-grid">
                     <div class="loading-skeleton">
                         <div class="skel-card"></div><div class="skel-card"></div><div class="skel-card"></div>
@@ -543,10 +524,10 @@
                 <div class="footer-links-col">
                     <h4>Categories</h4>
                     <a href="#" onclick="filterCategory('gaming'); return false;">Gaming</a>
-                    <a href="#" onclick="filterCategory('ai'); return false;">AI / ML</a>
                     <a href="#" onclick="filterCategory('coding'); return false;">Coding</a>
-                    <a href="#" onclick="filterCategory('peripherals'); return false;">Peripherals</a>
-                    <a href="#" onclick="filterCategory('networking'); return false;">Networking</a>
+                    <a href="#" onclick="filterCategory('streaming'); return false;">Streaming</a>
+                    <a href="#" onclick="filterCategory('ai-ml'); return false;">AI / ML</a>
+                    <a href="#" onclick="filterCategory('creative'); return false;">Creative</a>
                 </div>
                 <div class="footer-links-col">
                     <h4>Explore</h4>
