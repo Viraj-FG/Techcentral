@@ -3,26 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAEVA — Premium Tech Gear, Curated for You</title>
-    <meta name="description" content="KAEVA curates the best tech gear for gaming, AI/ML, coding & beyond. Handpicked products linked directly to Amazon.">
-    <meta name="keywords" content="tech gear, gaming hardware, AI ML hardware, coding setup, best tech products 2026">
+    <title>KAEVA — TechCentral | Interactive Tech Discovery</title>
+    <meta name="description" content="KAEVA TechCentral — discover, compare, and build your ultimate tech setup. Interactive experiences, curated gear, editorial content.">
+    <meta name="keywords" content="tech gear, gaming hardware, AI ML hardware, coding setup, best tech products 2026, tech discovery">
     
-    <!-- Open Graph -->
-    <meta property="og:title" content="KAEVA — Premium Tech Gear, Curated for You">
-    <meta property="og:description" content="Handpicked tech gear for gaming, AI/ML, coding & beyond.">
+    <meta property="og:title" content="KAEVA — TechCentral | Interactive Tech Discovery">
+    <meta property="og:description" content="Discover, compare, and build your ultimate tech setup.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://kaeva.app">
     <meta property="og:image" content="https://kaeva.app/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
     
-    <!-- Schema.org -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "WebSite",
-        "name": "KAEVA",
+        "name": "KAEVA TechCentral",
         "url": "https://kaeva.app",
-        "description": "Premium curated tech gear for gaming, AI/ML, coding & beyond.",
+        "description": "Interactive tech discovery platform — curated gear, comparisons, and guided setup experiences.",
         "potentialAction": {
             "@type": "SearchAction",
             "target": "https://kaeva.app/?q={search_term_string}",
@@ -31,17 +29,30 @@
     }
     </script>
 
-    <!-- Fonts: Space Grotesk + Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- Ambient background -->
-    <canvas id="particles"></canvas>
-    <div class="gradient-orb orb-1"></div>
-    <div class="gradient-orb orb-2"></div>
+    <!-- Parallax background layers -->
+    <div class="parallax-bg">
+        <canvas id="particles"></canvas>
+        <div class="parallax-layer layer-grid" data-speed="0.02"></div>
+        <div class="parallax-layer layer-orbs" data-speed="0.05">
+            <div class="gradient-orb orb-1"></div>
+            <div class="gradient-orb orb-2"></div>
+            <div class="gradient-orb orb-3"></div>
+        </div>
+        <div class="parallax-layer layer-floaters" data-speed="0.08">
+            <div class="floater f1">⚡</div>
+            <div class="floater f2">🔧</div>
+            <div class="floater f3">💎</div>
+            <div class="floater f4">🚀</div>
+            <div class="floater f5">⭐</div>
+            <div class="floater f6">🎯</div>
+        </div>
+    </div>
 
     <!-- Navbar -->
     <header class="navbar" id="navbar" role="banner">
@@ -49,22 +60,33 @@
             <a href="#" class="logo" onclick="showAll(); return false;">
                 <div class="logo-mark">K</div>
                 <span class="logo-text">KAEVA</span>
+                <span class="logo-badge">TechCentral</span>
             </a>
             <div class="search-wrapper">
                 <div class="search-inner">
                     <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                    <input type="text" id="search" placeholder="Search 50+ products..." aria-label="Search" autocomplete="off">
+                    <input type="text" id="search" placeholder="Search products, articles, experiences..." aria-label="Search" autocomplete="off">
                     <kbd class="search-kbd">/</kbd>
                 </div>
+                <div class="search-preview" id="search-preview"></div>
+            </div>
+            <div class="nav-actions">
+                <button class="setup-bag-btn" id="setup-bag-btn" onclick="toggleSetupBag()" aria-label="My Setup">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                    <span class="setup-count" id="setup-count">0</span>
+                </button>
+                <button class="compare-bag-btn" id="compare-bag-btn" onclick="openCompareModal()" aria-label="Compare">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/></svg>
+                    <span class="compare-count" id="compare-count">0</span>
+                </button>
             </div>
             <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle mobile menu">
                 <span></span><span></span><span></span>
             </button>
         </div>
-        <!-- Sticky category bar -->
         <div class="category-bar" id="category-bar">
             <div class="container cat-bar-inner">
-                <nav class="nav-links" id="nav-links" role="navigation" aria-label="Product categories">
+                <nav class="nav-links" id="nav-links" role="navigation" aria-label="Navigation">
                     <a href="#" class="nav-link active" data-category="all" onclick="filterCategory('all', this); return false;">All</a>
                     <a href="#" class="nav-link" data-category="gaming" onclick="filterCategory('gaming', this); return false;">
                         <span class="nav-emoji">🎮</span> Gaming
@@ -81,150 +103,303 @@
                     <a href="#" class="nav-link" data-category="networking" onclick="filterCategory('networking', this); return false;">
                         <span class="nav-emoji">🌐</span> Networking
                     </a>
+                    <a href="#experiences" class="nav-link nav-link-special" onclick="scrollToSection('experiences'); return false;">
+                        <span class="nav-emoji">🧪</span> Experiences
+                    </a>
+                    <a href="#editorial" class="nav-link nav-link-special" onclick="scrollToSection('editorial'); return false;">
+                        <span class="nav-emoji">📰</span> Articles
+                    </a>
                 </nav>
             </div>
         </div>
     </header>
 
     <main role="main">
-        <!-- Hero -->
+        <!-- Hero with mouse-follow parallax -->
         <section class="hero" id="hero">
-            <div class="hero-mesh"></div>
+            <div class="hero-mesh" id="hero-mesh"></div>
+            <div class="hero-mouse-follow" id="hero-mouse-follow"></div>
             <div class="hero-content">
                 <div class="hero-badge animate-in">
                     <span class="pulse-dot"></span>
-                    50+ handpicked products
+                    Interactive Tech Discovery Platform
                 </div>
                 <h1 class="hero-title animate-in delay-1">
-                    Tech gear that<br>
-                    <span class="gradient-text">performs.</span>
+                    Discover tech that<br>
+                    <span class="gradient-text" id="hero-typed">transforms.</span>
                 </h1>
                 <p class="hero-sub animate-in delay-2">
-                    We obsess over specs so you don't have to. Every product is tested, 
-                    reviewed, and linked directly to Amazon.
+                    Not just a store — an experience. Compare specs, build setups, 
+                    explore curated gear through interactive journeys.
                 </p>
                 <div class="hero-actions animate-in delay-3">
                     <a href="#products" class="cta-btn primary">
-                        <span>Browse All Gear</span>
+                        <span>Explore Gear</span>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </a>
-                    <a href="#top-picks" class="cta-btn secondary">
-                        <span>Top Picks</span>
-                        <span class="badge-accent">⚡</span>
+                    <a href="#experiences" class="cta-btn secondary" onclick="scrollToSection('experiences'); return false;">
+                        <span>Try an Experience</span>
+                        <span class="badge-accent">🧪</span>
                     </a>
                 </div>
                 <div class="hero-stats animate-in delay-4">
                     <div class="stat-card">
-                        <span class="stat-num" data-count="50">0</span>
-                        <span class="stat-label">Products</span>
+                        <span class="stat-num counter" data-target="50">0</span>
+                        <span class="stat-label">Products Curated</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-num" data-count="5">0</span>
+                        <span class="stat-num counter" data-target="5">0</span>
                         <span class="stat-label">Categories</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-num" data-count="4">0</span>
+                        <span class="stat-num counter" data-target="4" data-suffix=".7★">0</span>
                         <span class="stat-label">Avg Rating</span>
-                        <span class="stat-suffix">.7★</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-num counter" data-target="4">0</span>
+                        <span class="stat-label">Experiences</span>
                     </div>
                 </div>
             </div>
             <div class="scroll-indicator animate-in delay-4">
-                <div class="scroll-mouse">
-                    <div class="scroll-wheel"></div>
-                </div>
+                <div class="scroll-mouse"><div class="scroll-wheel"></div></div>
                 <span class="scroll-text">Scroll to explore</span>
             </div>
         </section>
 
-        <!-- Top Picks / Featured -->
-        <section class="featured-section" id="top-picks">
+        <!-- Top Picks -->
+        <section class="featured-section section-reveal" id="top-picks">
             <div class="container">
-                <div class="section-header reveal">
+                <div class="section-header">
                     <div class="section-tag">⚡ Editor's Picks</div>
                     <h2 class="section-title">Top-tier gear we stand behind</h2>
                     <p class="section-desc">Our highest-rated, most recommended products across all categories.</p>
                 </div>
-                <div class="featured-grid" id="featured-grid">
-                    <!-- Populated by JS -->
+                <div class="featured-grid" id="featured-grid"></div>
+            </div>
+        </section>
+
+        <!-- Interactive Experiences -->
+        <section class="experiences-section section-reveal" id="experiences">
+            <div class="container">
+                <div class="section-header">
+                    <div class="section-tag">🧪 Interactive Experiences</div>
+                    <h2 class="section-title">Guided tech journeys</h2>
+                    <p class="section-desc">Step-by-step interactive guides to build your perfect setup. Click through, explore, and buy what you need.</p>
+                </div>
+                <div class="experience-grid" id="experience-grid">
+                    <div class="experience-card exp-ai" onclick="openExperience('ai-setup')" data-tilt>
+                        <div class="exp-visual">
+                            <div class="exp-icon-stack">
+                                <span>🧠</span><span>💻</span><span>⚡</span>
+                            </div>
+                        </div>
+                        <div class="exp-content">
+                            <span class="exp-badge">Interactive Guide</span>
+                            <h3>Build Your Own AI Setup</h3>
+                            <p>Step-by-step: GPU → CPU → RAM → Storage → Cooling → Case. Watch your total cost build up as you pick components.</p>
+                            <div class="exp-meta">
+                                <span>8 steps</span>
+                                <span>~$3,500 avg build</span>
+                            </div>
+                            <button class="exp-cta">Start Building →</button>
+                        </div>
+                    </div>
+                    <div class="experience-card exp-gaming" onclick="openExperience('gaming-desk')" data-tilt>
+                        <div class="exp-visual">
+                            <div class="exp-icon-stack">
+                                <span>🎮</span><span>🖥️</span><span>🎧</span>
+                            </div>
+                        </div>
+                        <div class="exp-content">
+                            <span class="exp-badge">Visual Layout</span>
+                            <h3>The Ultimate Gaming Desk</h3>
+                            <p>Interactive desk layout with clickable hotspots. See every component of a dream gaming station.</p>
+                            <div class="exp-meta">
+                                <span>6 hotspots</span>
+                                <span>~$4,200 full setup</span>
+                            </div>
+                            <button class="exp-cta">Explore Setup →</button>
+                        </div>
+                    </div>
+                    <div class="experience-card exp-smart" onclick="openExperience('smart-home')" data-tilt>
+                        <div class="exp-visual">
+                            <div class="exp-icon-stack">
+                                <span>🏠</span><span>🌐</span><span>🔒</span>
+                            </div>
+                        </div>
+                        <div class="exp-content">
+                            <span class="exp-badge">Starter Kit</span>
+                            <h3>Smart Home Starter Kit</h3>
+                            <p>What you need to network your home like a pro. Router, mesh, switches, NAS — all connected.</p>
+                            <div class="exp-meta">
+                                <span>5 essentials</span>
+                                <span>~$1,200 starter</span>
+                            </div>
+                            <button class="exp-cta">Get Started →</button>
+                        </div>
+                    </div>
+                    <div class="experience-card exp-dev" onclick="openExperience('dev-workstation')" data-tilt>
+                        <div class="exp-visual">
+                            <div class="exp-icon-stack">
+                                <span>👨‍💻</span><span>⌨️</span><span>☕</span>
+                            </div>
+                        </div>
+                        <div class="exp-content">
+                            <span class="exp-badge">Essentials</span>
+                            <h3>Developer Workstation</h3>
+                            <p>For coders, AI/ML engineers — the essential peripherals, monitors, and desk gear for peak productivity.</p>
+                            <div class="exp-meta">
+                                <span>7 picks</span>
+                                <span>~$3,000 setup</span>
+                            </div>
+                            <button class="exp-cta">Build Yours →</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Categories Bento -->
-        <section class="categories-section" id="categories-section">
+        <!-- Categories -->
+        <section class="categories-section section-reveal" id="categories-section">
             <div class="container">
-                <div class="section-header reveal">
+                <div class="section-header">
                     <div class="section-tag">📂 Browse by Category</div>
                     <h2 class="section-title">Find your setup</h2>
                 </div>
                 <div class="cat-grid">
-                    <div class="cat-card reveal" onclick="filterCategory('gaming')" style="--i:0" data-cat-card="gaming">
+                    <div class="cat-card" onclick="filterCategory('gaming')" data-tilt data-cat-card="gaming">
                         <div class="cat-glow"></div>
                         <span class="cat-icon">🎮</span>
                         <span class="cat-label">Gaming</span>
                         <span class="cat-count" data-cat="gaming">0</span>
-                        <svg class="cat-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </div>
-                    <div class="cat-card reveal" onclick="filterCategory('ai')" style="--i:1" data-cat-card="ai">
+                    <div class="cat-card" onclick="filterCategory('ai')" data-tilt data-cat-card="ai">
                         <div class="cat-glow"></div>
                         <span class="cat-icon">🤖</span>
                         <span class="cat-label">AI / ML</span>
                         <span class="cat-count" data-cat="ai">0</span>
-                        <svg class="cat-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </div>
-                    <div class="cat-card reveal" onclick="filterCategory('coding')" style="--i:2" data-cat-card="coding">
+                    <div class="cat-card" onclick="filterCategory('coding')" data-tilt data-cat-card="coding">
                         <div class="cat-glow"></div>
                         <span class="cat-icon">💻</span>
                         <span class="cat-label">Coding</span>
                         <span class="cat-count" data-cat="coding">0</span>
-                        <svg class="cat-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </div>
-                    <div class="cat-card reveal" onclick="filterCategory('peripherals')" style="--i:3" data-cat-card="peripherals">
+                    <div class="cat-card" onclick="filterCategory('peripherals')" data-tilt data-cat-card="peripherals">
                         <div class="cat-glow"></div>
                         <span class="cat-icon">🎧</span>
                         <span class="cat-label">Peripherals</span>
                         <span class="cat-count" data-cat="peripherals">0</span>
-                        <svg class="cat-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </div>
-                    <div class="cat-card reveal" onclick="filterCategory('networking')" style="--i:4" data-cat-card="networking">
+                    <div class="cat-card" onclick="filterCategory('networking')" data-tilt data-cat-card="networking">
                         <div class="cat-glow"></div>
                         <span class="cat-icon">🌐</span>
                         <span class="cat-label">Networking</span>
                         <span class="cat-count" data-cat="networking">0</span>
-                        <svg class="cat-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Editorial / Articles -->
+        <section class="editorial-section section-reveal" id="editorial">
+            <div class="container">
+                <div class="section-header">
+                    <div class="section-tag">📰 From the Lab</div>
+                    <h2 class="section-title">Tech deep dives & guides</h2>
+                    <p class="section-desc">Bold takes, setup guides, and no-BS tech advice.</p>
+                </div>
+                <div class="editorial-grid">
+                    <article class="editorial-card editorial-featured" data-tilt>
+                        <div class="editorial-img" style="background: linear-gradient(135deg, #0a1a0f, #0d2818); position: relative;">
+                            <div class="editorial-img-overlay">
+                                <span style="font-size: 4rem;">🧠</span>
+                            </div>
+                        </div>
+                        <div class="editorial-content">
+                            <span class="editorial-tag">Guide</span>
+                            <h3>How to Set Up Your Own AI Lab at Home with OpenClaw</h3>
+                            <p>From picking the right GPU to running your first model — a complete walkthrough for the AI-curious. We built one, and here's exactly what we'd do again.</p>
+                            <div class="editorial-footer">
+                                <span class="editorial-date">Feb 2026</span>
+                                <span class="editorial-read">12 min read</span>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="editorial-card" data-tilt>
+                        <div class="editorial-img" style="background: linear-gradient(135deg, #1a1a0a, #28280d);">
+                            <div class="editorial-img-overlay"><span style="font-size: 3rem;">🍎</span></div>
+                        </div>
+                        <div class="editorial-content">
+                            <span class="editorial-tag">Review</span>
+                            <h3>Mac Mini as a Plug-in AI Server</h3>
+                            <p>Can Apple's $599 box replace a $3K rig for inference? We tested it.</p>
+                            <div class="editorial-footer">
+                                <span class="editorial-date">Jan 2026</span>
+                                <span class="editorial-read">8 min</span>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="editorial-card" data-tilt>
+                        <div class="editorial-img" style="background: linear-gradient(135deg, #0a0a1a, #0d0d28);">
+                            <div class="editorial-img-overlay"><span style="font-size: 3rem;">🎮</span></div>
+                        </div>
+                        <div class="editorial-content">
+                            <span class="editorial-tag">Roundup</span>
+                            <h3>Best Budget Gaming Setup 2026</h3>
+                            <p>$1,500 all-in for a setup that doesn't compromise. Here's how.</p>
+                            <div class="editorial-footer">
+                                <span class="editorial-date">Feb 2026</span>
+                                <span class="editorial-read">6 min</span>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="editorial-card" data-tilt>
+                        <div class="editorial-img" style="background: linear-gradient(135deg, #0a1a1a, #0d2828);">
+                            <div class="editorial-img-overlay"><span style="font-size: 3rem;">🌐</span></div>
+                        </div>
+                        <div class="editorial-content">
+                            <span class="editorial-tag">Guide</span>
+                            <h3>Network Your Home Like a Pro</h3>
+                            <p>VLANs, 10G backbone, mesh APs — overkill? Maybe. Worth it? Absolutely.</p>
+                            <div class="editorial-footer">
+                                <span class="editorial-date">Jan 2026</span>
+                                <span class="editorial-read">10 min</span>
+                            </div>
+                        </div>
+                    </article>
                 </div>
             </div>
         </section>
 
         <!-- Why KAEVA -->
-        <section class="trust-section">
+        <section class="trust-section section-reveal">
             <div class="container">
-                <div class="section-header reveal">
+                <div class="section-header">
                     <div class="section-tag">✦ Why KAEVA</div>
                     <h2 class="section-title">Not just another affiliate site</h2>
                 </div>
                 <div class="trust-grid">
-                    <div class="trust-card reveal" style="--i:0">
+                    <div class="trust-card" data-tilt>
                         <div class="trust-icon">🔬</div>
                         <h3>Research-Driven</h3>
                         <p>Every product is vetted through benchmarks, reviews, and real-world testing data.</p>
                     </div>
-                    <div class="trust-card reveal" style="--i:1">
+                    <div class="trust-card" data-tilt>
                         <div class="trust-icon">🎯</div>
                         <h3>Curated, Not Scraped</h3>
                         <p>50 products, not 50,000. We pick winners so you skip the noise.</p>
                     </div>
-                    <div class="trust-card reveal" style="--i:2">
+                    <div class="trust-card" data-tilt>
                         <div class="trust-icon">🔗</div>
                         <h3>Direct to Amazon</h3>
                         <p>No middlemen. Every link goes straight to Amazon with transparent pricing.</p>
                     </div>
-                    <div class="trust-card reveal" style="--i:3">
-                        <div class="trust-icon">🔄</div>
-                        <h3>Always Updated</h3>
-                        <p>Prices, availability, and picks are refreshed regularly to stay current.</p>
+                    <div class="trust-card" data-tilt>
+                        <div class="trust-icon">🧪</div>
+                        <h3>Interactive Experiences</h3>
+                        <p>Build setups, compare specs, explore guided journeys — not just browse.</p>
                     </div>
                 </div>
             </div>
@@ -257,11 +432,57 @@
         </section>
     </main>
 
-    <!-- Quick View Modal -->
-    <div class="modal-overlay" id="quick-view-modal" role="dialog" aria-modal="true" aria-label="Product quick view">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeQuickView()" aria-label="Close quick view">&times;</button>
-            <div class="modal-body" id="modal-body"></div>
+    <!-- Quick View Slide-up Panel -->
+    <div class="quickview-panel" id="quickview-panel">
+        <div class="quickview-backdrop" onclick="closeQuickView()"></div>
+        <div class="quickview-content" id="quickview-content"></div>
+    </div>
+
+    <!-- Compare Modal -->
+    <div class="modal-overlay" id="compare-modal" role="dialog" aria-modal="true">
+        <div class="modal-content compare-modal-content">
+            <button class="modal-close" onclick="closeCompareModal()">&times;</button>
+            <div class="compare-body" id="compare-body">
+                <div class="compare-empty">
+                    <span style="font-size:3rem">⚖️</span>
+                    <h3>No products to compare</h3>
+                    <p>Click the compare button on product cards to add them here (max 3).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Experience Modal -->
+    <div class="modal-overlay" id="experience-modal" role="dialog" aria-modal="true">
+        <div class="modal-content experience-modal-content">
+            <button class="modal-close" onclick="closeExperienceModal()">&times;</button>
+            <div class="experience-body" id="experience-body"></div>
+        </div>
+    </div>
+
+    <!-- Setup Bag Sidebar -->
+    <div class="setup-sidebar" id="setup-sidebar">
+        <div class="setup-sidebar-backdrop" onclick="toggleSetupBag()"></div>
+        <div class="setup-sidebar-panel">
+            <div class="setup-sidebar-header">
+                <h3>My Setup</h3>
+                <button onclick="toggleSetupBag()" class="modal-close">&times;</button>
+            </div>
+            <div class="setup-sidebar-body" id="setup-sidebar-body">
+                <div class="setup-empty">
+                    <span style="font-size:2.5rem">🛒</span>
+                    <p>Add products to build your setup collection</p>
+                </div>
+            </div>
+            <div class="setup-sidebar-footer" id="setup-sidebar-footer">
+                <div class="setup-total">
+                    <span>Total</span>
+                    <span class="setup-total-price" id="setup-total-price">$0.00</span>
+                </div>
+                <button class="cta-btn primary setup-buy-all" id="setup-buy-all" onclick="buyAllSetup()">
+                    Buy All on Amazon
+                </button>
+            </div>
         </div>
     </div>
 
@@ -279,7 +500,7 @@
                         <div class="logo-mark">K</div>
                         <span>KAEVA</span>
                     </div>
-                    <p class="footer-tagline">Premium tech gear, curated for enthusiasts who demand the best.</p>
+                    <p class="footer-tagline">An interactive tech discovery platform. Not just a store — an experience.</p>
                     <div class="footer-social">
                         <a href="#" aria-label="Twitter" class="social-link">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
@@ -298,15 +519,15 @@
                     <a href="#" onclick="filterCategory('networking'); return false;">Networking</a>
                 </div>
                 <div class="footer-links-col">
-                    <h4>Company</h4>
-                    <a href="#">About</a>
-                    <a href="#">How We Pick</a>
+                    <h4>Explore</h4>
+                    <a href="#experiences" onclick="scrollToSection('experiences'); return false;">Experiences</a>
+                    <a href="#editorial" onclick="scrollToSection('editorial'); return false;">Articles</a>
                     <a href="#">Affiliate Disclosure</a>
                     <a href="#">Privacy Policy</a>
                 </div>
                 <div class="footer-newsletter">
                     <h4>Stay in the loop</h4>
-                    <p>Get notified when we add new top picks.</p>
+                    <p>Get notified when we drop new experiences and picks.</p>
                     <form class="newsletter-form" onsubmit="return false;">
                         <input type="email" placeholder="your@email.com" required>
                         <button type="submit">
@@ -317,7 +538,7 @@
             </div>
             <div class="footer-bottom">
                 <p class="disclaimer">As an Amazon Associate, we earn from qualifying purchases.</p>
-                <p class="footer-copy">© 2026 KAEVA. All product names, logos, and brands are property of their respective owners.</p>
+                <p class="footer-copy">© 2026 KAEVA TechCentral. All product names, logos, and brands are property of their respective owners.</p>
             </div>
         </div>
     </footer>
