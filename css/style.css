@@ -609,11 +609,42 @@ a { text-decoration: none; color: inherit; }
     position: absolute;
     inset: -20%;
     background: url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1920&q=80') center/cover no-repeat;
-    opacity: 0.07;
-    filter: blur(1px) saturate(0.6);
+    opacity: 0;
     will-change: transform;
     z-index: 0;
     transition: transform 0.1s linear;
+}
+
+/* Section parallax backgrounds */
+.section-parallax {
+    position: relative;
+    overflow: hidden;
+}
+.section-parallax::before {
+    content: '';
+    position: absolute;
+    inset: -30% 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.06;
+    filter: blur(2px) saturate(0.4);
+    will-change: transform;
+    z-index: 0;
+    pointer-events: none;
+    transform: translateY(var(--parallax-y, 0));
+}
+.experiences-section.section-parallax::before {
+    background-image: url('https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=1920&q=80');
+    opacity: 0.08;
+}
+.products-section.section-parallax::before {
+    background-image: url('https://images.unsplash.com/photo-1624705002806-5d72df19c3ad?w=1920&q=80');
+    opacity: 0.07;
+}
+.editorial-section.section-parallax::before {
+    background-image: url('https://images.unsplash.com/photo-1518770660439-4636190af475?w=1920&q=80');
+    opacity: 0.06;
 }
 
 .hero-mesh {

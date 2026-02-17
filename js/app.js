@@ -952,12 +952,24 @@ function initMagneticButtons() {
 // ==================== HERO PARALLAX ====================
 function initHeroParallax() {
     const bg = document.getElementById('hero-parallax-bg');
-    if (!bg) return;
+    const sections = document.querySelectorAll('.section-parallax');
+    
     window.addEventListener('scroll', () => {
         const y = window.scrollY;
-        if (y < window.innerHeight * 1.5) {
+        // Hero parallax
+        if (bg && y < window.innerHeight * 1.5) {
             bg.style.transform = `translateY(${y * 0.3}px) scale(1.1)`;
         }
+        // Section parallax backgrounds
+        sections.forEach(section => {
+            const rect = section.getBoundingClientRect();
+            if (rect.top < window.innerHeight && rect.bottom > 0) {
+                const progress = (window.innerHeight - rect.top) / (window.innerHeight + rect.height);
+                const offset = (progress - 0.5) * 80;
+                const before = section.querySelector(':before') || section;
+                section.style.setProperty('--parallax-y', `${offset}px`);
+            }
+        });
     }, { passive: true });
 }
 
