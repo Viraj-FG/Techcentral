@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initLetterSplit();
     initMagneticButtons();
     initScrollProgress();
+    initHeroParallax();
     initParticles();
     initParallax();
     initHeroMouseFollow();
@@ -136,7 +137,8 @@ function initParticles() {
 
             ctx.beginPath();
             ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(0, 214, 50, ${p.opacity})`;
+            const colors = ['108, 92, 231', '0, 206, 201', '162, 155, 254'];
+            ctx.fillStyle = `rgba(${colors[i % 3]}, ${p.opacity})`;
             ctx.fill();
 
             for (let j = i + 1; j < particles.length; j++) {
@@ -146,7 +148,7 @@ function initParticles() {
                     ctx.beginPath();
                     ctx.moveTo(p.x, p.y);
                     ctx.lineTo(p2.x, p2.y);
-                    ctx.strokeStyle = `rgba(0, 214, 50, ${0.04 * (1 - d / 130)})`;
+                    ctx.strokeStyle = `rgba(108, 92, 231, ${0.04 * (1 - d / 130)})`;
                     ctx.lineWidth = 0.5;
                     ctx.stroke();
                 }
@@ -941,6 +943,18 @@ function initMagneticButtons() {
             btn.style.transform = '';
         });
     });
+}
+
+// ==================== HERO PARALLAX ====================
+function initHeroParallax() {
+    const bg = document.getElementById('hero-parallax-bg');
+    if (!bg) return;
+    window.addEventListener('scroll', () => {
+        const y = window.scrollY;
+        if (y < window.innerHeight * 1.5) {
+            bg.style.transform = `translateY(${y * 0.3}px) scale(1.1)`;
+        }
+    }, { passive: true });
 }
 
 // ==================== SCROLL PROGRESS ====================
