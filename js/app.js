@@ -1023,16 +1023,57 @@ function renderPersonaTabs() {
 
 function renderCategoryCards() {
     const grid = document.getElementById('cat-grid');
-    if (!grid || !allPersonas.length) return;
-    grid.innerHTML = allPersonas.map(p => `
-        <div class="cat-card" onclick="filterCategory('${p.id}')" data-tilt data-cat-card="${p.id}">
-            <div class="cat-glow" style="background:${p.color}"></div>
-            <span class="cat-icon">${p.icon}</span>
-            <span class="cat-label">${p.name}</span>
-            <span class="cat-count">${allProducts.filter(x => x.category === p.id).length || p.count}</span>
-            <span class="cat-tagline">${p.tagline}</span>
-        </div>
-    `).join('');
+    if (grid && allPersonas.length) {
+        grid.innerHTML = allPersonas.map(p => `
+            <div class="cat-card" onclick="filterCategory('${p.id}')" data-tilt data-cat-card="${p.id}">
+                <div class="cat-glow" style="background:${p.color}"></div>
+                <span class="cat-icon">${p.icon}</span>
+                <span class="cat-label">${p.name}</span>
+                <span class="cat-count">${allProducts.filter(x => x.category === p.id).length || p.count}</span>
+                <span class="cat-tagline">${p.tagline}</span>
+            </div>
+        `).join('');
+    }
+    // Render 3D shelf
+    renderShelf();
+}
+
+function renderShelf() {
+    const row1 = document.getElementById('shelf-row-1');
+    const row2 = document.getElementById('shelf-row-2');
+    if (!row1 || !row2 || !allPersonas.length) return;
+
+    const gradients = {
+        'gaming':     'linear-gradient(135deg, #1a0a2e 0%, #4a1942 40%, #c62368 100%)',
+        'coding':     'linear-gradient(135deg, #0a0e27 0%, #1a237e 40%, #6C5CE7 100%)',
+        'streaming':  'linear-gradient(135deg, #0d0d2b 0%, #6C5CE7 40%, #00CEC9 100%)',
+        'ai-ml':      'linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #A29BFE 100%)',
+        'tech-nerd':  'linear-gradient(135deg, #0a2e1a 0%, #1b5e20 40%, #55EFC4 100%)',
+        'student':    'linear-gradient(135deg, #2e2a0a 0%, #f9a825 40%, #FFEAA7 100%)',
+        'creative':   'linear-gradient(135deg, #2e0a1f 0%, #ad1457 40%, #FD79A8 100%)',
+        'home-office':'linear-gradient(135deg, #1a0a0a 0%, #bf360c 40%, #FAB1A0 100%)'
+    };
+
+    const half = Math.ceil(allPersonas.length / 2);
+    const top = allPersonas.slice(0, half);
+    const bottom = allPersonas.slice(half);
+
+    function cardHTML(p) {
+        const count = allProducts.filter(x => x.category === p.id).length || p.count;
+        const bg = gradients[p.id] || 'linear-gradient(135deg, #1a1a2e, #6C5CE7)';
+        return `<div class="shelf-card" onclick="filterCategory('${p.id}'); scrollToSection('products');" style="--shelf-glow:${p.color}40">
+            <div class="shelf-card-bg" style="background:${bg}"></div>
+            <div class="shelf-card-inner">
+                <span class="shelf-card-icon">${p.icon}</span>
+                <span class="shelf-card-title">${p.name}</span>
+                <span class="shelf-card-tagline">${p.tagline}</span>
+                <span class="shelf-card-count">${count} products</span>
+            </div>
+        </div>`;
+    }
+
+    row1.innerHTML = top.map(cardHTML).join('');
+    row2.innerHTML = bottom.map(cardHTML).join('');
 }
 
 function filterPersona(persona, btn) {
