@@ -6,7 +6,7 @@ let searchQuery = '';
 let currentView = 'grid';
 let compareList = []; // max 3
 let setupBag = []; // asin list
-let heroWords = ['transforms.', 'performs.', 'inspires.', 'connects.', 'creates.'];
+let heroWords = ['Build.', 'Create.', 'Dominate.', 'Win.'];
 let heroWordIdx = 0;
 
 const AFFILIATE_TAG = 'grubsight-20';

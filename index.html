@@ -122,7 +122,7 @@
     </header>
 
     <main role="main">
-        <!-- Hero with mouse-follow parallax -->
+        <!-- Hero — Full viewport cinematic -->
         <section class="hero" id="hero">
             <div class="hero-mesh" id="hero-mesh"></div>
             <div class="hero-mouse-follow" id="hero-mouse-follow"></div>
@@ -132,45 +132,54 @@
                     Interactive Tech Discovery Platform
                 </div>
                 <h1 class="hero-title animate-in delay-1">
-                    <span class="hero-line" data-split>Discover tech that</span><br>
-                    <span class="gradient-text" id="hero-typed">transforms.</span>
+                    <span class="hero-line" data-split>Discover.</span><br>
+                    <span class="hero-line" data-split>Compare.</span><br>
+                    <span class="gradient-text hero-line" data-split id="hero-typed">Build.</span>
                 </h1>
                 <p class="hero-sub animate-in delay-2">
-                    Not just a store — an experience. Compare specs, build setups, 
-                    explore curated gear through interactive journeys.
+                    The interactive platform for finding your perfect tech setup.<br>
+                    Curated gear. Guided journeys. Zero noise.
                 </p>
                 <div class="hero-actions animate-in delay-3">
-                    <a href="#products" class="cta-btn primary">
+                    <a href="#products" class="cta-btn primary magnetic">
                         <span>Explore Gear</span>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     </a>
-                    <a href="#experiences" class="cta-btn secondary" onclick="scrollToSection('experiences'); return false;">
+                    <a href="#experiences" class="cta-btn secondary magnetic" onclick="scrollToSection('experiences'); return false;">
                         <span>Try an Experience</span>
-                        <span class="badge-accent">🧪</span>
                     </a>
                 </div>
-                <div class="hero-stats animate-in delay-4">
-                    <div class="stat-card">
+            </div>
+            <div class="hero-scroll-cta animate-in delay-4">
+                <div class="scroll-line"></div>
+                <span>Scroll</span>
+            </div>
+        </section>
+
+        <!-- Stats ribbon -->
+        <section class="stats-ribbon section-reveal">
+            <div class="container">
+                <div class="stats-grid">
+                    <div class="stat-item">
                         <span class="stat-num counter" data-target="50">0</span>
                         <span class="stat-label">Products Curated</span>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
                         <span class="stat-num counter" data-target="5">0</span>
                         <span class="stat-label">Categories</span>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
                         <span class="stat-num counter" data-target="4" data-suffix=".7★">0</span>
                         <span class="stat-label">Avg Rating</span>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
                         <span class="stat-num counter" data-target="4">0</span>
                         <span class="stat-label">Experiences</span>
                     </div>
                 </div>
-            </div>
-            <div class="scroll-indicator animate-in delay-4">
-                <div class="scroll-mouse"><div class="scroll-wheel"></div></div>
-                <span class="scroll-text">Scroll to explore</span>
             </div>
         </section>
 
@@ -194,82 +203,87 @@
             </div>
         </section>
 
-        <!-- Interactive Experiences -->
+        <!-- Interactive Experiences — Feature Blocks -->
         <section class="experiences-section section-reveal" id="experiences">
             <div class="container">
-                <div class="section-header">
+                <div class="section-header section-header-center">
                     <div class="section-tag">🧪 Interactive Experiences</div>
-                    <h2 class="section-title">Guided tech journeys</h2>
-                    <p class="section-desc">Step-by-step interactive guides to build your perfect setup. Click through, explore, and buy what you need.</p>
+                    <h2 class="section-title">Choose your<br><span class="gradient-text">journey.</span></h2>
                 </div>
-                <div class="experience-grid" id="experience-grid">
-                    <div class="experience-card exp-ai" onclick="openExperience('ai-setup')" data-tilt>
-                        <div class="exp-visual">
-                            <div class="exp-icon-stack">
-                                <span>🧠</span><span>💻</span><span>⚡</span>
-                            </div>
+
+                <div class="feature-block" onclick="openExperience('ai-setup')">
+                    <div class="feature-visual exp-ai">
+                        <div class="feature-icon-float">
+                            <span>🧠</span><span>💻</span><span>⚡</span>
                         </div>
-                        <div class="exp-content">
-                            <span class="exp-badge">Interactive Guide</span>
-                            <h3>Build Your Own AI Setup</h3>
-                            <p>Step-by-step: GPU → CPU → RAM → Storage → Cooling → Case. Watch your total cost build up as you pick components.</p>
-                            <div class="exp-meta">
-                                <span>8 steps</span>
-                                <span>~$3,500 avg build</span>
-                            </div>
-                            <button class="exp-cta">Start Building →</button>
-                        </div>
+                        <div class="feature-num">01</div>
                     </div>
-                    <div class="experience-card exp-gaming" onclick="openExperience('gaming-desk')" data-tilt>
-                        <div class="exp-visual">
-                            <div class="exp-icon-stack">
-                                <span>🎮</span><span>🖥️</span><span>🎧</span>
-                            </div>
+                    <div class="feature-text">
+                        <span class="exp-badge">Interactive Guide</span>
+                        <h3>Build Your Own AI Setup</h3>
+                        <p>Step-by-step: GPU → CPU → RAM → Storage → Cooling → Case. Watch your total cost build up as you pick components.</p>
+                        <div class="feature-meta">
+                            <span>8 steps</span>
+                            <span>~$3,500 avg build</span>
                         </div>
-                        <div class="exp-content">
-                            <span class="exp-badge">Visual Layout</span>
-                            <h3>The Ultimate Gaming Desk</h3>
-                            <p>Interactive desk layout with clickable hotspots. See every component of a dream gaming station.</p>
-                            <div class="exp-meta">
-                                <span>6 hotspots</span>
-                                <span>~$4,200 full setup</span>
-                            </div>
-                            <button class="exp-cta">Explore Setup →</button>
-                        </div>
+                        <button class="cta-btn primary magnetic">Start Building →</button>
                     </div>
-                    <div class="experience-card exp-smart" onclick="openExperience('smart-home')" data-tilt>
-                        <div class="exp-visual">
-                            <div class="exp-icon-stack">
-                                <span>🏠</span><span>🌐</span><span>🔒</span>
-                            </div>
+                </div>
+
+                <div class="feature-block feature-block-reverse" onclick="openExperience('gaming-desk')">
+                    <div class="feature-visual exp-gaming">
+                        <div class="feature-icon-float">
+                            <span>🎮</span><span>🖥️</span><span>🎧</span>
                         </div>
-                        <div class="exp-content">
-                            <span class="exp-badge">Starter Kit</span>
-                            <h3>Smart Home Starter Kit</h3>
-                            <p>What you need to network your home like a pro. Router, mesh, switches, NAS — all connected.</p>
-                            <div class="exp-meta">
-                                <span>5 essentials</span>
-                                <span>~$1,200 starter</span>
-                            </div>
-                            <button class="exp-cta">Get Started →</button>
-                        </div>
+                        <div class="feature-num">02</div>
                     </div>
-                    <div class="experience-card exp-dev" onclick="openExperience('dev-workstation')" data-tilt>
-                        <div class="exp-visual">
-                            <div class="exp-icon-stack">
-                                <span>👨‍💻</span><span>⌨️</span><span>☕</span>
-                            </div>
+                    <div class="feature-text">
+                        <span class="exp-badge">Visual Layout</span>
+                        <h3>The Ultimate Gaming Desk</h3>
+                        <p>Interactive desk layout with clickable hotspots. See every component of a dream gaming station.</p>
+                        <div class="feature-meta">
+                            <span>6 hotspots</span>
+                            <span>~$4,200 full setup</span>
                         </div>
-                        <div class="exp-content">
-                            <span class="exp-badge">Essentials</span>
-                            <h3>Developer Workstation</h3>
-                            <p>For coders, AI/ML engineers — the essential peripherals, monitors, and desk gear for peak productivity.</p>
-                            <div class="exp-meta">
-                                <span>7 picks</span>
-                                <span>~$3,000 setup</span>
-                            </div>
-                            <button class="exp-cta">Build Yours →</button>
+                        <button class="cta-btn primary magnetic">Explore Setup →</button>
+                    </div>
+                </div>
+
+                <div class="feature-block" onclick="openExperience('smart-home')">
+                    <div class="feature-visual exp-smart">
+                        <div class="feature-icon-float">
+                            <span>🏠</span><span>🌐</span><span>🔒</span>
                         </div>
+                        <div class="feature-num">03</div>
+                    </div>
+                    <div class="feature-text">
+                        <span class="exp-badge">Starter Kit</span>
+                        <h3>Smart Home Starter Kit</h3>
+                        <p>What you need to network your home like a pro. Router, mesh, switches, NAS — all connected.</p>
+                        <div class="feature-meta">
+                            <span>5 essentials</span>
+                            <span>~$1,200 starter</span>
+                        </div>
+                        <button class="cta-btn primary magnetic">Get Started →</button>
+                    </div>
+                </div>
+
+                <div class="feature-block feature-block-reverse" onclick="openExperience('dev-workstation')">
+                    <div class="feature-visual exp-dev">
+                        <div class="feature-icon-float">
+                            <span>👨‍💻</span><span>⌨️</span><span>☕</span>
+                        </div>
+                        <div class="feature-num">04</div>
+                    </div>
+                    <div class="feature-text">
+                        <span class="exp-badge">Essentials</span>
+                        <h3>Developer Workstation</h3>
+                        <p>For coders, AI/ML engineers — the essential peripherals, monitors, and desk gear for peak productivity.</p>
+                        <div class="feature-meta">
+                            <span>7 picks</span>
+                            <span>~$3,000 setup</span>
+                        </div>
+                        <button class="cta-btn primary magnetic">Build Yours →</button>
                     </div>
                 </div>
             </div>
