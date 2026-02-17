@@ -21,6 +21,9 @@ export default defineConfig({
         cpSync('assets', 'dist/assets', { recursive: true })
         if (existsSync('sitemap.xml')) copyFileSync('sitemap.xml', 'dist/sitemap.xml')
         if (existsSync('robots.txt')) copyFileSync('robots.txt', 'dist/robots.txt')
+        if (existsSync('404.html')) copyFileSync('404.html', 'dist/404.html')
+        if (existsSync('_headers')) copyFileSync('_headers', 'dist/_headers')
+        if (existsSync('_redirects')) copyFileSync('_redirects', 'dist/_redirects')
       }
     }
   ],
