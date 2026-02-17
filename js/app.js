@@ -27,6 +27,7 @@ function debounce(fn, delay) {
 document.addEventListener('DOMContentLoaded', () => {
     initParticles();
     initScrollEffects();
+    initScrollSpy();
     initCounters();
     initMobileMenu();
     initViewToggle();
@@ -47,10 +48,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 '<div class="no-results"><div class="no-results-icon">🔌</div>Failed to load products.</div>';
         });
 
-    document.getElementById('search').addEventListener('input', (e) => {
+    document.getElementById('search').addEventListener('input', debounce((e) => {
         searchQuery = e.target.value.toLowerCase().trim();
         renderProducts();
-    });
+    }, 250));
 });
 
 // ==================== PARTICLES ====================
@@ -69,7 +70,8 @@ function initParticles() {
     window.addEventListener('resize', resize);
     document.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
 
-    const count = Math.min(35, Math.floor(window.innerWidth / 45));
+    const isMobile = window.innerWidth < 768;
+    const count = isMobile ? Math.min(12, Math.floor(window.innerWidth / 60)) : Math.min(35, Math.floor(window.innerWidth / 45));
     for (let i = 0; i < count; i++) {
         particles.push({
             x: Math.random() * canvas.width,
@@ -284,6 +286,46 @@ function renderFeatured() {
         });
     }, { threshold: 0.05 });
     grid.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+}
+
+// ==================== SCROLL SPY ====================
+function initScrollSpy() {
+    const sections = [
+        { id: 'hero', cat: 'all' },
+        { id: 'top-picks', cat: 'all' },
+        { id: 'categories-section', cat: 'all' },
+        { id: 'products', cat: 'all' }
+    ];
+
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && currentCategory === 'all') {
+                // Highlight "All" when scrolling through sections in default view
+                const productsSection = document.getElementById('products');
+                if (entry.target === productsSection) {
+                    // Products section is visible — keep current active
+                }
+            }
+        });
+    }, { threshold: 0.2 });
+
+    sections.forEach(s => {
+        const el = document.getElementById(s.id);
+        if (el) observer.observe(el);
+    });
+
+    // Highlight active category card when scrolling
+    const catCards = document.querySelectorAll('[data-cat-card]');
+    catCards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.borderColor = 'var(--accent)';
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.borderColor = '';
+        });
+    });
 }
 
 // ==================== FILTER ====================

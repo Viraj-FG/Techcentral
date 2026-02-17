@@ -44,7 +44,7 @@
     <div class="gradient-orb orb-2"></div>
 
     <!-- Navbar -->
-    <header class="navbar" id="navbar">
+    <header class="navbar" id="navbar" role="banner">
         <div class="container nav-container">
             <a href="#" class="logo" onclick="showAll(); return false;">
                 <div class="logo-mark">K</div>
@@ -64,7 +64,7 @@
         <!-- Sticky category bar -->
         <div class="category-bar" id="category-bar">
             <div class="container cat-bar-inner">
-                <nav class="nav-links" id="nav-links">
+                <nav class="nav-links" id="nav-links" role="navigation" aria-label="Product categories">
                     <a href="#" class="nav-link active" data-category="all" onclick="filterCategory('all', this); return false;">All</a>
                     <a href="#" class="nav-link" data-category="gaming" onclick="filterCategory('gaming', this); return false;">
                         <span class="nav-emoji">🎮</span> Gaming
@@ -86,7 +86,7 @@
         </div>
     </header>
 
-    <main>
+    <main role="main">
         <!-- Hero -->
         <section class="hero" id="hero">
             <div class="hero-mesh"></div>
@@ -231,7 +231,7 @@
         </section>
 
         <!-- Products Grid -->
-        <section class="products-section" id="products">
+        <section class="products-section" id="products" aria-label="Products listing">
             <div class="container">
                 <div class="section-header products-header">
                     <div>
@@ -258,9 +258,9 @@
     </main>
 
     <!-- Quick View Modal -->
-    <div class="modal-overlay" id="quick-view-modal">
+    <div class="modal-overlay" id="quick-view-modal" role="dialog" aria-modal="true" aria-label="Product quick view">
         <div class="modal-content">
-            <button class="modal-close" onclick="closeQuickView()">&times;</button>
+            <button class="modal-close" onclick="closeQuickView()" aria-label="Close quick view">&times;</button>
             <div class="modal-body" id="modal-body"></div>
         </div>
     </div>
@@ -271,7 +271,7 @@
     </button>
 
     <!-- Footer -->
-    <footer>
+    <footer role="contentinfo">
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-brand">
