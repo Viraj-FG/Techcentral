@@ -4,819 +4,1066 @@
     "asin": "B0B2HFWJVP",
     "price": "$129.99",
     "category": "gaming",
-    "persona": ["gamer", "coder"],
+    "persona": [
+      "gamer",
+      "coder"
+    ],
     "rating": 4.7,
     "description": "Cherry MX mechanical switches with per-key RGB backlighting and a durable aluminum frame. Features dedicated media controls, 8MB onboard storage for profiles, and ICUE software integration for full customization.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=400&h=400&fit=crop"
   },
   {
     "name": "Razer BlackWidow V4 75% Mechanical Gaming Keyboard",
     "asin": "B0CZSZBJST",
     "price": "$189.99",
     "category": "gaming",
-    "persona": ["gamer", "streamer"],
+    "persona": [
+      "gamer",
+      "streamer"
+    ],
     "rating": 4.6,
     "description": "Compact 75% layout with Razer's Orange tactile mechanical switches and a built-in OLED display. Hot-swappable switches and full Chroma RGB make it ideal for gaming and streaming setups.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=400&h=400&fit=crop"
   },
   {
     "name": "Logitech G502 X PLUS Wireless Gaming Mouse",
     "asin": "B0B6BTYSC1",
     "price": "$129.99",
     "category": "gaming",
-    "persona": ["gamer"],
+    "persona": [
+      "gamer"
+    ],
     "rating": 4.5,
     "description": "LIGHTFORCE hybrid optical-mechanical switches deliver incredible speed and reliability. Features HERO 25K sensor, LIGHTSPEED wireless, and LIGHTSYNC RGB with 13 programmable controls.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=400&h=400&fit=crop"
   },
   {
     "name": "Razer DeathAdder V3 Wired Gaming Mouse",
     "asin": "B0BX79MPKJ",
     "price": "$69.99",
     "category": "gaming",
-    "persona": ["gamer"],
+    "persona": [
+      "gamer"
+    ],
     "rating": 4.7,
     "description": "Ultra-lightweight 59g ergonomic gaming mouse with Focus Pro 30K optical sensor. Features optical switches Gen-3, 8K Hz HyperPolling support, and Speedflex cable for zero-drag movement.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=400&h=400&fit=crop"
   },
   {
     "name": "Razer DeathAdder Essential Gaming Mouse",
     "asin": "B094PS5RZQ",
     "price": "$19.99",
     "category": "gaming",
-    "persona": ["gamer", "student"],
+    "persona": [
+      "gamer",
+      "student"
+    ],
     "rating": 4.6,
     "description": "Budget-friendly ergonomic gaming mouse with 6400 DPI optical sensor and 5 programmable buttons. Classic ergonomic shape trusted by millions of gamers worldwide at an unbeatable price.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/8189uwDnMkL._AC_SL1500_.jpg"
   },
   {
     "name": "SteelSeries Arctis Nova 7 Wireless Gaming Headset",
     "asin": "B0B15QMV9R",
     "price": "$149.99",
     "category": "gaming",
-    "persona": ["gamer", "streamer"],
+    "persona": [
+      "gamer",
+      "streamer"
+    ],
     "rating": 4.5,
     "description": "Multi-platform wireless headset with simultaneous 2.4GHz and Bluetooth connectivity. Features custom-tuned 40mm drivers, ClearCast Gen 2 AI-powered noise-cancelling mic, and 38-hour battery life.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=400&h=400&fit=crop"
   },
   {
     "name": "HyperX Cloud III Wired Gaming Headset",
     "asin": "B0CBKM7YYW",
     "price": "$69.99",
     "category": "gaming",
-    "persona": ["gamer", "student"],
+    "persona": [
+      "gamer",
+      "student"
+    ],
     "rating": 4.5,
     "description": "Angled 53mm drivers with DTS Spatial Audio deliver immersive gaming sound. Memory foam earcups, durable aluminum frame, and detachable noise-cancelling mic make it perfect for marathon sessions.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=400&h=400&fit=crop"
   },
   {
     "name": "LG 27GP850-B 27\" QHD Nano IPS Gaming Monitor",
     "asin": "B09DQ2SZCL",
     "price": "$349.99",
     "category": "gaming",
-    "persona": ["gamer", "creative"],
+    "persona": [
+      "gamer",
+      "creative"
+    ],
     "rating": 4.6,
     "description": "27-inch QHD (2560x1440) Nano IPS display with 165Hz refresh rate and 1ms response time. Features NVIDIA G-SYNC Compatible, HDR 400, and wide color gamut for stunning visuals.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=400&h=400&fit=crop"
   },
   {
     "name": "ASUS VG248QG 24\" Full HD Gaming Monitor",
     "asin": "B07TNM8L6S",
     "price": "$189.99",
     "category": "gaming",
-    "persona": ["gamer", "student"],
+    "persona": [
+      "gamer",
+      "student"
+    ],
     "rating": 4.6,
     "description": "24-inch 1080p TN panel with blazing 165Hz refresh rate and 0.5ms response time. G-SYNC Compatible with ergonomic stand for tilt, swivel, pivot, and height adjustment.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/71Dbz4OKXWL._AC_SL1500_.jpg"
   },
   {
     "name": "Secretlab Titan Evo Gaming Chair",
     "asin": "B0BCGY7VRL",
     "price": "$449.00",
     "category": "gaming",
-    "persona": ["gamer", "home-office"],
+    "persona": [
+      "gamer",
+      "home-office"
+    ],
     "rating": 4.6,
     "description": "Award-winning ergonomic gaming chair with 4D armrests, magnetic head pillow, and 4-way lumbar support. Premium leatherette upholstery with cold-cure foam for all-day comfort during gaming or work.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/51dX-jpsWcL._AC_SL1000_.jpg"
   },
   {
     "name": "Xbox Core Wireless Controller",
     "asin": "B0BY5CWG9Z",
     "price": "$49.99",
     "category": "gaming",
-    "persona": ["gamer"],
+    "persona": [
+      "gamer"
+    ],
     "rating": 4.7,
     "description": "Updated Xbox wireless controller with textured grip and hybrid D-pad. Works seamlessly with Xbox Series X|S, Xbox One, Windows PC, and mobile devices via Bluetooth.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=400&h=400&fit=crop"
   },
   {
     "name": "Sony DualSense Wireless Controller for PS5",
     "asin": "B0CQXCR1G3",
     "price": "$69.99",
     "category": "gaming",
-    "persona": ["gamer"],
+    "persona": [
+      "gamer"
+    ],
     "rating": 4.7,
     "description": "Haptic feedback and adaptive triggers deliver immersive gaming sensations. Built-in microphone, 3.5mm headset jack, and USB-C charging. Also works with PC gaming.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=400&h=400&fit=crop"
   },
   {
     "name": "Keychron Q1 Pro Wireless Mechanical Keyboard",
     "asin": "B0BYD93VW4",
     "price": "$199.00",
     "category": "coding",
-    "persona": ["coder", "creative"],
+    "persona": [
+      "coder",
+      "creative"
+    ],
     "rating": 4.6,
     "description": "Premium QMK/VIA-compatible wireless mechanical keyboard with full aluminum CNC body. Hot-swappable Gateron Jupiter switches, gasket mount design, and triple-mode connectivity (BT/2.4GHz/USB-C).",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&h=400&fit=crop"
   },
   {
     "name": "Logitech MX Mechanical Mini Wireless Keyboard",
     "asin": "B09LJWSRQT",
     "price": "$129.99",
     "category": "coding",
-    "persona": ["coder", "home-office"],
+    "persona": [
+      "coder",
+      "home-office"
+    ],
     "rating": 4.5,
     "description": "Low-profile mechanical keys with smart backlighting that adapts to lighting conditions. Multi-device connectivity via Bluetooth and Logi Bolt, with Easy-Switch for up to 3 devices.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&h=400&fit=crop"
   },
   {
     "name": "LG 34WN80C-B 34\" UltraWide WQHD IPS Monitor",
     "asin": "B07YGZ7C1K",
     "price": "$449.99",
     "category": "coding",
-    "persona": ["coder", "creative"],
+    "persona": [
+      "coder",
+      "creative"
+    ],
     "rating": 4.5,
     "description": "34-inch curved UltraWide QHD (3440x1440) IPS display with USB-C connectivity and 60W power delivery. HDR10 support and sRGB 99% color accuracy ideal for coding and creative work.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/81WBbFOEHwL._AC_SL1500_.jpg"
   },
   {
     "name": "Dell UltraSharp U3423WE 34\" Curved USB-C Hub Monitor",
     "asin": "B09TQZP9CL",
     "price": "$679.99",
     "category": "coding",
-    "persona": ["coder", "home-office"],
+    "persona": [
+      "coder",
+      "home-office"
+    ],
     "rating": 4.5,
     "description": "34-inch WQHD curved IPS Black monitor with built-in KVM switch and USB-C hub (90W PD). VESA DisplayHDR 400, 98% DCI-P3 color accuracy, and integrated ethernet port for clean desk setups.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/A1Iqr2v1SIL._AC_SL1500_.jpg"
   },
   {
     "name": "CalDigit TS4 Thunderbolt 4 Dock",
     "asin": "B09GK8LBWS",
     "price": "$359.99",
     "category": "coding",
-    "persona": ["coder", "creative", "home-office"],
+    "persona": [
+      "coder",
+      "creative",
+      "home-office"
+    ],
     "rating": 4.6,
     "description": "18-port Thunderbolt 4 docking station with 98W charging, dual 4K display support, and 2.5GbE ethernet. The gold standard for developer and creative workstation connectivity.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/61RBOqHLI0L._AC_SL1500_.jpg"
   },
   {
     "name": "Anker 575 USB-C Docking Station (13-in-1)",
     "asin": "B0C7DGNQCD",
     "price": "$199.99",
     "category": "coding",
-    "persona": ["coder", "home-office"],
+    "persona": [
+      "coder",
+      "home-office"
+    ],
     "rating": 4.3,
     "description": "13-in-1 USB-C dock with triple display support, 85W laptop charging, and 10Gbps data transfer. Features ethernet, SD card slots, and multiple USB-A/USB-C ports for a complete workstation.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&h=400&fit=crop"
   },
   {
     "name": "Logitech C920x HD Pro Webcam",
     "asin": "B085TFF7M1",
     "price": "$59.99",
     "category": "coding",
-    "persona": ["coder", "streamer", "home-office"],
+    "persona": [
+      "coder",
+      "streamer",
+      "home-office"
+    ],
     "rating": 4.6,
     "description": "Full HD 1080p webcam at 30fps with stereo audio and automatic light correction. The industry-standard webcam for video calls, streaming, and remote work. Works with all major platforms.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/71YN85pLGcL._AC_SL1500_.jpg"
   },
   {
     "name": "Logitech Brio 4K Ultra HD Webcam",
     "asin": "B01N5UOYC4",
     "price": "$139.99",
     "category": "coding",
-    "persona": ["coder", "streamer", "home-office"],
+    "persona": [
+      "coder",
+      "streamer",
+      "home-office"
+    ],
     "rating": 4.4,
     "description": "4K Ultra HD webcam with HDR, Windows Hello support, and RightLight 3 auto-adjustment. 5x digital zoom and 90° field of view make it the premium choice for professionals.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/71SAamTGWQL._AC_SL1500_.jpg"
   },
   {
     "name": "Logitech MX Master 3S Wireless Mouse",
     "asin": "B09HM94VDS",
     "price": "$89.99",
     "category": "coding",
-    "persona": ["coder", "creative", "home-office"],
+    "persona": [
+      "coder",
+      "creative",
+      "home-office"
+    ],
     "rating": 4.6,
     "description": "Ergonomic wireless mouse with MagSpeed electromagnetic scroll wheel and 8K DPI tracking on any surface. Quiet clicks, USB-C quick charging, and multi-device flow across 3 computers.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/61+OT7FPABL._AC_SL1500_.jpg"
   },
   {
     "name": "Blue Yeti USB Microphone",
     "asin": "B00N1YPXW2",
     "price": "$99.99",
     "category": "streaming",
-    "persona": ["streamer", "home-office"],
+    "persona": [
+      "streamer",
+      "home-office"
+    ],
     "rating": 4.6,
     "description": "Legendary USB condenser microphone with four pickup patterns (cardioid, bidirectional, omnidirectional, stereo). Studio-quality recording for streaming, podcasting, and voice-over work.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/61KTMvS5JBL._AC_SL1500_.jpg"
   },
   {
     "name": "Shure MV7 USB/XLR Dynamic Microphone",
     "asin": "B08G7RG9ML",
     "price": "$224.00",
     "category": "streaming",
-    "persona": ["streamer", "creative"],
+    "persona": [
+      "streamer",
+      "creative"
+    ],
     "rating": 4.7,
     "description": "Professional dynamic microphone with both USB and XLR outputs for maximum flexibility. Built-in headphone monitoring, voice isolation technology, and ShurePlus MOTIV app for easy setup.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/81ZHXEuhgIL._AC_SL1500_.jpg"
   },
   {
     "name": "HyperX QuadCast S USB Microphone",
     "asin": "B09XDH2P4V",
     "price": "$129.99",
     "category": "streaming",
-    "persona": ["streamer", "gamer"],
+    "persona": [
+      "streamer",
+      "gamer"
+    ],
     "rating": 4.6,
     "description": "RGB USB condenser mic with dynamic lighting effects and tap-to-mute sensor. Four selectable polar patterns, built-in anti-vibration shock mount, and pop filter for broadcast-ready audio.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1598550476439-6847785fcea6?w=400&h=400&fit=crop"
   },
   {
     "name": "Elgato HD60 X Capture Card",
     "asin": "B09V1KJ8Y4",
     "price": "$159.99",
     "category": "streaming",
-    "persona": ["streamer", "gamer"],
+    "persona": [
+      "streamer",
+      "gamer"
+    ],
     "rating": 4.5,
     "description": "External capture card with 4K30 passthrough and 1080p60 HDR10 capture. Ultra-low latency, USB 3.0 connectivity, and works with OBS, Streamlabs, and all major streaming software.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1598550476439-6847785fcea6?w=400&h=400&fit=crop"
   },
   {
     "name": "Elgato Stream Deck MK.2",
     "asin": "B09738CV2G",
     "price": "$149.99",
     "category": "streaming",
-    "persona": ["streamer", "creative"],
+    "persona": [
+      "streamer",
+      "creative"
+    ],
     "rating": 4.8,
     "description": "15 customizable LCD keys for one-touch control of apps, streaming, and smart home devices. Detachable USB-C, interchangeable faceplates, and deep integration with OBS, Twitch, and Spotify.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/61gtdFnK+UL._AC_SL1500_.jpg"
   },
   {
     "name": "Elgato Stream Deck + Audio Mixer & Controller",
     "asin": "B0BJL8SJ59",
     "price": "$199.99",
     "category": "streaming",
-    "persona": ["streamer", "creative"],
+    "persona": [
+      "streamer",
+      "creative"
+    ],
     "rating": 4.7,
     "description": "Next-gen stream controller with LCD keys, touch-sensitive dials, and a touch strip. Functions as an audio mixer, production console, and studio controller with Wave Link integration.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/519jbgbd1sL._AC_SL1500_.jpg"
   },
   {
     "name": "Elgato Ring Light",
     "asin": "B0C7K6PHLT",
     "price": "$129.99",
     "category": "streaming",
-    "persona": ["streamer", "creative"],
+    "persona": [
+      "streamer",
+      "creative"
+    ],
     "rating": 4.5,
     "description": "Premium desk-mounted ring light with 2500 lumens and adjustable color temperature (2900-7000K). Edge-lit design eliminates glare in glasses, app-controlled via Elgato Control Center.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1598550476439-6847785fcea6?w=400&h=400&fit=crop"
   },
   {
     "name": "Neewer 18\" RGB Ring Light Kit",
     "asin": "B08FSTGQWD",
     "price": "$65.99",
     "category": "streaming",
-    "persona": ["streamer", "creative", "student"],
+    "persona": [
+      "streamer",
+      "creative",
+      "student"
+    ],
     "rating": 4.5,
     "description": "18-inch RGB LED ring light with adjustable tripod stand and phone holder. 16 million color options, dimmable 3200-5600K white light, and remote control for streaming and content creation.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1598550476439-6847785fcea6?w=400&h=400&fit=crop"
   },
   {
     "name": "Elgato Cam Link 4K",
     "asin": "B07K3FN5MR",
     "price": "$99.99",
     "category": "streaming",
-    "persona": ["streamer"],
+    "persona": [
+      "streamer"
+    ],
     "rating": 4.5,
     "description": "Compact HDMI to USB 3.0 capture device that turns any DSLR or camcorder into a webcam. Supports up to 4K30 capture with ultra-low latency for professional-quality streaming.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/5146dDMeV6L._AC_SL1500_.jpg"
   },
   {
     "name": "Sony ZV-1F Vlog Camera",
     "asin": "B0BHKD7QKJ",
     "price": "$398.00",
     "category": "streaming",
-    "persona": ["streamer", "creative"],
+    "persona": [
+      "streamer",
+      "creative"
+    ],
     "rating": 4.5,
     "description": "Ultra-wide 20mm lens vlogging camera with background defocus, product showcase mode, and directional 3-capsule microphone. 4K video, flip screen, and USB streaming capability.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1598550476439-6847785fcea6?w=400&h=400&fit=crop"
   },
   {
     "name": "Logitech StreamCam Plus Webcam",
     "asin": "B07TZT4Q89",
     "price": "$149.99",
     "category": "streaming",
-    "persona": ["streamer", "coder"],
+    "persona": [
+      "streamer",
+      "coder"
+    ],
     "rating": 4.4,
     "description": "Full HD 1080p at 60fps USB-C webcam with AI-powered face tracking and auto-exposure. Smart auto-framing, vertical video support, and built-in mounting for streaming and content creation.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/71-fdSpTk5L._AC_SL1500_.jpg"
   },
   {
     "name": "NVIDIA GeForce RTX 4070 Super Founders Edition",
     "asin": "B0CS2W6RPV",
     "price": "$599.99",
     "category": "ai-ml",
-    "persona": ["ai-ml", "gamer"],
+    "persona": [
+      "ai-ml",
+      "gamer"
+    ],
     "rating": 4.7,
     "description": "12GB GDDR6X GPU with Ada Lovelace architecture delivering exceptional AI and ray tracing performance. DLSS 3.5 with Frame Generation, ideal for local AI model training and inference.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1591238372338-21a4e3bd2a26?w=400&h=400&fit=crop"
   },
   {
     "name": "NVIDIA GeForce RTX 4090 Founders Edition",
     "asin": "B0BGP8FGNZ",
     "price": "$1,599.99",
     "category": "ai-ml",
-    "persona": ["ai-ml"],
+    "persona": [
+      "ai-ml"
+    ],
     "rating": 4.8,
     "description": "The flagship consumer GPU with 24GB GDDR6X VRAM and 16,384 CUDA cores. Unmatched for local LLM inference, AI model training, and deep learning research with DLSS 3 and AV1 encoding.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/711vU2IrEuL._AC_SL1500_.jpg"
   },
   {
     "name": "ASUS ProArt RTX 4060 Ti 16GB",
     "asin": "B0CRSXLW5D",
     "price": "$499.99",
     "category": "ai-ml",
-    "persona": ["ai-ml", "creative"],
+    "persona": [
+      "ai-ml",
+      "creative"
+    ],
     "rating": 4.5,
     "description": "16GB VRAM version optimized for creative and AI workloads. ProArt design with enhanced cooling, Studio drivers support, and enough memory for medium-sized model fine-tuning.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1591238372338-21a4e3bd2a26?w=400&h=400&fit=crop"
   },
   {
     "name": "ASUS ROG Strix G16 Gaming Laptop (RTX 4070)",
     "asin": "B0C4KWVJQQ",
     "price": "$1,399.99",
     "category": "ai-ml",
-    "persona": ["ai-ml", "gamer", "coder"],
+    "persona": [
+      "ai-ml",
+      "gamer",
+      "coder"
+    ],
     "rating": 4.5,
     "description": "Intel Core i9-13980HX, 16GB DDR5, 1TB SSD, RTX 4070 8GB laptop with 16-inch QHD 240Hz display. Powerful enough for local ML training, gaming, and development on the go.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1591238372338-21a4e3bd2a26?w=400&h=400&fit=crop"
   },
   {
     "name": "Lenovo Legion Pro 5 16\" Gaming Laptop",
     "asin": "B0CV3G8Z5G",
     "price": "$1,699.99",
     "category": "ai-ml",
-    "persona": ["ai-ml", "gamer", "coder"],
+    "persona": [
+      "ai-ml",
+      "gamer",
+      "coder"
+    ],
     "rating": 4.6,
     "description": "AMD Ryzen 9 7945HX, 32GB DDR5, 1TB SSD with RTX 4070 GPU. 16-inch WQXGA 240Hz display, massive cooling system, and MUX switch for maximum GPU performance in AI workloads.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1591238372338-21a4e3bd2a26?w=400&h=400&fit=crop"
   },
   {
     "name": "Synology DS224+ 2-Bay NAS DiskStation",
     "asin": "B0CG26N8TG",
     "price": "$299.99",
     "category": "ai-ml",
-    "persona": ["ai-ml", "tech-nerd", "home-office"],
+    "persona": [
+      "ai-ml",
+      "tech-nerd",
+      "home-office"
+    ],
     "rating": 4.7,
     "description": "Intel Celeron J4125 2-bay NAS with 2GB DDR4 and dual 1GbE ports. Perfect for dataset storage, model checkpoints, and automated backups with Synology's DiskStation Manager OS.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1591238372338-21a4e3bd2a26?w=400&h=400&fit=crop"
   },
   {
     "name": "Synology DS923+ 4-Bay NAS",
     "asin": "B0BZ4SCGLF",
     "price": "$549.99",
     "category": "ai-ml",
-    "persona": ["ai-ml", "tech-nerd"],
+    "persona": [
+      "ai-ml",
+      "tech-nerd"
+    ],
     "rating": 4.6,
     "description": "AMD Ryzen R1600 4-bay NAS with 4GB DDR4 (expandable to 32GB) and dual 1GbE. Supports NVMe SSD caching, Docker containers, and can serve as a lightweight AI inference server.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1591238372338-21a4e3bd2a26?w=400&h=400&fit=crop"
   },
   {
     "name": "Noctua NH-D15 CPU Cooler",
     "asin": "B00L7UZMAK",
     "price": "$109.99",
     "category": "ai-ml",
-    "persona": ["ai-ml", "tech-nerd"],
+    "persona": [
+      "ai-ml",
+      "tech-nerd"
+    ],
     "rating": 4.8,
     "description": "Legendary dual-tower CPU cooler with two NF-A15 140mm fans delivering near-silent operation. Essential for keeping high-core-count CPUs cool during extended AI training sessions.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/91Hw1zcAIjL._AC_SL1500_.jpg"
   },
   {
     "name": "CORSAIR iCUE H150i Elite Capellix XT AIO Cooler",
     "asin": "B0BY5VT6DP",
     "price": "$179.99",
     "category": "ai-ml",
-    "persona": ["ai-ml", "tech-nerd", "gamer"],
+    "persona": [
+      "ai-ml",
+      "tech-nerd",
+      "gamer"
+    ],
     "rating": 4.6,
     "description": "360mm AIO liquid cooler with magnetic dome RGB pump cap and three AF120 Elite fans. iCUE software control and high-performance cold plate keep CPUs running cool under heavy AI workloads.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1591238372338-21a4e3bd2a26?w=400&h=400&fit=crop"
   },
   {
     "name": "NVIDIA Jetson Orin Nano Developer Kit",
     "asin": "B0CLBL5JJR",
     "price": "$249.00",
     "category": "ai-ml",
-    "persona": ["ai-ml", "tech-nerd"],
+    "persona": [
+      "ai-ml",
+      "tech-nerd"
+    ],
     "rating": 4.4,
     "description": "Compact AI computer delivering up to 40 TOPS for edge AI applications. Supports all popular AI frameworks, perfect for robotics, computer vision, and IoT AI projects.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1591238372338-21a4e3bd2a26?w=400&h=400&fit=crop"
   },
   {
     "name": "Raspberry Pi 5 (8GB) Starter Kit",
     "asin": "B0CTH7MKWH",
     "price": "$119.99",
     "category": "tech-nerd",
-    "persona": ["tech-nerd", "student"],
+    "persona": [
+      "tech-nerd",
+      "student"
+    ],
     "rating": 4.6,
     "description": "Complete starter kit with Raspberry Pi 5 8GB board, official case, power supply, 64GB microSD, and heatsink. 2-3x faster than Pi 4, with dual 4K HDMI and PCIe 2.0 support.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=400&fit=crop"
   },
   {
     "name": "Raspberry Pi 5 Board (4GB)",
     "asin": "B0CSD2TLJK",
     "price": "$60.00",
     "category": "tech-nerd",
-    "persona": ["tech-nerd", "student"],
+    "persona": [
+      "tech-nerd",
+      "student"
+    ],
     "rating": 4.7,
     "description": "The latest Raspberry Pi with quad-core Arm Cortex-A76 processor at 2.4GHz. Dual 4K display output, USB 3.0, Gigabit Ethernet, and built-in Bluetooth 5.0/Wi-Fi for endless projects.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=400&fit=crop"
   },
   {
     "name": "ELEGOO Arduino Uno R3 Super Starter Kit",
     "asin": "B01D8KOZF4",
     "price": "$36.99",
     "category": "tech-nerd",
-    "persona": ["tech-nerd", "student"],
+    "persona": [
+      "tech-nerd",
+      "student"
+    ],
     "rating": 4.7,
     "description": "Complete Arduino learning kit with UNO R3 board, breadboard, jumper wires, LEDs, sensors, and 22 lessons. Perfect introduction to electronics and programming for beginners.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/81RxAX9-IzL._SL1500_.jpg"
   },
   {
     "name": "ELEGOO Arduino Mega 2560 Starter Kit",
     "asin": "B01EWNUUUA",
     "price": "$59.99",
     "category": "tech-nerd",
-    "persona": ["tech-nerd"],
+    "persona": [
+      "tech-nerd"
+    ],
     "rating": 4.7,
     "description": "Advanced Arduino kit with MEGA 2560 board featuring 54 digital I/O pins. Includes 200+ components, LCD display, stepper motor, and comprehensive tutorial for complex robotics projects.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/81XmT-DBjvL._SL1500_.jpg"
   },
   {
     "name": "Creality Ender-3 V3 SE 3D Printer",
     "asin": "B0C65CXKRP",
     "price": "$199.00",
     "category": "tech-nerd",
-    "persona": ["tech-nerd", "creative"],
+    "persona": [
+      "tech-nerd",
+      "creative"
+    ],
     "rating": 4.4,
     "description": "Auto-leveling FDM 3D printer with sprite direct extruder and 250mm/s max speed. 220x220x250mm build volume, easy assembly, and perfect entry point for 3D printing enthusiasts.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=400&fit=crop"
   },
   {
     "name": "Creality K1 3D Printer",
     "asin": "B0C5RFHBJK",
     "price": "$399.00",
     "category": "tech-nerd",
-    "persona": ["tech-nerd", "creative"],
+    "persona": [
+      "tech-nerd",
+      "creative"
+    ],
     "rating": 4.3,
     "description": "High-speed CoreXY 3D printer reaching 600mm/s with hands-free auto leveling. Enclosed design, built-in camera for monitoring, and AI-powered first-layer inspection for reliable prints.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=400&fit=crop"
   },
   {
     "name": "Echo Dot (5th Gen) Smart Speaker",
     "asin": "B09B8V1LZ3",
     "price": "$49.99",
     "category": "tech-nerd",
-    "persona": ["tech-nerd", "home-office"],
+    "persona": [
+      "tech-nerd",
+      "home-office"
+    ],
     "rating": 4.6,
     "description": "Compact smart speaker with improved audio and Alexa voice assistant. Control smart home devices, play music, set timers, and get information hands-free with eero mesh integration.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/71jJawyjDFL._AC_SL1500_.jpg"
   },
   {
     "name": "TP-Link Tapo Smart Plug Mini (4-Pack)",
     "asin": "B0BQBYZL1Y",
     "price": "$22.99",
     "category": "tech-nerd",
-    "persona": ["tech-nerd", "home-office"],
+    "persona": [
+      "tech-nerd",
+      "home-office"
+    ],
     "rating": 4.5,
     "description": "Wi-Fi smart plugs with energy monitoring and scheduling. Works with Alexa and Google Home, no hub required. Control devices remotely and track energy consumption via Tapo app.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=400&fit=crop"
   },
   {
     "name": "DJI Mini 4K Drone",
     "asin": "B0D8M7P2ZN",
     "price": "$299.00",
     "category": "tech-nerd",
-    "persona": ["tech-nerd", "creative"],
+    "persona": [
+      "tech-nerd",
+      "creative"
+    ],
     "rating": 4.5,
     "description": "Under-249g ultralight drone with 4K HDR camera and 31-minute flight time. No FAA registration required, 3-axis gimbal stabilization, and QuickShots intelligent flight modes for cinematic footage.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=400&fit=crop"
   },
   {
     "name": "DJI Mini 3 Fly More Combo",
     "asin": "B0BL3GZWWT",
     "price": "$469.00",
     "category": "tech-nerd",
-    "persona": ["tech-nerd", "creative"],
+    "persona": [
+      "tech-nerd",
+      "creative"
+    ],
     "rating": 4.6,
     "description": "Sub-249g drone with 4K HDR video, 38-minute flight time, and true vertical shooting. Fly More combo includes 3 batteries, charging hub, shoulder bag, and spare propellers.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=400&fit=crop"
   },
   {
     "name": "SanDisk 1TB Extreme Portable SSD",
     "asin": "B08GV3Y52S",
     "price": "$79.99",
     "category": "tech-nerd",
-    "persona": ["tech-nerd", "coder", "creative"],
+    "persona": [
+      "tech-nerd",
+      "coder",
+      "creative"
+    ],
     "rating": 4.7,
     "description": "Rugged portable SSD with 1050MB/s read speeds and IP65 water/dust resistance. USB-C with USB-A adapter, 2-meter drop protection, and hardware encryption for secure portable storage.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=400&fit=crop"
   },
   {
     "name": "Logitech K380 Multi-Device Bluetooth Keyboard",
     "asin": "B0148NPH9I",
     "price": "$29.99",
     "category": "student",
-    "persona": ["student", "home-office"],
+    "persona": [
+      "student",
+      "home-office"
+    ],
     "rating": 4.6,
     "description": "Compact Bluetooth keyboard that connects to up to 3 devices simultaneously. Easy-switch buttons let you toggle between laptop, tablet, and phone. 2-year battery life with AAA batteries.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/61+U9lMboFL._AC_SL1500_.jpg"
   },
   {
     "name": "Redragon S101 Gaming Keyboard and Mouse Combo",
     "asin": "B00NLZUM36",
     "price": "$25.99",
     "category": "student",
-    "persona": ["student", "gamer"],
+    "persona": [
+      "student",
+      "gamer"
+    ],
     "rating": 4.5,
     "description": "Budget RGB gaming keyboard and mouse combo with membrane keys and 3200 DPI optical mouse. 7-color LED backlight modes, anti-ghosting keys, and braided cables at an unbeatable price.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/81OG51gWHVL._AC_SL1500_.jpg"
   },
   {
     "name": "Nulaxy Adjustable Laptop Stand",
     "asin": "B07YC5YDYG",
     "price": "$18.99",
     "category": "student",
-    "persona": ["student", "home-office"],
+    "persona": [
+      "student",
+      "home-office"
+    ],
     "rating": 4.6,
     "description": "Ergonomic aluminum laptop stand with adjustable height and angle. Supports laptops 10-16 inches, improves airflow for cooling, and folds flat for portability. Anti-slip silicone pads included.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop"
   },
   {
     "name": "UGREEN USB-C Hub 6-in-1 Adapter",
     "asin": "B0BSGH4L1N",
     "price": "$19.99",
     "category": "student",
-    "persona": ["student", "coder"],
+    "persona": [
+      "student",
+      "coder"
+    ],
     "rating": 4.4,
     "description": "Compact USB-C multiport adapter with 4K HDMI, 100W Power Delivery, USB 3.0 ports, and SD/MicroSD card readers. Essential accessory for modern laptops with limited ports.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop"
   },
   {
     "name": "Anker USB-C Hub 7-in-1",
     "asin": "B07ZVKTP53",
     "price": "$31.99",
     "category": "student",
-    "persona": ["student", "coder", "home-office"],
+    "persona": [
+      "student",
+      "coder",
+      "home-office"
+    ],
     "rating": 4.6,
     "description": "Slim USB-C hub with 4K HDMI, 100W PD pass-through, 2 USB-A 3.0, USB-C data, and SD/microSD slots. Anker's build quality and 18-month warranty make it a reliable daily driver.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/61thMtrP5rL._AC_SL1500_.jpg"
   },
   {
     "name": "JBL Tune 510BT Wireless On-Ear Headphones",
     "asin": "B08WM3LMJF",
     "price": "$29.95",
     "category": "student",
-    "persona": ["student"],
+    "persona": [
+      "student"
+    ],
     "rating": 4.5,
     "description": "Lightweight wireless on-ear headphones with JBL Pure Bass Sound and 40-hour battery life. Bluetooth 5.0, foldable design, and multipoint connection for phone and laptop simultaneously.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/61kFL7ywsZS._AC_SL1500_.jpg"
   },
   {
     "name": "Amazon Basics USB-A 3.0 to Ethernet Adapter",
     "asin": "B00M77HMU0",
     "price": "$12.49",
     "category": "student",
-    "persona": ["student", "coder"],
+    "persona": [
+      "student",
+      "coder"
+    ],
     "rating": 4.4,
     "description": "Simple USB to Gigabit Ethernet adapter for laptops without ethernet ports. Plug-and-play on Windows and Mac, supports 10/100/1000 Mbps for reliable wired internet connections.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/611W4B6ZH6L._AC_SL1500_.jpg"
   },
   {
     "name": "Logitech Pebble Mouse 2 M750",
     "asin": "B0BT4NZC45",
     "price": "$29.99",
     "category": "student",
-    "persona": ["student", "home-office"],
+    "persona": [
+      "student",
+      "home-office"
+    ],
     "rating": 4.5,
     "description": "Slim, portable wireless mouse with customizable buttons and SmartWheel scrolling. Bluetooth and Logi Bolt connectivity, whisper-quiet clicks, and 2-year battery life in a stylish design.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop"
   },
   {
     "name": "Nillkin Laptop Stand for Desk",
     "asin": "B0B4NSMQGT",
     "price": "$15.99",
     "category": "student",
-    "persona": ["student"],
+    "persona": [
+      "student"
+    ],
     "rating": 4.5,
     "description": "Invisible adhesive laptop stand that attaches to the bottom of your laptop. Lightweight, foldable, and creates an ergonomic angle while improving airflow. Fits laptops 11-17 inches.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop"
   },
   {
     "name": "Lamicall Adjustable Tablet/Phone Stand",
     "asin": "B01DBV1OKY",
     "price": "$10.99",
     "category": "student",
-    "persona": ["student"],
+    "persona": [
+      "student"
+    ],
     "rating": 4.6,
     "description": "Adjustable aluminum stand for phones and tablets up to 13 inches. Stable base, cable management cutout, and multiple viewing angles for studying, video calls, and streaming.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/71YnvIEkWwL._AC_SL1500_.jpg"
   },
   {
     "name": "Wacom Intuos Small Drawing Tablet",
     "asin": "B079HL9YSF",
     "price": "$69.99",
     "category": "creative",
-    "persona": ["creative", "student"],
+    "persona": [
+      "creative",
+      "student"
+    ],
     "rating": 4.6,
     "description": "Compact pen tablet with 4096 pressure levels and 4 customizable ExpressKeys. Includes free creative software (Clip Studio Paint, Corel). Compatible with Mac, PC, Chromebook, and Android.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/61EVqL6wsPL._AC_SL1500_.jpg"
   },
   {
     "name": "Wacom Intuos Pro Medium Drawing Tablet",
     "asin": "B01MQU5LW7",
     "price": "$329.95",
     "category": "creative",
-    "persona": ["creative"],
+    "persona": [
+      "creative"
+    ],
     "rating": 4.5,
     "description": "Professional pen tablet with 8192 pressure levels, tilt recognition, and Pro Pen 2. Bluetooth connectivity, 8 ExpressKeys, and multi-touch gestures for professional digital art and design.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/51+U2gtSrBL._AC_SL1500_.jpg"
   },
   {
     "name": "Wacom Cintiq 16 Drawing Tablet with Screen",
     "asin": "B07L77GTTY",
     "price": "$599.95",
     "category": "creative",
-    "persona": ["creative"],
+    "persona": [
+      "creative"
+    ],
     "rating": 4.5,
     "description": "15.6-inch Full HD pen display with Pro Pen 2 (8192 levels). Draw directly on screen with anti-glare film and foldable legs. Industry standard for digital artists and illustrators.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/71Phsin+iDL._AC_SL1500_.jpg"
   },
   {
     "name": "XP-PEN Artist 15.6 Pro Drawing Display",
     "asin": "B07ZPV7RDM",
     "price": "$339.99",
     "category": "creative",
-    "persona": ["creative", "student"],
+    "persona": [
+      "creative",
+      "student"
+    ],
     "rating": 4.4,
     "description": "15.6-inch Full HD pen display with 120% sRGB color gamut and 8192 pressure levels. Tilt function, 8 shortcut keys, and dial wheel offer a professional drawing experience at a budget price.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1609921212029-bb5a28e60960?w=400&h=400&fit=crop"
   },
   {
     "name": "Apple Pencil (2nd Generation)",
     "asin": "B07K1WWBJK",
     "price": "$119.00",
     "category": "creative",
-    "persona": ["creative", "student"],
+    "persona": [
+      "creative",
+      "student"
+    ],
     "rating": 4.8,
     "description": "Precision stylus for iPad Pro and iPad Air with pixel-perfect accuracy. Magnetically attaches and wirelessly charges, features double-tap gesture and tilt/pressure sensitivity for natural drawing.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/21SPDoiRuGL._AC_SL1000_.jpg"
   },
   {
     "name": "BenQ PD2725U 27\" 4K UHD Designer Monitor",
     "asin": "B08LLBH1F5",
     "price": "$599.99",
     "category": "creative",
-    "persona": ["creative", "coder"],
+    "persona": [
+      "creative",
+      "coder"
+    ],
     "rating": 4.5,
     "description": "27-inch 4K UHD IPS display with Thunderbolt 3 connectivity and 95% DCI-P3 color accuracy. AQCOLOR technology, hardware calibration support, and KVM switch for professional creative workflows.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1609921212029-bb5a28e60960?w=400&h=400&fit=crop"
   },
   {
     "name": "ASUS ProArt PA278CV 27\" WQHD Monitor",
     "asin": "B08LCMJGBF",
     "price": "$299.99",
     "category": "creative",
-    "persona": ["creative", "coder"],
+    "persona": [
+      "creative",
+      "coder"
+    ],
     "rating": 4.6,
     "description": "27-inch WQHD IPS display factory-calibrated to Delta E<2 accuracy with 100% sRGB and Rec. 709 coverage. USB-C with 65W charging, VESA mount, and ergonomic stand for color-critical work.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1609921212029-bb5a28e60960?w=400&h=400&fit=crop"
   },
   {
     "name": "Huion Kamvas Pro 16 (2.5K) Pen Display",
     "asin": "B0BXH2N7K7",
     "price": "$349.00",
     "category": "creative",
-    "persona": ["creative"],
+    "persona": [
+      "creative"
+    ],
     "rating": 4.4,
     "description": "15.8-inch 2.5K QHD pen display with 145% sRGB color gamut and full-laminated anti-glare screen. PenTech 3.0 stylus with 16K pressure levels and battery-free design for natural drawing.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1609921212029-bb5a28e60960?w=400&h=400&fit=crop"
   },
   {
     "name": "GAOMON PD1320 13.3\" Pen Display",
     "asin": "B0BSLS8PQR",
     "price": "$199.99",
     "category": "creative",
-    "persona": ["creative", "student"],
+    "persona": [
+      "creative",
+      "student"
+    ],
     "rating": 4.3,
     "description": "Portable 13.3-inch Full HD pen display with 8192 pressure levels and 120% sRGB. Lightweight and slim design with 8 shortcut keys, ideal for digital art students and on-the-go artists.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1609921212029-bb5a28e60960?w=400&h=400&fit=crop"
   },
   {
     "name": "FlexiSpot E7 Standing Desk",
     "asin": "B08N583DVN",
     "price": "$479.99",
     "category": "home-office",
-    "persona": ["home-office", "coder"],
+    "persona": [
+      "home-office",
+      "coder"
+    ],
     "rating": 4.6,
     "description": "Dual-motor electric standing desk with 275lb capacity and height range of 22.8-48.4 inches. 3 programmable memory presets, anti-collision technology, and cable management tray included.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=400&h=400&fit=crop"
   },
   {
     "name": "FEZIBO Standing Desk with Drawer",
     "asin": "B0B3LMQVTF",
     "price": "$189.99",
     "category": "home-office",
-    "persona": ["home-office", "student"],
+    "persona": [
+      "home-office",
+      "student"
+    ],
     "rating": 4.5,
     "description": "Budget-friendly electric standing desk with built-in drawer, splice board design, and 4 memory presets. 48x24 inch desktop with smooth height adjustment from 27.2 to 46 inches.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=400&h=400&fit=crop"
   },
   {
     "name": "Herman Miller Aeron Chair (Renewed)",
     "asin": "B0BVG3N8NR",
     "price": "$749.99",
     "category": "home-office",
-    "persona": ["home-office", "coder"],
+    "persona": [
+      "home-office",
+      "coder"
+    ],
     "rating": 4.5,
     "description": "The legendary ergonomic office chair with PostureFit SL support and 8Z Pellicle mesh. Fully adjustable arms, tilt, and seat depth. Renewed/refurbished with warranty for significant savings.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=400&h=400&fit=crop"
   },
   {
     "name": "Autonomous ErgoChair Pro",
     "asin": "B0BQ3NWLR3",
     "price": "$499.00",
     "category": "home-office",
-    "persona": ["home-office", "coder"],
+    "persona": [
+      "home-office",
+      "coder"
+    ],
     "rating": 4.3,
     "description": "Fully adjustable ergonomic chair with adaptive spinal support and responsive mesh back. 11 lockable recline positions, adjustable lumbar, headrest, armrests, and seat depth for all-day comfort.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=400&h=400&fit=crop"
   },
   {
     "name": "Sony WH-1000XM5 Noise Cancelling Headphones",
     "asin": "B0BX2L8PBT",
     "price": "$298.00",
     "category": "home-office",
-    "persona": ["home-office", "coder", "creative"],
+    "persona": [
+      "home-office",
+      "coder",
+      "creative"
+    ],
     "rating": 4.6,
     "description": "Industry-leading noise cancellation with dual processors controlling 8 microphones. 30-hour battery life, crystal-clear calls, and Speak-to-Chat auto-pause. Premium sound with LDAC codec.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=400&h=400&fit=crop"
   },
   {
     "name": "Apple AirPods Pro (2nd Gen, USB-C)",
     "asin": "B0D1XD1ZV3",
     "price": "$189.99",
     "category": "home-office",
-    "persona": ["home-office", "creative", "student"],
+    "persona": [
+      "home-office",
+      "creative",
+      "student"
+    ],
     "rating": 4.7,
     "description": "Active noise cancellation with Adaptive Transparency and Personalized Spatial Audio. USB-C MagSafe charging case, up to 6 hours listening time, and IP54 dust/water resistance.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg"
   },
   {
     "name": "Bose QuietComfort Ultra Headphones",
     "asin": "B0CCZ1L489",
     "price": "$349.00",
     "category": "home-office",
-    "persona": ["home-office", "creative"],
+    "persona": [
+      "home-office",
+      "creative"
+    ],
     "rating": 4.4,
     "description": "World-class noise cancellation with Immersive Audio and CustomTune sound calibration. 24-hour battery, plush protein leather earcups, and multipoint Bluetooth for seamless device switching.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/51ZR4lyxBHL._AC_SL1123_.jpg"
   },
   {
     "name": "Jabra Evolve2 75 Wireless Headset",
     "asin": "B09WDBM93J",
     "price": "$249.99",
     "category": "home-office",
-    "persona": ["home-office", "coder"],
+    "persona": [
+      "home-office",
+      "coder"
+    ],
     "rating": 4.4,
     "description": "Professional wireless headset with advanced ANC and 8-microphone call technology. Microsoft Teams certified, 36-hour battery, and busy light indicator for open office environments.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=400&h=400&fit=crop"
   },
   {
     "name": "Govee Smart LED Light Bars (2 Pack)",
     "asin": "B09BGT2GBL",
     "price": "$54.99",
     "category": "home-office",
-    "persona": ["home-office", "gamer", "streamer"],
+    "persona": [
+      "home-office",
+      "gamer",
+      "streamer"
+    ],
     "rating": 4.5,
     "description": "RGBICWW smart LED light bars with music sync and 40+ scene modes. Wi-Fi + Bluetooth control, works with Alexa and Google Home. Perfect ambient lighting for desks and streaming setups.",
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=400&h=400&fit=crop"
   },
   {
     "name": "Logitech ERGO K860 Split Ergonomic Keyboard",
     "asin": "B07ZWK2TQT",
     "price": "$119.99",
     "category": "home-office",
-    "persona": ["home-office", "coder"],
+    "persona": [
+      "home-office",
+      "coder"
+    ],
     "rating": 4.4,
     "description": "Split curved keyboard with pillowed wrist rest for natural typing posture. Bluetooth and USB receiver connectivity, multi-device support, and 2-year battery life. Reduces muscle strain by 21%.",
-    "image": ""
+    "image": "https://m.media-amazon.com/images/I/81ycyxqzoNL._AC_SL1500_.jpg"
   }
 ]

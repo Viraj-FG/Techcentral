@@ -17,9 +17,21 @@ const categoryNames = {
     all: 'All Products',
     gaming: '🎮 Gaming',
     ai: '🤖 AI / ML',
-    coding: '💻 Coding',
+    'ai-ml': '🧠 AI/ML',
+    coding: '⌨️ Coding',
+    streaming: '📡 Streaming',
+    'tech-nerd': '🔧 Tech Nerd',
+    student: '📚 Student',
+    creative: '🎨 Creative',
+    'home-office': '🏠 Home Office',
     peripherals: '🎧 Peripherals',
     networking: '🌐 Networking'
+};
+
+const categoryIcons = {
+    gaming: '🎮', 'ai-ml': '🧠', coding: '⌨️', streaming: '📡',
+    'tech-nerd': '🔧', student: '📚', creative: '🎨', 'home-office': '🏠',
+    ai: '🤖', peripherals: '🎧', networking: '🌐'
 };
 
 function debounce(fn, delay) {
@@ -69,12 +81,20 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch('./data/products.json')
         .then(r => r.json())
         .then(data => {
-            allProducts = data;
+            allProducts = data.map(p => ({
+                ...p,
+                imageUrl: p.image || p.imageUrl || '',
+            }));
             updateCategoryCounts();
             renderFeatured();
             renderProducts();
             renderMarquee();
             initStaggerReveal();
+            // Dismiss loading screen
+            setTimeout(() => {
+                const ls = document.getElementById('loading-screen');
+                if (ls) ls.classList.add('hidden');
+            }, 300);
         })
         .catch(err => {
             console.error('Failed to load products:', err);
@@ -553,7 +573,8 @@ function renderProducts() {
                     </button>
                 </div>
                 <div class="product-img-wrapper" onclick="openQuickView('${product.asin}')">
-                    <img src="${product.imageUrl}" alt="${product.name}" loading="lazy">
+                    <img src="${product.imageUrl}" alt="${product.name}" loading="lazy" onerror="this.onerror=null;this.parentElement.classList.add('img-fallback');this.style.display='none'">
+                    <div class="img-fallback-icon">${categoryIcons[product.category] || '📦'}</div>
                 </div>
                 <div class="product-info">
                     <span class="product-category-tag">${catLabel}</span>

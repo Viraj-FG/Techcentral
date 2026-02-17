@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
-import { cpSync } from 'fs'
+import { cpSync, copyFileSync, existsSync } from 'fs'
 
 export default defineConfig({
   root: '.',
@@ -19,6 +19,8 @@ export default defineConfig({
       closeBundle() {
         cpSync('data', 'dist/data', { recursive: true })
         cpSync('assets', 'dist/assets', { recursive: true })
+        if (existsSync('sitemap.xml')) copyFileSync('sitemap.xml', 'dist/sitemap.xml')
+        if (existsSync('robots.txt')) copyFileSync('robots.txt', 'dist/robots.txt')
       }
     }
   ],
