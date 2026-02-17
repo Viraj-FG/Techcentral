@@ -17,8 +17,8 @@ export default defineConfig({
     {
       name: 'copy-static-assets',
       closeBundle() {
-        // Copy data/ directory to dist/ for the JSON fetch
         cpSync('data', 'dist/data', { recursive: true })
+        cpSync('assets', 'dist/assets', { recursive: true })
       }
     }
   ],

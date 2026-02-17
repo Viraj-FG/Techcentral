@@ -35,6 +35,10 @@ function parsePrice(p) {
 
 // ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', () => {
+    // Load hero video lazily
+    const heroVid = document.getElementById('hero-video-bg');
+    if (heroVid) { heroVid.src = 'assets/hero-bg.mp4'; }
+
     initCustomCursor();
     initLetterSplit();
     initMagneticButtons();
