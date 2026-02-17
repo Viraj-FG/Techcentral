@@ -14,6 +14,15 @@ const categoryNames = {
     networking: '🌐 Networking'
 };
 
+// ==================== DEBOUNCE UTILITY ====================
+function debounce(fn, delay) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), delay);
+    };
+}
+
 // ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', () => {
     initParticles();
@@ -60,7 +69,7 @@ function initParticles() {
     window.addEventListener('resize', resize);
     document.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
 
-    const count = Math.min(45, Math.floor(window.innerWidth / 35));
+    const count = Math.min(35, Math.floor(window.innerWidth / 45));
     for (let i = 0; i < count; i++) {
         particles.push({
             x: Math.random() * canvas.width,
