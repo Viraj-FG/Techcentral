@@ -24,6 +24,9 @@ export default defineConfig({
         if (existsSync('404.html')) copyFileSync('404.html', 'dist/404.html')
         if (existsSync('_headers')) copyFileSync('_headers', 'dist/_headers')
         if (existsSync('_redirects')) copyFileSync('_redirects', 'dist/_redirects')
+        for (const f of ['disclosure.html', 'privacy.html']) {
+          if (existsSync(f)) copyFileSync(f, `dist/${f}`)
+        }
       }
     }
   ],

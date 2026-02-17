@@ -2739,4 +2739,7 @@ footer {
     .buy-btn { padding: 10px; font-size: 0.75rem; }
     .hero-sub { font-size: 1rem; }
     .section-header { margin-bottom: 32px; }
+    .setups-grid { grid-template-columns: 1fr; }
+    .setup-card { padding: 24px; }
+    .setup-budget { font-size: 1.5rem; }
 }
