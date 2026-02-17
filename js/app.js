@@ -172,6 +172,12 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(() => {});
 
+    // Load budget setups
+    fetch('./data/setups.json')
+        .then(r => r.json())
+        .then(setups => renderSetups(setups))
+        .catch(() => {});
+
     document.getElementById('search').addEventListener('input', debounce((e) => {
         searchQuery = e.target.value.toLowerCase().trim();
         renderProducts();
@@ -857,13 +863,7 @@ function renderSetupSidebar() {
     document.getElementById('setup-total-price').textContent = '$' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-function buyAllSetup() {
-    const products = setupBag.map(asin => allProducts.find(p => p.asin === asin)).filter(Boolean);
-    products.forEach(p => {
-        window.open(affiliateUrl(p.asin), '_blank');
-    });
-}
-window.buyAllSetup = buyAllSetup;
+// buyAllSetup is defined in the BUDGET SETUPS section below
 
 // ==================== EXPERIENCES ====================
 const experiences = {
@@ -1162,6 +1162,84 @@ function filterPersona(persona, btn) {
     document.querySelectorAll('.persona-tab').forEach(t => t.classList.remove('active'));
     if (btn) btn.classList.add('active');
     renderProducts();
+}
+
+// ==================== BUDGET SETUPS ====================
+function renderSetups(setups) {
+    const grid = document.getElementById('setups-grid');
+    if (!grid || !setups.length) return;
+
+    const personaNames = {
+        student: '📚 Student', streamer: '📡 Streamer', coder: '⌨️ Coder',
+        'tech-nerd': '🔧 Maker', 'home-office': '🏠 Home Office',
+        gamer: '🎮 Gamer', creative: '🎨 Creative', 'ai-ml': '🧠 AI/ML'
+    };
+
+    grid.innerHTML = setups.map(s => {
+        const items = s.asins.map(asin => {
+            const p = allProducts.find(x => x.asin === asin);
+            return p ? p.name.split(' ').slice(0, 3).join(' ') : asin;
+        });
+
+        return `<div class="setup-card" onclick="openSetupDetail('${encodeURIComponent(JSON.stringify(s))}')">
+            <div class="setup-budget">Under ${s.budget}</div>
+            <h3 class="setup-name">${s.name}</h3>
+            <p class="setup-desc">${s.description.substring(0, 150)}${s.description.length > 150 ? '...' : ''}</p>
+            <div class="setup-items">
+                ${items.map(i => `<span class="setup-item-chip">${i}</span>`).join('')}
+            </div>
+            <div class="setup-meta">
+                <span class="setup-persona-tag">${personaNames[s.persona] || s.persona}</span>
+                <span class="setup-buy-all" onclick="event.stopPropagation(); buyAllSetup('${s.asins.join(',')}')">${s.totalPrice} — Buy All →</span>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function buyAllSetup(asinStr) {
+    if (!asinStr) {
+        // Legacy: buy from setup bag
+        const products = setupBag.map(asin => allProducts.find(p => p.asin === asin)).filter(Boolean);
+        products.forEach(p => { window.open(affiliateUrl(p.asin), '_blank'); });
+        return;
+    }
+    const asins = asinStr.split(',');
+    asins.forEach((asin, i) => {
+        setTimeout(() => window.open(affiliateUrl(asin), '_blank'), i * 300);
+    });
+}
+
+function openSetupDetail(encodedSetup) {
+    try {
+        const s = JSON.parse(decodeURIComponent(encodedSetup));
+        const products = s.asins.map(asin => allProducts.find(p => p.asin === asin)).filter(Boolean);
+        const panel = document.getElementById('quickview-panel');
+        const content = document.getElementById('quickview-content');
+
+        content.innerHTML = `
+            <div class="quickview-handle"></div>
+            <div class="quickview-inner">
+                <h2 style="font-size:1.5rem;margin-bottom:8px">${s.name}</h2>
+                <p style="color:var(--text-secondary);margin-bottom:24px">${s.description}</p>
+                <div style="display:grid;gap:16px">
+                    ${products.map(p => `
+                        <div style="display:flex;gap:16px;align-items:center;padding:16px;background:var(--bg-elevated);border-radius:var(--radius);border:1px solid var(--border)">
+                            <img src="${p.imageUrl}" alt="${p.name}" style="width:60px;height:60px;object-fit:cover;border-radius:8px">
+                            <div style="flex:1">
+                                <div style="font-weight:600;font-size:0.9rem">${p.name}</div>
+                                <div style="color:var(--accent2);font-weight:700">${p.price}</div>
+                            </div>
+                            <a href="${affiliateUrl(p.asin)}" target="_blank" rel="noopener" class="buy-btn" style="padding:8px 16px;font-size:0.75rem" onclick="event.stopPropagation()">Buy →</a>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="margin-top:24px;text-align:center">
+                    <button class="setup-buy-all" onclick="buyAllSetup('${s.asins.join(',')}')" style="padding:14px 32px;font-size:0.9rem">Buy All ${s.asins.length} Items — ${s.totalPrice} →</button>
+                </div>
+            </div>
+        `;
+        panel.classList.add('active');
+    } catch(e) { console.error(e); }
 }
 
 // ==================== STAGGER REVEAL ====================
