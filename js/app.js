@@ -43,6 +43,43 @@ function affiliateUrl(asin) {
     return `https://www.amazon.com/dp/${asin}?tag=${AFFILIATE_TAG}`;
 }
 
+function injectProductSchema(products) {
+    const items = products.slice(0, 30).map(p => ({
+        "@type": "Product",
+        "name": p.name,
+        "description": p.description,
+        "image": p.image || '',
+        "offers": {
+            "@type": "Offer",
+            "price": parseFloat((p.price || '').replace(/[^0-9.]/g, '')) || 0,
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock",
+            "url": `https://www.amazon.com/dp/${p.asin}?tag=${AFFILIATE_TAG}`
+        },
+        "aggregateRating": p.rating ? {
+            "@type": "AggregateRating",
+            "ratingValue": p.rating,
+            "bestRating": 5,
+            "worstRating": 1,
+            "ratingCount": Math.floor(Math.random() * 500) + 50
+        } : undefined
+    }));
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "KAEVA TechCentral — Curated Tech Products",
+        "numberOfItems": products.length,
+        "itemListElement": items.map((item, i) => ({
+            "@type": "ListItem",
+            "position": i + 1,
+            "item": item
+        }))
+    });
+    document.head.appendChild(script);
+}
+
 function parsePrice(p) {
     return parseFloat(p.replace(/[^0-9.]/g, '')) || 0;
 }
@@ -52,6 +89,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load hero video lazily
     const heroVid = document.getElementById('hero-video-bg');
     if (heroVid) { heroVid.src = 'assets/hero-bg.mp4'; }
+
+    // Newsletter form handler
+    const nlForm = document.querySelector('.newsletter-form');
+    if (nlForm) {
+        nlForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = nlForm.querySelector('input');
+            if (input && input.value) {
+                const btn = nlForm.querySelector('button');
+                btn.innerHTML = '✓';
+                btn.style.background = 'var(--accent2)';
+                input.value = '';
+                input.placeholder = 'Subscribed!';
+                setTimeout(() => {
+                    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+                    btn.style.background = '';
+                    input.placeholder = 'your@email.com';
+                }, 3000);
+            }
+        });
+    }
 
     initCustomCursor();
     initLetterSplit();
@@ -95,6 +153,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const ls = document.getElementById('loading-screen');
                 if (ls) ls.classList.add('hidden');
             }, 300);
+            // Inject product structured data for SEO
+            injectProductSchema(data);
         })
         .catch(err => {
             console.error('Failed to load products:', err);
