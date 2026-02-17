@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initCustomCursor();
     initLetterSplit();
     initMagneticButtons();
+    initScrollProgress();
     initParticles();
     initParallax();
     initHeroMouseFollow();
@@ -65,6 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
             updateCategoryCounts();
             renderFeatured();
             renderProducts();
+            renderMarquee();
+            initStaggerReveal();
         })
         .catch(err => {
             console.error('Failed to load products:', err);
@@ -938,4 +941,50 @@ function initMagneticButtons() {
             btn.style.transform = '';
         });
     });
+}
+
+// ==================== SCROLL PROGRESS ====================
+function initScrollProgress() {
+    const bar = document.getElementById('scroll-progress');
+    if (!bar) return;
+    window.addEventListener('scroll', () => {
+        const h = document.documentElement.scrollHeight - window.innerHeight;
+        bar.style.width = (h > 0 ? (window.scrollY / h) * 100 : 0) + '%';
+    }, { passive: true });
+}
+
+// ==================== MARQUEE ====================
+function renderMarquee() {
+    const inner = document.getElementById('marquee-inner');
+    if (!inner || !allProducts.length) return;
+    const top = [...allProducts].sort((a,b) => (b.rating||0) - (a.rating||0)).slice(0, 12);
+    const items = [...top, ...top];
+    inner.innerHTML = items.map(p => `
+        <a href="${affiliateUrl(p.asin)}" target="_blank" rel="noopener" class="marquee-card">
+            <img src="${p.image || ''}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">
+            <div class="marquee-card-info">
+                <h4>${p.name}</h4>
+                <span>${p.price}</span>
+            </div>
+        </a>
+    `).join('');
+}
+
+// ==================== STAGGER REVEAL ====================
+function initStaggerReveal() {
+    document.querySelectorAll('.featured-grid, .experience-grid, .cat-grid, .trust-grid, .editorial-grid').forEach(grid => {
+        [...grid.children].forEach((child, i) => {
+            child.classList.add('stagger-item');
+            child.style.transitionDelay = (i * 0.08) + 's';
+        });
+    });
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.stagger-item').forEach(el => observer.observe(el));
 }

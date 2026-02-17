@@ -45,6 +45,18 @@ a { text-decoration: none; color: inherit; }
 .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
 ::selection { background: var(--accent); color: #000; }
 
+/* ========== SCROLL PROGRESS BAR ========== */
+.scroll-progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    width: 0%;
+    background: var(--accent-gradient);
+    z-index: 10001;
+    transition: width 0.1s linear;
+    box-shadow: 0 0 10px rgba(0,214,50,0.4);
+}
+
 /* ========== CUSTOM CURSOR ========== */
 .cursor-dot {
     position: fixed;
@@ -181,6 +193,118 @@ a { text-decoration: none; color: inherit; }
     50% { transform: translate(-20px, 50px) rotate(180deg) scale(0.8); }
     75% { transform: translate(30px, 20px) rotate(270deg) scale(1.1); }
     100% { transform: translate(0, 0) rotate(360deg) scale(1); }
+}
+
+/* ========== HORIZONTAL MARQUEE ========== */
+.marquee-section {
+    position: relative;
+    z-index: 1;
+    padding: 48px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    background: rgba(0,214,50,0.015);
+}
+.marquee-label {
+    position: absolute;
+    top: 50%;
+    left: 24px;
+    transform: translateY(-50%);
+    font-family: var(--font-display);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--accent);
+    opacity: 0.5;
+    z-index: 2;
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    transform: translateY(-50%) rotate(180deg);
+}
+.marquee-track {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+    mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+}
+.marquee-inner {
+    display: flex;
+    gap: 20px;
+    animation: marquee-scroll 40s linear infinite;
+    width: max-content;
+}
+.marquee-inner:hover { animation-play-state: paused; }
+.marquee-card {
+    flex-shrink: 0;
+    width: 260px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.3s var(--ease);
+}
+.marquee-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+}
+.marquee-card img {
+    width: 48px; height: 48px;
+    object-fit: cover;
+    border-radius: 10px;
+    background: #111;
+}
+.marquee-card-info { flex: 1; overflow: hidden; }
+.marquee-card-info h4 {
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.marquee-card-info span {
+    font-size: 0.75rem;
+    color: var(--accent);
+    font-weight: 700;
+}
+@keyframes marquee-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+/* ========== SECTION TAG GRADIENT ANIMATION ========== */
+.section-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, var(--accent), #00ff88, var(--accent));
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: tag-gradient 3s linear infinite;
+    margin-bottom: 12px;
+}
+@keyframes tag-gradient {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+}
+
+/* ========== STAGGER REVEAL ========== */
+.stagger-item {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+}
+.stagger-item.visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 /* ========== NAVBAR ========== */
@@ -653,15 +777,8 @@ a { text-decoration: none; color: inherit; }
 
 /* ========== SECTION HEADERS ========== */
 .section-header { margin-bottom: 48px; }
-.section-tag {
-    display: inline-block;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: var(--accent);
-    margin-bottom: 12px;
-}
+/* ========== SECTION HEADERS ========== */
+.section-header { margin-bottom: 48px; }
 .section-title {
     font-family: var(--font-display);
     font-size: clamp(1.8rem, 4vw, 2.8rem);
