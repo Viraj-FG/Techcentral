@@ -48,6 +48,25 @@
     100% { width: 100%; }
 }
 
+/* ========== SKIP LINK (A11Y) ========== */
+.skip-link {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 0 0 8px 8px;
+    z-index: 100001;
+    font-weight: 600;
+    text-decoration: none;
+    transition: top 0.3s;
+}
+.skip-link:focus {
+    top: 0;
+}
+
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
