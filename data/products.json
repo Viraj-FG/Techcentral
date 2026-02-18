@@ -1,4 +1,4 @@
-[
+﻿[
     {
         "name":  "Corsair K70 RGB PRO Mechanical Gaming Keyboard",
         "asin":  "B0B2HFWJVP",
@@ -255,7 +255,7 @@
                         "home-office"
                     ],
         "rating":  4.4,
-        "description":  "4K Ultra HD webcam with HDR, Windows Hello support, and RightLight 3 auto-adjustment. 5x digital zoom and 90° field of view make it the premium choice for professionals.",
+        "description":  "4K Ultra HD webcam with HDR, Windows Hello support, and RightLight 3 auto-adjustment. 5x digital zoom and 90Â° field of view make it the premium choice for professionals.",
         "image":  "https://m.media-amazon.com/images/I/71SAamTGWQL._AC_SL1500_.jpg"
     },
     {
@@ -1073,5 +1073,307 @@
         "rating":  4.4,
         "description":  "Split curved keyboard with pillowed wrist rest for natural typing posture. Bluetooth and USB receiver connectivity, multi-device support, and 2-year battery life. Reduces muscle strain by 21%.",
         "image":  "https://m.media-amazon.com/images/I/81ycyxqzoNL._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "SteelSeries Apex Pro TKL Gen 3",
+        "asin":  "B0DGZLHN8G",
+        "price":  "$199.99",
+        "category":  "gaming",
+        "persona":  [
+                        "gamer"
+                    ],
+        "rating":  4.8,
+        "description":  "The SteelSeries Apex Pro TKL Gen 3 is the first Hall Effect magnetic switch gaming keyboard, giving you lightning-fast response and customizable actuation from 0.1mm to 4.0mm. Itâ€™s built for pros who demand the absolute best in performance and durability.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "EMPIRE GAMING K245 (2025 Model)",
+        "asin":  "B0DQ1TNVHW",
+        "price":  "$89.99",
+        "category":  "gaming",
+        "persona":  [
+                        "gamer"
+                    ],
+        "rating":  4.5,
+        "description":  "The EMPIRE GAMING K245 is a budget-friendly mechanical keyboard with MX Red switches, RGB backlighting, and 24 lighting effects. Itâ€™s plug-and-play, works with PC/PS4/PS5/Xbox, and is built to handle marathon gaming sessions.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "Redragon K668 RGB Gaming Keyboard",
+        "asin":  "B0CDWP1D58",
+        "price":  "$69.99",
+        "category":  "gaming",
+        "persona":  [
+                        "gamer"
+                    ],
+        "rating":  4.4,
+        "description":  "The Redragon K668 RGB Gaming Keyboard is a 108-key mechanical keyboard with sound-absorbing foams, hot-swappable sockets, and mixed color keycaps. Itâ€™s perfect for gamers who want a tactile, customizable experience without breaking the bank.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "DAREU Sakura Pink Wireless/Wired Gaming Mouse",
+        "asin":  "B0B2P15YZW",
+        "price":  "$39.99",
+        "category":  "gaming",
+        "persona":  [
+                        "gamer"
+                    ],
+        "rating":  4.4,
+        "description":  "The DAREU Sakura Pink Gaming Mouse is a dual-mode wireless/wired mouse with 10K DPI, RGB lighting, and 7 adjustable DPI levels. Itâ€™s perfect for gamers who want a stylish, customizable mouse without breaking the bank.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "ASUS ROG Swift 32â€ 4K OLED Gaming Monitor (PG32UCDM)",
+        "asin":  "B0CV26XVMD",
+        "price":  "$1299.99",
+        "category":  "gaming",
+        "persona":  [
+                        "gamer"
+                    ],
+        "rating":  4.9,
+        "description":  "The ASUS ROG Swift PG32UCDM is a 32-inch 4K QD-OLED gaming monitor with a 240Hz refresh rate, 0.03ms response time, and G-SYNC compatibility. Itâ€™s the ultimate choice for gamers who want the best in visual fidelity and performance.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "Samsung LS27FG900XNXZA 27\" Odyssey 3D 4K Gaming Monitor (2025)",
+        "asin":  "B0FG3FQ54R",
+        "price":  "$899.99",
+        "category":  "gaming",
+        "persona":  [
+                        "gamer"
+                    ],
+        "rating":  4.7,
+        "description":  "The Samsung Odyssey 3D 4K Gaming Monitor is a 27-inch powerhouse with 165Hz refresh rate, G-SYNC compatibility, and AMD FreeSync Premium. Itâ€™s designed for immersive gaming with stunning 4K visuals and lightning-fast response times.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "NVIDIA RTX PRO 6000 Blackwell Professional Workstation Edition",
+        "asin":  "B0F7Y644FQ",
+        "price":  "$12999.99",
+        "category":  "ai-ml",
+        "persona":  [
+                        "ai-ml"
+                    ],
+        "rating":  4.9,
+        "description":  "The NVIDIA RTX PRO 6000 Blackwell is a beast of a GPU, designed for AI developers, engineers, and data scientists. With 96GB of DDR7 ECC memory and 4th Gen RT/5th Gen Tensor Cores, itâ€™s built to handle the most demanding AI, 3D modeling, and simulation workloads.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "YIVU Unibody Split Mechanical Keyboard",
+        "asin":  "B0G4PSBHBJ",
+        "price":  "$129.99",
+        "category":  "coding",
+        "persona":  [
+                        "coder"
+                    ],
+        "rating":  4.6,
+        "description":  "The YIVU Unibody Split Mechanical Keyboard is a 40% ergonomic ortholinear keyboard with hot-swappable switches and QMK/VIA programmability. Itâ€™s perfect for coders who want a compact, customizable, and comfortable typing experience.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "SOLAKAKA KI99 Pro 96% Wireless Mechanical Keyboard",
+        "asin":  "B0F6376F7Q",
+        "price":  "$119.99",
+        "category":  "coding",
+        "persona":  [
+                        "coder"
+                    ],
+        "rating":  4.5,
+        "description":  "The SOLAKAKA KI99 Pro is a 96% wireless mechanical keyboard with hot-swappable pre-lubed switches, a gasket structure, and a built-in knob for efficient control. Itâ€™s perfect for coders who want a premium, customizable typing experience.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "Hollyland Lark M2 Wireless Microphone",
+        "asin":  "B0CP7QXWPN",
+        "price":  "$199.99",
+        "category":  "streaming",
+        "persona":  [
+                        "streamer"
+                    ],
+        "rating":  4.7,
+        "description":  "The Hollyland Lark M2 Wireless Microphone is a compact, dual-channel wireless mic with 48kHz/24-bit audio, noise cancelling, and 300m range. Itâ€™s perfect for streamers, vloggers, and content creators who demand pro-level audio quality.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "FIFINE AmpliGame USB Microphone",
+        "asin":  "B09JG62KDJ",
+        "price":  "$79.99",
+        "category":  "streaming",
+        "persona":  [
+                        "streamer"
+                    ],
+        "rating":  4.5,
+        "description":  "The FIFINE AmpliGame USB Microphone is a budget-friendly condenser mic with a 192kHz sampling rate, cardioid polar pattern, and RGB lighting. Itâ€™s perfect for streamers who want pro-level audio quality without the hassle of XLR setup.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "Elgato Facecam 4K (2025 Model)",
+        "asin":  "B0DVZG36J8",
+        "price":  "$249.99",
+        "category":  "streaming",
+        "persona":  [
+                        "streamer"
+                    ],
+        "rating":  4.8,
+        "description":  "The Elgato Facecam 4K is a game-changer for streamers, offering DSLR-like control, cinematic effects, and uncompressed video. With a Sony STARVIS 2 sensor and 49mm lens filters, itâ€™s the ultimate webcam for pro-level streams.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "EMEET S600 4K Webcam",
+        "asin":  "B0CYQ5P6T7",
+        "price":  "$129.99",
+        "category":  "streaming",
+        "persona":  [
+                        "streamer"
+                    ],
+        "rating":  4.6,
+        "description":  "The EMEET S600 4K Webcam features a Sony 1/2.55\u0027\u0027 sensor, PDAF autofocus, and 1080P@60FPS recording. Itâ€™s perfect for live commerce, gaming, and beauty streaming with crisp, clear visuals.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "Surface Pro 12 Docking Station Hub (2025)",
+        "asin":  "B0FS1ZQMXG",
+        "price":  "$89.99",
+        "category":  "tech-nerd",
+        "persona":  [
+                        "tech-nerd",
+                        "home-office"
+                    ],
+        "rating":  4.6,
+        "description":  "The Surface Pro 12 Docking Station Hub is a must-have for Surface Pro 12 users, featuring 4K HDMI, Thunderbolt 4 (4K60Hz video + data + 100W PD), 3.5mm audio, SD/TF card slots, and 2x USB 3.0 ports. Itâ€™s the ultimate hub for productivity and connectivity.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "2025 Latest Version 7in1 USB C Hub (Mac Multi-Port Adapter)",
+        "asin":  "B0D3LMGSLF",
+        "price":  "$39.99",
+        "category":  "tech-nerd",
+        "persona":  [
+                        "tech-nerd",
+                        "student"
+                    ],
+        "rating":  4.4,
+        "description":  "This 7in1 USB C Hub is a compact, lightweight multi-port adapter for MacBooks and other USB-C devices. It features a TF/SD card reader, USB 3.0 (5Gbps), and HDMI output, making it perfect for students and professionals on the go.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "Freenove Raspberry Pi 5 PC Case Kit (2025)",
+        "asin":  "B0F59W14PB",
+        "price":  "$129.99",
+        "category":  "tech-nerd",
+        "persona":  [
+                        "tech-nerd"
+                    ],
+        "rating":  4.7,
+        "description":  "The Freenove Raspberry Pi 5 PC Case Kit is an all-in-one solution for Raspberry Pi 5, featuring a 4.3\u0027\u0027 touchscreen, M.2 NVMe SSD slot, 5MP camera, OLED screen, stereo speakers, and programmable RGB lights. Itâ€™s perfect for tinkerers and DIY enthusiasts.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "Raphael Ultimate Starter Kit for Raspberry Pi 5",
+        "asin":  "B09BMVT4CB",
+        "price":  "$119.99",
+        "category":  "tech-nerd",
+        "persona":  [
+                        "tech-nerd"
+                    ],
+        "rating":  4.6,
+        "description":  "The Raphael Ultimate Starter Kit for Raspberry Pi 5 includes 337+ components, 161 projects, and 70+ expert-led video lessons. Itâ€™s the ultimate kit for beginners and hobbyists looking to dive into Raspberry Pi programming.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "Anwick 2025 New 55\" Electric Standing Desk",
+        "asin":  "B0G3WW84WD",
+        "price":  "$299.99",
+        "category":  "home-office",
+        "persona":  [
+                        "home-office"
+                    ],
+        "rating":  4.7,
+        "description":  "The Anwick 2025 Electric Standing Desk is a beast of stability and functionality, featuring a built-in Type-C fast-charging port, LED lighting, and 4 programmable memory buttons. Itâ€™s perfect for home offices and gamers who need a clean, organized, and customizable workspace.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "OffiGo 63 Inch L Shaped Electric Standing Desk",
+        "asin":  "B0DBQ4JX85",
+        "price":  "$349.99",
+        "category":  "home-office",
+        "persona":  [
+                        "home-office"
+                    ],
+        "rating":  4.6,
+        "description":  "The OffiGo 63 Inch L Shaped Electric Standing Desk is a spacious, T-shaped desk with power outlets, USB ports, and a sturdy steel frame. Itâ€™s perfect for professionals who need a large, versatile workspace for multiple monitors and accessories.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "BESIGN LSX7 Laptop Stand with 360 Rotating Base",
+        "asin":  "B0BT9L688F",
+        "price":  "$29.99",
+        "category":  "student",
+        "persona":  [
+                        "student"
+                    ],
+        "rating":  4.5,
+        "description":  "The BESIGN LSX7 Laptop Stand is an ergonomic, adjustable notebook riser with a 360-degree rotating base. Itâ€™s perfect for students and professionals who want a comfortable, customizable typing experience.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "Wacom Intuos Pro Medium (2025 Edition)",
+        "asin":  "B0DFZ2ZRPQ",
+        "price":  "$329.95",
+        "category":  "creative",
+        "persona":  [
+                        "creative"
+                    ],
+        "rating":  4.8,
+        "description":  "The Wacom Intuos Pro Medium is the gold standard for digital artists, featuring Pro Pen 3 with 8,192 levels of pressure sensitivity, customizable ExpressKeys, and a sleek, durable design. Itâ€™s perfect for professionals who demand precision and control.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "Wacom Intuos Pro Large (2025 Edition)",
+        "asin":  "B0DFZ24WP9",
+        "price":  "$499.95",
+        "category":  "creative",
+        "persona":  [
+                        "creative"
+                    ],
+        "rating":  4.9,
+        "description":  "The Wacom Intuos Pro Large offers a massive active area and all the pro features of the Medium model, making it ideal for artists who need extra space for their digital creations. Itâ€™s built for comfort and productivity.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "SwitchBot 2025 Automatic Curtain Opener 3 Rod",
+        "asin":  "B0FT3HVY8K",
+        "price":  "$99.99",
+        "category":  "tech-nerd",
+        "persona":  [
+                        "tech-nerd"
+                    ],
+        "rating":  4.6,
+        "description":  "The SwitchBot 2025 Automatic Curtain Opener is a game-changer for smart homes, offering no-tool setup, WiFi/app control, and compatibility with Alexa, Google Home, and HomeKit. Itâ€™s perfect for tech enthusiasts who want to automate their curtains effortlessly.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "Blink Mini 2 Home Security \u0026 Pet Camera",
+        "asin":  "B0BWWZXWPL",
+        "price":  "$49.99",
+        "category":  "tech-nerd",
+        "persona":  [
+                        "tech-nerd"
+                    ],
+        "rating":  4.6,
+        "description":  "The Blink Mini 2 is a plug-in smart security camera with 1080p HD video, color night vision, motion detection, and two-way audio. Itâ€™s perfect for tech-savvy users who want affordable, reliable home security.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
+    },
+    {
+        "name":  "Crucial X9 1TB Portable SSD",
+        "asin":  "B0CGW1FQV4",
+        "price":  "$99.99",
+        "category":  "tech-nerd",
+        "persona":  [
+                        "tech-nerd"
+                    ],
+        "rating":  4.7,
+        "description":  "The Crucial X9 1TB Portable SSD delivers blazing-fast speeds up to 1050MB/s, USB 3.2 USB-C connectivity, and rugged durability. Itâ€™s perfect for professionals, creators, and gamers who need reliable, high-speed storage on the go.",
+        "image":  "https://m.media-amazon.com/images/I/placeholder._AC_SL1500_.jpg"
     }
 ]

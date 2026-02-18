@@ -1,4 +1,4 @@
-/* ========== KAEVA TechCentral — Full Interactive Overhaul 2026 ========== */
+﻿/* ========== KAEVA TechCentral â€” Full Interactive Overhaul 2026 ========== */
 
 /* ========== LOADING SCREEN ========== */
 .loading-screen {
@@ -2761,4 +2761,55 @@ footer {
     .setups-grid { grid-template-columns: 1fr; }
     .setup-card { padding: 24px; }
     .setup-budget { font-size: 1.5rem; }
+}
+
+/* ========== ACCESSIBILITY & PERFORMANCE ========== */
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    .parallax-bg, .floater, .gradient-orb, .marquee-inner { animation: none !important; }
+    .hero-video-bg { display: none; }
+}
+
+/* Focus Visible */
+*:focus-visible {
+    outline: 2px solid var(--accent-bright);
+    outline-offset: 2px;
+}
+
+button:focus-visible, a:focus-visible, input:focus-visible {
+    outline: 2px solid var(--accent-bright);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px var(--accent-dim);
+}
+
+/* Touch Device Hover Fix */
+@media (hover: none) {
+    .product-card:hover { transform: none; }
+    .buy-btn:hover { transform: none; }
+}
+
+/* High Contrast Mode */
+@media (forced-colors: active) {
+    .product-card { border: 1px solid ButtonText; }
+    .product-card:hover { border-color: Highlight; }
+    .buy-btn { border: 1px solid ButtonText; }
+    .nav-link.active { border-bottom: 2px solid Highlight; }
+}
+
+/* Print Styles */
+@media print {
+    body { background: white !important; color: black !important; }
+    .navbar, .footer, .parallax-bg, .loading-screen, .cursor-dot, .cursor-ring,
+    .scroll-progress, .hero-video-bg, .back-to-top, .setup-bag-btn, .compare-bag-btn,
+    .mobile-menu-btn { display: none !important; }
+    .product-card { break-inside: avoid; border: 1px solid #ccc; box-shadow: none; }
+    a { color: black; text-decoration: underline; }
+    a::after { content: " (" attr(href) ")"; font-size: 0.8em; }
 }
