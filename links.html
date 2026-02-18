@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAEVA — Links | Shop Our Picks</title>
+    <meta name="description" content="Shop KAEVA's curated tech picks. Direct links to the best gear we recommend.">
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='15' width='100' height='100' fill='%236C5CE7'/><text x='50' y='68' text-anchor='middle' font-size='55' font-weight='900' font-family='system-ui' fill='white'>K</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #08090E;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem 4rem;
+        }
+        
+        .profile {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .avatar {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6C5CE7, #00D2D3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin: 0 auto 0.75rem;
+            border: 3px solid rgba(108, 92, 231, 0.4);
+        }
+        
+        .profile h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .profile p {
+            color: #a0a0b0;
+            font-size: 0.85rem;
+            max-width: 280px;
+        }
+        
+        .links {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .section-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #6C5CE7;
+            margin-top: 0.75rem;
+            padding-left: 0.25rem;
+        }
+        
+        .link-card {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1rem;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.2s;
+        }
+        
+        .link-card:hover {
+            background: rgba(108, 92, 231, 0.12);
+            border-color: rgba(108, 92, 231, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .link-icon {
+            font-size: 1.5rem;
+            width: 36px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .link-text {
+            flex: 1;
+        }
+        
+        .link-text .name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            line-height: 1.3;
+        }
+        
+        .link-text .price {
+            font-size: 0.75rem;
+            color: #00D2D3;
+            font-weight: 500;
+        }
+        
+        .link-arrow {
+            color: #555;
+            font-size: 0.85rem;
+        }
+        
+        .link-card.featured {
+            background: linear-gradient(135deg, rgba(108,92,231,0.15), rgba(0,210,211,0.08));
+            border-color: rgba(108, 92, 231, 0.25);
+        }
+        
+        .site-link {
+            background: linear-gradient(135deg, #6C5CE7, #5A4BD1);
+            border: none;
+            text-align: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 1rem;
+        }
+        
+        .site-link:hover {
+            background: linear-gradient(135deg, #7C6CF7, #6A5BE1);
+            transform: translateY(-1px);
+        }
+        
+        footer {
+            margin-top: 3rem;
+            text-align: center;
+            color: #444;
+            font-size: 0.7rem;
+        }
+        
+        footer a { color: #6C5CE7; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="profile">
+        <div class="avatar">K</div>
+        <h1>KAEVA TechCentral</h1>
+        <p>Curated tech picks for gamers, coders, creators & streamers. Every link earns us a small commission — no extra cost to you.</p>
+    </div>
+    
+    <div class="links">
+        <a href="https://kaeva.app" class="link-card site-link">
+            🌐 Explore kaeva.app — Full Collection
+        </a>
+        
+        <div class="section-label">🔥 Featured This Week</div>
+        
+        <a href="https://www.amazon.com/dp/B0BX2L8PBT?tag=grubsight-20" class="link-card featured" target="_blank" rel="noopener">
+            <span class="link-icon">🎧</span>
+            <span class="link-text">
+                <span class="name">Sony WH-1000XM5</span>
+                <span class="price">$298 on Amazon</span>
+            </span>
+            <span class="link-arrow">→</span>
+        </a>
+        
+        <a href="https://www.amazon.com/dp/B0CZSZBJST?tag=grubsight-20" class="link-card featured" target="_blank" rel="noopener">
+            <span class="link-icon">⌨️</span>
+            <span class="link-text">
+                <span class="name">Razer BlackWidow V4 75%</span>
+                <span class="price">$189.99 on Amazon</span>
+            </span>
+            <span class="link-arrow">→</span>
+        </a>
+        
+        <a href="https://www.amazon.com/dp/B0CTH7MKWH?tag=grubsight-20" class="link-card featured" target="_blank" rel="noopener">
+            <span class="link-icon">🔧</span>
+            <span class="link-text">
+                <span class="name">Raspberry Pi 5 Starter Kit (8GB)</span>
+                <span class="price">$119.99 on Amazon</span>
+            </span>
+            <span class="link-arrow">→</span>
+        </a>
+        
+        <a href="https://www.amazon.com/dp/B08G7RG9ML?tag=grubsight-20" class="link-card featured" target="_blank" rel="noopener">
+            <span class="link-icon">🎙️</span>
+            <span class="link-text">
+                <span class="name">Shure MV7 USB/XLR Microphone</span>
+                <span class="price">$224 on Amazon</span>
+            </span>
+            <span class="link-arrow">→</span>
+        </a>
+        
+        <a href="https://www.amazon.com/dp/B07L77GTTY?tag=grubsight-20" class="link-card featured" target="_blank" rel="noopener">
+            <span class="link-icon">🎨</span>
+            <span class="link-text">
+                <span class="name">Wacom Cintiq 16 Drawing Tablet</span>
+                <span class="price">$599.95 on Amazon</span>
+            </span>
+            <span class="link-arrow">→</span>
+        </a>
+        
+        <div class="section-label">🎮 Gaming</div>
+        
+        <a href="https://www.amazon.com/dp/B0B6BTYSC1?tag=grubsight-20" class="link-card" target="_blank" rel="noopener">
+            <span class="link-icon">🖱️</span>
+            <span class="link-text">
+                <span class="name">Logitech G502 X PLUS Wireless</span>
+                <span class="price">$129.99 on Amazon</span>
+            </span>
+            <span class="link-arrow">→</span>
+        </a>
+        
+        <a href="https://www.amazon.com/dp/B0B2HFWJVP?tag=grubsight-20" class="link-card" target="_blank" rel="noopener">
+            <span class="link-icon">⌨️</span>
+            <span class="link-text">
+                <span class="name">Corsair K70 RGB PRO</span>
+                <span class="price">$129.99 on Amazon</span>
+            </span>
+            <span class="link-arrow">→</span>
+        </a>
+        
+        <div class="section-label">💻 Coding</div>
+        
+        <a href="https://www.amazon.com/dp/B0BYD93VW4?tag=grubsight-20" class="link-card" target="_blank" rel="noopener">
+            <span class="link-icon">⌨️</span>
+            <span class="link-text">
+                <span class="name">Keychron Q1 Pro Wireless</span>
+                <span class="price">$199 on Amazon</span>
+            </span>
+            <span class="link-arrow">→</span>
+        </a>
+        
+        <a href="https://www.amazon.com/dp/B07YGZ7C1K?tag=grubsight-20" class="link-card" target="_blank" rel="noopener">
+            <span class="link-icon">🖥️</span>
+            <span class="link-text">
+                <span class="name">LG 34" UltraWide Monitor</span>
+                <span class="price">$449.99 on Amazon</span>
+            </span>
+            <span class="link-arrow">→</span>
+        </a>
+        
+        <div class="section-label">📡 Streaming</div>
+        
+        <a href="https://www.amazon.com/dp/B00N1YPXW2?tag=grubsight-20" class="link-card" target="_blank" rel="noopener">
+            <span class="link-icon">🎙️</span>
+            <span class="link-text">
+                <span class="name">Blue Yeti USB Microphone</span>
+                <span class="price">$99.99 on Amazon</span>
+            </span>
+            <span class="link-arrow">→</span>
+        </a>
+        
+        <a href="https://www.amazon.com/dp/B09738CV2G?tag=grubsight-20" class="link-card" target="_blank" rel="noopener">
+            <span class="link-icon">🎛️</span>
+            <span class="link-text">
+                <span class="name">Elgato Stream Deck MK.2</span>
+                <span class="price">$149.99 on Amazon</span>
+            </span>
+            <span class="link-arrow">→</span>
+        </a>
+        
+        <div class="section-label">🤖 AI / ML</div>
+        
+        <a href="https://www.amazon.com/dp/B0CS2W6RPV?tag=grubsight-20" class="link-card" target="_blank" rel="noopener">
+            <span class="link-icon">🔥</span>
+            <span class="link-text">
+                <span class="name">NVIDIA RTX 4070 Super</span>
+                <span class="price">$599.99 on Amazon</span>
+            </span>
+            <span class="link-arrow">→</span>
+        </a>
+        
+        <div class="section-label">🏠 Home Office</div>
+        
+        <a href="https://www.amazon.com/dp/B08N583DVN?tag=grubsight-20" class="link-card" target="_blank" rel="noopener">
+            <span class="link-icon">🪑</span>
+            <span class="link-text">
+                <span class="name">FlexiSpot E7 Standing Desk</span>
+                <span class="price">$479.99 on Amazon</span>
+            </span>
+            <span class="link-arrow">→</span>
+        </a>
+        
+        <a href="https://www.amazon.com/dp/B0BVG3N8NR?tag=grubsight-20" class="link-card" target="_blank" rel="noopener">
+            <span class="link-icon">💺</span>
+            <span class="link-text">
+                <span class="name">Herman Miller Aeron (Renewed)</span>
+                <span class="price">$749.99 on Amazon</span>
+            </span>
+            <span class="link-arrow">→</span>
+        </a>
+        
+        <div class="section-label">🎓 Student Budget</div>
+        
+        <a href="https://www.amazon.com/dp/B00NLZUM36?tag=grubsight-20" class="link-card" target="_blank" rel="noopener">
+            <span class="link-icon">🎮</span>
+            <span class="link-text">
+                <span class="name">Redragon S101 Keyboard + Mouse</span>
+                <span class="price">$25.99 on Amazon</span>
+            </span>
+            <span class="link-arrow">→</span>
+        </a>
+        
+        <a href="https://www.amazon.com/dp/B0148NPH9I?tag=grubsight-20" class="link-card" target="_blank" rel="noopener">
+            <span class="link-icon">⌨️</span>
+            <span class="link-text">
+                <span class="name">Logitech K380 Bluetooth Keyboard</span>
+                <span class="price">$29.99 on Amazon</span>
+            </span>
+            <span class="link-arrow">→</span>
+        </a>
+    </div>
+    
+    <footer>
+        <p>KAEVA TechCentral &copy; 2026 &middot; <a href="https://kaeva.app">kaeva.app</a></p>
+        <p style="margin-top:0.25rem">As an Amazon Associate, we earn from qualifying purchases.</p>
+    </footer>
+</body>
+</html>
