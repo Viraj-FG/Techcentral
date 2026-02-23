@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaeva Verify — Verdict</title>
+
+    <!-- OG Meta Tags (dynamically set by JS) -->
+    <meta property="og:title" content="Kaeva Verify — Analysis Result" id="og-title">
+    <meta property="og:description" content="AI-powered media authenticity analysis" id="og-desc">
+    <meta property="og:image" content="https://kaeva.app/assets/og-verdict.png" id="og-image">
+    <meta property="og:url" content="https://kaeva.app/verdict.html" id="og-url">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Kaeva Verify">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Kaeva Verify — Analysis Result" id="tw-title">
+    <meta name="twitter:description" content="AI-powered media authenticity analysis" id="tw-desc">
+    <meta name="theme-color" content="#1a1a2e">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='15' width='100' height='100' fill='%236C5CE7'/><text x='50' y='68' text-anchor='middle' font-size='55' font-weight='900' font-family='system-ui' fill='white'>K</text></svg>">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --indigo: #1a1a2e;
+            --indigo-light: #16213e;
+            --cyan: #00d4ff;
+            --red: #ff4757;
+            --green: #2ed573;
+            --amber: #ffa502;
+            --white: #ffffff;
+            --gray: #a0a0b8;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--indigo);
+            color: var(--white);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* === VERDICT CARD === */
+        .card-wrapper {
+            width: 100%;
+            max-width: 540px;
+        }
+
+        .verdict-card {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 40px;
+            text-align: center;
+        }
+
+        /* Story mode: 9:16 */
+        .verdict-card.story {
+            aspect-ratio: 9 / 16;
+            max-width: 405px;
+            margin: 0 auto;
+        }
+
+        /* Gradient backgrounds */
+        .verdict-card.authentic {
+            background: linear-gradient(145deg, #0a2a1a 0%, #0d3320 25%, #1a5c3a 50%, #0d3320 75%, #0a2a1a 100%);
+            border: 2px solid rgba(46, 213, 115, 0.3);
+        }
+        .verdict-card.likely_fake {
+            background: linear-gradient(145deg, #2a0a0a 0%, #3d1111 25%, #5c1a1a 50%, #3d1111 75%, #2a0a0a 100%);
+            border: 2px solid rgba(255, 71, 87, 0.3);
+        }
+        .verdict-card.uncertain {
+            background: linear-gradient(145deg, #2a2000 0%, #3d2e00 25%, #5c4400 50%, #3d2e00 75%, #2a2000 100%);
+            border: 2px solid rgba(255, 165, 2, 0.3);
+        }
+
+        /* Glow overlay */
+        .verdict-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.03) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        /* Noise texture */
+        .verdict-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+
+        /* Brand header */
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0.7;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .brand-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #6C5CE7, #00d4ff);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 16px;
+        }
+
+        /* Verdict emoji */
+        .verdict-emoji {
+            font-size: 72px;
+            line-height: 1;
+            filter: drop-shadow(0 4px 20px rgba(0,0,0,0.3));
+        }
+
+        /* Verdict label */
+        .verdict-label {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            line-height: 1.2;
+        }
+        .authentic .verdict-label { color: var(--green); }
+        .likely_fake .verdict-label { color: var(--red); }
+        .uncertain .verdict-label { color: var(--amber); }
+
+        /* Confidence */
+        .confidence-section {
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .confidence-value {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 8px;
+        }
+        .confidence-value span {
+            font-size: 24px;
+            opacity: 0.6;
+        }
+        .authentic .confidence-value { color: var(--green); }
+        .likely_fake .confidence-value { color: var(--red); }
+        .uncertain .confidence-value { color: var(--amber); }
+
+        .confidence-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+        .authentic .confidence-fill { background: linear-gradient(90deg, var(--green), #7bed9f); }
+        .likely_fake .confidence-fill { background: linear-gradient(90deg, var(--red), #ff6b81); }
+        .uncertain .confidence-fill { background: linear-gradient(90deg, var(--amber), #ffc048); }
+
+        .confidence-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.5;
+            margin-top: 6px;
+        }
+
+        /* Models info */
+        .models-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .model-tag {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: var(--cyan);
+        }
+
+        .model-count {
+            font-size: 13px;
+            opacity: 0.5;
+            font-weight: 500;
+        }
+
+        /* Media type */
+        .media-type {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.4;
+            font-weight: 600;
+        }
+
+        /* Footer */
+        .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            opacity: 0.4;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Divider */
+        .divider {
+            width: 60px;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 1px;
+        }
+
+        /* === SHARE SECTION === */
+        .share-section {
+            width: 100%;
+            max-width: 540px;
+            margin-top: 32px;
+            text-align: center;
+        }
+
+        .share-cta {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .share-cta h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .share-cta p {
+            font-size: 14px;
+            opacity: 0.6;
+            line-height: 1.5;
+        }
+
+        .share-cta .tag {
+            color: var(--cyan);
+            font-weight: 600;
+        }
+
+        .mode-toggle {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .mode-btn {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px;
+            padding: 8px 16px;
+            color: var(--white);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mode-btn:hover { background: rgba(255,255,255,0.1); }
+        .mode-btn.active {
+            background: rgba(0, 212, 255, 0.15);
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .verdict-card { padding: 32px 24px; }
+            .verdict-emoji { font-size: 56px; }
+            .verdict-label { font-size: 22px; }
+            .confidence-value { font-size: 40px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card-wrapper">
+    <div class="verdict-card" id="card">
+        <div class="card-content">
+            <div class="brand">
+                <div class="brand-icon">K</div>
+                KAEVA VERIFY
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="verdict-emoji" id="emoji"></div>
+
+            <div class="verdict-label" id="label"></div>
+
+            <div class="media-type" id="mediaType"></div>
+
+            <div class="confidence-section">
+                <div class="confidence-value" id="confValue"></div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" id="confFill"></div>
+                </div>
+                <div class="confidence-label">Confidence Score</div>
+            </div>
+
+            <div class="models-info" id="models"></div>
+
+            <div class="divider"></div>
+
+            <div class="card-footer">
+                <span id="dateLabel"></span>
+                <span>kaeva.app</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="share-section">
+    <div class="share-cta">
+        <h3>📸 Share This Result</h3>
+        <p>Screenshot this card and share to your Instagram Story!<br>
+        Tag <span class="tag">@kaeva.app</span> for a feature ✨</p>
+
+        <div class="mode-toggle">
+            <button class="mode-btn active" onclick="setMode('square')">Square (Feed)</button>
+            <button class="mode-btn" onclick="setMode('story')">Story (9:16)</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const verdict = (params.get('v') || 'uncertain').toLowerCase();
+    const confidence = parseInt(params.get('c') || '50', 10);
+    const mediaType = (params.get('t') || 'image').toLowerCase();
+    const models = (params.get('m') || '').split(',').filter(Boolean);
+    const date = params.get('d') || new Date().toISOString().slice(0, 10);
+
+    const config = {
+        authentic: {
+            emoji: '✅',
+            label: 'Verified Authentic',
+            ogTitle: 'Kaeva Verify — AUTHENTIC',
+        },
+        likely_fake: {
+            emoji: '⚠️',
+            label: 'Likely AI-Generated',
+            ogTitle: 'Kaeva Verify — LIKELY FAKE',
+        },
+        uncertain: {
+            emoji: '🔍',
+            label: 'Inconclusive',
+            ogTitle: 'Kaeva Verify — INCONCLUSIVE',
+        }
+    };
+
+    const c = config[verdict] || config.uncertain;
+
+    // Render card
+    const card = document.getElementById('card');
+    card.classList.add(verdict);
+
+    document.getElementById('emoji').textContent = c.emoji;
+    document.getElementById('label').textContent = c.label;
+    document.getElementById('mediaType').textContent = mediaType + ' analysis';
+    document.getElementById('confValue').innerHTML = confidence + '<span>%</span>';
+    document.getElementById('confFill').style.width = confidence + '%';
+    document.getElementById('dateLabel').textContent = 'Analyzed ' + date;
+
+    // Models
+    const modelsEl = document.getElementById('models');
+    if (models.length > 0) {
+        models.forEach(m => {
+            const tag = document.createElement('span');
+            tag.className = 'model-tag';
+            tag.textContent = m.trim();
+            modelsEl.appendChild(tag);
+        });
+    }
+    const countEl = document.createElement('span');
+    countEl.className = 'model-count';
+    countEl.textContent = (models.length || 3) + ' AI models used';
+    modelsEl.appendChild(countEl);
+
+    // OG tags
+    document.getElementById('og-title').content = c.ogTitle;
+    document.getElementById('tw-title').content = c.ogTitle;
+    const desc = `AI analysis: ${confidence}% confidence using ${models.length || 3} models`;
+    document.getElementById('og-desc').content = desc;
+    document.getElementById('tw-desc').content = desc;
+    document.getElementById('og-url').content = window.location.href;
+    document.title = c.ogTitle;
+
+    // Mode toggle
+    function setMode(mode) {
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        if (mode === 'story') {
+            card.classList.add('story');
+        } else {
+            card.classList.remove('story');
+        }
+    }
+</script>
+
+</body>
+</html>
