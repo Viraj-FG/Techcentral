@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analyze - Kaeva Deepfake News Checker</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header class="page-header">
+      <a href="/static/index.html" class="logo-small">KAEVA</a>
+    </header>
+
+    <main class="analyze-page">
+      <h2>What do you want to check?</h2>
+
+      <form id="analyzeForm" class="analyze-form">
+        <div class="input-group">
+          <label for="claim">Claim or Headline</label>
+          <textarea id="claim" name="claim" rows="4" placeholder="e.g. &quot;Scientists discover coffee cures cancer&quot; or paste a news headline..."></textarea>
+          <span class="char-count"><span id="charCount">0</span> / 5000</span>
+        </div>
+
+        <div class="input-group">
+          <label>Upload Media (optional)</label>
+          <div id="dropzone" class="dropzone">
+            <div class="dropzone-content">
+              <span class="dropzone-icon">&#128206;</span>
+              <p>Drag &amp; drop an image or video here</p>
+              <p class="dropzone-hint">or click to browse. JPG, PNG, WEBP, MP4, WEBM (max 50MB)</p>
+            </div>
+            <input type="file" id="mediaInput" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" hidden>
+          </div>
+          <div id="filePreview" class="file-preview" hidden>
+            <span id="fileName"></span>
+            <span id="fileSize"></span>
+            <button type="button" id="removeFile" class="btn-text">Remove</button>
+          </div>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn btn-primary btn-full">Analyze</button>
+      </form>
+
+      <!-- Progress section (hidden until analysis starts) -->
+      <div id="progressSection" class="progress-section" hidden>
+        <h3>Analyzing...</h3>
+        <div class="progress-bar-wrapper">
+          <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+        </div>
+        <p id="progressText" class="progress-text">Starting analysis...</p>
+      </div>
+
+      <!-- Error display -->
+      <div id="errorSection" class="error-section" hidden>
+        <p id="errorText"></p>
+        <button type="button" id="retryBtn" class="btn btn-secondary">Try Again</button>
+      </div>
+    </main>
+  </div>
+
+  <script src="/static/js/upload.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

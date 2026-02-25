@@ -21,7 +21,7 @@
     "persona": "coder",
     "asins": ["B09LJWSRQT", "B09HM94VDS", "B0BSGH4L1N", "B07YGZ7C1K"],
     "totalPrice": "$470",
-    "description": "Level up your dev workflow: Logitech MX Mechanical Mini keyboard ($130), MX Master 3S mouse ($90), UGREEN USB-C hub ($20), and LG 34-inch ultrawide monitor ($450). Multi-device switching lets you code across machines seamlessly. Note: Mix and match if over budget."
+    "description": "Level up your dev workflow: Logitech MX Mechanical Mini keyboard ($130), MX Master 3S mouse ($90), UGREEN USB-C hub ($20), and LG 34-inch ultrawide monitor ($450). Multi-device switching lets you code across machines seamlessly."
   },
   {
     "name": "Maker & Tinkerer Starter Pack",
@@ -38,5 +38,45 @@
     "asins": ["B0B3LMQVTF", "B0BX2L8PBT"],
     "totalPrice": "$488",
     "description": "Transform your WFH space: FEZIBO electric standing desk ($190) with built-in drawer for a clean setup, and Sony WH-1000XM5 noise-cancelling headphones ($298) to block out distractions. Ergonomic and focused."
+  },
+  {
+    "name": "Pro Gamer Ultimate Setup",
+    "budget": "$2500",
+    "persona": "gamer",
+    "asins": ["B0DGZLHN8G", "B0B2P15YZW", "B0CV26XVMD", "B0DVZG36J8"],
+    "totalPrice": "$1799.96",
+    "description": "Dominate the competition: SteelSeries Apex Pro TKL Gen 3 keyboard, DAREU Sakura Pink gaming mouse, ASUS ROG Swift 32-inch 4K OLED monitor, and Elgato Facecam 4K. Everything a pro gamer needs for precision, performance, and streaming."
+  },
+  {
+    "name": "AI Developer Powerhouse",
+    "budget": "$15000",
+    "persona": "ai-ml",
+    "asins": ["B0F7Y644FQ", "B0FS1ZQMXG", "B0CGW1FQV4"],
+    "totalPrice": "$13189.97",
+    "description": "Built for machine learning engineers and data scientists: NVIDIA RTX PRO 6000 Blackwell GPU, Surface Pro 12 Docking Station Hub, and Crucial X9 1TB Portable SSD for unmatched performance and storage."
+  },
+  {
+    "name": "Streamer's Dream Setup",
+    "budget": "$800",
+    "persona": "streamer",
+    "asins": ["B0CP7QXWPN", "B0DVZG36J8", "B0CYQ5P6T7"],
+    "totalPrice": "$579.97",
+    "description": "Elevate your streams: Hollyland Lark M2 wireless microphone, Elgato Facecam 4K, and EMEET S600 4K webcam. Pro-level audio and video quality for content creators who demand the best."
+  },
+  {
+    "name": "Home Office Productivity Boost",
+    "budget": "$800",
+    "persona": "home-office",
+    "asins": ["B0G3WW84WD", "B0FS1ZQMXG", "B0DBQ4JX85"],
+    "totalPrice": "$739.97",
+    "description": "Transform your home office: Anwick 55-inch Electric Standing Desk, Surface Pro 12 Docking Station Hub, and OffiGo 63-inch L Shaped Electric Standing Desk for a spacious, organized, and ergonomic workspace."
+  },
+  {
+    "name": "Student Coder Kit",
+    "budget": "$300",
+    "persona": "student",
+    "asins": ["B0G4PSBHBJ", "B0D3LMGSLF", "B0BT9L688F"],
+    "totalPrice": "$199.97",
+    "description": "Perfect for budding programmers: YIVU Unibody Split Mechanical Keyboard, 7in1 USB C Hub, and BESIGN LSX7 Laptop Stand for a comfortable, portable, and efficient coding setup."
   }
 ]

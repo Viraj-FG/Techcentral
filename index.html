@@ -68,12 +68,12 @@
             <div class="gradient-orb orb-3"></div>
         </div>
         <div class="parallax-layer layer-floaters" data-speed="0.08">
-            <div class="floater f1">⚡</div>
-            <div class="floater f2">🔧</div>
-            <div class="floater f3">💎</div>
-            <div class="floater f4">🚀</div>
-            <div class="floater f5">⭐</div>
-            <div class="floater f6">🎯</div>
+            <div class="floater f1" role="img" aria-hidden="true">⚡</div>
+            <div class="floater f2" role="img" aria-hidden="true">🔧</div>
+            <div class="floater f3" role="img" aria-hidden="true">💎</div>
+            <div class="floater f4" role="img" aria-hidden="true">🚀</div>
+            <div class="floater f5" role="img" aria-hidden="true">⭐</div>
+            <div class="floater f6" role="img" aria-hidden="true">🎯</div>
         </div>
     </div>
 
@@ -96,11 +96,11 @@
             <div class="nav-actions">
                 <button class="setup-bag-btn" id="setup-bag-btn" onclick="toggleSetupBag()" aria-label="My Setup">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-                    <span class="setup-count" id="setup-count">0</span>
+                    <span class="setup-count" id="setup-count" aria-live="polite">0</span>
                 </button>
                 <button class="compare-bag-btn" id="compare-bag-btn" onclick="openCompareModal()" aria-label="Compare">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/></svg>
-                    <span class="compare-count" id="compare-count">0</span>
+                    <span class="compare-count" id="compare-count" aria-live="polite">0</span>
                 </button>
             </div>
             <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle mobile menu">
@@ -187,7 +187,7 @@
             <div class="container">
                 <div class="stats-grid">
                     <div class="stat-item">
-                        <span class="stat-num counter" data-target="82">0</span>
+                        <span class="stat-num counter" data-target="107">0</span>
                         <span class="stat-label">Products Curated</span>
                     </div>
                     <div class="stat-divider"></div>
