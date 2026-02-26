@@ -320,5 +320,34 @@ export async function onRequest(context) {
     const result = await extractText(mediaUrl);
     return jsonResponse(result || { error: 'OCR failed' });
   }
+  // === RunPod V1 Detection API Proxy ===
+  const RUNPOD_API = 'https://v28cwciztzl9eq-19123.proxy.runpod.net';
+  if (path.startsWith('/api/v1/detect/') || path === '/api/v1/models') {
+    try {
+      const proxyUrl = RUNPOD_API + path;
+      const proxyHeaders = new Headers();
+      // Forward content-type for multipart uploads
+      const ct = request.headers.get('content-type');
+      if (ct) proxyHeaders.set('content-type', ct);
+
+      const proxyResp = await fetch(proxyUrl, {
+        method: request.method,
+        headers: proxyHeaders,
+        body: request.method !== 'GET' ? request.body : undefined,
+      });
+      const data = await proxyResp.text();
+      return new Response(data, {
+        status: proxyResp.status,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
+        },
+      });
+    } catch (e) {
+      return jsonResponse({ error: 'Detection API unavailable', detail: e.message }, 502);
+    }
+  }
   return env.ASSETS.fetch(request);
 }
