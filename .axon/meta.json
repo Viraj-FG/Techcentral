@@ -1,0 +1,16 @@
+{
+  "version": "0.2.3",
+  "name": "workspace-wolfie",
+  "path": "C:\\Users\\12066\\.openclaw\\workspace-wolfie",
+  "stats": {
+    "files": 15,
+    "symbols": 84,
+    "relationships": 193,
+    "clusters": 11,
+    "flows": 1,
+    "dead_code": 44,
+    "coupled_pairs": 0,
+    "embeddings": 99
+  },
+  "last_indexed_at": "2026-02-25T03:46:10.379707+00:00"
+}

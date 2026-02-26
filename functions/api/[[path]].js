@@ -79,7 +79,7 @@ async function geminiFactCheck(claim, accessToken, mediaResult) {
     sourcePriorityText += `TIER ${tier.replace('tier','')}: ${data.label}\n`;
   }
   let prompt = `You are Kaeva, an AI fact-checker. Fact-check: "${claim}"\n\n${sourcePriorityText}`;
-  if (mediaResult?.authenticityScore !== null) {
+  if (mediaResult && mediaResult.authenticityScore !== null) {
     prompt += `\nMedia: ${mediaResult.type}, authenticity ${(mediaResult.authenticityScore*100).toFixed(1)}%, verdict ${mediaResult.verdict}\n`;
   }
   prompt += `\nAt the END, include:\n\`\`\`json\n{"verdict":"TRUE|FALSE|MOSTLY_TRUE|MOSTLY_FALSE|MISLEADING|UNVERIFIED|SATIRE|OPINION","confidence":0.0-1.0,"explanation":"...","sources":[{"url":"...","title":"...","stance":"supports|contradicts|neutral"}]}\n\`\`\``;
@@ -273,8 +273,18 @@ export async function onRequest(context) {
     const platform = body.platform || 'clean';
     if (!claim && !mediaUrl) return jsonResponse({ error: 'Provide claim or mediaUrl' }, 400);
     const analysisId = crypto.randomUUID();
-    context.waitUntil(runPipeline(analysisId, claim, mediaUrl, platform, env));
-    return jsonResponse({ analysisId, status: 'processing' }, 202);
+    const isAsync = body.async === true;
+    if (isAsync) {
+      context.waitUntil(runPipeline(analysisId, claim, mediaUrl, platform, env));
+      return jsonResponse({ analysisId, status: 'processing' }, 202);
+    }
+    // Synchronous — run and return result directly
+    const result = await runPipeline(analysisId, claim, mediaUrl, platform, env);
+    if (!result) {
+      const entry = analyses.get(analysisId);
+      return jsonResponse({ error: 'Pipeline failed', detail: entry?.error || 'unknown' }, 500);
+    }
+    return jsonResponse(result);
   }
   const statusMatch = path.match(/^\/api\/status\/(.+)$/);
   if (statusMatch && request.method === 'GET') {

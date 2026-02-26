@@ -1,0 +1,5 @@
+.axon
+.git
+node_modules
+memory
+.wrangler
