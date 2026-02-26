@@ -3,7 +3,7 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://*.amazon-adsystem.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://m.media-amazon.com https://images.unsplash.com data:; connect-src 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://*.amazon-adsystem.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://m.media-amazon.com https://images.unsplash.com data:; connect-src 'self' https://*.proxy.runpod.net; frame-ancestors 'none'
   Cache-Control: public, max-age=0, must-revalidate
 
 /assets/*
